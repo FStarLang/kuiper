@@ -46,6 +46,7 @@ let tag (e:expr) : string =
   | EProj _    -> "a projection"       | EDiscrim _ -> "a discriminator"
   | ECoerce _  -> "a coercion"         | ECast _    -> "a cast"
   | EAny       -> "an arbitrary value" | EAbort _   -> "an abort"
+  | ESizeof _  -> "a sizeof"
   | EOp _      -> "a primitive operation" | EWhile _ -> "a while"
   | ERaise _   -> "a raise"            | ETry _     -> "a try"
 
@@ -142,31 +143,16 @@ let rec elements (e:expr) : ML (list expr) =
     else die "Prims.Nil or Prims.Cons" e
   | _ -> die "a list literal" e
 
-(* The C byte size of a type, when it is a scalar or a pointer. *)
-let sizeof_cty (t:cty) : ML (option int) =
-  match t with
-  | TInt (_, W8) -> Some 1
-  | TInt (_, W16) -> Some 2
-  | TInt (_, W32) -> Some 4
-  | TInt (_, W64) -> Some 8
-  | TInt (_, WSizet) -> Some (if Options.custard_sizet_32 () then 4 else 8)
-  | TFloat Float16 | TFloat BFloat16 -> Some 2
-  | TFloat Float32 -> Some 4
-  | TFloat Float64 -> Some 8
-  | TBuf _ | TRef _ -> Some 8
-  | TApp ({ ns = []; id = "half" }, [])
-  | TApp ({ ns = []; id = "__nv_bfloat16" }, []) -> Some 2
-  | _ -> None
-
-(* The element size, from a [Kuiper.Sized.sized] dictionary when it is a
-   literal, otherwise from the element type. *)
+(* The element size: [sizeof(T)] for the element type, as the old plugin
+   printed it.  An element type with no C spelling falls back to the [size]
+   field of a literal [Kuiper.Sized.sized] dictionary. *)
 let elem_size (sized:expr) (elt:cty) : ML expr =
-  match (strip sized).e with
-  | ERecord _ | ECtor _ -> field ["size"] 0 sized
-  | _ ->
-    match sizeof_cty elt with
-    | Some n -> uconst n
-    | None -> die ("a sized dictionary (element type " ^ show elt ^ ")") sized
+  match elt with
+  | TAny | TUnit | TArrow _ | TExn ->
+    (match (strip sized).e with
+     | ERecord _ | ECtor _ -> field ["size"] 0 sized
+     | _ -> die ("a sized dictionary (element type " ^ show elt ^ ")") sized)
+  | _ -> mk (ESizeof elt) usize E_Pure
 
 (* Free variables, with their types, in order of first occurrence. *)
 let rec pvars (p:pat) : ML (list string) =
@@ -193,7 +179,7 @@ let rec fvs (bound:list string) (e:expr) : ML (list (string & cty)) =
     List.collect (fun ((p, g, b) : branch) ->
       let bound = pvars p @ bound in
       (match g with Some ge -> fvs bound ge | None -> []) @ fvs bound b) brs
-  | EConst _ | EQual _ | EAny | EAbort _ -> []
+  | EConst _ | EQual _ | EAny | EAbort _ | ESizeof _ -> []
 
 let free_vars (bound:list string) (e:expr) : ML (list (string & cty)) =
   BU.remove_dups (fun (a, _) (b, _) -> a = b) (fvs bound e)
@@ -232,7 +218,7 @@ let rec subst (x:string) (v:expr) (e:expr) : ML expr =
     re (ETry (s sc, List.map (fun ((p, g, b) : branch) ->
                   if List.mem x (pvars p) then (p, g, b)
                   else (p, (match g with Some g -> Some (s g) | None -> None), s b)) brs))
-  | EConst _ | EQual _ | EAny | EAbort _ -> e
+  | EConst _ | EQual _ | EAny | EAbort _ | ESizeof _ -> e
 
 (* The binders and body of a (possibly curried) lambda. *)
 let rec lambda_parts (e:expr) : ML (list binder & expr) =
@@ -375,7 +361,7 @@ let emap (f:expr -> ML expr) (e:expr) : ML expr =
   | ERecord (n, fs) -> re (ERecord (n, List.map (fun (fl, y) -> (fl, f y)) fs))
   | EMatch (sc, brs) -> re (EMatch (f sc, fb brs))
   | ETry (sc, brs) -> re (ETry (f sc, fb brs))
-  | EConst _ | EVar _ | EQual _ | EAny | EAbort _ -> e
+  | EConst _ | EVar _ | EQual _ | EAny | EAbort _ | ESizeof _ -> e
 
 (* Resolve every use of the shared memory tuple [sh] -- projections, and
    matches that destructure it, however deeply nested -- to the arrays

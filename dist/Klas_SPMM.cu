@@ -13,7 +13,8 @@ __hoisted_spmm_u32_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     uint32_t *elems_tile0 = (uint32_t *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint32_t) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -158,7 +159,8 @@ __hoisted_spmm_f32_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -313,7 +315,8 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 4U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(128U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 32U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -460,7 +463,8 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 8U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(128U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 32U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -609,7 +613,8 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 16U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(128U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 32U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -758,7 +763,8 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(128U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 32U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -907,7 +913,8 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(128U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 32U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -1062,7 +1069,8 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 4U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(128U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 32U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -1209,7 +1217,8 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 8U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(128U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 32U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -1358,7 +1367,8 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 16U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(128U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 32U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -1507,7 +1517,8 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(128U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 32U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -1656,7 +1667,8 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(128U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 32U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -1811,7 +1823,8 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(256U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -1960,7 +1973,8 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(256U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -2109,7 +2123,8 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(256U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -2264,7 +2279,8 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(256U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -2419,7 +2435,8 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(256U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -2574,7 +2591,8 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(256U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -2729,7 +2747,8 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(256U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -2884,7 +2903,8 @@ __hoisted_g_spmm_f32_64x512x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(256U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 64U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -3039,7 +3059,8 @@ __hoisted_g_spmm_f32_128x64x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -3188,7 +3209,8 @@ __hoisted_g_spmm_f32_128x64x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -3337,7 +3359,8 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -3492,7 +3515,8 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -3647,7 +3671,8 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -3796,7 +3821,8 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -3945,7 +3971,8 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -4100,7 +4127,8 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -4255,7 +4283,8 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -4410,7 +4439,8 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -4565,7 +4595,8 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -4720,7 +4751,8 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -4875,7 +4907,8 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -5030,7 +5063,8 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(512U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -5185,7 +5219,8 @@ __hoisted_g_spmm_f32_256x64x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -5334,7 +5369,8 @@ __hoisted_g_spmm_f32_256x64x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -5483,7 +5519,8 @@ __hoisted_g_spmm_f32_256x128x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -5638,7 +5675,8 @@ __hoisted_g_spmm_f32_256x128x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -5793,7 +5831,8 @@ __hoisted_g_spmm_f32_256x128x32_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -5942,7 +5981,8 @@ __hoisted_g_spmm_f32_256x128x32_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -6091,7 +6131,8 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -6246,7 +6287,8 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -6401,7 +6443,8 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -6556,7 +6599,8 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -6711,7 +6755,8 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -6860,7 +6905,8 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -7009,7 +7055,8 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -7164,7 +7211,8 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -7319,7 +7367,8 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -7474,7 +7523,8 @@ __hoisted_g_spmm_f32_256x512x32_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -7629,7 +7679,8 @@ __hoisted_g_spmm_f32_256x512x64_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -7784,7 +7835,8 @@ __hoisted_g_spmm_f32_256x512x64_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(1024U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -7939,7 +7991,8 @@ __hoisted_g_spmm_f32_512x64x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -8088,7 +8141,8 @@ __hoisted_g_spmm_f32_512x64x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -8237,7 +8291,8 @@ __hoisted_g_spmm_f32_512x128x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -8392,7 +8447,8 @@ __hoisted_g_spmm_f32_512x128x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -8547,7 +8603,8 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -8696,7 +8753,8 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -8845,7 +8903,8 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -9000,7 +9059,8 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -9155,7 +9215,8 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -9310,7 +9371,8 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -9465,7 +9527,8 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -9614,7 +9677,8 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 256U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -9763,7 +9827,8 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -9918,7 +9983,8 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -10073,7 +10139,8 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -10228,7 +10295,8 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -10383,7 +10451,8 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -10538,7 +10607,8 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -10693,7 +10763,8 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -10843,7 +10914,8 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t *row_indices, uint32_t rows,
     uint32_t m_idx = row_indices[blockIdx.x % rows];
     uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
     float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 = (uint32_t *) KPR_SHMEM_AT(2048U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
     uint32_t ri = gA.row_off[m_idx];
     uint32_t re = gA.row_off[m_idx + 1U];
     uint32_t ri_ = ri / 4U * 4U;
@@ -10990,10 +11062,19 @@ void Klas_SPMM_spmm_u32(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS((uint32_t) sizeof(uint32_t) * 128U +
+                   (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(uint32_t) * 128U +
+            (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_spmm_u32_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(uint32_t) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_spmm_u32_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 1024U, s,
-        row_indices, rows, gA, cols, gB, gC);
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U,
+        (uint32_t) sizeof(uint32_t) * 128U + (uint32_t) sizeof(uint32_t) * 128U,
+        s, row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -11006,9 +11087,17 @@ void Klas_SPMM_spmm_f32(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_spmm_f32_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_spmm_f32_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 4096U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11022,9 +11111,17 @@ void Klas_SPMM_g_spmm_f32_32x4x1(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(256U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U);
+    if ((uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x4x1_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 32U +
+                (uint32_t) sizeof(uint32_t) * 32U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x4x1_0,
-        rows * (cols / 4U + (uint32_t) (cols % 4U != 0U)), 1U, 256U, s,
+        rows * (cols / 4U + (uint32_t) (cols % 4U != 0U)), 1U,
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11038,9 +11135,17 @@ void Klas_SPMM_g_spmm_f32_32x8x2(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(256U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U);
+    if ((uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x8x2_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 32U +
+                (uint32_t) sizeof(uint32_t) * 32U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x8x2_0,
-        rows * (cols / 8U + (uint32_t) (cols % 8U != 0U)), 2U, 256U, s,
+        rows * (cols / 8U + (uint32_t) (cols % 8U != 0U)), 2U,
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11054,9 +11159,17 @@ void Klas_SPMM_g_spmm_f32_32x16x4(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(256U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U);
+    if ((uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x16x4_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 32U +
+                (uint32_t) sizeof(uint32_t) * 32U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x16x4_0,
-        rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)), 4U, 256U, s,
+        rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)), 4U,
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11070,9 +11183,17 @@ void Klas_SPMM_g_spmm_f32_32x32x8(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(256U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U);
+    if ((uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x32x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 32U +
+                (uint32_t) sizeof(uint32_t) * 32U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x32x8_0,
-        rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)), 8U, 256U, s,
+        rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)), 8U,
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11086,9 +11207,17 @@ void Klas_SPMM_g_spmm_f32_32x64x8(uint32_t rows, uint32_t shared, uint32_t cols,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(256U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U);
+    if ((uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x64x8_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 32U +
+                (uint32_t) sizeof(uint32_t) * 32U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x64x8_0,
-        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 8U, 256U, s,
+        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 8U,
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11101,9 +11230,17 @@ void Klas_SPMM_g_spmm_f32_32x4x1_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(256U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U);
+    if ((uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x4x1_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 32U +
+                (uint32_t) sizeof(uint32_t) * 32U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x4x1_on_0,
-        rows * (cols / 4U + (uint32_t) (cols % 4U != 0U)), 1U, 256U, s,
+        rows * (cols / 4U + (uint32_t) (cols % 4U != 0U)), 1U,
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11114,9 +11251,17 @@ void Klas_SPMM_g_spmm_f32_32x8x2_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(256U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U);
+    if ((uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x8x2_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 32U +
+                (uint32_t) sizeof(uint32_t) * 32U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x8x2_on_0,
-        rows * (cols / 8U + (uint32_t) (cols % 8U != 0U)), 2U, 256U, s,
+        rows * (cols / 8U + (uint32_t) (cols % 8U != 0U)), 2U,
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11127,9 +11272,17 @@ void Klas_SPMM_g_spmm_f32_32x16x4_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(256U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U);
+    if ((uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x16x4_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 32U +
+                (uint32_t) sizeof(uint32_t) * 32U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x16x4_on_0,
-        rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)), 4U, 256U, s,
+        rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)), 4U,
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11140,9 +11293,17 @@ void Klas_SPMM_g_spmm_f32_32x32x8_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(256U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U);
+    if ((uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x32x8_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 32U +
+                (uint32_t) sizeof(uint32_t) * 32U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x32x8_on_0,
-        rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)), 8U, 256U, s,
+        rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)), 8U,
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11153,9 +11314,17 @@ void Klas_SPMM_g_spmm_f32_32x64x8_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(256U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U);
+    if ((uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_32x64x8_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 32U +
+                (uint32_t) sizeof(uint32_t) * 32U));
     KPR_KCALL(__hoisted_g_spmm_f32_32x64x8_on_0,
-        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 8U, 256U, s,
+        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 8U,
+        (uint32_t) sizeof(float) * 32U + (uint32_t) sizeof(uint32_t) * 32U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11167,9 +11336,17 @@ void Klas_SPMM_g_spmm_f32_64x64x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(512U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U);
+    if ((uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x64x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 64U +
+                (uint32_t) sizeof(uint32_t) * 64U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x64x16_0,
-        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 512U, s,
+        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11182,9 +11359,17 @@ void Klas_SPMM_g_spmm_f32_64x64x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(512U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U);
+    if ((uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x64x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 64U +
+                (uint32_t) sizeof(uint32_t) * 64U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x64x16_on_0,
-        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 512U, s,
+        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11196,9 +11381,17 @@ void Klas_SPMM_g_spmm_f32_64x128x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(512U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U);
+    if ((uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x128x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 64U +
+                (uint32_t) sizeof(uint32_t) * 64U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x128x16_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 512U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11211,9 +11404,17 @@ void Klas_SPMM_g_spmm_f32_64x128x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(512U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U);
+    if ((uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x128x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 64U +
+                (uint32_t) sizeof(uint32_t) * 64U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x128x16_on_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 512U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11225,9 +11426,17 @@ void Klas_SPMM_g_spmm_f32_64x256x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(512U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U);
+    if ((uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x256x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 64U +
+                (uint32_t) sizeof(uint32_t) * 64U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x256x16_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 512U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11240,9 +11449,17 @@ void Klas_SPMM_g_spmm_f32_64x256x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(512U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U);
+    if ((uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x256x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 64U +
+                (uint32_t) sizeof(uint32_t) * 64U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x256x16_on_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 512U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11254,9 +11471,17 @@ void Klas_SPMM_g_spmm_f32_64x512x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(512U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U);
+    if ((uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x512x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 64U +
+                (uint32_t) sizeof(uint32_t) * 64U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x512x16_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 512U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11269,9 +11494,17 @@ void Klas_SPMM_g_spmm_f32_64x512x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(512U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U);
+    if ((uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_64x512x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 64U +
+                (uint32_t) sizeof(uint32_t) * 64U));
     KPR_KCALL(__hoisted_g_spmm_f32_64x512x16_on_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 512U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 64U + (uint32_t) sizeof(uint32_t) * 64U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11283,9 +11516,17 @@ void Klas_SPMM_g_spmm_f32_128x64x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x64x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x64x16_0,
-        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 1024U, s,
+        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11298,9 +11539,17 @@ void Klas_SPMM_g_spmm_f32_128x64x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x64x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x64x16_on_0,
-        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 1024U, s,
+        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11312,9 +11561,17 @@ void Klas_SPMM_g_spmm_f32_128x128x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x128x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x16_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 1024U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11327,9 +11584,17 @@ void Klas_SPMM_g_spmm_f32_128x128x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x128x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x16_on_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 1024U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11341,9 +11606,17 @@ void Klas_SPMM_g_spmm_f32_128x128x32(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x128x32_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x32_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 1024U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11356,9 +11629,17 @@ void Klas_SPMM_g_spmm_f32_128x128x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x128x32_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x32_on_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 1024U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11370,9 +11651,17 @@ void Klas_SPMM_g_spmm_f32_128x256x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x256x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x16_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 1024U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11385,9 +11674,17 @@ void Klas_SPMM_g_spmm_f32_128x256x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x256x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x16_on_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 1024U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11399,9 +11696,17 @@ void Klas_SPMM_g_spmm_f32_128x256x32(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x256x32_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x32_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 1024U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11414,9 +11719,17 @@ void Klas_SPMM_g_spmm_f32_128x256x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x256x32_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x32_on_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 1024U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11428,9 +11741,17 @@ void Klas_SPMM_g_spmm_f32_128x512x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x512x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x16_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 1024U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11443,9 +11764,17 @@ void Klas_SPMM_g_spmm_f32_128x512x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x512x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x16_on_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 1024U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11457,9 +11786,17 @@ void Klas_SPMM_g_spmm_f32_128x512x32(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x512x32_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x32_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 1024U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11472,9 +11809,17 @@ void Klas_SPMM_g_spmm_f32_128x512x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(1024U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U);
+    if ((uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_128x512x32_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 128U +
+                (uint32_t) sizeof(uint32_t) * 128U));
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x32_on_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 1024U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 128U + (uint32_t) sizeof(uint32_t) * 128U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11486,9 +11831,17 @@ void Klas_SPMM_g_spmm_f32_256x64x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x64x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x64x16_0,
-        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 2048U, s,
+        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11501,9 +11854,17 @@ void Klas_SPMM_g_spmm_f32_256x64x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x64x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x64x16_on_0,
-        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 2048U, s,
+        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11515,9 +11876,17 @@ void Klas_SPMM_g_spmm_f32_256x128x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x128x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x16_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 2048U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11530,9 +11899,17 @@ void Klas_SPMM_g_spmm_f32_256x128x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x128x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x16_on_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 2048U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11544,9 +11921,17 @@ void Klas_SPMM_g_spmm_f32_256x128x32(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x128x32_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x32_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 2048U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11559,9 +11944,17 @@ void Klas_SPMM_g_spmm_f32_256x128x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x128x32_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x32_on_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 2048U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11573,9 +11966,17 @@ void Klas_SPMM_g_spmm_f32_256x256x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x256x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x16_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 2048U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11588,9 +11989,17 @@ void Klas_SPMM_g_spmm_f32_256x256x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x256x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x16_on_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 2048U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11602,9 +12011,17 @@ void Klas_SPMM_g_spmm_f32_256x256x32(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x256x32_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x32_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 2048U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11617,9 +12034,17 @@ void Klas_SPMM_g_spmm_f32_256x256x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x256x32_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x32_on_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 2048U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11631,9 +12056,17 @@ void Klas_SPMM_g_spmm_f32_256x256x64(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x256x64_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x64_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U, 2048U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11646,9 +12079,17 @@ void Klas_SPMM_g_spmm_f32_256x256x64_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x256x64_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x64_on_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U, 2048U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11660,9 +12101,17 @@ void Klas_SPMM_g_spmm_f32_256x512x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x512x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x16_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 2048U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11675,9 +12124,17 @@ void Klas_SPMM_g_spmm_f32_256x512x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x512x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x16_on_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 2048U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11689,9 +12146,17 @@ void Klas_SPMM_g_spmm_f32_256x512x32(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x512x32_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x32_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 2048U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11704,9 +12169,17 @@ void Klas_SPMM_g_spmm_f32_256x512x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x512x32_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x32_on_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 2048U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11718,9 +12191,17 @@ void Klas_SPMM_g_spmm_f32_256x512x64(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x512x64_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x64_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 2048U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11733,9 +12214,17 @@ void Klas_SPMM_g_spmm_f32_256x512x64_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(2048U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U);
+    if ((uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_256x512x64_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 256U +
+                (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x64_on_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 2048U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U,
+        (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(uint32_t) * 256U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11747,9 +12236,17 @@ void Klas_SPMM_g_spmm_f32_512x64x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x64x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x64x16_0,
-        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 4096U, s,
+        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11762,9 +12259,17 @@ void Klas_SPMM_g_spmm_f32_512x64x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x64x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x64x16_on_0,
-        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 4096U, s,
+        rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11776,9 +12281,17 @@ void Klas_SPMM_g_spmm_f32_512x128x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x128x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x16_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 4096U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11791,9 +12304,17 @@ void Klas_SPMM_g_spmm_f32_512x128x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x128x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x16_on_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 4096U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11805,9 +12326,17 @@ void Klas_SPMM_g_spmm_f32_512x128x32(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x128x32_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x32_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 4096U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11820,9 +12349,17 @@ void Klas_SPMM_g_spmm_f32_512x128x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x128x32_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x32_on_0,
-        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 4096U, s,
+        rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11834,9 +12371,17 @@ void Klas_SPMM_g_spmm_f32_512x256x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x256x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x16_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 4096U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11849,9 +12394,17 @@ void Klas_SPMM_g_spmm_f32_512x256x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x256x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x16_on_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 4096U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11863,9 +12416,17 @@ void Klas_SPMM_g_spmm_f32_512x256x32(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x256x32_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x32_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 4096U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11878,9 +12439,17 @@ void Klas_SPMM_g_spmm_f32_512x256x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x256x32_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x32_on_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 4096U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11892,9 +12461,17 @@ void Klas_SPMM_g_spmm_f32_512x256x64(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x256x64_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x64_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U, 4096U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11907,9 +12484,17 @@ void Klas_SPMM_g_spmm_f32_512x256x64_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x256x64_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x64_on_0,
-        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U, 4096U, s,
+        rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11921,9 +12506,17 @@ void Klas_SPMM_g_spmm_f32_512x512x16(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x16_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x16_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 4096U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11936,9 +12529,17 @@ void Klas_SPMM_g_spmm_f32_512x512x16_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x16_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x16_on_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 4096U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11950,9 +12551,17 @@ void Klas_SPMM_g_spmm_f32_512x512x32(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x32_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x32_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 4096U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11965,9 +12574,17 @@ void Klas_SPMM_g_spmm_f32_512x512x32_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x32_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x32_on_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 4096U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -11979,9 +12596,17 @@ void Klas_SPMM_g_spmm_f32_512x512x64(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x64_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x64_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 4096U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -11994,9 +12619,17 @@ void Klas_SPMM_g_spmm_f32_512x512x64_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x64_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x64_on_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 4096U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
@@ -12008,9 +12641,17 @@ void Klas_SPMM_g_spmm_f32_512x512x128(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x128_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x128_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 128U, 4096U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 128U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -12023,9 +12664,17 @@ void Klas_SPMM_g_spmm_f32_512x512x128_on(uint32_t rows, uint32_t shared,
     KPR_GUARD(rows < 10000U);
     KPR_GUARD(shared < 10000U);
     KPR_GUARD(cols < 10000U);
-    KPR_SHMEM_FITS(4096U);
+    KPR_SHMEM_FITS(
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U);
+    if ((uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U >=
+        49152U)
+        MUST(cudaFuncSetAttribute(__hoisted_g_spmm_f32_512x512x128_on_0,
+            cudaFuncAttributeMaxDynamicSharedMemorySize,
+            (uint32_t) sizeof(float) * 512U +
+                (uint32_t) sizeof(uint32_t) * 512U));
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x128_on_0,
-        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 128U, 4096U, s,
+        rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 128U,
+        (uint32_t) sizeof(float) * 512U + (uint32_t) sizeof(uint32_t) * 512U, s,
         row_indices, rows, gA, cols, gB, gC);
 }
 
