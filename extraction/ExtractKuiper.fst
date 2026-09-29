@@ -906,6 +906,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float32.Base.rsqrt", [], [] -> EQualified ([], "rsqrtf")
   | "Kuiper.Float32.Base.sin",   [], [] -> EQualified ([], "sinf")
   | "Kuiper.Float32.Base.cos",   [], [] -> EQualified ([], "cosf")
+  | "Kuiper.Float32.FastMath.sin", [], [] -> EQualified ([], "__sinf")
+  | "Kuiper.Float32.FastMath.cos", [], [] -> EQualified ([], "__cosf")
   | "Kuiper.Float32.Base.tan",   [], [] -> EQualified ([], "tanf")
   | "Kuiper.Float32.Base.asin",  [], [] -> EQualified ([], "asinf")
   | "Kuiper.Float32.Base.acos",  [], [] -> EQualified ([], "acosf")
