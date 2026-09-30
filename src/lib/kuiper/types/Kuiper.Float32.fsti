@@ -43,6 +43,24 @@ val log1p_approx
    As for the other floating operations, the trusted real approximation
    contracts do not model rounding, FTZ, or numerical error bounds. *)
 noextract
+fn add_rn_ftz (x y : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr yr : real).
+      v_approximates x xr /\ v_approximates y yr ==>
+      v_approximates result (xr +. yr))
+
+noextract
+fn fma_rn_ftz (x y z : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr yr zr : real).
+      v_approximates x xr /\ v_approximates y yr /\ v_approximates z zr ==>
+      v_approximates result (xr *. yr +. zr))
+
+noextract
 fn mul_rn_ftz (x y : t)
   preserves gpu
   returns result : t

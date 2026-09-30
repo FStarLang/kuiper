@@ -1,6 +1,7 @@
 #include "Kuiper_Example_Float32GPU.h"
 #include <cmath>
 #include <cstring>
+#include <vector>
 
 #define GPU_API(name) Kuiper_Example_Float32GPU_##name
 
@@ -45,6 +46,124 @@ __global__ void reference(float x, float y, float *out)
     out[1] = exponent;
     out[2] = reciprocal;
     out[3] = inverse_root;
+}
+
+__global__ void arithmetic_reference(
+    const float *inputs, float *outputs, uint32_t n)
+{
+    for (uint32_t i = threadIdx.x + blockIdx.x * blockDim.x; i < n;
+        i += blockDim.x * gridDim.x) {
+        float x = inputs[3 * i], y = inputs[3 * i + 1], z = inputs[3 * i + 2];
+        float sum, fused, fx, fy, fz, composed;
+        asm volatile("add.rn.ftz.f32 %0, %1, %2;" : "=f"(sum) : "f"(x), "f"(y));
+        asm volatile("fma.rn.ftz.f32 %0, %1, %2, %3;"
+            : "=f"(fused)
+            : "f"(x), "f"(y), "f"(z));
+        asm volatile("mul.rn.ftz.f32 %0, %1, 0f3f800000;" : "=f"(fx) : "f"(x));
+        asm volatile("mul.rn.ftz.f32 %0, %1, 0f3f800000;" : "=f"(fy) : "f"(y));
+        asm volatile("mul.rn.ftz.f32 %0, %1, 0f3f800000;" : "=f"(fz) : "f"(z));
+        float rounded = __fmaf_rn(fx, fy, fz);
+        asm volatile("mul.rn.ftz.f32 %0, %1, 0f3f800000;"
+            : "=f"(composed)
+            : "f"(rounded));
+        outputs[5 * i] = sum;
+        outputs[5 * i + 1] = fused;
+        outputs[5 * i + 2] = __fadd_rn(x, y);
+        outputs[5 * i + 3] = __fmaf_rn(x, y, z);
+        outputs[5 * i + 4] = composed;
+    }
+}
+
+static void check_arithmetic()
+{
+    const uint32_t special[] = {
+        0,
+        0x80000000,
+        1,
+        0x80000001,
+        0x007fffff,
+        0x807fffff,
+        0x00800000,
+        0x80800000,
+        0x00800001,
+        0x80800001,
+        0x3f7fffff,
+        0xbf7fffff,
+        0x3f800000,
+        0xbf800000,
+        0x3f800001,
+        0xbf800001,
+        0x3eaaaaab,
+        0x7f7fffff,
+        0xff7fffff,
+        0x7f800000,
+        0xff800000,
+        0x7fc00001,
+        0xffc12345,
+        0x7f800001,
+        0xff800001,
+    };
+    // A non-FTZ FMA rounded before flushing produces the smallest normal.
+    std::vector<float> inputs = {
+        from_bits(0x3f7fffff), from_bits(0x00800000), 0.0f};
+    for (uint32_t x : special)
+        for (uint32_t y : special)
+            for (uint32_t z : special) {
+                inputs.push_back(from_bits(x));
+                inputs.push_back(from_bits(y));
+                inputs.push_back(from_bits(z));
+            }
+    uint32_t state = 0x2468ace1;
+    for (uint32_t i = 0; i < 131072 * 3; ++i) {
+        state = state * 1664525u + 1013904223u;
+        inputs.push_back(from_bits(state));
+    }
+    uint32_t n = static_cast<uint32_t>(inputs.size() / 3);
+    std::vector<float> expected(5 * n),
+        actual(2 * n + 2, from_bits(0x7fc12345));
+    std::vector<float> preserved(inputs.size());
+    float *device_inputs, *device_expected, *device_actual;
+    MUST(cudaMalloc(&device_inputs, inputs.size() * sizeof(float)));
+    MUST(cudaMalloc(&device_expected, expected.size() * sizeof(float)));
+    MUST(cudaMalloc(&device_actual, actual.size() * sizeof(float)));
+    MUST(cudaMemcpy(device_inputs, inputs.data(), inputs.size() * sizeof(float),
+        cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(device_actual, actual.data(), actual.size() * sizeof(float),
+        cudaMemcpyHostToDevice));
+    arithmetic_reference<<<128, 128>>>(device_inputs, device_expected, n);
+    MUST(cudaGetLastError());
+    GPU_API(arithmetic)(n, device_inputs, device_actual + 1);
+    MUST(cudaMemcpy(expected.data(), device_expected,
+        expected.size() * sizeof(float), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(actual.data(), device_actual, actual.size() * sizeof(float),
+        cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(preserved.data(), device_inputs,
+        inputs.size() * sizeof(float), cudaMemcpyDeviceToHost));
+    unsigned different[3] = {};
+    for (uint32_t i = 0; i < n; ++i) {
+        check_bits("add.rn.ftz", actual[2 * i + 1], expected[5 * i]);
+        check_bits("fma.rn.ftz", actual[2 * i + 2], expected[5 * i + 1]);
+        different[0] +=
+            to_bits(expected[5 * i]) != to_bits(expected[5 * i + 2]);
+        different[1] +=
+            to_bits(expected[5 * i + 1]) != to_bits(expected[5 * i + 3]);
+        different[2] +=
+            to_bits(expected[5 * i + 1]) != to_bits(expected[5 * i + 4]);
+    }
+    check_bits("FTZ FMA rounds at the underflow boundary", actual[2], 0.0f);
+    check_bits("rounded-before-flushing negative control", expected[4],
+        from_bits(0x00800000));
+    check_bits("leading output guard", actual.front(), from_bits(0x7fc12345));
+    check_bits("trailing output guard", actual.back(), from_bits(0x7fc12345));
+    if (!different[0] || !different[1] || !different[2] ||
+        memcmp(
+            inputs.data(), preserved.data(), inputs.size() * sizeof(float))) {
+        fprintf(stderr, "missing FTZ-sensitive coverage or modified inputs\n");
+        exit(1);
+    }
+    MUST(cudaFree(device_actual));
+    MUST(cudaFree(device_expected));
+    MUST(cudaFree(device_inputs));
 }
 
 int main()
@@ -133,5 +252,6 @@ int main()
     check_bits("inverse root +infinity", GPU_API(inverse_root)(INFINITY), 0.0f);
     check("inverse root negative input", GPU_API(inverse_root)(-1.0f), NAN);
     check("inverse root -infinity", GPU_API(inverse_root)(-INFINITY), NAN);
+    check_arithmetic();
     puts("Float32 GPU checks passed.");
 }
