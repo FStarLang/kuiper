@@ -781,8 +781,8 @@ fn bkf
   (* Decode the page-minor block/thread indices. *)
   let page : szlt batch = bid %^ batch;
   let rest = bid /^ batch;
-  let mrow, mcol = s_divmod mcols rest;
-  let brow, bcol = s_divmod tile  tid;
+  let [@@@inline_let] (mrow, mcol) = s_divmod mcols rest;
+  let [@@@inline_let] (brow, bcol) = s_divmod tile tid;
   assert (pure (SZ.v page == SZ.v bid % batch));
   assert (pure (SZ.v rest == SZ.v bid / batch));
   div_lt_bound (SZ.v bid) (SZ.v batch) (SZ.v mrows * SZ.v mcols);
