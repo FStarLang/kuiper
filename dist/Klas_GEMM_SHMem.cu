@@ -6,33 +6,33 @@ __global__
   hoisted when extracting g_matmul_f32_rrr
 */
 static void
-__hoisted_g_matmul_f32_rrr_0(uint32_t tile, uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC)
+__hoisted_g_matmul_f32_rrr_0(uint32_t tile, float *gA, float *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, float *gC)
 {
     float *ar1 = (float *) KPR_SHMEM_AT(0U);
     float *ar2 = (float *) KPR_SHMEM_AT((uint32_t) sizeof(float) * tile * tile);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
-    uint32_t brow = threadIdx.x / tile;
-    uint32_t bcol = threadIdx.x % tile;
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        float v1 = gA[(tile * mrow + brow) * k + tile * bk + bcol];
-        float v2 = gB[(tile * bk + brow) * n + tile * mcol + bcol];
+        float v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                      tile * bk + threadIdx.x % tile];
+        float v2 = gB[(tile * bk + threadIdx.x / tile) * n +
+                      tile * (blockIdx.x % nn) + threadIdx.x % tile];
         __syncthreads();
-        ar1[brow * tile + bcol] = v1;
-        ar2[brow * tile + bcol] = v2;
+        ar1[threadIdx.x] = v1;
+        ar2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += ar1[brow * tile + vk] * ar2[vk * tile + bcol];
+            sum1 += ar1[threadIdx.x / tile * tile + vk] *
+                    ar2[vk * tile + threadIdx.x % tile];
         }
         sum += sum1;
     }
-    gC[(mrow * tile + brow) * n + mcol * tile + bcol] = sum;
+    gC[(blockIdx.x / nn * tile + threadIdx.x / tile) * n +
+        blockIdx.x % nn * tile + threadIdx.x % tile] = sum;
 }
 
 __global__
@@ -40,34 +40,34 @@ __global__
   hoisted when extracting g_matmul_f64_rrr
 */
 static void
-__hoisted_g_matmul_f64_rrr_0(uint32_t tile, uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC)
+__hoisted_g_matmul_f64_rrr_0(uint32_t tile, double *gA, double *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, double *gC)
 {
     double *ar1 = (double *) KPR_SHMEM_AT(0U);
     double *ar2 =
         (double *) KPR_SHMEM_AT((uint32_t) sizeof(double) * tile * tile);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
-    uint32_t brow = threadIdx.x / tile;
-    uint32_t bcol = threadIdx.x % tile;
     double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        double v1 = gA[(tile * mrow + brow) * k + tile * bk + bcol];
-        double v2 = gB[(tile * bk + brow) * n + tile * mcol + bcol];
+        double v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                       tile * bk + threadIdx.x % tile];
+        double v2 = gB[(tile * bk + threadIdx.x / tile) * n +
+                       tile * (blockIdx.x % nn) + threadIdx.x % tile];
         __syncthreads();
-        ar1[brow * tile + bcol] = v1;
-        ar2[brow * tile + bcol] = v2;
+        ar1[threadIdx.x] = v1;
+        ar2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
         double sum1 = 0.0;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += ar1[brow * tile + vk] * ar2[vk * tile + bcol];
+            sum1 += ar1[threadIdx.x / tile * tile + vk] *
+                    ar2[vk * tile + threadIdx.x % tile];
         }
         sum += sum1;
     }
-    gC[(mrow * tile + brow) * n + mcol * tile + bcol] = sum;
+    gC[(blockIdx.x / nn * tile + threadIdx.x / tile) * n +
+        blockIdx.x % nn * tile + threadIdx.x % tile] = sum;
 }
 
 __global__
@@ -75,34 +75,34 @@ __global__
   hoisted when extracting g_matmul_u32_rrr
 */
 static void
-__hoisted_g_matmul_u32_rrr_0(uint32_t tile, uint32_t nn, uint32_t *gA,
-    uint32_t *gB, uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC)
+__hoisted_g_matmul_u32_rrr_0(uint32_t tile, uint32_t *gA, uint32_t *gB,
+    uint32_t kk, uint32_t nn, uint32_t k, uint32_t n, uint32_t *gC)
 {
     uint32_t *ar1 = (uint32_t *) KPR_SHMEM_AT(0U);
     uint32_t *ar2 =
         (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint32_t) * tile * tile);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
-    uint32_t brow = threadIdx.x / tile;
-    uint32_t bcol = threadIdx.x % tile;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t v1 = gA[(tile * mrow + brow) * k + tile * bk + bcol];
-        uint32_t v2 = gB[(tile * bk + brow) * n + tile * mcol + bcol];
+        uint32_t v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                         tile * bk + threadIdx.x % tile];
+        uint32_t v2 = gB[(tile * bk + threadIdx.x / tile) * n +
+                         tile * (blockIdx.x % nn) + threadIdx.x % tile];
         __syncthreads();
-        ar1[brow * tile + bcol] = v1;
-        ar2[brow * tile + bcol] = v2;
+        ar1[threadIdx.x] = v1;
+        ar2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += ar1[brow * tile + vk] * ar2[vk * tile + bcol];
+            sum1 += ar1[threadIdx.x / tile * tile + vk] *
+                    ar2[vk * tile + threadIdx.x % tile];
         }
         sum += sum1;
     }
-    gC[(mrow * tile + brow) * n + mcol * tile + bcol] = sum;
+    gC[(blockIdx.x / nn * tile + threadIdx.x / tile) * n +
+        blockIdx.x % nn * tile + threadIdx.x % tile] = sum;
 }
 
 __global__
@@ -110,34 +110,34 @@ __global__
   hoisted when extracting g_matmul_u64_rrr
 */
 static void
-__hoisted_g_matmul_u64_rrr_0(uint32_t tile, uint32_t nn, uint64_t *gA,
-    uint64_t *gB, uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC)
+__hoisted_g_matmul_u64_rrr_0(uint32_t tile, uint64_t *gA, uint64_t *gB,
+    uint32_t kk, uint32_t nn, uint32_t k, uint32_t n, uint64_t *gC)
 {
     uint64_t *ar1 = (uint64_t *) KPR_SHMEM_AT(0U);
     uint64_t *ar2 =
         (uint64_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint64_t) * tile * tile);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
-    uint32_t brow = threadIdx.x / tile;
-    uint32_t bcol = threadIdx.x % tile;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint64_t v1 = gA[(tile * mrow + brow) * k + tile * bk + bcol];
-        uint64_t v2 = gB[(tile * bk + brow) * n + tile * mcol + bcol];
+        uint64_t v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                         tile * bk + threadIdx.x % tile];
+        uint64_t v2 = gB[(tile * bk + threadIdx.x / tile) * n +
+                         tile * (blockIdx.x % nn) + threadIdx.x % tile];
         __syncthreads();
-        ar1[brow * tile + bcol] = v1;
-        ar2[brow * tile + bcol] = v2;
+        ar1[threadIdx.x] = v1;
+        ar2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += ar1[brow * tile + vk] * ar2[vk * tile + bcol];
+            sum1 += ar1[threadIdx.x / tile * tile + vk] *
+                    ar2[vk * tile + threadIdx.x % tile];
         }
         sum += sum1;
     }
-    gC[(mrow * tile + brow) * n + mcol * tile + bcol] = sum;
+    gC[(blockIdx.x / nn * tile + threadIdx.x / tile) * n +
+        blockIdx.x % nn * tile + threadIdx.x % tile] = sum;
 }
 
 __global__ __launch_bounds__(1024)
@@ -145,20 +145,18 @@ __global__ __launch_bounds__(1024)
   hoisted when extracting g_matmul_f32_tile32_rrr
 */
 static void
-__hoisted_g_matmul_f32_tile32_rrr_0(uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC)
+__hoisted_g_matmul_f32_tile32_rrr_0(float *gA, float *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, float *gC)
 {
     float *ar1 = (float *) KPR_SHMEM_AT(0U);
     float *ar2 = (float *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 1024U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        float v1 = gA[(32U * mrow + threadIdx.x / 32U) * k + 32U * bk +
-                      threadIdx.x % 32U];
-        float v2 = gB[(32U * bk + threadIdx.x / 32U) * n + 32U * mcol +
-                      threadIdx.x % 32U];
+        float v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                      32U * bk + threadIdx.x % 32U];
+        float v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
+                      32U * (blockIdx.x % nn) + threadIdx.x % 32U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -172,8 +170,8 @@ __hoisted_g_matmul_f32_tile32_rrr_0(uint32_t nn, float *gA, float *gB,
         }
         sum += sum1;
     }
-    gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U + threadIdx.x % 32U] =
-        sum;
+    gC[(blockIdx.x / nn * 32U + threadIdx.x / 32U) * n + blockIdx.x % nn * 32U +
+        threadIdx.x % 32U] = sum;
 }
 
 __global__ __launch_bounds__(1024)
@@ -181,20 +179,18 @@ __global__ __launch_bounds__(1024)
   hoisted when extracting g_matmul_f64_tile32_rrr
 */
 static void
-__hoisted_g_matmul_f64_tile32_rrr_0(uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC)
+__hoisted_g_matmul_f64_tile32_rrr_0(double *gA, double *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, double *gC)
 {
     double *ar1 = (double *) KPR_SHMEM_AT(0U);
     double *ar2 = (double *) KPR_SHMEM_AT((uint32_t) sizeof(double) * 1024U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        double v1 = gA[(32U * mrow + threadIdx.x / 32U) * k + 32U * bk +
-                       threadIdx.x % 32U];
-        double v2 = gB[(32U * bk + threadIdx.x / 32U) * n + 32U * mcol +
-                       threadIdx.x % 32U];
+        double v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                       32U * bk + threadIdx.x % 32U];
+        double v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
+                       32U * (blockIdx.x % nn) + threadIdx.x % 32U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -208,8 +204,8 @@ __hoisted_g_matmul_f64_tile32_rrr_0(uint32_t nn, double *gA, double *gB,
         }
         sum += sum1;
     }
-    gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U + threadIdx.x % 32U] =
-        sum;
+    gC[(blockIdx.x / nn * 32U + threadIdx.x / 32U) * n + blockIdx.x % nn * 32U +
+        threadIdx.x % 32U] = sum;
 }
 
 __global__ __launch_bounds__(1024)
@@ -217,21 +213,19 @@ __global__ __launch_bounds__(1024)
   hoisted when extracting g_matmul_u32_tile32_rrr
 */
 static void
-__hoisted_g_matmul_u32_tile32_rrr_0(uint32_t nn, uint32_t *gA, uint32_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC)
+__hoisted_g_matmul_u32_tile32_rrr_0(uint32_t *gA, uint32_t *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, uint32_t *gC)
 {
     uint32_t *ar1 = (uint32_t *) KPR_SHMEM_AT(0U);
     uint32_t *ar2 =
         (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint32_t) * 1024U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t v1 = gA[(32U * mrow + threadIdx.x / 32U) * k + 32U * bk +
-                         threadIdx.x % 32U];
-        uint32_t v2 = gB[(32U * bk + threadIdx.x / 32U) * n + 32U * mcol +
-                         threadIdx.x % 32U];
+        uint32_t v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                         32U * bk + threadIdx.x % 32U];
+        uint32_t v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
+                         32U * (blockIdx.x % nn) + threadIdx.x % 32U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -245,8 +239,8 @@ __hoisted_g_matmul_u32_tile32_rrr_0(uint32_t nn, uint32_t *gA, uint32_t *gB,
         }
         sum += sum1;
     }
-    gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U + threadIdx.x % 32U] =
-        sum;
+    gC[(blockIdx.x / nn * 32U + threadIdx.x / 32U) * n + blockIdx.x % nn * 32U +
+        threadIdx.x % 32U] = sum;
 }
 
 __global__ __launch_bounds__(1024)
@@ -254,21 +248,19 @@ __global__ __launch_bounds__(1024)
   hoisted when extracting g_matmul_u64_tile32_rrr
 */
 static void
-__hoisted_g_matmul_u64_tile32_rrr_0(uint32_t nn, uint64_t *gA, uint64_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC)
+__hoisted_g_matmul_u64_tile32_rrr_0(uint64_t *gA, uint64_t *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, uint64_t *gC)
 {
     uint64_t *ar1 = (uint64_t *) KPR_SHMEM_AT(0U);
     uint64_t *ar2 =
         (uint64_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint64_t) * 1024U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint64_t v1 = gA[(32U * mrow + threadIdx.x / 32U) * k + 32U * bk +
-                         threadIdx.x % 32U];
-        uint64_t v2 = gB[(32U * bk + threadIdx.x / 32U) * n + 32U * mcol +
-                         threadIdx.x % 32U];
+        uint64_t v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                         32U * bk + threadIdx.x % 32U];
+        uint64_t v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
+                         32U * (blockIdx.x % nn) + threadIdx.x % 32U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -282,8 +274,8 @@ __hoisted_g_matmul_u64_tile32_rrr_0(uint32_t nn, uint64_t *gA, uint64_t *gB,
         }
         sum += sum1;
     }
-    gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U + threadIdx.x % 32U] =
-        sum;
+    gC[(blockIdx.x / nn * 32U + threadIdx.x / 32U) * n + blockIdx.x % nn * 32U +
+        threadIdx.x % 32U] = sum;
 }
 
 __global__ __launch_bounds__(256)
@@ -291,20 +283,18 @@ __global__ __launch_bounds__(256)
   hoisted when extracting g_matmul_f32_tile16_rrr
 */
 static void
-__hoisted_g_matmul_f32_tile16_rrr_0(uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC)
+__hoisted_g_matmul_f32_tile16_rrr_0(float *gA, float *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, float *gC)
 {
     float *ar1 = (float *) KPR_SHMEM_AT(0U);
     float *ar2 = (float *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        float v1 = gA[(16U * mrow + threadIdx.x / 16U) * k + 16U * bk +
-                      threadIdx.x % 16U];
-        float v2 = gB[(16U * bk + threadIdx.x / 16U) * n + 16U * mcol +
-                      threadIdx.x % 16U];
+        float v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                      16U * bk + threadIdx.x % 16U];
+        float v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
+                      16U * (blockIdx.x % nn) + threadIdx.x % 16U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -318,8 +308,8 @@ __hoisted_g_matmul_f32_tile16_rrr_0(uint32_t nn, float *gA, float *gB,
         }
         sum += sum1;
     }
-    gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U + threadIdx.x % 16U] =
-        sum;
+    gC[(blockIdx.x / nn * 16U + threadIdx.x / 16U) * n + blockIdx.x % nn * 16U +
+        threadIdx.x % 16U] = sum;
 }
 
 __global__ __launch_bounds__(256)
@@ -327,20 +317,18 @@ __global__ __launch_bounds__(256)
   hoisted when extracting g_matmul_f64_tile16_rrr
 */
 static void
-__hoisted_g_matmul_f64_tile16_rrr_0(uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC)
+__hoisted_g_matmul_f64_tile16_rrr_0(double *gA, double *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, double *gC)
 {
     double *ar1 = (double *) KPR_SHMEM_AT(0U);
     double *ar2 = (double *) KPR_SHMEM_AT((uint32_t) sizeof(double) * 256U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        double v1 = gA[(16U * mrow + threadIdx.x / 16U) * k + 16U * bk +
-                       threadIdx.x % 16U];
-        double v2 = gB[(16U * bk + threadIdx.x / 16U) * n + 16U * mcol +
-                       threadIdx.x % 16U];
+        double v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                       16U * bk + threadIdx.x % 16U];
+        double v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
+                       16U * (blockIdx.x % nn) + threadIdx.x % 16U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -354,8 +342,8 @@ __hoisted_g_matmul_f64_tile16_rrr_0(uint32_t nn, double *gA, double *gB,
         }
         sum += sum1;
     }
-    gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U + threadIdx.x % 16U] =
-        sum;
+    gC[(blockIdx.x / nn * 16U + threadIdx.x / 16U) * n + blockIdx.x % nn * 16U +
+        threadIdx.x % 16U] = sum;
 }
 
 __global__ __launch_bounds__(256)
@@ -363,21 +351,19 @@ __global__ __launch_bounds__(256)
   hoisted when extracting g_matmul_u32_tile16_rrr
 */
 static void
-__hoisted_g_matmul_u32_tile16_rrr_0(uint32_t nn, uint32_t *gA, uint32_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC)
+__hoisted_g_matmul_u32_tile16_rrr_0(uint32_t *gA, uint32_t *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, uint32_t *gC)
 {
     uint32_t *ar1 = (uint32_t *) KPR_SHMEM_AT(0U);
     uint32_t *ar2 =
         (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint32_t) * 256U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t v1 = gA[(16U * mrow + threadIdx.x / 16U) * k + 16U * bk +
-                         threadIdx.x % 16U];
-        uint32_t v2 = gB[(16U * bk + threadIdx.x / 16U) * n + 16U * mcol +
-                         threadIdx.x % 16U];
+        uint32_t v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                         16U * bk + threadIdx.x % 16U];
+        uint32_t v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
+                         16U * (blockIdx.x % nn) + threadIdx.x % 16U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -391,8 +377,8 @@ __hoisted_g_matmul_u32_tile16_rrr_0(uint32_t nn, uint32_t *gA, uint32_t *gB,
         }
         sum += sum1;
     }
-    gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U + threadIdx.x % 16U] =
-        sum;
+    gC[(blockIdx.x / nn * 16U + threadIdx.x / 16U) * n + blockIdx.x % nn * 16U +
+        threadIdx.x % 16U] = sum;
 }
 
 __global__ __launch_bounds__(256)
@@ -400,21 +386,19 @@ __global__ __launch_bounds__(256)
   hoisted when extracting g_matmul_u64_tile16_rrr
 */
 static void
-__hoisted_g_matmul_u64_tile16_rrr_0(uint32_t nn, uint64_t *gA, uint64_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC)
+__hoisted_g_matmul_u64_tile16_rrr_0(uint64_t *gA, uint64_t *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, uint64_t *gC)
 {
     uint64_t *ar1 = (uint64_t *) KPR_SHMEM_AT(0U);
     uint64_t *ar2 =
         (uint64_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint64_t) * 256U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint64_t v1 = gA[(16U * mrow + threadIdx.x / 16U) * k + 16U * bk +
-                         threadIdx.x % 16U];
-        uint64_t v2 = gB[(16U * bk + threadIdx.x / 16U) * n + 16U * mcol +
-                         threadIdx.x % 16U];
+        uint64_t v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                         16U * bk + threadIdx.x % 16U];
+        uint64_t v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
+                         16U * (blockIdx.x % nn) + threadIdx.x % 16U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -428,8 +412,8 @@ __hoisted_g_matmul_u64_tile16_rrr_0(uint32_t nn, uint64_t *gA, uint64_t *gB,
         }
         sum += sum1;
     }
-    gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U + threadIdx.x % 16U] =
-        sum;
+    gC[(blockIdx.x / nn * 16U + threadIdx.x / 16U) * n + blockIdx.x % nn * 16U +
+        threadIdx.x % 16U] = sum;
 }
 
 __global__
@@ -437,34 +421,33 @@ __global__
   hoisted when extracting g_gemm_f32_rrr
 */
 static void
-__hoisted_g_gemm_f32_rrr_0(uint32_t tile, uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC, float beta, float alpha)
+__hoisted_g_gemm_f32_rrr_0(uint32_t tile, float *gA, float *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, float *gC, float beta, float alpha)
 {
     float *ar1 = (float *) KPR_SHMEM_AT(0U);
     float *ar2 = (float *) KPR_SHMEM_AT((uint32_t) sizeof(float) * tile * tile);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
-    uint32_t brow = threadIdx.x / tile;
-    uint32_t bcol = threadIdx.x % tile;
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        float v1 = gA[(tile * mrow + brow) * k + tile * bk + bcol];
-        float v2 = gB[(tile * bk + brow) * n + tile * mcol + bcol];
+        float v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                      tile * bk + threadIdx.x % tile];
+        float v2 = gB[(tile * bk + threadIdx.x / tile) * n +
+                      tile * (blockIdx.x % nn) + threadIdx.x % tile];
         __syncthreads();
-        ar1[brow * tile + bcol] = v1;
-        ar2[brow * tile + bcol] = v2;
+        ar1[threadIdx.x] = v1;
+        ar2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
         float sum1 = 0.0f;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += ar1[brow * tile + vk] * ar2[vk * tile + bcol];
+            sum1 += ar1[threadIdx.x / tile * tile + vk] *
+                    ar2[vk * tile + threadIdx.x % tile];
         }
         sum += sum1;
     }
-    uint32_t grow_sz = mrow * tile + brow;
-    uint32_t gcol_sz = mcol * tile + bcol;
+    uint32_t grow_sz = blockIdx.x / nn * tile + threadIdx.x / tile;
+    uint32_t gcol_sz = blockIdx.x % nn * tile + threadIdx.x % tile;
     gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
@@ -473,35 +456,34 @@ __global__
   hoisted when extracting g_gemm_f64_rrr
 */
 static void
-__hoisted_g_gemm_f64_rrr_0(uint32_t tile, uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC, double beta, double alpha)
+__hoisted_g_gemm_f64_rrr_0(uint32_t tile, double *gA, double *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, double *gC, double beta, double alpha)
 {
     double *ar1 = (double *) KPR_SHMEM_AT(0U);
     double *ar2 =
         (double *) KPR_SHMEM_AT((uint32_t) sizeof(double) * tile * tile);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
-    uint32_t brow = threadIdx.x / tile;
-    uint32_t bcol = threadIdx.x % tile;
     double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        double v1 = gA[(tile * mrow + brow) * k + tile * bk + bcol];
-        double v2 = gB[(tile * bk + brow) * n + tile * mcol + bcol];
+        double v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                       tile * bk + threadIdx.x % tile];
+        double v2 = gB[(tile * bk + threadIdx.x / tile) * n +
+                       tile * (blockIdx.x % nn) + threadIdx.x % tile];
         __syncthreads();
-        ar1[brow * tile + bcol] = v1;
-        ar2[brow * tile + bcol] = v2;
+        ar1[threadIdx.x] = v1;
+        ar2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
         double sum1 = 0.0;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += ar1[brow * tile + vk] * ar2[vk * tile + bcol];
+            sum1 += ar1[threadIdx.x / tile * tile + vk] *
+                    ar2[vk * tile + threadIdx.x % tile];
         }
         sum += sum1;
     }
-    uint32_t grow_sz = mrow * tile + brow;
-    uint32_t gcol_sz = mcol * tile + bcol;
+    uint32_t grow_sz = blockIdx.x / nn * tile + threadIdx.x / tile;
+    uint32_t gcol_sz = blockIdx.x % nn * tile + threadIdx.x % tile;
     gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
@@ -510,36 +492,35 @@ __global__
   hoisted when extracting g_gemm_u32_rrr
 */
 static void
-__hoisted_g_gemm_u32_rrr_0(uint32_t tile, uint32_t nn, uint32_t *gA,
-    uint32_t *gB, uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC,
+__hoisted_g_gemm_u32_rrr_0(uint32_t tile, uint32_t *gA, uint32_t *gB,
+    uint32_t kk, uint32_t nn, uint32_t k, uint32_t n, uint32_t *gC,
     uint32_t beta, uint32_t alpha)
 {
     uint32_t *ar1 = (uint32_t *) KPR_SHMEM_AT(0U);
     uint32_t *ar2 =
         (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint32_t) * tile * tile);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
-    uint32_t brow = threadIdx.x / tile;
-    uint32_t bcol = threadIdx.x % tile;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t v1 = gA[(tile * mrow + brow) * k + tile * bk + bcol];
-        uint32_t v2 = gB[(tile * bk + brow) * n + tile * mcol + bcol];
+        uint32_t v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                         tile * bk + threadIdx.x % tile];
+        uint32_t v2 = gB[(tile * bk + threadIdx.x / tile) * n +
+                         tile * (blockIdx.x % nn) + threadIdx.x % tile];
         __syncthreads();
-        ar1[brow * tile + bcol] = v1;
-        ar2[brow * tile + bcol] = v2;
+        ar1[threadIdx.x] = v1;
+        ar2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
         uint32_t sum1 = 0U;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += ar1[brow * tile + vk] * ar2[vk * tile + bcol];
+            sum1 += ar1[threadIdx.x / tile * tile + vk] *
+                    ar2[vk * tile + threadIdx.x % tile];
         }
         sum += sum1;
     }
-    uint32_t grow_sz = mrow * tile + brow;
-    uint32_t gcol_sz = mcol * tile + bcol;
+    uint32_t grow_sz = blockIdx.x / nn * tile + threadIdx.x / tile;
+    uint32_t gcol_sz = blockIdx.x % nn * tile + threadIdx.x % tile;
     gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
@@ -548,36 +529,35 @@ __global__
   hoisted when extracting g_gemm_u64_rrr
 */
 static void
-__hoisted_g_gemm_u64_rrr_0(uint32_t tile, uint32_t nn, uint64_t *gA,
-    uint64_t *gB, uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC,
+__hoisted_g_gemm_u64_rrr_0(uint32_t tile, uint64_t *gA, uint64_t *gB,
+    uint32_t kk, uint32_t nn, uint32_t k, uint32_t n, uint64_t *gC,
     uint64_t beta, uint64_t alpha)
 {
     uint64_t *ar1 = (uint64_t *) KPR_SHMEM_AT(0U);
     uint64_t *ar2 =
         (uint64_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint64_t) * tile * tile);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
-    uint32_t brow = threadIdx.x / tile;
-    uint32_t bcol = threadIdx.x % tile;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint64_t v1 = gA[(tile * mrow + brow) * k + tile * bk + bcol];
-        uint64_t v2 = gB[(tile * bk + brow) * n + tile * mcol + bcol];
+        uint64_t v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
+                         tile * bk + threadIdx.x % tile];
+        uint64_t v2 = gB[(tile * bk + threadIdx.x / tile) * n +
+                         tile * (blockIdx.x % nn) + threadIdx.x % tile];
         __syncthreads();
-        ar1[brow * tile + bcol] = v1;
-        ar2[brow * tile + bcol] = v2;
+        ar1[threadIdx.x] = v1;
+        ar2[threadIdx.x] = v2;
         __syncthreads();
         uint32_t k1 = 0U;
         uint64_t sum1 = 0ULL;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += ar1[brow * tile + vk] * ar2[vk * tile + bcol];
+            sum1 += ar1[threadIdx.x / tile * tile + vk] *
+                    ar2[vk * tile + threadIdx.x % tile];
         }
         sum += sum1;
     }
-    uint32_t grow_sz = mrow * tile + brow;
-    uint32_t gcol_sz = mcol * tile + bcol;
+    uint32_t grow_sz = blockIdx.x / nn * tile + threadIdx.x / tile;
+    uint32_t gcol_sz = blockIdx.x % nn * tile + threadIdx.x % tile;
     gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
@@ -586,20 +566,18 @@ __global__ __launch_bounds__(1024)
   hoisted when extracting g_gemm_f32_tile32_rrr
 */
 static void
-__hoisted_g_gemm_f32_tile32_rrr_0(uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC, float beta, float alpha)
+__hoisted_g_gemm_f32_tile32_rrr_0(float *gA, float *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, float *gC, float beta, float alpha)
 {
     float *ar1 = (float *) KPR_SHMEM_AT(0U);
     float *ar2 = (float *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 1024U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        float v1 = gA[(32U * mrow + threadIdx.x / 32U) * k + 32U * bk +
-                      threadIdx.x % 32U];
-        float v2 = gB[(32U * bk + threadIdx.x / 32U) * n + 32U * mcol +
-                      threadIdx.x % 32U];
+        float v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                      32U * bk + threadIdx.x % 32U];
+        float v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
+                      32U * (blockIdx.x % nn) + threadIdx.x % 32U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -613,8 +591,8 @@ __hoisted_g_gemm_f32_tile32_rrr_0(uint32_t nn, float *gA, float *gB,
         }
         sum += sum1;
     }
-    uint32_t grow_sz = mrow * 32U + threadIdx.x / 32U;
-    uint32_t gcol_sz = mcol * 32U + threadIdx.x % 32U;
+    uint32_t grow_sz = blockIdx.x / nn * 32U + threadIdx.x / 32U;
+    uint32_t gcol_sz = blockIdx.x % nn * 32U + threadIdx.x % 32U;
     gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
@@ -623,20 +601,18 @@ __global__ __launch_bounds__(1024)
   hoisted when extracting g_gemm_f64_tile32_rrr
 */
 static void
-__hoisted_g_gemm_f64_tile32_rrr_0(uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC, double beta, double alpha)
+__hoisted_g_gemm_f64_tile32_rrr_0(double *gA, double *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, double *gC, double beta, double alpha)
 {
     double *ar1 = (double *) KPR_SHMEM_AT(0U);
     double *ar2 = (double *) KPR_SHMEM_AT((uint32_t) sizeof(double) * 1024U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        double v1 = gA[(32U * mrow + threadIdx.x / 32U) * k + 32U * bk +
-                       threadIdx.x % 32U];
-        double v2 = gB[(32U * bk + threadIdx.x / 32U) * n + 32U * mcol +
-                       threadIdx.x % 32U];
+        double v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                       32U * bk + threadIdx.x % 32U];
+        double v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
+                       32U * (blockIdx.x % nn) + threadIdx.x % 32U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -650,8 +626,8 @@ __hoisted_g_gemm_f64_tile32_rrr_0(uint32_t nn, double *gA, double *gB,
         }
         sum += sum1;
     }
-    uint32_t grow_sz = mrow * 32U + threadIdx.x / 32U;
-    uint32_t gcol_sz = mcol * 32U + threadIdx.x % 32U;
+    uint32_t grow_sz = blockIdx.x / nn * 32U + threadIdx.x / 32U;
+    uint32_t gcol_sz = blockIdx.x % nn * 32U + threadIdx.x % 32U;
     gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
@@ -660,22 +636,20 @@ __global__ __launch_bounds__(1024)
   hoisted when extracting g_gemm_u32_tile32_rrr
 */
 static void
-__hoisted_g_gemm_u32_tile32_rrr_0(uint32_t nn, uint32_t *gA, uint32_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC, uint32_t beta,
+__hoisted_g_gemm_u32_tile32_rrr_0(uint32_t *gA, uint32_t *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, uint32_t *gC, uint32_t beta,
     uint32_t alpha)
 {
     uint32_t *ar1 = (uint32_t *) KPR_SHMEM_AT(0U);
     uint32_t *ar2 =
         (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint32_t) * 1024U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t v1 = gA[(32U * mrow + threadIdx.x / 32U) * k + 32U * bk +
-                         threadIdx.x % 32U];
-        uint32_t v2 = gB[(32U * bk + threadIdx.x / 32U) * n + 32U * mcol +
-                         threadIdx.x % 32U];
+        uint32_t v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                         32U * bk + threadIdx.x % 32U];
+        uint32_t v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
+                         32U * (blockIdx.x % nn) + threadIdx.x % 32U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -689,8 +663,8 @@ __hoisted_g_gemm_u32_tile32_rrr_0(uint32_t nn, uint32_t *gA, uint32_t *gB,
         }
         sum += sum1;
     }
-    uint32_t grow_sz = mrow * 32U + threadIdx.x / 32U;
-    uint32_t gcol_sz = mcol * 32U + threadIdx.x % 32U;
+    uint32_t grow_sz = blockIdx.x / nn * 32U + threadIdx.x / 32U;
+    uint32_t gcol_sz = blockIdx.x % nn * 32U + threadIdx.x % 32U;
     gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
@@ -699,22 +673,20 @@ __global__ __launch_bounds__(1024)
   hoisted when extracting g_gemm_u64_tile32_rrr
 */
 static void
-__hoisted_g_gemm_u64_tile32_rrr_0(uint32_t nn, uint64_t *gA, uint64_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC, uint64_t beta,
+__hoisted_g_gemm_u64_tile32_rrr_0(uint64_t *gA, uint64_t *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, uint64_t *gC, uint64_t beta,
     uint64_t alpha)
 {
     uint64_t *ar1 = (uint64_t *) KPR_SHMEM_AT(0U);
     uint64_t *ar2 =
         (uint64_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint64_t) * 1024U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint64_t v1 = gA[(32U * mrow + threadIdx.x / 32U) * k + 32U * bk +
-                         threadIdx.x % 32U];
-        uint64_t v2 = gB[(32U * bk + threadIdx.x / 32U) * n + 32U * mcol +
-                         threadIdx.x % 32U];
+        uint64_t v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
+                         32U * bk + threadIdx.x % 32U];
+        uint64_t v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
+                         32U * (blockIdx.x % nn) + threadIdx.x % 32U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -728,8 +700,8 @@ __hoisted_g_gemm_u64_tile32_rrr_0(uint32_t nn, uint64_t *gA, uint64_t *gB,
         }
         sum += sum1;
     }
-    uint32_t grow_sz = mrow * 32U + threadIdx.x / 32U;
-    uint32_t gcol_sz = mcol * 32U + threadIdx.x % 32U;
+    uint32_t grow_sz = blockIdx.x / nn * 32U + threadIdx.x / 32U;
+    uint32_t gcol_sz = blockIdx.x % nn * 32U + threadIdx.x % 32U;
     gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
@@ -738,20 +710,18 @@ __global__ __launch_bounds__(256)
   hoisted when extracting g_gemm_f32_tile16_rrr
 */
 static void
-__hoisted_g_gemm_f32_tile16_rrr_0(uint32_t nn, float *gA, float *gB,
-    uint32_t kk, uint32_t k, uint32_t n, float *gC, float beta, float alpha)
+__hoisted_g_gemm_f32_tile16_rrr_0(float *gA, float *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, float *gC, float beta, float alpha)
 {
     float *ar1 = (float *) KPR_SHMEM_AT(0U);
     float *ar2 = (float *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        float v1 = gA[(16U * mrow + threadIdx.x / 16U) * k + 16U * bk +
-                      threadIdx.x % 16U];
-        float v2 = gB[(16U * bk + threadIdx.x / 16U) * n + 16U * mcol +
-                      threadIdx.x % 16U];
+        float v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                      16U * bk + threadIdx.x % 16U];
+        float v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
+                      16U * (blockIdx.x % nn) + threadIdx.x % 16U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -765,8 +735,8 @@ __hoisted_g_gemm_f32_tile16_rrr_0(uint32_t nn, float *gA, float *gB,
         }
         sum += sum1;
     }
-    uint32_t grow_sz = mrow * 16U + threadIdx.x / 16U;
-    uint32_t gcol_sz = mcol * 16U + threadIdx.x % 16U;
+    uint32_t grow_sz = blockIdx.x / nn * 16U + threadIdx.x / 16U;
+    uint32_t gcol_sz = blockIdx.x % nn * 16U + threadIdx.x % 16U;
     gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
@@ -775,20 +745,18 @@ __global__ __launch_bounds__(256)
   hoisted when extracting g_gemm_f64_tile16_rrr
 */
 static void
-__hoisted_g_gemm_f64_tile16_rrr_0(uint32_t nn, double *gA, double *gB,
-    uint32_t kk, uint32_t k, uint32_t n, double *gC, double beta, double alpha)
+__hoisted_g_gemm_f64_tile16_rrr_0(double *gA, double *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, double *gC, double beta, double alpha)
 {
     double *ar1 = (double *) KPR_SHMEM_AT(0U);
     double *ar2 = (double *) KPR_SHMEM_AT((uint32_t) sizeof(double) * 256U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        double v1 = gA[(16U * mrow + threadIdx.x / 16U) * k + 16U * bk +
-                       threadIdx.x % 16U];
-        double v2 = gB[(16U * bk + threadIdx.x / 16U) * n + 16U * mcol +
-                       threadIdx.x % 16U];
+        double v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                       16U * bk + threadIdx.x % 16U];
+        double v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
+                       16U * (blockIdx.x % nn) + threadIdx.x % 16U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -802,8 +770,8 @@ __hoisted_g_gemm_f64_tile16_rrr_0(uint32_t nn, double *gA, double *gB,
         }
         sum += sum1;
     }
-    uint32_t grow_sz = mrow * 16U + threadIdx.x / 16U;
-    uint32_t gcol_sz = mcol * 16U + threadIdx.x % 16U;
+    uint32_t grow_sz = blockIdx.x / nn * 16U + threadIdx.x / 16U;
+    uint32_t gcol_sz = blockIdx.x % nn * 16U + threadIdx.x % 16U;
     gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
@@ -812,22 +780,20 @@ __global__ __launch_bounds__(256)
   hoisted when extracting g_gemm_u32_tile16_rrr
 */
 static void
-__hoisted_g_gemm_u32_tile16_rrr_0(uint32_t nn, uint32_t *gA, uint32_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint32_t *gC, uint32_t beta,
+__hoisted_g_gemm_u32_tile16_rrr_0(uint32_t *gA, uint32_t *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, uint32_t *gC, uint32_t beta,
     uint32_t alpha)
 {
     uint32_t *ar1 = (uint32_t *) KPR_SHMEM_AT(0U);
     uint32_t *ar2 =
         (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint32_t) * 256U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint32_t v1 = gA[(16U * mrow + threadIdx.x / 16U) * k + 16U * bk +
-                         threadIdx.x % 16U];
-        uint32_t v2 = gB[(16U * bk + threadIdx.x / 16U) * n + 16U * mcol +
-                         threadIdx.x % 16U];
+        uint32_t v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                         16U * bk + threadIdx.x % 16U];
+        uint32_t v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
+                         16U * (blockIdx.x % nn) + threadIdx.x % 16U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -841,8 +807,8 @@ __hoisted_g_gemm_u32_tile16_rrr_0(uint32_t nn, uint32_t *gA, uint32_t *gB,
         }
         sum += sum1;
     }
-    uint32_t grow_sz = mrow * 16U + threadIdx.x / 16U;
-    uint32_t gcol_sz = mcol * 16U + threadIdx.x % 16U;
+    uint32_t grow_sz = blockIdx.x / nn * 16U + threadIdx.x / 16U;
+    uint32_t gcol_sz = blockIdx.x % nn * 16U + threadIdx.x % 16U;
     gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
@@ -851,22 +817,20 @@ __global__ __launch_bounds__(256)
   hoisted when extracting g_gemm_u64_tile16_rrr
 */
 static void
-__hoisted_g_gemm_u64_tile16_rrr_0(uint32_t nn, uint64_t *gA, uint64_t *gB,
-    uint32_t kk, uint32_t k, uint32_t n, uint64_t *gC, uint64_t beta,
+__hoisted_g_gemm_u64_tile16_rrr_0(uint64_t *gA, uint64_t *gB, uint32_t kk,
+    uint32_t nn, uint32_t k, uint32_t n, uint64_t *gC, uint64_t beta,
     uint64_t alpha)
 {
     uint64_t *ar1 = (uint64_t *) KPR_SHMEM_AT(0U);
     uint64_t *ar2 =
         (uint64_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint64_t) * 256U);
-    uint32_t mrow = blockIdx.x / nn;
-    uint32_t mcol = blockIdx.x % nn;
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
-        uint64_t v1 = gA[(16U * mrow + threadIdx.x / 16U) * k + 16U * bk +
-                         threadIdx.x % 16U];
-        uint64_t v2 = gB[(16U * bk + threadIdx.x / 16U) * n + 16U * mcol +
-                         threadIdx.x % 16U];
+        uint64_t v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
+                         16U * bk + threadIdx.x % 16U];
+        uint64_t v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
+                         16U * (blockIdx.x % nn) + threadIdx.x % 16U];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -880,8 +844,8 @@ __hoisted_g_gemm_u64_tile16_rrr_0(uint32_t nn, uint64_t *gA, uint64_t *gB,
         }
         sum += sum1;
     }
-    uint32_t grow_sz = mrow * 16U + threadIdx.x / 16U;
-    uint32_t gcol_sz = mcol * 16U + threadIdx.x % 16U;
+    uint32_t grow_sz = blockIdx.x / nn * 16U + threadIdx.x / 16U;
+    uint32_t gcol_sz = blockIdx.x % nn * 16U + threadIdx.x % 16U;
     gC[grow_sz * n + gcol_sz] = beta * gC[grow_sz * n + gcol_sz] + alpha * sum;
 }
 
@@ -905,7 +869,7 @@ void Klas_GEMM_SHMem_g_matmul_f32_rrr(uint32_t tile, uint32_t m, uint32_t n,
     KPR_KCALL(__hoisted_g_matmul_f32_rrr_0, mm * nn, tile * tile,
         (uint32_t) sizeof(float) * tile * tile +
             (uint32_t) sizeof(float) * tile * tile,
-        s, tile, nn, gA, gB, kk, k, n, gC);
+        s, tile, gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -930,7 +894,7 @@ void Klas_GEMM_SHMem_g_matmul_f64_rrr(uint32_t tile, uint32_t m, uint32_t n,
     KPR_KCALL(__hoisted_g_matmul_f64_rrr_0, mm * nn, tile * tile,
         (uint32_t) sizeof(double) * tile * tile +
             (uint32_t) sizeof(double) * tile * tile,
-        s, tile, nn, gA, gB, kk, k, n, gC);
+        s, tile, gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -955,7 +919,7 @@ void Klas_GEMM_SHMem_g_matmul_u32_rrr(uint32_t tile, uint32_t m, uint32_t n,
     KPR_KCALL(__hoisted_g_matmul_u32_rrr_0, mm * nn, tile * tile,
         (uint32_t) sizeof(uint32_t) * tile * tile +
             (uint32_t) sizeof(uint32_t) * tile * tile,
-        s, tile, nn, gA, gB, kk, k, n, gC);
+        s, tile, gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -980,7 +944,7 @@ void Klas_GEMM_SHMem_g_matmul_u64_rrr(uint32_t tile, uint32_t m, uint32_t n,
     KPR_KCALL(__hoisted_g_matmul_u64_rrr_0, mm * nn, tile * tile,
         (uint32_t) sizeof(uint64_t) * tile * tile +
             (uint32_t) sizeof(uint64_t) * tile * tile,
-        s, tile, nn, gA, gB, kk, k, n, gC);
+        s, tile, gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1002,7 +966,7 @@ void Klas_GEMM_SHMem_g_matmul_f32_tile32_rrr(
                 (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_matmul_f32_tile32_rrr_0, mm * nn, 1024U,
         (uint32_t) sizeof(float) * 1024U + (uint32_t) sizeof(float) * 1024U, s,
-        nn, gA, gB, kk, k, n, gC);
+        gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1024,7 +988,7 @@ void Klas_GEMM_SHMem_g_matmul_f64_tile32_rrr(
                 (uint32_t) sizeof(double) * 1024U));
     KPR_KCALL(__hoisted_g_matmul_f64_tile32_rrr_0, mm * nn, 1024U,
         (uint32_t) sizeof(double) * 1024U + (uint32_t) sizeof(double) * 1024U,
-        s, nn, gA, gB, kk, k, n, gC);
+        s, gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1048,7 +1012,7 @@ void Klas_GEMM_SHMem_g_matmul_u32_tile32_rrr(uint32_t m, uint32_t n, uint32_t k,
     KPR_KCALL(__hoisted_g_matmul_u32_tile32_rrr_0, mm * nn, 1024U,
         (uint32_t) sizeof(uint32_t) * 1024U +
             (uint32_t) sizeof(uint32_t) * 1024U,
-        s, nn, gA, gB, kk, k, n, gC);
+        s, gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1072,7 +1036,7 @@ void Klas_GEMM_SHMem_g_matmul_u64_tile32_rrr(uint32_t m, uint32_t n, uint32_t k,
     KPR_KCALL(__hoisted_g_matmul_u64_tile32_rrr_0, mm * nn, 1024U,
         (uint32_t) sizeof(uint64_t) * 1024U +
             (uint32_t) sizeof(uint64_t) * 1024U,
-        s, nn, gA, gB, kk, k, n, gC);
+        s, gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1093,7 +1057,7 @@ void Klas_GEMM_SHMem_g_matmul_f32_tile16_rrr(
             (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_matmul_f32_tile16_rrr_0, mm * nn, 256U,
         (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(float) * 256U, s,
-        nn, gA, gB, kk, k, n, gC);
+        gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1115,7 +1079,7 @@ void Klas_GEMM_SHMem_g_matmul_f64_tile16_rrr(
                 (uint32_t) sizeof(double) * 256U));
     KPR_KCALL(__hoisted_g_matmul_f64_tile16_rrr_0, mm * nn, 256U,
         (uint32_t) sizeof(double) * 256U + (uint32_t) sizeof(double) * 256U, s,
-        nn, gA, gB, kk, k, n, gC);
+        gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1138,7 +1102,7 @@ void Klas_GEMM_SHMem_g_matmul_u32_tile16_rrr(uint32_t m, uint32_t n, uint32_t k,
                 (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_matmul_u32_tile16_rrr_0, mm * nn, 256U,
         (uint32_t) sizeof(uint32_t) * 256U + (uint32_t) sizeof(uint32_t) * 256U,
-        s, nn, gA, gB, kk, k, n, gC);
+        s, gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1161,7 +1125,7 @@ void Klas_GEMM_SHMem_g_matmul_u64_tile16_rrr(uint32_t m, uint32_t n, uint32_t k,
                 (uint32_t) sizeof(uint64_t) * 256U));
     KPR_KCALL(__hoisted_g_matmul_u64_tile16_rrr_0, mm * nn, 256U,
         (uint32_t) sizeof(uint64_t) * 256U + (uint32_t) sizeof(uint64_t) * 256U,
-        s, nn, gA, gB, kk, k, n, gC);
+        s, gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1186,7 +1150,7 @@ void Klas_GEMM_SHMem_g_gemm_f32_rrr(uint32_t tile, float alpha, float beta,
     KPR_KCALL(__hoisted_g_gemm_f32_rrr_0, mm * nn, tile * tile,
         (uint32_t) sizeof(float) * tile * tile +
             (uint32_t) sizeof(float) * tile * tile,
-        s, tile, nn, gA, gB, kk, k, n, gC, beta, alpha);
+        s, tile, gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1211,7 +1175,7 @@ void Klas_GEMM_SHMem_g_gemm_f64_rrr(uint32_t tile, double alpha, double beta,
     KPR_KCALL(__hoisted_g_gemm_f64_rrr_0, mm * nn, tile * tile,
         (uint32_t) sizeof(double) * tile * tile +
             (uint32_t) sizeof(double) * tile * tile,
-        s, tile, nn, gA, gB, kk, k, n, gC, beta, alpha);
+        s, tile, gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1237,7 +1201,7 @@ void Klas_GEMM_SHMem_g_gemm_u32_rrr(uint32_t tile, uint32_t alpha,
     KPR_KCALL(__hoisted_g_gemm_u32_rrr_0, mm * nn, tile * tile,
         (uint32_t) sizeof(uint32_t) * tile * tile +
             (uint32_t) sizeof(uint32_t) * tile * tile,
-        s, tile, nn, gA, gB, kk, k, n, gC, beta, alpha);
+        s, tile, gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1263,7 +1227,7 @@ void Klas_GEMM_SHMem_g_gemm_u64_rrr(uint32_t tile, uint64_t alpha,
     KPR_KCALL(__hoisted_g_gemm_u64_rrr_0, mm * nn, tile * tile,
         (uint32_t) sizeof(uint64_t) * tile * tile +
             (uint32_t) sizeof(uint64_t) * tile * tile,
-        s, tile, nn, gA, gB, kk, k, n, gC, beta, alpha);
+        s, tile, gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1285,7 +1249,7 @@ void Klas_GEMM_SHMem_g_gemm_f32_tile32_rrr(float alpha, float beta, uint32_t m,
                 (uint32_t) sizeof(float) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_f32_tile32_rrr_0, mm * nn, 1024U,
         (uint32_t) sizeof(float) * 1024U + (uint32_t) sizeof(float) * 1024U, s,
-        nn, gA, gB, kk, k, n, gC, beta, alpha);
+        gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1307,7 +1271,7 @@ void Klas_GEMM_SHMem_g_gemm_f64_tile32_rrr(double alpha, double beta,
                 (uint32_t) sizeof(double) * 1024U));
     KPR_KCALL(__hoisted_g_gemm_f64_tile32_rrr_0, mm * nn, 1024U,
         (uint32_t) sizeof(double) * 1024U + (uint32_t) sizeof(double) * 1024U,
-        s, nn, gA, gB, kk, k, n, gC, beta, alpha);
+        s, gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1332,7 +1296,7 @@ void Klas_GEMM_SHMem_g_gemm_u32_tile32_rrr(uint32_t alpha, uint32_t beta,
     KPR_KCALL(__hoisted_g_gemm_u32_tile32_rrr_0, mm * nn, 1024U,
         (uint32_t) sizeof(uint32_t) * 1024U +
             (uint32_t) sizeof(uint32_t) * 1024U,
-        s, nn, gA, gB, kk, k, n, gC, beta, alpha);
+        s, gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1357,7 +1321,7 @@ void Klas_GEMM_SHMem_g_gemm_u64_tile32_rrr(uint64_t alpha, uint64_t beta,
     KPR_KCALL(__hoisted_g_gemm_u64_tile32_rrr_0, mm * nn, 1024U,
         (uint32_t) sizeof(uint64_t) * 1024U +
             (uint32_t) sizeof(uint64_t) * 1024U,
-        s, nn, gA, gB, kk, k, n, gC, beta, alpha);
+        s, gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1378,7 +1342,7 @@ void Klas_GEMM_SHMem_g_gemm_f32_tile16_rrr(float alpha, float beta, uint32_t m,
             (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(float) * 256U));
     KPR_KCALL(__hoisted_g_gemm_f32_tile16_rrr_0, mm * nn, 256U,
         (uint32_t) sizeof(float) * 256U + (uint32_t) sizeof(float) * 256U, s,
-        nn, gA, gB, kk, k, n, gC, beta, alpha);
+        gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1400,7 +1364,7 @@ void Klas_GEMM_SHMem_g_gemm_f64_tile16_rrr(double alpha, double beta,
                 (uint32_t) sizeof(double) * 256U));
     KPR_KCALL(__hoisted_g_gemm_f64_tile16_rrr_0, mm * nn, 256U,
         (uint32_t) sizeof(double) * 256U + (uint32_t) sizeof(double) * 256U, s,
-        nn, gA, gB, kk, k, n, gC, beta, alpha);
+        gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1424,7 +1388,7 @@ void Klas_GEMM_SHMem_g_gemm_u32_tile16_rrr(uint32_t alpha, uint32_t beta,
                 (uint32_t) sizeof(uint32_t) * 256U));
     KPR_KCALL(__hoisted_g_gemm_u32_tile16_rrr_0, mm * nn, 256U,
         (uint32_t) sizeof(uint32_t) * 256U + (uint32_t) sizeof(uint32_t) * 256U,
-        s, nn, gA, gB, kk, k, n, gC, beta, alpha);
+        s, gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
@@ -1448,7 +1412,7 @@ void Klas_GEMM_SHMem_g_gemm_u64_tile16_rrr(uint64_t alpha, uint64_t beta,
                 (uint32_t) sizeof(uint64_t) * 256U));
     KPR_KCALL(__hoisted_g_gemm_u64_tile16_rrr_0, mm * nn, 256U,
         (uint32_t) sizeof(uint64_t) * 256U + (uint32_t) sizeof(uint64_t) * 256U,
-        s, nn, gA, gB, kk, k, n, gC, beta, alpha);
+        s, gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
 }
