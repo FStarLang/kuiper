@@ -17,11 +17,11 @@ __hoisted_run_0(uint32_t n, float *inputs, float *outputs)
         float e = __expf(x);
         float d = __fdividef(x, y);
         float f = __fmaf_rn(x, y, z);
-        float s1 = __fsub_rn(x, y);
+        float s = __fsub_rn(x, y);
         outputs[4U * j] = e;
         outputs[4U * j + 1U] = d;
         outputs[4U * j + 2U] = f;
-        outputs[4U * j + 3U] = s1;
+        outputs[4U * j + 3U] = s;
     }
 }
 

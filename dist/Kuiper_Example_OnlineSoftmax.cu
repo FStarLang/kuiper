@@ -16,8 +16,7 @@ __hoisted__test_0(uint32_t len, float *a, float *b)
             float x = a[i];
             float max_ = fmaxf(max, x);
             float y1 = expf(max - max_);
-            float y2 = expf(x - max_);
-            float sum_ = sum * y1 + y2;
+            float sum_ = sum * y1 + expf(x - max_);
             max = max_;
             sum = sum_;
             i++;

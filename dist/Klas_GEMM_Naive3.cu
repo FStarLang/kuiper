@@ -17,10 +17,9 @@ __hoisted_g_matmul_bf16_rrr_0(uint32_t m, uint32_t n, uint32_t k,
         __nv_bfloat16 c = __float2bfloat16(0.0f);
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
-            __nv_bfloat16 y =
-                kpr_bf16mul(gA[trow * k + __anf0], gB[__anf0 * n + tcol]);
             __nv_bfloat16 old_acc = acc;
-            __nv_bfloat16 yc = kpr_bf16sub(y, c);
+            __nv_bfloat16 yc = kpr_bf16sub(
+                kpr_bf16mul(gA[trow * k + __anf0], gB[__anf0 * n + tcol]), c);
             __nv_bfloat16 t = kpr_bf16add(old_acc, yc);
             c = kpr_bf16sub(kpr_bf16sub(t, old_acc), yc);
             acc = t;
@@ -97,10 +96,9 @@ __hoisted_g_matmul_bf16_ccc_0(uint32_t m, uint32_t n, __nv_bfloat16 *gA,
         __nv_bfloat16 c = __float2bfloat16(0.0f);
         for (; k1 < k; k1++) {
             uint32_t __anf0 = k1;
-            __nv_bfloat16 y =
-                kpr_bf16mul(gA[__anf0 * m + trow], gB[tcol * k + __anf0]);
             __nv_bfloat16 old_acc = acc;
-            __nv_bfloat16 yc = kpr_bf16sub(y, c);
+            __nv_bfloat16 yc = kpr_bf16sub(
+                kpr_bf16mul(gA[__anf0 * m + trow], gB[tcol * k + __anf0]), c);
             __nv_bfloat16 t = kpr_bf16add(old_acc, yc);
             c = kpr_bf16sub(kpr_bf16sub(t, old_acc), yc);
             acc = t;
