@@ -10,14 +10,13 @@ __hoisted__test_0(uint32_t len, float *a, float *b)
 {
     if (1024U * blockIdx.x + threadIdx.x < len) {
         uint32_t i = 0U;
-        float sum = (float) 0LL;
-        float max = (float) 0LL - INFINITY;
+        float sum = 0.0f;
+        float max = 0.0f - INFINITY;
         while (i < len) {
             float x = a[i];
             float max_ = fmaxf(max, x);
             float y1 = expf(max - max_);
-            float y2 = expf(x - max_);
-            float sum_ = sum * y1 + y2;
+            float sum_ = sum * y1 + expf(x - max_);
             max = max_;
             sum = sum_;
             i++;
@@ -28,15 +27,6 @@ __hoisted__test_0(uint32_t len, float *a, float *b)
         b[1024U * blockIdx.x + threadIdx.x] =
             expf(a[1024U * blockIdx.x + threadIdx.x] - max) / __anf0;
     }
-}
-
-void Kuiper_Example_OnlineSoftmax__test(uint32_t len, float *a, float *b)
-{
-    cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_KCALL(__hoisted__test_0, len / 1024U + (uint32_t) (len % 1024U != 0U),
-        1024U, 0U, s, len, a, b);
-    MUST(cudaStreamSynchronize(s));
-    MUST(cudaStreamDestroy(s));
 }
 
 __global__ __launch_bounds__(1024)
@@ -66,6 +56,15 @@ __hoisted__testh_0(uint32_t len, half *a, half *b)
         b[1024U * blockIdx.x + threadIdx.x] = __hdiv(
             hexp(__hsub(a[1024U * blockIdx.x + threadIdx.x], max)), __anf0);
     }
+}
+
+void Kuiper_Example_OnlineSoftmax__test(uint32_t len, float *a, float *b)
+{
+    cudaStream_t s = KPR_FRESH_STREAM();
+    KPR_KCALL(__hoisted__test_0, len / 1024U + (uint32_t) (len % 1024U != 0U),
+        1024U, 0U, s, len, a, b);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 void Kuiper_Example_OnlineSoftmax__testh(uint32_t len, half *a, half *b)

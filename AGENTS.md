@@ -107,7 +107,7 @@ make lint-c         # clang-format test/*.cu and test/*.c.inc files
 ### Pipeline
 
 1. **Verify**: F\*/Pulse source in `src/` is type-checked and verified (`obj/*.checked`)
-2. **Extract**: Verified modules are extracted to KreMLin IR (`obj/*.krml`) using an extraction plugin from `extraction/`
+2. **Extract**: Each module is extracted to KreMLin IR (`obj/*.krml`) by F\*'s whole-program extractor, Custard (`--codegen Custard --custard_backend KrmlC`). Kuiper primitives such as kernel launches, CUDA memory operations, floats and tensor cores are translated by the Custard rules of the plugin in `extraction/ExtractKuiper.fst`
 3. **Compile to CUDA**: KreMLin (Karamel) translates `.krml` → `.cu`/`.h`, post-processed by `scripts/fixup.sed` and the pinned `clang-format`
 4. **Build**: `nvcc` compiles the generated CUDA code (`nvcc.mk`)
 

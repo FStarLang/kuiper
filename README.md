@@ -243,7 +243,7 @@ Some kernels have a large number of instantiations, so we generate them via a
 proper `.fst`.
 
 Also:
-- `extraction/`: contains the F* extraction plugin
+- `extraction/`: contains the F* extraction plugin (Custard rules for Kuiper's primitives)
 - `include/`: C/CUDA headers, needed to compile Kuiper code
 - `test/`: CUDA test drivers with expected-output files
 - `dist/`: a CUDA snapshot of the verified kernels

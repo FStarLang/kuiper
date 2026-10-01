@@ -12,19 +12,6 @@ __hoisted_incr_all_1d_0(uint32_t *a)
         a[1024U * blockIdx.x + threadIdx.x]++;
 }
 
-void Kuiper_Example_TMap_incr_all_1d(uint32_t *a)
-{
-    cudaStream_t s1 = KPR_FRESH_STREAM();
-    KPR_KCALL(__hoisted_incr_all_1d_0, 1U, 1024U, 0U, s1, a);
-    MUST(cudaStreamSynchronize(s1));
-    MUST(cudaStreamDestroy(s1));
-}
-
-typedef struct __uint32_t__uint32_t_______s {
-    uint32_t fst;
-    uint32_t snd;
-} __uint32_t__uint32_t______;
-
 __global__ __launch_bounds__(1024)
 /**
   hoisted when extracting incr_all_1d2
@@ -33,21 +20,22 @@ static void
 __hoisted_incr_all_1d2_0(uint32_t *a)
 {
     if (1024U * blockIdx.x + threadIdx.x < 1048576U)
-        a[(KRML_CLITERAL(__uint32_t__uint32_t______){
-               .fst = (1024U * blockIdx.x + threadIdx.x) / 1024U,
-               .snd = (1024U * blockIdx.x + threadIdx.x) % 1024U})
-                    .fst *
-                1024U +
-            (KRML_CLITERAL(__uint32_t__uint32_t______){
-                 .fst = (1024U * blockIdx.x + threadIdx.x) / 1024U,
-                 .snd = (1024U * blockIdx.x + threadIdx.x) % 1024U})
-                .snd]++;
+        a[(1024U * blockIdx.x + threadIdx.x) / 1024U * 1024U +
+            (1024U * blockIdx.x + threadIdx.x) % 1024U]++;
+}
+
+void Kuiper_Example_TMap_incr_all_1d(uint32_t *a)
+{
+    cudaStream_t s = KPR_FRESH_STREAM();
+    KPR_KCALL(__hoisted_incr_all_1d_0, 1U, 1024U, 0U, s, a);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
 
 void Kuiper_Example_TMap_incr_all_1d2(uint32_t *a)
 {
-    cudaStream_t s1 = KPR_FRESH_STREAM();
-    KPR_KCALL(__hoisted_incr_all_1d2_0, 1024U, 1024U, 0U, s1, a);
-    MUST(cudaStreamSynchronize(s1));
-    MUST(cudaStreamDestroy(s1));
+    cudaStream_t s = KPR_FRESH_STREAM();
+    KPR_KCALL(__hoisted_incr_all_1d2_0, 1024U, 1024U, 0U, s, a);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }
