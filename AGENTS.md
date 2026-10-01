@@ -138,6 +138,7 @@ These are forked/branched versions with GPU-specific extensions:
 - All Pulse files start with `#lang-pulse`
 - The main `Kuiper` module re-exports core types and combinators — most files just `open Kuiper`
 - Concrete functions must be `inline_for_extraction noextract`; only top-level kernels are non-inlined (with `__global__`)
+- Ghost functions (e.g. returning `GTot`) are excluded from extraction by their effect; do not add redundant `noextract` qualifiers.
 - Typeclass instances used concretely (e.g., `clayout`) must also be `inline_for_extraction noextract`
 - Avoid `erased (natlt z)` — instead write `n:(erased nat){n < z}` or use `enatlt` (erased is invariant w.r.t. types, causing brittle typechecking)
 - A spec-only `nat`/index *function argument* (used only to compute a ghost layout/spec, not needed at runtime) MUST be `erased` or extraction fails; supply the runtime value via a `{| concrete_sz x |}` typeclass instance instead of a concrete `nat` parameter (e.g. `Kuiper.Array2.Strided.Slice.slice_of_3`'s `page`)
