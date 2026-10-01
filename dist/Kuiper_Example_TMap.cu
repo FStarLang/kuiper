@@ -20,17 +20,8 @@ static void
 __hoisted_incr_all_1d2_0(uint32_t *a)
 {
     if (1024U * blockIdx.x + threadIdx.x < 1048576U)
-        a[(KRML_CLITERAL(
-               FStar_Pervasives_Native_tuple2__uint32_t_FStar_Pervasives_Native_tuple2__uint32_t___){
-               ._1 = (1024U * blockIdx.x + threadIdx.x) / 1024U,
-               ._2 = (1024U * blockIdx.x + threadIdx.x) % 1024U})
-                    ._1 *
-                1024U +
-            (KRML_CLITERAL(
-                 FStar_Pervasives_Native_tuple2__uint32_t_FStar_Pervasives_Native_tuple2__uint32_t___){
-                 ._1 = (1024U * blockIdx.x + threadIdx.x) / 1024U,
-                 ._2 = (1024U * blockIdx.x + threadIdx.x) % 1024U})
-                ._2]++;
+        a[(1024U * blockIdx.x + threadIdx.x) / 1024U * 1024U +
+            (1024U * blockIdx.x + threadIdx.x) % 1024U]++;
 }
 
 void Kuiper_Example_TMap_incr_all_1d(uint32_t *a)
