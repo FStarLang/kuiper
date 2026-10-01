@@ -41,6 +41,26 @@ __hoisted_inverse_root_0(float x, float *device)
     *device = kpr_f32_rsqrt_approx_ftz(x);
 }
 
+__global__ __launch_bounds__(1)
+/**
+  hoisted when extracting arithmetic
+*/
+static void
+__hoisted_arithmetic_0(uint32_t n, float *inputs, float *outputs)
+{
+    uint32_t i = 0U;
+    for (; i < n; i++) {
+        uint32_t j = i;
+        float x = inputs[3U * j];
+        float y = inputs[3U * j + 1U];
+        float z = inputs[3U * j + 2U];
+        float sum = kpr_f32_add_rn_ftz(x, y);
+        float fused = kpr_f32_fma_rn_ftz(x, y, z);
+        outputs[2U * j] = sum;
+        outputs[2U * j + 1U] = fused;
+    }
+}
+
 float Kuiper_Example_Float32GPU_multiply(float x, float y)
 {
     float out = 0.0f;
@@ -99,4 +119,13 @@ float Kuiper_Example_Float32GPU_inverse_root(float x)
     float result = out;
     MUST(cudaFree(device));
     return result;
+}
+
+void Kuiper_Example_Float32GPU_arithmetic(
+    uint32_t n, float *inputs, float *outputs)
+{
+    cudaStream_t s = KPR_FRESH_STREAM();
+    KPR_KCALL(__hoisted_arithmetic_0, 1U, 1U, 0U, s, n, inputs, outputs);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }

@@ -52,10 +52,8 @@ __hoisted_row_softmax_rm_f32_2(uint32_t n, float *a, uint32_t nth, float *sums)
     float *gsa = (float *) KPR_SHMEM_AT(0U);
     float acc = 0.0f;
     uint32_t idx = threadIdx.x;
-    for (; idx < n; idx += nth) {
-        float v_ = expf(a[blockIdx.x * n + idx]);
-        acc += v_;
-    }
+    for (; idx < n; idx += nth)
+        acc += expf(a[blockIdx.x * n + idx]);
     gsa[threadIdx.x] = acc;
     uint32_t n1 = 0U;
     for (; 1U << (uint32_t) n1 < nth; n1++) {
@@ -140,10 +138,8 @@ __hoisted_row_softmax_rm_f64_2(
     double *gsa = (double *) KPR_SHMEM_AT(0U);
     double acc = 0.0;
     uint32_t idx = threadIdx.x;
-    for (; idx < n; idx += nth) {
-        double v_ = exp(a[blockIdx.x * n + idx]);
-        acc += v_;
-    }
+    for (; idx < n; idx += nth)
+        acc += exp(a[blockIdx.x * n + idx]);
     gsa[threadIdx.x] = acc;
     uint32_t n1 = 0U;
     for (; 1U << (uint32_t) n1 < nth; n1++) {
