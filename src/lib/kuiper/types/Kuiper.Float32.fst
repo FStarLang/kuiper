@@ -13,6 +13,7 @@ open Kuiper.Approximates.Base
 open Kuiper.Real
 module Pow = FStar.Math.Pow
 module Sqrt = FStar.Math.Sqrt
+module Trig = Kuiper.Real.Trigonometry
 
 open Kuiper.Float32.Base
 
@@ -72,6 +73,33 @@ let log1p_approx
   : Lemma
       (requires v_approximates x r)
       (ensures v_approximates (flog1p x) (log (1.0R +. r)))
+= admit()
+
+(* Ordinary native math extends the same trusted approximation model.
+   These assumptions do not identify ordinary and fast operations. *)
+let pow_approx
+  (x y : t)
+  (xr : Pow.rpos)
+  (yr : real)
+  : Lemma
+      (requires v_approximates x xr /\ v_approximates y yr)
+      (ensures v_approximates (pow x y) (Pow.pow xr yr))
+= admit()
+
+let sin_approx
+  (x : t)
+  (xr : real)
+  : Lemma
+      (requires v_approximates x xr)
+      (ensures v_approximates (sin x) (Trig.sin xr))
+= admit()
+
+let cos_approx
+  (x : t)
+  (xr : real)
+  : Lemma
+      (requires v_approximates x xr)
+      (ensures v_approximates (cos x) (Trig.cos xr))
 = admit()
 
 (* Extracted primitively; the approximation contracts are trusted. *)
