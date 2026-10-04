@@ -9,6 +9,7 @@ open Kuiper.Approximates.Base
 open Kuiper.Real
 module Pow = FStar.Math.Pow
 module Sqrt = FStar.Math.Sqrt
+module Trig = Kuiper.Real.Trigonometry
 
 inline_for_extraction noextract
 val t : Type0
@@ -49,6 +50,31 @@ val log1p_approx
   : Lemma
       (requires v_approximates x r)
       (ensures v_approximates (flog1p x) (log (1.0R +. r)))
+
+(* New trusted approximation contracts for ordinary powf/sinf/cosf, not
+   FastMath intrinsics. These ghost lemmas specify neither IEEE bits,
+   exceptional-value behavior, nor numerical error bounds. *)
+val pow_approx
+  (x y : t)
+  (xr : Pow.rpos)
+  (yr : real)
+  : Lemma
+      (requires v_approximates x xr /\ v_approximates y yr)
+      (ensures v_approximates (pow x y) (Pow.pow xr yr))
+
+val sin_approx
+  (x : t)
+  (xr : real)
+  : Lemma
+      (requires v_approximates x xr)
+      (ensures v_approximates (sin x) (Trig.sin xr))
+
+val cos_approx
+  (x : t)
+  (xr : real)
+  : Lemma
+      (requires v_approximates x xr)
+      (ensures v_approximates (cos x) (Trig.cos xr))
 
 (* GPU-only operations with explicit rounding and flush-to-zero behavior.
    As for the other floating operations, the trusted real approximation
