@@ -50,6 +50,19 @@ val log1p_approx
       (requires v_approximates x r)
       (ensures v_approximates (flog1p x) (log (1.0R +. r)))
 
+(* Trusted output approximation for softplus with beta=1 and threshold=20,
+   using ordinary expf/log1pf. This does not assert agreement of the native
+   and real branch decisions, an error bound, or exceptional-value laws. *)
+val softplus20_approx
+  (x : t)
+  (r : real)
+  : Lemma
+      (requires v_approximates x r)
+      (ensures v_approximates
+        (if lt (Kuiper.Floating.Base.of_int 20L) x then x else flog1p (fexp x))
+        (if Kuiper.ForEvery.t2b (r >. 20.0R) then r
+         else (exp_positive r; log (1.0R +. exp r))))
+
 (* GPU-only operations with explicit rounding and flush-to-zero behavior.
    As for the other floating operations, the trusted real approximation
    contracts do not model rounding, FTZ, or numerical error bounds. *)

@@ -74,6 +74,19 @@ let log1p_approx
       (ensures v_approximates (flog1p x) (log (1.0R +. r)))
 = admit()
 
+(* A new trusted numerical-model contract for the composite output, not a
+   consequence of the individual arms' contracts or branch preservation. *)
+let softplus20_approx
+  (x : t)
+  (r : real)
+  : Lemma
+      (requires v_approximates x r)
+      (ensures v_approximates
+        (if lt (Kuiper.Floating.Base.of_int 20L) x then x else flog1p (fexp x))
+        (if Kuiper.ForEvery.t2b (r >. 20.0R) then r
+         else (exp_positive r; log (1.0R +. exp r))))
+= admit()
+
 (* Extracted primitively; the approximation contracts are trusted. *)
 noextract
 fn add_rn_ftz (x y : t)
