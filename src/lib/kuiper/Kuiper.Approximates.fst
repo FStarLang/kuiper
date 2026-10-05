@@ -1,5 +1,6 @@
 module Kuiper.Approximates
 
+(* Base re-exports Scalar and Core, including real_like, can_approximate and %~. *)
 include Kuiper.Approximates.Base
 include Kuiper.Approximates.U8
 include Kuiper.Approximates.U16
