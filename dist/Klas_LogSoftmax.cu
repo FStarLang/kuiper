@@ -12,8 +12,10 @@ __hoisted_log_softmax_gpu_n_f16_0(
     half *gsa = (half *) KPR_SHMEM_AT(0U);
     half acc = __float2half_rn(0.0f);
     uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += nth)
-        acc = __hadd(acc, hexp(x_[idx]));
+    for (; idx < lena; idx += nth) {
+        half v_ = hexp(x_[idx]);
+        acc = __hadd(acc, v_);
+    }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
@@ -53,8 +55,10 @@ __hoisted_log_softmax_gpu_n_f32_0(
     float *gsa = (float *) KPR_SHMEM_AT(0U);
     float acc = 0.0f;
     uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += nth)
-        acc += expf(x_[idx]);
+    for (; idx < lena; idx += nth) {
+        float v_ = expf(x_[idx]);
+        acc += v_;
+    }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
@@ -94,8 +98,10 @@ __hoisted_log_softmax_gpu_n_f64_0(
     double *gsa = (double *) KPR_SHMEM_AT(0U);
     double acc = 0.0;
     uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += nth)
-        acc += exp(x_[idx]);
+    for (; idx < lena; idx += nth) {
+        double v_ = exp(x_[idx]);
+        acc += v_;
+    }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
@@ -134,8 +140,10 @@ __hoisted_log_softmax_gpu_f16_0(uint32_t lena, half *x_, half *out)
     half *gsa = (half *) KPR_SHMEM_AT(0U);
     half acc = __float2half_rn(0.0f);
     uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += 1024U)
-        acc = __hadd(acc, hexp(x_[idx]));
+    for (; idx < lena; idx += 1024U) {
+        half v_ = hexp(x_[idx]);
+        acc = __hadd(acc, v_);
+    }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < 1024U; n++) {
@@ -174,8 +182,10 @@ __hoisted_log_softmax_gpu_f32_0(uint32_t lena, float *x_, float *out)
     float *gsa = (float *) KPR_SHMEM_AT(0U);
     float acc = 0.0f;
     uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += 1024U)
-        acc += expf(x_[idx]);
+    for (; idx < lena; idx += 1024U) {
+        float v_ = expf(x_[idx]);
+        acc += v_;
+    }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < 1024U; n++) {
@@ -214,8 +224,10 @@ __hoisted_log_softmax_gpu_f64_0(uint32_t lena, double *x_, double *out)
     double *gsa = (double *) KPR_SHMEM_AT(0U);
     double acc = 0.0;
     uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += 1024U)
-        acc += exp(x_[idx]);
+    for (; idx < lena; idx += 1024U) {
+        double v_ = exp(x_[idx]);
+        acc += v_;
+    }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < 1024U; n++) {
@@ -254,8 +266,10 @@ __hoisted_log_softmax_n_f16_0(uint32_t lena, half *x_, uint32_t nth, half *out)
     half *gsa = (half *) KPR_SHMEM_AT(0U);
     half acc = __float2half_rn(0.0f);
     uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += nth)
-        acc = __hadd(acc, hexp(x_[idx]));
+    for (; idx < lena; idx += nth) {
+        half v_ = hexp(x_[idx]);
+        acc = __hadd(acc, v_);
+    }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
@@ -295,8 +309,10 @@ __hoisted_log_softmax_n_f32_0(
     float *gsa = (float *) KPR_SHMEM_AT(0U);
     float acc = 0.0f;
     uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += nth)
-        acc += expf(x_[idx]);
+    for (; idx < lena; idx += nth) {
+        float v_ = expf(x_[idx]);
+        acc += v_;
+    }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
@@ -336,8 +352,10 @@ __hoisted_log_softmax_n_f64_0(
     double *gsa = (double *) KPR_SHMEM_AT(0U);
     double acc = 0.0;
     uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += nth)
-        acc += exp(x_[idx]);
+    for (; idx < lena; idx += nth) {
+        double v_ = exp(x_[idx]);
+        acc += v_;
+    }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < nth; n++) {
@@ -376,8 +394,10 @@ __hoisted_log_softmax_f16_0(uint32_t lena, half *x_, half *out)
     half *gsa = (half *) KPR_SHMEM_AT(0U);
     half acc = __float2half_rn(0.0f);
     uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += 1024U)
-        acc = __hadd(acc, hexp(x_[idx]));
+    for (; idx < lena; idx += 1024U) {
+        half v_ = hexp(x_[idx]);
+        acc = __hadd(acc, v_);
+    }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < 1024U; n++) {
@@ -416,8 +436,10 @@ __hoisted_log_softmax_f32_0(uint32_t lena, float *x_, float *out)
     float *gsa = (float *) KPR_SHMEM_AT(0U);
     float acc = 0.0f;
     uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += 1024U)
-        acc += expf(x_[idx]);
+    for (; idx < lena; idx += 1024U) {
+        float v_ = expf(x_[idx]);
+        acc += v_;
+    }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < 1024U; n++) {
@@ -456,8 +478,10 @@ __hoisted_log_softmax_f64_0(uint32_t lena, double *x_, double *out)
     double *gsa = (double *) KPR_SHMEM_AT(0U);
     double acc = 0.0;
     uint32_t idx = threadIdx.x;
-    for (; idx < lena; idx += 1024U)
-        acc += exp(x_[idx]);
+    for (; idx < lena; idx += 1024U) {
+        double v_ = exp(x_[idx]);
+        acc += v_;
+    }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; 1U << (uint32_t) n < 1024U; n++) {
