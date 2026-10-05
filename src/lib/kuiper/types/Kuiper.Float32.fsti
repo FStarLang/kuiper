@@ -11,6 +11,7 @@ open Kuiper.Float.Realops
 module Sqrt = FStar.Math.Sqrt
 module Pow = FStar.Math.Pow
 module Trig = Kuiper.Real.Trigonometry
+module F = Kuiper.Floating.Base
 
 inline_for_extraction noextract
 val t : Type0
@@ -31,6 +32,13 @@ val lt_transitive (x y z : t)
   : Lemma
       (requires lt x y /\ lt y z)
       (ensures lt x z)
+
+(* Forward the documented CUDA expf laws from Kuiper.Float32.Base. *)
+val exp_special_values (x : t)
+  : Lemma (ensures
+      ((x == F.sub F.zero F.infinity ==> fexp x == F.zero) /\
+       (x == F.infinity ==> fexp x == F.infinity) /\
+       (NaN? (kind x) ==> NaN? (kind (fexp x)))))
 
 inline_for_extraction noextract
 val fexpm1 : t -> t
