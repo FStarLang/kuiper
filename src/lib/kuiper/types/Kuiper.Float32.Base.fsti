@@ -140,6 +140,17 @@ val fmax_spec : (x : t) -> (y : t) ->
           [SMTPat (fmax x y)]
 
 val fexp : t -> t
+
+(* Trusted CUDA expf special values, separate from real approximation:
+   https://docs.nvidia.com/cuda/archive/13.0.0/cuda-math-api/cuda_math_api/group__CUDA__MATH__SINGLE.html#_CPPv44expff
+   Equality specifies positive zero exactly; NaN signs/payloads are unspecified.
+   This is the ordinary expf binding, not the fast __expf intrinsic. *)
+val exp_special_values (x : t)
+  : Lemma (ensures
+      ((x == sub zero infinity ==> fexp x == zero) /\
+       (x == infinity ==> fexp x == infinity) /\
+       (NaN? (kind x) ==> NaN? (kind (fexp x)))))
+
 val flog : t -> t
 val fexpm1 : t -> t
 val flog1p : t -> t
