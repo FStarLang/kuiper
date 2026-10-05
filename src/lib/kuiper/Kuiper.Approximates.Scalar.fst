@@ -3,6 +3,7 @@ module Kuiper.Approximates.Scalar
 include Kuiper.Approximates.Core
 
 open Kuiper.Real
+open Kuiper.Float.Realops
 open Kuiper.Scalars
 
 (* This class is meant for scalar types that can "approximate" or
@@ -21,15 +22,15 @@ class real_like (a:Type) {| scalar a |} = {
   (* SMT triggers live on wrappers below, not these fields: putting them on
      the fields introduces matching loops (FStarLang/FStar#4264). *)
 
-  a0 : squash (v_approximates zero 0.0R);
+  a0 : squash (v_approximates zero r_zero);
 
-  a1 : squash (v_approximates one 1.0R);
+  a1 : squash (v_approximates one r_one);
 
   a_add : (x:a) -> (y:a) -> (r:real) -> (s:real) -> Lemma (requires v_approximates x r /\ v_approximates y s)
-        (ensures v_approximates (add x y) (r +. s));
+        (ensures v_approximates (add x y) (r_add r s));
 
   a_mul : (x:a) -> (y:a) -> (r:real) -> (s:real) -> Lemma (requires v_approximates x r /\ v_approximates y s)
-        (ensures v_approximates (mul x y) (r *. s));
+        (ensures v_approximates (mul x y) (r_mul r s));
 
 }
 
@@ -57,7 +58,7 @@ let a_add_pat
   (a:Type) {| scalar a, real_like a, ar : real_like a |}
   (x:a) (y:a) (r:real) (s:real)
   : Lemma (requires v_approximates x r /\ v_approximates y s)
-      (ensures v_approximates (add x y) (r +. s))
+      (ensures v_approximates (add x y) (r_add r s))
           [SMTPat (add x y);
            SMTPat (v_approximates x r);
            SMTPat (v_approximates y s);
@@ -68,7 +69,7 @@ let a_mul_pat
   (a:Type) {| scalar a, real_like a, ar : real_like a |}
   (x:a) (y:a) (r:real) (s:real)
   : Lemma (requires v_approximates x r /\ v_approximates y s)
-      (ensures v_approximates (mul x y) (r *. s))
+      (ensures v_approximates (mul x y) (r_mul r s))
           [SMTPat (mul x y);
            SMTPat (v_approximates x r);
            SMTPat (v_approximates y s);
