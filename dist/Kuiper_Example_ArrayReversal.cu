@@ -16,8 +16,8 @@ __hoisted_reverse_u64_0(uint32_t size, uint64_t *a)
 
 void Kuiper_Example_ArrayReversal_reverse_u64(uint32_t size, uint64_t *a)
 {
-    cudaStream_t s1 = KPR_FRESH_STREAM();
-    KPR_KCALL(__hoisted_reverse_u64_0, size / 2U, 1U, 0U, s1, size, a);
-    MUST(cudaStreamSynchronize(s1));
-    MUST(cudaStreamDestroy(s1));
+    cudaStream_t s = KPR_FRESH_STREAM();
+    KPR_KCALL(__hoisted_reverse_u64_0, size / 2U, 1U, 0U, s, size, a);
+    MUST(cudaStreamSynchronize(s));
+    MUST(cudaStreamDestroy(s));
 }

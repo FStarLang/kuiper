@@ -13,14 +13,12 @@ uint32_t Kuiper_Example_ArrayView_Test_EvenOdds3_foo_odd(uint32_t *a)
 
 uint32_t Kuiper_Example_ArrayView_Test_EvenOdds3_test(uint32_t *a)
 {
-    uint32_t *vr = a;
     uint32_t x = Kuiper_Example_ArrayView_Test_EvenOdds3_foo_even(a);
-    return x + Kuiper_Example_ArrayView_Test_EvenOdds3_foo_odd(vr);
+    return x + Kuiper_Example_ArrayView_Test_EvenOdds3_foo_odd(a);
 }
 
 void Kuiper_Example_ArrayView_Test_EvenOdds3_test_write(uint32_t *a)
 {
-    uint32_t *vr = a;
     a[20U] = 42U;
-    vr[41U] = 43U;
+    a[41U] = 43U;
 }

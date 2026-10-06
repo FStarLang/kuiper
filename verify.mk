@@ -247,19 +247,30 @@ depend.pdf: .depend .force
 # Does not work. See hack in .depend
 # $(OUTDIR)/%.krml: .plugin.touch
 
+# Extraction goes through Custard, F*'s whole-program extractor, with its
+# karamel backend: the program reachable from $(MOD) is written to a single
+# .krml file (whose module is called Custard), with Kuiper's own primitives
+# (kernel launches, CUDA memory operations, floats, tensor cores...)
+# translated by the rules in the plugin.
+CUSTARD_FLAGS :=
+CUSTARD_FLAGS += --codegen Custard --custard_backend KrmlC
+CUSTARD_FLAGS += --custard_sizet_width 32 # SizeT.t is uint32_t
+CUSTARD_FLAGS += --custard_norm_budget 200000000
+CUSTARD_FLAGS += --warn_error @381 # a rule with the wrong arity
+CUSTARD_FLAGS += --load_cmxs $(PLUGIN)
+
 $(OUTDIR)/%.krml: MOD=$(subst _,.,$(basename $(notdir $@)))
 $(OUTDIR)/%.krml: | .fstar.touch
 	@# Stupid renaming!
 	$(call msg,"EXTRACT")
-	$(Q)$(FSTAR) --codegen krml --load_cmxs $(PLUGIN) --extract "-*,+$(MOD),+Kuiper" -o $@ $<
+	$(Q)$(FSTAR) $(CUSTARD_FLAGS) --already_cached '*' --custard_entry_module $(MOD) -o $@ $<
 
-# Turning something like obj/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
-$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: MOD=$(subst _,.,$(basename $(notdir $<)))
-$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: PRE=$(subst $(OUTDIR),$(OUTDIR)/pre,$@)
+# Turning something like obj/Kuiper_DotProduct2.krml into Kuiper_DotProduct2.{cu,h}
+$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: NAME=$(basename $(notdir $<))
 $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
 	# Output into pre/
-	$(KRML) -bundle "$(MOD)=*" -tmpdir $(OUTDIR)/pre/ $<
+	$(KRML) -bundle "Custard=*[rename=$(NAME)]" -tmpdir $(OUTDIR)/pre/ $<
 
 # Postprocess via sed and generate the actual target
 # Do NOT use a wildcard without an extension or this can match
