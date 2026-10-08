@@ -3,149 +3,16 @@ module Kuiper.Sparse.Array.PtsTo
 #lang-pulse
 
 open Kuiper
+open Kuiper.Sparse.Common
+open Kuiper.Sparse.Math { divup }
 open FStar.Tactics.V2 { exact }
 open Kuiper.Array.Vectorized
-open Kuiper.Sparse.Common
-
 
 let chunk_cell_offset (k nthr tid ch i : nat)
   : Lemma (k * (nthr * ch) + (tid * ch + i) ==
       (k * nthr + tid) * ch + i /\
       i + (k * nthr + tid) * ch == (k * nthr + tid) * ch + i)
   = ()
-
-
-(* Live *)
-
-let slice_live
-  (#et : Type0)
-  (#l : nat)
-  (a : larray et l)
-  (#[full_default ()] f : perm)
-  (i j : nat)
-  : slprop
-  = exists* s. pts_to_slice a #f i j s
-
-let array_live_cell
-  (#et : Type0)
-  (#l : nat)
-  (a : larray et l)
-  (#[full_default ()] f : perm)
-  (i : natlt l)
-  : slprop
-  // esto es medio choto
-  // = exists* v. Cell (a <: array et) (i <: nat) |-> Frac f (v <: et)
-  = exists* v. pts_to_cell a #f i v
-
-
-(* Vector *)
-
-unfold
-let pts_to_vec
-  (#a:Type u#0) {| sized a, has_vec_cpy a |}
-  (#sz:nat)
-  ([@@@mkey] x:larray a sz)
-  (#[full_default ()] f : perm)
-  ([@@@mkey] i : nat)
-  (v : seq a)
-: slprop
-=
-  pts_to_slice x #f i (i + chunk a) v
-
-unfold
-let pts_to_vec'
-  (#a:Type) {| sized a, has_vec_cpy a |}
-  (#sz:nat)
-  ([@@@mkey] x:larray a sz)
-  (#[full_default ()] f : perm)
-  ([@@@mkey] i : nat)
-  (v : seq a)
-  (k : natle (len v - chunk a))
-: slprop
-= pts_to_vec x #f i (Seq.slice v k (k + chunk a))
-
-let live_vec
-  (#a:Type) {| sized a, has_vec_cpy a |}
-  (#l : nat)
-  (x :larray a l)
-  (#[full_default ()] f : perm)
-  (i : nat)
-: slprop
-= exists* v. pts_to_vec x #f i v
-
-
-(* Thread sharing *)
-
-let thread_slice_pts_to
-  (#et : Type0)
-  (#n : nat)
-  (a : larray et n)
-  (i j : natle n { i <= j })
-  (#m : nat)
-  (s : lseq et m)
-  (k : natle (m - (j - i)))
-  (nthr : nat) (tid : natlt nthr)
-: slprop
-=
-  forall+ (x : natlt ((j - i - tid) `divup` nthr)).
-    pts_to_cell a (i + x * nthr + tid <: nat) (s @! k + x * nthr + tid)
-
-let thread_slice_pts_to_value
-  (#et : Type0)
-  (#n : nat)
-  (a : larray et n)
-  (i j : natle n { i <= j })
-  (v : et)
-  (nthr : nat) (tid : natlt nthr)
-: slprop
-=
-  forall+ (x : natlt ((j - i - tid) `divup` nthr)).
-    pts_to_cell a (i + x * nthr + tid) v
-
-let thread_slice_live
-  (#et : Type0)
-  (#n : nat)
-  (a : larray et n)
-  (i j : natle n {i <= j})
-  (nthr : nat) (tid : natlt nthr)
-: slprop
-=
-  forall+ (k : natlt ((j - i - tid) `divup` nthr)).
-    array_live_cell a (i + k * nthr + tid)
-
-
-(* Vector thread sharing *)
-
-let thread_pts_to_chunks
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#n : nat)
-  ([@@@mkey] x : larray et n)
-  (#m : nat)
-  (s : lseq et m)
-  (i nthr : nat)
-  (tid : natlt nthr)
-: Pure slprop
-  (requires (nthr * chunk et) /? n /\ i + n <= m)
-  (ensures fun _ -> true)
-=
-  forall+ (k : natlt (n / (nthr * chunk et))).
-    pts_to_vec' x ((k * nthr + tid) * chunk et)
-      s (i + (k * nthr + tid) * chunk et)
-
-let thread_live_chunks
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#n : nat)
-  ([@@@mkey] x : larray et n)
-  (nthr : nat)
-  (tid : natlt nthr)
-: Pure slprop
-  (requires (nthr * chunk et) /? n)
-  (ensures fun _ -> true)
-=
-  forall+ (k : natlt (n / (nthr * chunk et))).
-    live_vec x ((k * nthr + tid) * chunk et)
-
-
 
 (* Helpers *)
 

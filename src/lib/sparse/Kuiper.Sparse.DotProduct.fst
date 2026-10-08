@@ -7,85 +7,6 @@ open Kuiper
 module SZ = FStar.SizeT
 module KSeq = Kuiper.Seq.Common
 
-
-// TODO ordenar un poco
-
-let scale
-  (#et:_) {| scalar et |}
-  (#n : nat)
-  (k : et)
-  (s : lseq et n)
-  : (lseq et n)
-=
-  Seq.init n (fun i -> k `mul`(s @! i))
-
-let _comb
-  (#et:_) {| scalar et |}
-  (#n #acc_l : nat)
-  (acc : lseq et acc_l)
-  (k : et)
-  (s : lseq et n)
-  (to : natle n)
-  : Ghost (lseq et acc_l) (requires n <= acc_l) (ensures fun _ -> true)
-=
-  Seq.init_ghost acc_l (fun i ->
-    if i < to
-      then (acc @! i) `add` (k `mul`(s @! i))
-      else acc @! i
-  )
-
-let _comb_lemma
-  (#et:_) {| scalar et |}
-  (#n #acc_l : nat)
-  (acc : lseq et acc_l)
-  (k : et)
-  (s : lseq et n)
-  (to : natlt n)
-: Lemma
-  (requires n <= acc_l)
-  (ensures
-    Seq.upd (_comb acc k s to) to ((acc @! to) `add` (k `mul` (s @! to))) ==
-    _comb acc k s (to + 1)
-  )
-=
-  assert Seq.equal
-    (Seq.upd (_comb acc k s to) to ((acc @! to) `add` (k `mul` (s @! to))))
-    (_comb acc k s (to + 1))
-
-let comb
-  (#et:_) {| scalar et |}
-  (#n #acc_l : nat)
-  (acc : lseq et acc_l)
-  (k : et)
-  (s : lseq et n)
-  : Ghost (lseq et acc_l) (requires n <= acc_l) (ensures fun _ -> true)
-=
-  _comb acc k s n
-
-let rec _dprod_acc
-  (#et:_) {| scalar et |}
-  (acc : et)
-  (#n : nat)
-  (s t : lseq et n)
-  (to : natle n)
-  : et
-=
-  if to = 0
-    then acc
-    else
-      add
-        (_dprod_acc acc s t (to - 1))
-        ((s @! to - 1) `mul` (t @! to - 1))
-
-
-let dprod_acc
-  (#et:_) {| scalar et |}
-  (acc : et)
-  (#n : nat)
-  (s t : lseq et n)
-  : et
-= _dprod_acc acc s t n
-
 let rec _dprod_acc_lemma0
   (#et:_) {| scalar et |}
   (#n1 #n2 : nat)
@@ -138,67 +59,6 @@ let dprod_acc_lemma
 =
   _dprod_acc_lemma acc s1 t1 s2 t2 n2
 
-let _dprod
-  (#et:_) {| scalar et |}
-  (#n : nat)
-  (s t : lseq et n)
-  (to : natle n)
-  : et
-=
-  _dprod_acc zero s t to
-
-
-let dprod
-  (#et:_) {| scalar et |}
-  (#n : nat)
-  (s t : lseq et n)
-  : et
-= _dprod s t n
-
-noextract
-let _sparse_dprod_acc
-  (#et : Type0) {| scalar et |}
-  (#nnz #n : nat)
-  (acc : et)
-  (elems : lseq et nnz)
-  (pos : lseq nat nnz{in_bounds 0 n pos})
-  (t : lseq et n)
-  (to : natle nnz)
-  : et
-=
-  _dprod_acc acc elems (seq_make_sparse pos t) to
-
-noextract
-let sparse_dprod_acc
-  (#et : Type0) {| scalar et |}
-  (#n : nat )
-  (acc : et)
-  (#nnz : nat)
-  (elems : lseq et nnz)
-  (pos : lseq nat nnz{in_bounds 0 n pos})
-  (t : lseq et n)
-  : et
-= _sparse_dprod_acc acc elems pos t nnz
-
-let _sparse_dprod
-  (#et : Type0) {| scalar et |}
-  (#nnz #n : nat )
-  (elems : lseq et nnz)
-  (pos : lseq nat nnz{valid_pos n pos})
-  (t : lseq et n)
-  (to : natle nnz)
-  : et
-= _sparse_dprod_acc zero elems pos t to
-
-let sparse_dprod
-  (#et : Type0) {| scalar et |}
-  (#nnz #n : nat )
-  (elems : lseq et nnz)
-  (pos : lseq nat nnz{valid_pos n pos})
-  (t : lseq et n)
-  : et
-= _sparse_dprod elems pos t nnz
-
 let rec dprod_acc_all_zeros
   (#et:Type) {| scalar et |}
   (acc : et)
@@ -245,11 +105,11 @@ let rec _sparse_dprod_acc_lemma
     (requires valid_pos n pos)
     (ensures
       _sparse_dprod_acc acc elems pos t (to + 1) ==
-      _dprod_acc acc (unsparse _ _ elems pos) t ((pos @! to) + 1)
+      _dprod_acc acc (seq_unsparse _ _ elems pos) t ((pos @! to) + 1)
     )
 =
   bounded_from_sorted_in_bounds 0 n pos;
-  let s = unsparse _ _ elems pos in
+  let s = seq_unsparse _ _ elems pos in
 
   if to = 0
   then dprod_acc_all_zeros acc s t 0 (pos @! to)
@@ -269,10 +129,10 @@ let sparse_dprod_acc_lemma
     (requires valid_pos n pos)
     (ensures
       sparse_dprod_acc acc elems pos t ==
-      dprod_acc acc (unsparse _ _ elems pos) t
+      dprod_acc acc (seq_unsparse _ _ elems pos) t
     )
 =
-  let s = unsparse _ _ elems pos in
+  let s = seq_unsparse _ _ elems pos in
   if nnz = 0
     then dprod_acc_all_zeros acc s t 0 n
     else (
@@ -280,15 +140,56 @@ let sparse_dprod_acc_lemma
       dprod_acc_all_zeros acc s t ((pos @! nnz - 1) + 1) n
     )
 
+let sparse_dprod_lemma
+  (#et : Type0) {| scalar et |}
+  (#n #nnz : nat)
+  (elems : lseq et nnz)
+  (pos : lseq nat nnz)
+  (t : lseq et n)
+  : Lemma
+    (requires valid_pos n pos)
+    (ensures
+      sparse_dprod elems pos t ==
+      dprod (seq_unsparse _ _ elems pos) t
+    )
+=
+  sparse_dprod_acc_lemma zero elems pos t
+
+let rec sparse_dprod_slice_lemma
+  (#et : Type0) {| scalar et |}
+  (acc : et)
+  (#n #nnz : nat)
+  (elems : lseq et nnz)
+  (pos : lseq nat nnz)
+  (t : lseq et n)
+  (to : natle nnz)
+  (to_ : natle to)
+  : Lemma
+    (requires in_bounds 0 n pos)
+    (ensures
+      _sparse_dprod_acc acc elems pos t to_ ==
+      _sparse_dprod_acc acc
+        (Seq.slice elems 0 to <: lseq et to)
+        (Seq.slice pos 0 to)
+        t to_
+    )
+=
+  if to_ = 0
+    then ()
+    else sparse_dprod_slice_lemma acc elems pos t to (to_ - 1)
+
+
 let sparse_dprod_accum
   (#et : Type0) {| scalar et |}
   (acc : et)
-  (elems : lseq et 'nnz)
-  (pos : lseq nat 'nnz)
-  (t : lseq et 'n)
-  (from to : natle 'nnz { from <= to })
+  (#nnz : nat)
+  (elems : lseq et nnz)
+  (pos : lseq nat nnz)
+  (#n : nat)
+  (t : lseq et n)
+  (from to : natle nnz { from <= to })
   : Lemma
-    (requires in_bounds 0 'n pos)
+    (requires in_bounds 0 n pos)
     (ensures
       sparse_dprod_acc
         (sparse_dprod_acc
@@ -322,44 +223,6 @@ let sparse_dprod_accum
 
   dprod_acc_lemma acc elems1 t1 elems2 t2
 
-
-let sparse_dprod_lemma
-  (#et : Type0) {| scalar et |}
-  (#n #nnz : nat)
-  (elems : lseq et nnz)
-  (pos : lseq nat nnz)
-  (t : lseq et n)
-  : Lemma
-    (requires valid_pos n pos)
-    (ensures
-      sparse_dprod elems pos t ==
-      dprod (unsparse _ _ elems pos) t
-    )
-=
-  sparse_dprod_acc_lemma zero elems pos t
-
-let rec sparse_dprod_slice_lemma
-  (#et : Type0) {| scalar et |}
-  (acc : et)
-  (#n #nnz : nat)
-  (elems : lseq et nnz)
-  (pos : lseq nat nnz)
-  (t : lseq et n)
-  (to : natle nnz)
-  (to_ : natle to)
-  : Lemma
-    (requires in_bounds 0 n pos)
-    (ensures
-      _sparse_dprod_acc acc elems pos t to_ ==
-      _sparse_dprod_acc acc
-        (Seq.slice elems 0 to <: lseq et to)
-        (Seq.slice pos 0 to)
-        t to_
-    )
-=
-  if to_ = 0
-    then ()
-    else sparse_dprod_slice_lemma acc elems pos t to (to_ - 1)
 
 open Kuiper.EMatrix
 open Kuiper.Spec.GEMM

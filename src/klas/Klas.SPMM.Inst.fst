@@ -3,6 +3,7 @@ module Klas.SPMM.Inst
 open Kuiper
 open Kuiper.Sparse
 open Kuiper.Sparse.SPMM
+module Math = Kuiper.Sparse.Math
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
@@ -72,7 +73,7 @@ fn inst_on
 {
   tensor_pts_to_ref_located gB;
   tensor_pts_to_ref_located gC;
-  prod_divides blockWidth (chunk et) blockItemsX;
+  Math.prod_divides blockWidth (chunk et) blockItemsX;
   lemma_divides_trans (chunk et) blockItemsX cols;
   assert pure (chunk et /? cols);
   assert pure (chunk et /?+ cols);
@@ -138,7 +139,7 @@ fn inst
 {
   tensor_pts_to_ref_located gB;
   tensor_pts_to_ref_located gC;
-  prod_divides blockWidth (chunk et) blockItemsX;
+  Math.prod_divides blockWidth (chunk et) blockItemsX;
   lemma_divides_trans (chunk et) blockItemsX cols;
   assert pure (chunk et /? cols);
   assert pure (chunk et /?+ cols);

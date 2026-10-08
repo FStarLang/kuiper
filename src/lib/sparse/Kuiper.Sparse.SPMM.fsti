@@ -123,7 +123,6 @@ fn spmm
   // matrices densas
   (#eB : chest2 et shared cols)
   (#eC : chest2 et rows cols)
-  //(#_ : size_req rows shared cols)
   norewrite
   preserves
     cpu **

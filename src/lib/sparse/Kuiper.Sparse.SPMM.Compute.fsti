@@ -14,196 +14,116 @@ open Kuiper.Tensor
 open Kuiper.Seq.Common { op_At_Bang }
 
 
-val tile_vmprod_prop
+val tile_mm_result
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (#m1 #n1 : nat { chunk et /? n1 })
-  (acc : erased (lseq et n1))
-  (elems : erased (lseq et m1))
-  (row_ind : erased (lseq nat m1))
-  (#m2 #n2 : nat {  chunk et /? n2 })
-  (em2 : chest2 et m2 n2)
+  (#shared #cols : nat {  chunk et /? cols })
+  (#ly : nat { chunk et /? ly })
+  (y0 : erased (lseq et ly))
+  (#lA : nat)
+  (elems : erased (lseq et lA))
+  (row_ind : erased (lseq nat lA) { in_bounds 0 shared row_ind })
+  (eB : chest2 et shared cols)
   (j : nat { chunk et /? j })
   (step : nat)
-  (#_ : squash (in_bounds 0 m2 row_ind))
-  (y : lseq et n1)
+  (y : lseq et ly)
   : prop
 
-val tile_vmprod_prop_lemma0
+val tile_mm_lemma0
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (#n1 : nat { chunk et /? n1 })
-  (acc : erased (lseq et n1))
-  (#m2 #n2 : nat {  chunk et /? n2 })
-  (em2 : chest2 et m2 n2)
+  (#shared #cols : nat {  chunk et /? cols })
+  (#ly : nat { chunk et /? ly })
+  (y0 : erased (lseq et ly))
+  (eB : chest2 et shared cols)
   (j : nat { chunk et /? j })
   (step : nat)
-: Lemma
-  (requires true)
-  (ensures
-    tile_vmprod_prop
-      acc
-      (Seq.empty <: lseq et 0) Seq.empty
-      em2 j step acc
-  )
+: Lemma (ensures tile_mm_result y0 (Seq.empty <: lseq et 0) Seq.empty eB j step y0)
 
-val tile_mask_lemma
+val tile_mm_mask_lemma
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (#shared #cols : nat { chunk et /? cols })
+  (#ly : nat { chunk et /? ly })
+  (y0 : lseq et ly)
   (nnz : nat)
   (mask_len : natle nnz)
   (elems : erased (lseq et (nnz - mask_len)))
-  (row_ind : erased (lseq nat nnz))
-  (#_ : squash (in_bounds 0 shared row_ind))
-  (em2 : chest2 et shared cols)
+  (row_ind : erased (lseq nat nnz) { in_bounds 0 shared row_ind })
+  (eB : chest2 et shared cols)
   (j : nat { chunk et /? j })
   (step : nat)
-  (#tlen : nat { chunk et /? tlen })
-  (tile0 tile : lseq et tlen)
+  (y : lseq et ly)
 : Lemma
-  (requires
-    tile_vmprod_prop
-      tile0
-      (Seq.create mask_len zero @+ elems) row_ind
-      em2 j step tile
-  )
-  (ensures
-    tile_vmprod_prop #_ #_ #_ #solve
-      tile0
-      elems (Seq.slice row_ind mask_len nnz)
-      em2 j step tile
-  )
+  (requires tile_mm_result y0 (Seq.create mask_len zero @+ elems) row_ind eB j step y)
+  (ensures  tile_mm_result y0 elems (Seq.slice row_ind mask_len nnz) eB j step y)
 
-val vmprod_is_tile
+val tile_mm_result_lemma
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
   (#rows #shared #cols : nat { chunk et /? cols })
-  (em1 : chest2 et rows shared)
+  (eA : chest2 et rows shared)
   (i : natlt rows)
   (#nnz : nat)
   (elems : erased (lseq et nnz))
   (row_ind : erased (lseq nat nnz))
   (#_ : squash (in_bounds 0 shared row_ind /\ sorted row_ind))
-  (em2 : chest2 et shared cols)
+  (eB : chest2 et shared cols)
   (j : nat { chunk et /? j })
   (step : nat)
-  (#tlen : nat { chunk et /? tlen })
-  (tile : lseq et tlen)
+  (#ly : nat { chunk et /? ly })
+  (y : lseq et ly)
 : Lemma
   (requires
-    unsparse _ _ elems row_ind == ematrix_row em1 i /\
-    tile_vmprod_prop
-      (Seq.create tlen zero)
+    seq_unsparse _ _ elems row_ind == ematrix_row eA i /\
+    tile_mm_result
+      (Seq.create ly zero)
       elems row_ind
-      em2
+      eB
       j step
-      tile
+      y
   )
-  (ensures is_ematrix_tile #_ #_ #solve (matmul em1 em2) i j tile step)
-
-inline_for_extraction noextract
-fn tile_vmprod
-  (#et : Type0) {| scalar et, sized et, hvc : has_vec_cpy et |}
-  (#m1 #n1 : sz { chunk et /? n1 })
-  // (#ly : layout1 n1) {| ctlayout ly |}
-  (y : larray et n1)
-  (#vy : erased (lseq et n1))
-  (vy0 : erased (lseq et n1))
-  // (#lx : layout1 m1) {| ctlayout lx |}
-  (x : larray et m1)
-  (#fx : perm)
-  (#nnz : erased nat)
-  (elems : erased (lseq et nnz))
-  (row_ind : erased (lseq nat nnz))
-  (to : erased nat { to + m1 <= nnz })
-  (#ltm : layout2 m1 n1) {| ctlayout ltm |}
-  (tm : array2 et ltm)
-  (#tem : chest2 et m1 n1)
-  (#ftm : perm)
-  (#m2 #n2 : erased nat { chunk et /? n2 })
-  (gem : chest2 et m2 n2)
-  (j : sz { chunk et /? j })
-  (step : sz)
-  (#_ : squash (in_bounds 0 m2 row_ind))
-  norewrite
-  preserves gpu
-  // preserves x  |-> Frac fx (seq_to_chest1 (Seq.slice elems to (to + m1) <: lseq et m1))
-  preserves x  |-> Frac fx (Seq.slice elems to (to + m1) <: lseq et m1)
-  preserves tm |-> Frac ftm tem
-  requires  pure (chest2_tile_prop #_ #_ #hvc gem (Seq.slice row_ind to (to + m1)) j step tem)
-  requires  y  |-> vy
-  requires
-    pure (
-      tile_vmprod_prop
-        vy0
-        (Seq.slice elems 0 to <: lseq et to) (Seq.slice row_ind 0 to)
-        gem
-        j step
-        // (chest1_to_seq vy)
-        vy
-    )
-  ensures exists* (vy' : lseq et n1).
-    y |-> vy' **
-    pure (
-      tile_vmprod_prop
-        vy0
-        (Seq.slice elems 0 (to + m1) <: lseq et (to + m1)) (Seq.slice row_ind 0 (to + m1))
-        gem
-        j step
-        // (chest1_to_seq vy')
-        vy'
-    )
+  (ensures is_ematrix_tile (matmul eA eB) i j y step)
 
 open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
 
 inline_for_extraction noextract
-fn tile_fused_vmprod
+fn tile_mm
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (#m1 #n1 : sz { chunk et /? n1 })
-  (y : larray et n1)
-  (#vy : erased (lseq et n1))
-  (vy0 : erased (lseq et n1))
-  (elems : larray et m1)
-  (row_ind : larray sz m1)
-  (#fx : perm)
+  (#shared #cols : szp { chunk et /? cols } )
+  (#ly : sz { chunk et /? ly })
+  (y : larray et ly)
+  (vy0 : erased (lseq et ly))
+  (#vy : erased (lseq et ly))
+  (#lA : sz) (elems : larray et lA) (row_ind : larray sz lA) (#fA : perm)
   (#nnz : erased nat)
   (velems : erased (lseq et nnz))
-  (vrow_ind : erased (lseq sz nnz))
-  (#m2 #n2 : szp { chunk et /? n2 })
-  (#lm : layout2 m2 n2) {| ctlayout lm, srm : strided_row_major lm |}
-  (m : array2 et lm)
-  (#fm : perm)
-  (#em : chest2 et m2 n2)
+  (vrow_ind : erased (lseq sz nnz) { in_bounds 0 shared (cast_pos vrow_ind) })
+  (#lB : layout2 shared cols) {| ctlayout lB, srm : strided_row_major lB |}
+  (mB : array2 et lB) (#fB : perm) (#eB : chest2 et shared cols)
   (j : sz { chunk et /? j })
   (step : sz)
-  (#_ : squash (in_bounds 0 m2 (cast_pos vrow_ind)))
   (from to : erased nat { to <= nnz })
-  (cant : szle m1 { v cant == to - from })
+  (cant : szle lA { v cant == to - from })
   preserves gpu
-  // TODO aca solo tenemos una slice de estos arreglos
-  // cambiar slprop
-  // preserves elems   |-> Frac fx (Seq.slice velems from (from + m1) <: lseq et m1)
-  preserves pts_to_slice elems #fx 0 cant (Seq.slice velems from to <: lseq et cant)
-  preserves pts_to_slice row_ind #fx 0 cant (Seq.slice vrow_ind from to <: lseq sz cant)
-  preserves m |-> Frac fm em
-  requires  pure (aligned 16 (core m) /\ aligned_strided_row_major (chunk et) srm)
-  requires  pure (fits (j + n1 * step))
-  requires  y |-> vy
+  preserves pts_to_slice elems   #fA 0 cant (Seq.slice velems from to <: lseq et cant)
+  preserves pts_to_slice row_ind #fA 0 cant (Seq.slice vrow_ind from to <: lseq sz cant)
+  preserves mB |-> Frac fB eB
+  requires  pure (aligned 16 (core mB) /\ aligned_strided_row_major (chunk et) srm)
+  requires  pure (fits (j + ly * step))
   requires
+    y |-> vy **
     pure (
-      tile_vmprod_prop
+      tile_mm_result
         vy0
         (Seq.slice velems 0 from <: lseq et from)
         (Seq.slice (cast_pos vrow_ind) 0 from)
-        em
+        eB
         j step
-        // (chest1_to_seq vy)
         vy
     )
-  ensures exists* (vy' : lseq et n1).
+  ensures exists* (vy' : lseq et ly).
     y |-> vy' **
     pure (
-      tile_vmprod_prop
+      tile_mm_result
         vy0
         (Seq.slice velems 0 to <: lseq et to)
         (Seq.slice (cast_pos vrow_ind) 0 to <: lseq nat to)
-        // em j step (chest1_to_seq vy')
-        em j step vy'
+        eB j step vy'
     )

@@ -2,11 +2,9 @@ module Kuiper.Sparse
 
 #lang-pulse
 include Kuiper.Sparse.Common
+include Kuiper.Sparse.Math { divup, divup_, round2, round2_ }
+include Kuiper.Sparse.Tensor
 include Kuiper.Sparse.Array
-// no usamos array iterator
-// include Kuiper.Sparse.Array.Iterator
 include Kuiper.Sparse.Matrix
-// TODO tal vez no esta bueno incluir estos dos porque puede haber coincidencias de nombres
-// se pueden incluir qualified?
 include Kuiper.Sparse.Array.PtsTo
 include Kuiper.Sparse.Matrix.PtsTo

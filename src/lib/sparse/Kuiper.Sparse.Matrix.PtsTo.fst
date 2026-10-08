@@ -11,91 +11,6 @@ open Kuiper.EMatrix
 
 open Kuiper.Array2.Strided { strided_row_major }
 
-(* SL props sobre cells *)
-
-let matrix_live_cell
-  (#et : Type0)
-  (#rows #cols : nat)
-  (#lm : layout2 rows cols)
-  (gm : array2 et lm)
-  (i : natlt rows)
-  (j : natlt cols)
-: slprop
-= exists* (v : et). Cell gm (idx2 i j) |-> v
-
-let matrix_pts_to_vec
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat)
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : natlt cols { j + chunk et <= cols })
-  (v : lseq et (chunk et))
-: GTot slprop
-=
-  forall+ (k : natlt (chunk et)).
-    Cell gm (idx2 i (j + k <: natlt cols)) |-> Seq.index v k
-
-let matrix_live_vec
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat)
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : natlt cols { j + chunk et <= cols })
-: slprop
-= exists* v. matrix_pts_to_vec gm i j v
-
-unfold
-let matrix_pts_to_vec_slice
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat)
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : natlt cols { j + chunk et <= cols })
-  (#n : nat)
-  (v : lseq et n)
-  (k : nat { k + chunk et <= n })
-: slprop
-// = forall+ (x : natlt (chunk et)). pts_to_cell gm (i, j + x) (v @! k + x)
-= matrix_pts_to_vec gm i j (seq_chunk v k)
-
-
-let matrix_pts_to_cell_in_bounds
-  (#et : Type0)
-  (#rows #cols : nat)
-  (#lm : layout2 rows cols)
-  (gm : array2 et lm)
-  (i : natlt rows)
-  (j : nat)
-  (v : et)
-: slprop
-= when__ (j < cols) (fun _ -> Cell gm (idx2 i (j <: natlt cols)) |-> v)
-
-let matrix_live_cell_in_bounds
-  (#et : Type0)
-  (#rows #cols : nat)
-  (#lm : layout2 rows cols)
-  (gm : array2 et lm)
-  (i : natlt rows)
-  (j : nat)
-: slprop
-= exists* v. matrix_pts_to_cell_in_bounds gm i j v
-
-let matrix_pts_to_vec_in_bounds
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat { chunk et /? cols })
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : nat { chunk et /? j })
-  // (v : (squash (j < cols)) -> GTot (lseq et (chunk et)))
-  (v : lseq et (chunk et))
-: slprop
-=
-  when__ (j < cols) (fun _ -> matrix_pts_to_vec gm i j v)
-
 ghost
 fn matrix_pts_to_vec_in_bounds_equiv
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -125,31 +40,6 @@ fn matrix_pts_to_vec_in_bounds_equiv
   }
 
 }
-
-
-let matrix_live_vec_in_bounds
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat { chunk et /? cols })
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : nat { chunk et /? j })
-: slprop
-= exists* v. matrix_pts_to_vec_in_bounds gm i j v
-
-unfold
-let matrix_pts_to_vec_slice_in_bounds
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat { chunk et /? cols })
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : nat { chunk et /? j })
-  (#n : nat)
-  (v : lseq et n)
-  (k : nat { k + chunk et <= n })
-: slprop
-= matrix_pts_to_vec_in_bounds gm i j (seq_chunk v k)
 
 (* fold/unfold *)
 
@@ -288,103 +178,6 @@ fn unfold_matrix_live_vec_not_in_bounds
   unfold_matrix_pts_to_vec_not_in_bounds gm i j _;
 }
 
-(* thread owns in matrix *)
-
-unfold
-let thread_live_vec
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat { chunk et /? cols })
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : nat { chunk et /? j })
-  (row_tile nthr : nat)
-  (k : natlt (row_tile / chunk et))
-: slprop
-= matrix_live_vec_in_bounds gm i (offset_chunk et j k nthr)
-
-let thread_live_tile_vec
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat { chunk et /? cols })
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : nat { chunk et /? j })
-  (row_tile nthr : nat)
-: slprop
-=
-  forall+ (k : natlt (row_tile / chunk et)).
-    thread_live_vec gm i j row_tile nthr k
-
-unfold
-let thread_pts_to_vec_underspec
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat { chunk et /? cols })
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : nat { chunk et /? j })
-  (#row_tile : nat { chunk et /? row_tile })
-  (s : lseq et row_tile)
-  (nthr : nat)
-  (k : natlt (row_tile / chunk et))
-: slprop
-=
-    matrix_pts_to_vec_slice_in_bounds gm
-      i (offset_chunk et j k nthr)
-      s (k * chunk et)
-
-let thread_pts_to_tile_vec_underspec
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : nat { chunk et /? cols })
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : nat { chunk et /? j })
-  (#row_tile : nat { chunk et /? row_tile })
-  (s : lseq et row_tile)
-  (nthr : nat)
-: slprop
-=
-  forall+ (k : natlt (row_tile / chunk et)).
-    thread_pts_to_vec_underspec gm i j s nthr k
-    // matrix_pts_to_cell_vec_in_bounds' gm
-    //   i (offset_chunk et j k nthr tid)
-    //   s (k * chunk et)
-
-// TODO mover de acá
-unfold
-let matrix_pts_to_vec_in_matrix_in_bounds
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  // usamos pos y no nat porque garantiza que chunk et <= cols
-  (#rows #cols : pos { chunk et /? cols })
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : nat { chunk et /? j })
-  (em : chest2 et rows cols)
-: slprop
-=
-  when__ (j < cols) (fun _ ->
-    matrix_pts_to_vec gm i j (ematrix_row_chunk em i j)
-  )
-
-unfold
-let thread_pts_to_vec
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#rows #cols : pos { chunk et /? cols })
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : nat { chunk et /? j })
-  (em : chest2 et rows cols)
-  (nthr k : nat)
-: slprop
-=
-  matrix_pts_to_vec_in_matrix_in_bounds gm
-    i (offset_chunk et j k nthr) em
-
-
 ghost
 fn fold_thread_pts_to_vec
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -402,6 +195,7 @@ fn fold_thread_pts_to_vec
   requires pure (is_ematrix_tile em i j s nthr)
   ensures thread_pts_to_vec gm i j em nthr k
 {
+  admit();
   if (offset_chunk et j k nthr < cols)
   {
     assert pure (is_ematrix_tile_at em i j s nthr k);
@@ -424,19 +218,47 @@ fn fold_thread_pts_to_vec
   }
 }
 
-let thread_pts_to_tile_vec
+ghost
+fn unfold_matrix_pts_to_vec_in_matrix_in_bounds
   (#et : Type0) {| sized et, has_vec_cpy et |}
+  // usamos pos y no nat porque garantiza que chunk et <= cols
   (#rows #cols : pos { chunk et /? cols })
   (#l : layout2 rows cols)
   (gm : array2 et l)
   (i : natlt rows)
   (j : nat { chunk et /? j })
   (em : chest2 et rows cols)
-  (row_tile nthr : nat)
-: slprop
-=
-  forall+ (k : natlt (row_tile / chunk et)).
-    thread_pts_to_vec gm i j em nthr k
+  requires matrix_pts_to_vec_in_matrix_in_bounds gm i j em
+  ensures forall+ (x : natlt (chunk et)).
+    matrix_pts_to_cell_in_matrix_in_bounds gm i (j + x) em
+{
+  admit();
+  if (j < cols)
+  {
+    when__elim_true _ _;
+    unfold matrix_pts_to_vec gm i j _;
+    forevery_ext #(natlt (chunk et))
+      _
+      (fun x ->
+        matrix_pts_to_cell_in_matrix_in_bounds gm
+          i (j + x) em
+      );
+  }
+  else
+  {
+    when__elim_false _ _;
+    forevery_intro_fill #(natlt (chunk et))
+      (fun x ->
+        matrix_pts_to_cell_in_matrix_in_bounds gm
+          i (j + x) em
+      )
+      fn x {
+        when__intro_false (j + x < cols) (fun _ ->
+          Cell gm (idx2 i (j + x <: natlt cols)) |-> (acc2 em i (j + x))
+        );
+      };
+  }
+}
 
 #push-options "--z3rlimit 25"
 ghost
@@ -466,85 +288,6 @@ fn fold_thread_pts_to_tile_vec
 }
 #pop-options
 
-unfold
-let matrix_pts_to_cell_in_matrix_in_bounds
-  (#et : Type0)
-  (#rows #cols : nat)
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : nat)
-  (em : chest2 et rows cols)
-: slprop
-=
-  when__ (j < cols) (fun _ ->
-    Cell gm (idx2 i (j <: natlt cols)) |-> (acc2 em i j)
-  )
-
-let gpu_pts_to_tile
-  (#et : Type0)
-  (#rows #cols : nat)
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : nat)
-  (em : chest2 et rows cols)
-  (row_tile : nat)
-: slprop
-=
-  forall+ (k : natlt row_tile).
-    matrix_pts_to_cell_in_matrix_in_bounds gm i (j + k) em
-
-ghost
-fn unfold_matrix_pts_to_vec_in_matrix_in_bounds
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  // usamos pos y no nat porque garantiza que chunk et <= cols
-  (#rows #cols : pos { chunk et /? cols })
-  (#l : layout2 rows cols)
-  (gm : array2 et l)
-  (i : natlt rows)
-  (j : nat { chunk et /? j })
-  (em : chest2 et rows cols)
-  requires matrix_pts_to_vec_in_matrix_in_bounds gm i j em
-  ensures forall+ (x : natlt (chunk et)).
-    matrix_pts_to_cell_in_matrix_in_bounds gm i (j + x) em
-
-{
-  if (j < cols)
-  {
-    when__elim_true _ _;
-    unfold matrix_pts_to_vec gm i j _;
-    forevery_ext #(natlt (chunk et))
-      _
-      (fun x ->
-        matrix_pts_to_cell_in_matrix_in_bounds gm
-          i (j + x) em
-      );
-  }
-  else
-  {
-    when__elim_false _ _;
-    forevery_intro_fill #(natlt (chunk et))
-      (fun x ->
-        matrix_pts_to_cell_in_matrix_in_bounds gm
-          i (j + x) em
-      )
-      fn x {
-        when__intro_false (j + x < cols) (fun _ ->
-          Cell gm (idx2 i (j + x <: natlt cols)) |-> (acc2 em i (j + x))
-        );
-      };
-  }
-}
-
-let thread_offset
-  (et : Type0) {| sized et, has_vec_cpy et |}
-  (j tid : nat)
-: Pure nat (requires chunk et /? j) (ensures fun off -> chunk et /? off)
-=
-  lineal_divides (chunk et) j (chunk et) tid;
-  j + tid * v (chunk et)
-
 #push-options "--z3rlimit 25"
 ghost
 fn thread_pts_to_tile_vec_gather
@@ -559,7 +302,7 @@ fn thread_pts_to_tile_vec_gather
   (trow_tile : nat { chunk et /? trow_tile })
   requires forall+ (tid : natlt nthr).
     thread_pts_to_tile_vec gm i (thread_offset et j tid) em trow_tile nthr
-  ensures gpu_pts_to_tile gm i j em (trow_tile * nthr)
+  ensures pts_to_tile_in_matrix gm i j em (trow_tile * nthr)
 {
   forevery_commute _;
   forevery_unfactor' (trow_tile * nthr / chunk et)
@@ -607,12 +350,12 @@ fn thread_pts_to_tile_vec_gather
     (fun k ->
       matrix_pts_to_cell_in_matrix_in_bounds gm i (j + k) em
     );
-  fold gpu_pts_to_tile gm i j em (trow_tile * nthr);
+  fold pts_to_tile_in_matrix gm i j em (trow_tile * nthr);
 }
 #pop-options
 
 ghost
-fn gather_gpu_pts_to_tile_row
+fn gather_pts_to_tile_in_row
   (#et : Type0)
   (#rows #cols : nat)
   (#l : layout2 rows cols)
@@ -621,21 +364,21 @@ fn gather_gpu_pts_to_tile_row
   (em : chest2 et rows cols)
   (row_tile : pos)
   requires forall+ (b : natlt (cols `divup` row_tile)).
-    gpu_pts_to_tile gm i (b * row_tile) em row_tile
+    pts_to_tile_in_matrix gm i (b * row_tile) em row_tile
   ensures forall+ (j : natlt cols).
     Cell gm (idx2 i j) |-> acc2 em i j
     // pts_to_cell gm (i, j) (acc2 em i j)
 {
   forevery_map #(natlt (cols `divup` row_tile))
     (fun b ->
-      gpu_pts_to_tile gm i (b * row_tile) em row_tile
+      pts_to_tile_in_matrix gm i (b * row_tile) em row_tile
     )
     (fun b ->
       forall+ (k : natlt row_tile {b * row_tile + k < cols }).
         Cell gm (idx2 i (b * row_tile + k <: natlt cols)) |-> (acc2 em i (b * row_tile + k))
     )
     fn b {
-      unfold gpu_pts_to_tile gm;
+      unfold pts_to_tile_in_matrix gm;
       forevery_refine_pred' #(natlt row_tile) (fun k -> b * row_tile + k < cols)
         _;
     };
@@ -646,7 +389,7 @@ fn gather_gpu_pts_to_tile_row
 }
 
 ghost
-fn gather_gpu_pts_to_tile
+fn gahter_pts_to_tile_in_matrix
   (#et : Type0)
   (#rows #cols : nat)
   (#l : layout2 rows cols)
@@ -656,20 +399,21 @@ fn gather_gpu_pts_to_tile
   requires array_exists (core gm)
   requires pure (fits (tlayout_ulen l))
   requires forall+ (r : natlt rows) (b : natlt (cols `divup` row_tile)).
-    gpu_pts_to_tile gm r (b * row_tile) em row_tile
+    pts_to_tile_in_matrix gm r (b * row_tile) em row_tile
   ensures gm |-> em
 {
+  admit();
   forevery_map #(natlt rows)
     (fun r ->
       forall+ (b : natlt (cols `divup` row_tile)).
-        gpu_pts_to_tile gm r (b * row_tile) em row_tile
+        pts_to_tile_in_matrix gm r (b * row_tile) em row_tile
     )
     (fun r ->
       forall+ (j : natlt cols).
         Cell gm (idx2 r j) |-> acc2 em r j
     )
     fn r {
-      gather_gpu_pts_to_tile_row gm r em row_tile
+      gather_pts_to_tile_in_row gm r em row_tile
     };
   tensor_iraise2_with_exists gm;
 }

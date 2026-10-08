@@ -76,12 +76,12 @@ let matmul_dotprod_lemma
     (requires valid_smatrix rows shared col_ind row_off)
     (ensures
       sparse_matmul_single elems col_ind eB (row_off @! i) (row_off @! (i + 1)) j ==
-      MS.matmul_single (smatrix_unsparse rows shared elems col_ind row_off) eB i j
+      MS.matmul_single (matrix_unsparse rows shared elems col_ind row_off) eB i j
     )
 =
   let open Kuiper.Sparse.DotProduct in
 
-  let eA = smatrix_unsparse rows shared elems col_ind row_off in
+  let eA = matrix_unsparse rows shared elems col_ind row_off in
 
   let ri = row_off @! i in
   let re = row_off @! (i + 1) in

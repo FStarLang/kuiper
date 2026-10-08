@@ -8,6 +8,7 @@ open Kuiper
 module B = Kuiper.Barrier
 module SZ = Kuiper.SizeT
 open Kuiper.Sparse
+open Kuiper.Sparse.Math { round2 }
 open Kuiper.Math { even, odd }
 open Kuiper.Sparse.SPMM.Defs
 open Kuiper.Bijection { ( |~> ) }
@@ -207,16 +208,9 @@ let barrier_contract
     rout = barrier_out p row_perm elems col_ind row_off elems_tile col_ind_tile bid;
   }
 
-(* --- Utility --- *)
-
-ghost
-fn forevery_prod_to_flat
-  (#n : nat) (#bw : pos)
-  (p : (natlt n & natlt bw) -> slprop)
-  requires forall+ (xy : natlt n & natlt bw). p xy
-  ensures forall+ (i : natlt (n * bw)). p (Kuiper.Bijection.prod_gg n bw i)
-
 (* --- Fold/unfold helpers --- *)
+
+#push-options "--z3rlimit 20"
 
 ghost
 fn barrier_in_fold_mask_pre
@@ -607,6 +601,8 @@ fn barrier_out_unfold_residue_post
       (Seq.slice col_ind (re - residue) re) **
     slice_live col_ind_tile #(1.0R /. p.blockWidth) residue p.blockItemsK
 
+
+#pop-options
 
 (* --- Main barrier transform --- *)
 

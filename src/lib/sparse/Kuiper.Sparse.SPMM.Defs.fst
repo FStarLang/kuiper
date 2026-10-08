@@ -10,6 +10,8 @@ open Kuiper.Sparse
 open Kuiper.Math { even, odd }
 open Kuiper.Array.Vectorized
 
+module Math = Kuiper.Sparse.Math
+
 inline_for_extraction
 type parameters (et : Type0) {| sized et, has_vec_cpy et |} = {
   rows : szp;
@@ -72,6 +74,7 @@ let nthreads
   (ensures fun r -> SZ.v r == nthreads_ p)
 = p.blockWidth
 
+#push-options "--z3rlimit 20"
 inline_for_extraction noextract
 let allthreads
   #et {| sized et, has_vec_cpy et |}
@@ -79,7 +82,8 @@ let allthreads
 : Pure sz
   (requires size_req p)
   (ensures fun r -> SZ.v r == allthreads_ p)
-= nblocks p *^ nthreads p
+= assert fits (max_blocks * max_threads); nblocks p *^ nthreads p
+#pop-options
 
 let brow
   #et {| sized et, has_vec_cpy et |}
@@ -98,7 +102,7 @@ let brow_
 let bcol
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et) (bid : natlt (nblocks_ p))
-: GTot (natlt p.cols) // por que Ghost?
+: GTot (natlt p.cols)
 = (bid / p.rows) * p.blockItemsX
 
 inline_for_extraction noextract
@@ -121,12 +125,13 @@ let tcol
   assert chunk et /? (tid * chunk et);
   lemma_divides_product p.blockItemsX (bid / p.rows);
   assert p.blockItemsX /? bcol p bid;
-  prod_divides (p.blockWidth) (chunk et) p.blockItemsX;
+  Math.prod_divides (p.blockWidth) (chunk et) p.blockItemsX;
   assert chunk et /? p.blockItemsX;
-  lemma_divides_chain (chunk et) p.blockItemsX (bcol p bid);
+  Math.divides_chain (chunk et) p.blockItemsX (bcol p bid);
   lemma_divides_sum (chunk et) (bcol p bid) (tid * chunk et);
   bcol p bid + tid * chunk et
 
+#push-options "--z3rlimit 15"
 inline_for_extraction noextract
 let tcol_
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -135,8 +140,16 @@ let tcol_
   (tid : szlt p.blockWidth)
 : Pure sz (requires true) (ensures fun c -> SZ.v c == tcol p bid tid)
 = bcol_ p bid +^ tid *^ chunk et
+#pop-options
 
-// MAYBE definir threadItemsX?
+// TODO actually use this definition, and make one for sz too
+let threadItemsX
+  (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
+  (p : parameters et)
+: Ghost nat (requires true) (ensures fun k -> chunk et /? k)
+=
+  Math.prod_cancel_divides p.blockItemsX (chunk et) p.blockWidth;
+  p.blockItemsX / p.blockWidth
 
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract
@@ -149,7 +162,7 @@ let shmems_desc
   SHArray sz p.blockItemsK;
 ]
 
-// esto no tiene sentido, pedir valid_smatrix y listo
+// TODO just use valid_smatrix, remove this definition
 unfold
 let well_formed
   #et {| sized et, has_vec_cpy et |}
@@ -159,98 +172,6 @@ let well_formed
   (row_off : lseq sz (p.rows + 1))
 : prop
 = valid_smatrix p.rows p.shared (cast_pos col_ind) (cast_pos row_off)
-
-(* Lemas *)
-
-// TODO esto se usa?
-let block_lemma whole block k
-  : Lemma (requires block /? whole /\ k * block < whole)
-          (ensures k * block + block <= whole)
-  = if block > 0 then begin
-      lemma_divides_exact block whole;
-      FStar.Math.Lemmas.multiplication_order_lemma k (whole / block) block;
-      FStar.Math.Lemmas.lemma_mult_le_right block (k + 1) (whole / block)
-    end
-
-let block_lemma_off whole block k off
-  : Lemma (requires block /? whole /\ k * block < whole /\ off < block)
-          (ensures k * block + off < whole)
-  = block_lemma whole block k
-
-#push-options "--z3rlimit 30"
-let offset_aligned_lemma_et
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (p : parameters et)
-  (#n : nat)
-  (x : larray et n { aligned 16 x })
-  (i k : nat)
-: Lemma
-  (requires true)
-  (ensures aligned' 16 x
-    (round2 (max (chunk et) (chunk sz)) i + k * p.blockItemsK)
-  )
-=
-  let i' = round2 (max (chunk et) (chunk sz)) i in
-  round2_chunk_lemma et sz i;
-  assert chunk et /? i';
-  prod_divides p.blockWidth (chunk et) p.blockItemsK;
-  lineal_divides (chunk et) i' p.blockItemsK k;
-  ()
-
-let offset_aligned_lemma_sz
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (p : parameters et)
-  (#n : nat)
-  (x : larray sz n { aligned 16 x })
-  (i k : nat)
-: Lemma
-  (requires true)
-  (ensures aligned' 16 x
-    (round2 (max (chunk et) (chunk sz)) i + k * p.blockItemsK)
-  )
-=
-  let i' = round2 (max (chunk et) (chunk sz)) i in
-  round2_chunk_lemma et sz i;
-  assert chunk sz /? i';
-  prod_divides p.blockWidth (chunk sz) p.blockItemsK;
-  lineal_divides (chunk sz) i' p.blockItemsK k;
-  ()
-#pop-options
-
-// TODO mejores nombress
-let offset_aligned_lemma_et'
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (p : parameters et)
-  (#n : nat)
-  (x : larray et n { aligned 16 x })
-  (i : nat)
-: Lemma
-  (requires true)
-  (ensures aligned' 16 x
-    (round2 (max (chunk et) (chunk sz)) i)
-  )
-=
-  let i' = round2 (max (chunk et) (chunk sz)) i in
-  round2_chunk_lemma et sz i;
-  assert chunk et /? i';
-  ()
-
-let offset_aligned_lemma_sz'
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (p : parameters et)
-  (#n : nat)
-  (x : larray et n { aligned 16 x })
-  (i : nat)
-: Lemma
-  (requires true)
-  (ensures aligned' 16 x
-    (round2 (max (chunk et) (chunk sz)) i)
-  )
-=
-  let i' = round2 (max (chunk et) (chunk sz)) i in
-  round2_chunk_lemma et sz i;
-  assert chunk sz /? i';
-  ()
 
 open Kuiper.Chest
 open Kuiper.EMatrix
