@@ -15,7 +15,7 @@ __hoisted_row_softmax_rm_f32_0(uint32_t n, float *a, float *maxs, uint32_t nthm)
         acc = fmaxf(acc, a[blockIdx.x * n + idx]);
     sa1[threadIdx.x] = acc;
     uint32_t n1 = 0U;
-    for (; 1U << (uint32_t) n1 < nthm; n1++) {
+    for (; (uint32_t) (1U << (uint32_t) n1) < nthm; n1++) {
         uint32_t __anf02 = n1;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
@@ -25,7 +25,7 @@ __hoisted_row_softmax_rm_f32_0(uint32_t n, float *a, float *maxs, uint32_t nthm)
                 sa1[threadIdx.x] = fmaxf(sa1[threadIdx.x], sa1[nextid]);
     }
     if (threadIdx.x == 0U)
-        maxs[blockIdx.x] = *sa1;
+        maxs[blockIdx.x] = sa1[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -58,7 +58,7 @@ __hoisted_row_softmax_rm_f32_2(uint32_t n, uint32_t nth, float *a, float *sums)
     }
     sa1[threadIdx.x] = acc;
     uint32_t n1 = 0U;
-    for (; 1U << (uint32_t) n1 < nth; n1++) {
+    for (; (uint32_t) (1U << (uint32_t) n1) < nth; n1++) {
         uint32_t __anf02 = n1;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
@@ -68,7 +68,7 @@ __hoisted_row_softmax_rm_f32_2(uint32_t n, uint32_t nth, float *a, float *sums)
                 sa1[threadIdx.x] += sa1[nextid];
     }
     if (threadIdx.x == 0U)
-        sums[blockIdx.x] = *sa1;
+        sums[blockIdx.x] = sa1[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -142,7 +142,7 @@ __hoisted_row_softmax_rm_f64_0(
         acc = fmax(acc, a[blockIdx.x * n + idx]);
     sa1[threadIdx.x] = acc;
     uint32_t n1 = 0U;
-    for (; 1U << (uint32_t) n1 < nthm; n1++) {
+    for (; (uint32_t) (1U << (uint32_t) n1) < nthm; n1++) {
         uint32_t __anf02 = n1;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
@@ -152,7 +152,7 @@ __hoisted_row_softmax_rm_f64_0(
                 sa1[threadIdx.x] = fmax(sa1[threadIdx.x], sa1[nextid]);
     }
     if (threadIdx.x == 0U)
-        maxs[blockIdx.x] = *sa1;
+        maxs[blockIdx.x] = sa1[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -186,7 +186,7 @@ __hoisted_row_softmax_rm_f64_2(
     }
     sa1[threadIdx.x] = acc;
     uint32_t n1 = 0U;
-    for (; 1U << (uint32_t) n1 < nth; n1++) {
+    for (; (uint32_t) (1U << (uint32_t) n1) < nth; n1++) {
         uint32_t __anf02 = n1;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf02);
@@ -196,7 +196,7 @@ __hoisted_row_softmax_rm_f64_2(
                 sa1[threadIdx.x] += sa1[nextid];
     }
     if (threadIdx.x == 0U)
-        sums[blockIdx.x] = *sa1;
+        sums[blockIdx.x] = sa1[0U];
 }
 
 __global__ __launch_bounds__(1024)
