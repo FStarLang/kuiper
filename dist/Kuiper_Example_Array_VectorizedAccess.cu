@@ -11,7 +11,7 @@ __hoisted_hf_0(float *a, float two)
     float local[4U];
     memset(local, 0U, 4U * sizeof(float));
     vec_memcpy(local, a);
-    *local *= two;
+    local[0U] *= two;
     local[1U] *= two;
     local[2U] *= two;
     local[3U] *= two;

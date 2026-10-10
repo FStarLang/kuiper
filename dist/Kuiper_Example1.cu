@@ -8,7 +8,7 @@ __global__ __launch_bounds__(1)
 static void
 __hoisted_main_0(uint64_t *gr)
 {
-    (*gr)++;
+    gr[0U]++;
 }
 
 uint64_t Kuiper_Example1_main(void)

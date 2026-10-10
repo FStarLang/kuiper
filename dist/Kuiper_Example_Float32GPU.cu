@@ -8,7 +8,7 @@ __global__ __launch_bounds__(1)
 static void
 __hoisted_multiply_0(float x, float y, float *device)
 {
-    *device = kpr_f32_mul_rn_ftz(x, y);
+    device[0U] = kpr_f32_mul_rn_ftz(x, y);
 }
 
 float Kuiper_Example_Float32GPU_multiply(float x, float y)
@@ -32,7 +32,7 @@ __global__ __launch_bounds__(1)
 static void
 __hoisted_exponentiate_0(float x, float *device)
 {
-    *device = kpr_f32_exp2_approx_ftz(x);
+    device[0U] = kpr_f32_exp2_approx_ftz(x);
 }
 
 float Kuiper_Example_Float32GPU_exponentiate(float x)
@@ -56,7 +56,7 @@ __global__ __launch_bounds__(1)
 static void
 __hoisted_reciprocal_0(float x, float *device)
 {
-    *device = kpr_f32_rcp_approx_ftz(x);
+    device[0U] = kpr_f32_rcp_approx_ftz(x);
 }
 
 float Kuiper_Example_Float32GPU_reciprocal(float x)
@@ -80,7 +80,7 @@ __global__ __launch_bounds__(1)
 static void
 __hoisted_inverse_root_0(float x, float *device)
 {
-    *device = kpr_f32_rsqrt_approx_ftz(x);
+    device[0U] = kpr_f32_rsqrt_approx_ftz(x);
 }
 
 float Kuiper_Example_Float32GPU_inverse_root(float x)
