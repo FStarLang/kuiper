@@ -3,9 +3,9 @@
 
 __device__ static void kswap__uint64_t(uint64_t *r1, uint64_t *r2)
 {
-    uint64_t v11 = r1[0U];
-    r1[0U] = r2[0U];
-    r2[0U] = v11;
+    uint64_t v11 = *r1;
+    *r1 = *r2;
+    *r2 = v11;
 }
 
 __global__ __launch_bounds__(1)
@@ -36,9 +36,9 @@ void Kuiper_Example_Polymorphism1_swap_U64(uint64_t *r1, uint64_t *r2)
 
 __device__ static void kswap__float(float *r1, float *r2)
 {
-    float v11 = r1[0U];
-    r1[0U] = r2[0U];
-    r2[0U] = v11;
+    float v11 = *r1;
+    *r1 = *r2;
+    *r2 = v11;
 }
 
 __global__ __launch_bounds__(1)

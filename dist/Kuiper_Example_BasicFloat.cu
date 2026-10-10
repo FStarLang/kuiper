@@ -8,7 +8,7 @@ __global__ __launch_bounds__(1)
 static void
 __hoisted_main_0(float *gr)
 {
-    gr[0U]++;
+    (*gr)++;
 }
 
 float Kuiper_Example_BasicFloat_main(void)

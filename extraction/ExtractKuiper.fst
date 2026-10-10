@@ -994,6 +994,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   (******** REFERENCES ********)
 
+  (* Keep the dereference marker bare: Karamel does not recognize it under a
+     cast. SizeT and UInt32 both extract to UInt32 in Kuiper. *)
+  | "FStar.SizeT.uint32_to_sizet", [], [ x ]
+    when hta x = Some ("Pulse.Lib.Pervasives._zero_for_deref", [], []) ->
+    cb x
+
   (* Sadly these two are still primitive. *)
   | "Kuiper.Ref.memcpy_host_to_device", [ty], [ sz; dst_gr; src_r; f; v; gv ] ->
     let sz : expr = sizeof (cb_ty ty) in
