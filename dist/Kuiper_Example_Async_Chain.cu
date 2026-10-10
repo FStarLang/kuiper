@@ -23,7 +23,7 @@ __global__ __launch_bounds__(1)
 static void
 __hoisted_main_0(uint64_t *r)
 {
-    r[0U]++;
+    (*r)++;
 }
 
 __global__ __launch_bounds__(1)
@@ -33,7 +33,7 @@ __global__ __launch_bounds__(1)
 static void
 __hoisted_main_1(uint64_t *r)
 {
-    r[0U]++;
+    (*r)++;
 }
 
 __global__ __launch_bounds__(1)
@@ -43,7 +43,7 @@ __global__ __launch_bounds__(1)
 static void
 __hoisted_main_2(uint64_t *r)
 {
-    r[0U]++;
+    (*r)++;
 }
 
 uint64_t Kuiper_Example_Async_Chain_main(void)
