@@ -23,12 +23,12 @@ __hoisted_g_matmul_f32_tile32_rrr_0(uint32_t n, uint32_t k, float *gA,
         for (; i0 < 32U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 32U + threadIdx.x] =
-                gA_p[(32U * (blockIdx.x / nn) + ci) * k + 32U * __anf05 +
-                     threadIdx.x];
+                gA_p[(32U * (blockIdx.x / nn) + ci) * k +
+                     (32U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 32U + threadIdx.x] =
-                gB_p[(32U * __anf05 + ci1) * n + 32U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(32U * __anf05 + ci1) * n +
+                     (32U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -41,8 +41,8 @@ __hoisted_g_matmul_f32_tile32_rrr_0(uint32_t n, uint32_t k, float *gA,
     }
     uint32_t row = 0U;
     for (; row < 32U; row++)
-        gC[(blockIdx.x / nn * 32U + row) * n + blockIdx.x % nn * 32U +
-            threadIdx.x] = sums[row];
+        gC[(blockIdx.x / nn * 32U + row) * n +
+            (blockIdx.x % nn * 32U + threadIdx.x)] = sums[row];
 }
 
 void Klas_GEMM_BlockTiling1D_g_matmul_f32_tile32_rrr(
@@ -81,12 +81,12 @@ __hoisted_g_matmul_f64_tile32_rrr_0(uint32_t n, uint32_t k, double *gA,
         for (; i0 < 32U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 32U + threadIdx.x] =
-                gA_p[(32U * (blockIdx.x / nn) + ci) * k + 32U * __anf05 +
-                     threadIdx.x];
+                gA_p[(32U * (blockIdx.x / nn) + ci) * k +
+                     (32U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 32U + threadIdx.x] =
-                gB_p[(32U * __anf05 + ci1) * n + 32U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(32U * __anf05 + ci1) * n +
+                     (32U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -99,8 +99,8 @@ __hoisted_g_matmul_f64_tile32_rrr_0(uint32_t n, uint32_t k, double *gA,
     }
     uint32_t row = 0U;
     for (; row < 32U; row++)
-        gC[(blockIdx.x / nn * 32U + row) * n + blockIdx.x % nn * 32U +
-            threadIdx.x] = sums[row];
+        gC[(blockIdx.x / nn * 32U + row) * n +
+            (blockIdx.x % nn * 32U + threadIdx.x)] = sums[row];
 }
 
 void Klas_GEMM_BlockTiling1D_g_matmul_f64_tile32_rrr(
@@ -138,12 +138,12 @@ __hoisted_g_matmul_u32_tile32_rrr_0(uint32_t n, uint32_t k, uint32_t *gA,
         for (; i0 < 32U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 32U + threadIdx.x] =
-                gA_p[(32U * (blockIdx.x / nn) + ci) * k + 32U * __anf05 +
-                     threadIdx.x];
+                gA_p[(32U * (blockIdx.x / nn) + ci) * k +
+                     (32U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 32U + threadIdx.x] =
-                gB_p[(32U * __anf05 + ci1) * n + 32U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(32U * __anf05 + ci1) * n +
+                     (32U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -156,8 +156,8 @@ __hoisted_g_matmul_u32_tile32_rrr_0(uint32_t n, uint32_t k, uint32_t *gA,
     }
     uint32_t row = 0U;
     for (; row < 32U; row++)
-        gC[(blockIdx.x / nn * 32U + row) * n + blockIdx.x % nn * 32U +
-            threadIdx.x] = sums[row];
+        gC[(blockIdx.x / nn * 32U + row) * n +
+            (blockIdx.x % nn * 32U + threadIdx.x)] = sums[row];
 }
 
 void Klas_GEMM_BlockTiling1D_g_matmul_u32_tile32_rrr(uint32_t m, uint32_t n,
@@ -195,12 +195,12 @@ __hoisted_g_matmul_u64_tile32_rrr_0(uint32_t n, uint32_t k, uint64_t *gA,
         for (; i0 < 32U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 32U + threadIdx.x] =
-                gA_p[(32U * (blockIdx.x / nn) + ci) * k + 32U * __anf05 +
-                     threadIdx.x];
+                gA_p[(32U * (blockIdx.x / nn) + ci) * k +
+                     (32U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 32U + threadIdx.x] =
-                gB_p[(32U * __anf05 + ci1) * n + 32U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(32U * __anf05 + ci1) * n +
+                     (32U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -213,8 +213,8 @@ __hoisted_g_matmul_u64_tile32_rrr_0(uint32_t n, uint32_t k, uint64_t *gA,
     }
     uint32_t row = 0U;
     for (; row < 32U; row++)
-        gC[(blockIdx.x / nn * 32U + row) * n + blockIdx.x % nn * 32U +
-            threadIdx.x] = sums[row];
+        gC[(blockIdx.x / nn * 32U + row) * n +
+            (blockIdx.x % nn * 32U + threadIdx.x)] = sums[row];
 }
 
 void Klas_GEMM_BlockTiling1D_g_matmul_u64_tile32_rrr(uint32_t m, uint32_t n,
@@ -253,12 +253,12 @@ __hoisted_g_matmul_f32_tile16_rrr_0(uint32_t n, uint32_t k, float *gA,
         for (; i0 < 16U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 16U + threadIdx.x] =
-                gA_p[(16U * (blockIdx.x / nn) + ci) * k + 16U * __anf05 +
-                     threadIdx.x];
+                gA_p[(16U * (blockIdx.x / nn) + ci) * k +
+                     (16U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 16U + threadIdx.x] =
-                gB_p[(16U * __anf05 + ci1) * n + 16U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(16U * __anf05 + ci1) * n +
+                     (16U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -271,8 +271,8 @@ __hoisted_g_matmul_f32_tile16_rrr_0(uint32_t n, uint32_t k, float *gA,
     }
     uint32_t row = 0U;
     for (; row < 16U; row++)
-        gC[(blockIdx.x / nn * 16U + row) * n + blockIdx.x % nn * 16U +
-            threadIdx.x] = sums[row];
+        gC[(blockIdx.x / nn * 16U + row) * n +
+            (blockIdx.x % nn * 16U + threadIdx.x)] = sums[row];
 }
 
 void Klas_GEMM_BlockTiling1D_g_matmul_f32_tile16_rrr(
@@ -311,12 +311,12 @@ __hoisted_g_matmul_f64_tile16_rrr_0(uint32_t n, uint32_t k, double *gA,
         for (; i0 < 16U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 16U + threadIdx.x] =
-                gA_p[(16U * (blockIdx.x / nn) + ci) * k + 16U * __anf05 +
-                     threadIdx.x];
+                gA_p[(16U * (blockIdx.x / nn) + ci) * k +
+                     (16U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 16U + threadIdx.x] =
-                gB_p[(16U * __anf05 + ci1) * n + 16U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(16U * __anf05 + ci1) * n +
+                     (16U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -329,8 +329,8 @@ __hoisted_g_matmul_f64_tile16_rrr_0(uint32_t n, uint32_t k, double *gA,
     }
     uint32_t row = 0U;
     for (; row < 16U; row++)
-        gC[(blockIdx.x / nn * 16U + row) * n + blockIdx.x % nn * 16U +
-            threadIdx.x] = sums[row];
+        gC[(blockIdx.x / nn * 16U + row) * n +
+            (blockIdx.x % nn * 16U + threadIdx.x)] = sums[row];
 }
 
 void Klas_GEMM_BlockTiling1D_g_matmul_f64_tile16_rrr(
@@ -368,12 +368,12 @@ __hoisted_g_matmul_u32_tile16_rrr_0(uint32_t n, uint32_t k, uint32_t *gA,
         for (; i0 < 16U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 16U + threadIdx.x] =
-                gA_p[(16U * (blockIdx.x / nn) + ci) * k + 16U * __anf05 +
-                     threadIdx.x];
+                gA_p[(16U * (blockIdx.x / nn) + ci) * k +
+                     (16U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 16U + threadIdx.x] =
-                gB_p[(16U * __anf05 + ci1) * n + 16U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(16U * __anf05 + ci1) * n +
+                     (16U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -386,8 +386,8 @@ __hoisted_g_matmul_u32_tile16_rrr_0(uint32_t n, uint32_t k, uint32_t *gA,
     }
     uint32_t row = 0U;
     for (; row < 16U; row++)
-        gC[(blockIdx.x / nn * 16U + row) * n + blockIdx.x % nn * 16U +
-            threadIdx.x] = sums[row];
+        gC[(blockIdx.x / nn * 16U + row) * n +
+            (blockIdx.x % nn * 16U + threadIdx.x)] = sums[row];
 }
 
 void Klas_GEMM_BlockTiling1D_g_matmul_u32_tile16_rrr(uint32_t m, uint32_t n,
@@ -425,12 +425,12 @@ __hoisted_g_matmul_u64_tile16_rrr_0(uint32_t n, uint32_t k, uint64_t *gA,
         for (; i0 < 16U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 16U + threadIdx.x] =
-                gA_p[(16U * (blockIdx.x / nn) + ci) * k + 16U * __anf05 +
-                     threadIdx.x];
+                gA_p[(16U * (blockIdx.x / nn) + ci) * k +
+                     (16U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 16U + threadIdx.x] =
-                gB_p[(16U * __anf05 + ci1) * n + 16U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(16U * __anf05 + ci1) * n +
+                     (16U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -443,8 +443,8 @@ __hoisted_g_matmul_u64_tile16_rrr_0(uint32_t n, uint32_t k, uint64_t *gA,
     }
     uint32_t row = 0U;
     for (; row < 16U; row++)
-        gC[(blockIdx.x / nn * 16U + row) * n + blockIdx.x % nn * 16U +
-            threadIdx.x] = sums[row];
+        gC[(blockIdx.x / nn * 16U + row) * n +
+            (blockIdx.x % nn * 16U + threadIdx.x)] = sums[row];
 }
 
 void Klas_GEMM_BlockTiling1D_g_matmul_u64_tile16_rrr(uint32_t m, uint32_t n,
@@ -483,12 +483,12 @@ __hoisted_g_gemm_f32_tile32_rrr_0(float alpha, float beta, uint32_t n,
         for (; i0 < 32U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 32U + threadIdx.x] =
-                gA_p[(32U * (blockIdx.x / nn) + ci) * k + 32U * __anf05 +
-                     threadIdx.x];
+                gA_p[(32U * (blockIdx.x / nn) + ci) * k +
+                     (32U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 32U + threadIdx.x] =
-                gB_p[(32U * __anf05 + ci1) * n + 32U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(32U * __anf05 + ci1) * n +
+                     (32U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -544,12 +544,12 @@ __hoisted_g_gemm_f64_tile32_rrr_0(double alpha, double beta, uint32_t n,
         for (; i0 < 32U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 32U + threadIdx.x] =
-                gA_p[(32U * (blockIdx.x / nn) + ci) * k + 32U * __anf05 +
-                     threadIdx.x];
+                gA_p[(32U * (blockIdx.x / nn) + ci) * k +
+                     (32U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 32U + threadIdx.x] =
-                gB_p[(32U * __anf05 + ci1) * n + 32U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(32U * __anf05 + ci1) * n +
+                     (32U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -605,12 +605,12 @@ __hoisted_g_gemm_u32_tile32_rrr_0(uint32_t alpha, uint32_t beta, uint32_t n,
         for (; i0 < 32U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 32U + threadIdx.x] =
-                gA_p[(32U * (blockIdx.x / nn) + ci) * k + 32U * __anf05 +
-                     threadIdx.x];
+                gA_p[(32U * (blockIdx.x / nn) + ci) * k +
+                     (32U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 32U + threadIdx.x] =
-                gB_p[(32U * __anf05 + ci1) * n + 32U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(32U * __anf05 + ci1) * n +
+                     (32U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -667,12 +667,12 @@ __hoisted_g_gemm_u64_tile32_rrr_0(uint64_t alpha, uint64_t beta, uint32_t n,
         for (; i0 < 32U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 32U + threadIdx.x] =
-                gA_p[(32U * (blockIdx.x / nn) + ci) * k + 32U * __anf05 +
-                     threadIdx.x];
+                gA_p[(32U * (blockIdx.x / nn) + ci) * k +
+                     (32U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 32U + threadIdx.x] =
-                gB_p[(32U * __anf05 + ci1) * n + 32U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(32U * __anf05 + ci1) * n +
+                     (32U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -729,12 +729,12 @@ __hoisted_g_gemm_f32_tile16_rrr_0(float alpha, float beta, uint32_t n,
         for (; i0 < 16U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 16U + threadIdx.x] =
-                gA_p[(16U * (blockIdx.x / nn) + ci) * k + 16U * __anf05 +
-                     threadIdx.x];
+                gA_p[(16U * (blockIdx.x / nn) + ci) * k +
+                     (16U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 16U + threadIdx.x] =
-                gB_p[(16U * __anf05 + ci1) * n + 16U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(16U * __anf05 + ci1) * n +
+                     (16U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -790,12 +790,12 @@ __hoisted_g_gemm_f64_tile16_rrr_0(double alpha, double beta, uint32_t n,
         for (; i0 < 16U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 16U + threadIdx.x] =
-                gA_p[(16U * (blockIdx.x / nn) + ci) * k + 16U * __anf05 +
-                     threadIdx.x];
+                gA_p[(16U * (blockIdx.x / nn) + ci) * k +
+                     (16U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 16U + threadIdx.x] =
-                gB_p[(16U * __anf05 + ci1) * n + 16U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(16U * __anf05 + ci1) * n +
+                     (16U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -851,12 +851,12 @@ __hoisted_g_gemm_u32_tile16_rrr_0(uint32_t alpha, uint32_t beta, uint32_t n,
         for (; i0 < 16U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 16U + threadIdx.x] =
-                gA_p[(16U * (blockIdx.x / nn) + ci) * k + 16U * __anf05 +
-                     threadIdx.x];
+                gA_p[(16U * (blockIdx.x / nn) + ci) * k +
+                     (16U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 16U + threadIdx.x] =
-                gB_p[(16U * __anf05 + ci1) * n + 16U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(16U * __anf05 + ci1) * n +
+                     (16U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;
@@ -913,12 +913,12 @@ __hoisted_g_gemm_u64_tile16_rrr_0(uint64_t alpha, uint64_t beta, uint32_t n,
         for (; i0 < 16U; i0++) {
             uint32_t ci = i0;
             sa1[ci * 16U + threadIdx.x] =
-                gA_p[(16U * (blockIdx.x / nn) + ci) * k + 16U * __anf05 +
-                     threadIdx.x];
+                gA_p[(16U * (blockIdx.x / nn) + ci) * k +
+                     (16U * __anf05 + threadIdx.x)];
             uint32_t ci1 = i0;
             sa2[ci1 * 16U + threadIdx.x] =
-                gB_p[(16U * __anf05 + ci1) * n + 16U * (blockIdx.x % nn) +
-                     threadIdx.x];
+                gB_p[(16U * __anf05 + ci1) * n +
+                     (16U * (blockIdx.x % nn) + threadIdx.x)];
         }
         __syncthreads();
         uint32_t sk = 0U;

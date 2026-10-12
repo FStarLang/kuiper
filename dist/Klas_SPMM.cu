@@ -46,8 +46,8 @@ __hoisted_spmm_u32_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf1 = k1;
                     uint32_t __anf04 = k1;
                     uint32_t lchunk[4U] = {0U};
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -82,7 +82,7 @@ __hoisted_spmm_u32_0(uint32_t rows, uint32_t cols,
                         uint32_t __anf013 = k1;
                         uint32_t lchunk[4U] = {0U};
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -119,7 +119,7 @@ __hoisted_spmm_u32_0(uint32_t rows, uint32_t cols,
                 uint32_t __anf04 = k1;
                 uint32_t lchunk[4U] = {0U};
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -132,7 +132,7 @@ __hoisted_spmm_u32_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_spmm_u32(uint32_t rows, uint32_t shared, uint32_t cols,
@@ -200,7 +200,7 @@ __hoisted_spmm_f32_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -238,7 +238,8 @@ __hoisted_spmm_f32_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 64U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 64U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -277,8 +278,8 @@ __hoisted_spmm_f32_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -292,7 +293,7 @@ __hoisted_spmm_f32_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 64U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 64U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 64U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_spmm_f32(uint32_t rows, uint32_t shared, uint32_t cols,
@@ -358,7 +359,8 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk, gB + (cols * kr + n_idx + __anf04 * 4U));
+                    vec_memcpy(
+                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -394,7 +396,7 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(
-                            lchunk, gB + (cols * kr + n_idx + __anf013 * 4U));
+                            lchunk, gB + (cols * kr + (n_idx + __anf013 * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -430,7 +432,7 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t rows, uint32_t cols,
                 uint32_t __anf04 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(lchunk, gB + (cols * kr + n_idx + __anf04 * 4U));
+                vec_memcpy(lchunk, gB + (cols * kr + (n_idx + __anf04 * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -442,7 +444,7 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t rows, uint32_t cols,
     uint32_t i0 = 0U;
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 4U < cols)
-            vec_memcpy(gC + (cols * m_idx + n_idx + i0 * 4U), out + i0 * 4U);
+            vec_memcpy(gC + (cols * m_idx + (n_idx + i0 * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_32x4x1(uint32_t rows, uint32_t shared, uint32_t cols,
@@ -509,7 +511,7 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t rows, uint32_t cols,
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 2U * 4U));
+                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 2U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -545,7 +547,7 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 2U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 2U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -583,7 +585,7 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 2U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 2U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -596,7 +598,7 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 2U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 2U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 2U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_32x8x2(uint32_t rows, uint32_t shared, uint32_t cols,
@@ -663,7 +665,7 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t rows, uint32_t cols,
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 4U * 4U));
+                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 4U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -699,7 +701,7 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 4U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 4U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -737,7 +739,7 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 4U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 4U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -750,7 +752,7 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 4U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 4U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 4U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_32x16x4(uint32_t rows, uint32_t shared, uint32_t cols,
@@ -817,7 +819,7 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t rows, uint32_t cols,
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 8U * 4U));
+                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 8U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -853,7 +855,7 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 8U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 8U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -891,7 +893,7 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 8U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 8U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -904,7 +906,7 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 8U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 8U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 8U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_32x32x8(uint32_t rows, uint32_t shared, uint32_t cols,
@@ -972,7 +974,7 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 8U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 8U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -1010,7 +1012,8 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 8U * 4U));
+                                gB +
+                                    (cols * kr + (n_idx + __anf013 * 8U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -1050,7 +1053,7 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t rows, uint32_t cols,
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 8U * 4U));
+                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 8U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1064,7 +1067,7 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 8U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 8U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 8U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_32x64x8(uint32_t rows, uint32_t shared, uint32_t cols,
@@ -1130,7 +1133,8 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk, gB + (cols * kr + n_idx + __anf04 * 4U));
+                    vec_memcpy(
+                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1166,7 +1170,7 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(
-                            lchunk, gB + (cols * kr + n_idx + __anf013 * 4U));
+                            lchunk, gB + (cols * kr + (n_idx + __anf013 * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -1202,7 +1206,7 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t rows, uint32_t cols,
                 uint32_t __anf04 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(lchunk, gB + (cols * kr + n_idx + __anf04 * 4U));
+                vec_memcpy(lchunk, gB + (cols * kr + (n_idx + __anf04 * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -1214,7 +1218,7 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t rows, uint32_t cols,
     uint32_t i0 = 0U;
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 4U < cols)
-            vec_memcpy(gC + (cols * m_idx + n_idx + i0 * 4U), out + i0 * 4U);
+            vec_memcpy(gC + (cols * m_idx + (n_idx + i0 * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_32x4x1_on(uint32_t rows, uint32_t shared,
@@ -1278,7 +1282,7 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t rows, uint32_t cols,
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 2U * 4U));
+                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 2U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1314,7 +1318,7 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 2U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 2U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -1352,7 +1356,7 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 2U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 2U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -1365,7 +1369,7 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 2U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 2U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 2U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_32x8x2_on(uint32_t rows, uint32_t shared,
@@ -1429,7 +1433,7 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t rows, uint32_t cols,
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 4U * 4U));
+                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 4U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1465,7 +1469,7 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 4U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 4U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -1503,7 +1507,7 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 4U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 4U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -1516,7 +1520,7 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 4U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 4U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 4U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_32x16x4_on(uint32_t rows, uint32_t shared,
@@ -1580,7 +1584,7 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t rows, uint32_t cols,
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 8U * 4U));
+                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 8U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1616,7 +1620,7 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 8U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 8U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -1654,7 +1658,7 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 8U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 8U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -1667,7 +1671,7 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 8U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 8U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 8U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_32x32x8_on(uint32_t rows, uint32_t shared,
@@ -1732,7 +1736,7 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 8U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 8U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -1770,7 +1774,8 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 8U * 4U));
+                                gB +
+                                    (cols * kr + (n_idx + __anf013 * 8U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -1810,7 +1815,7 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t rows, uint32_t cols,
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 8U * 4U));
+                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 8U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1824,7 +1829,7 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 8U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 8U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 8U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_32x64x8_on(uint32_t rows, uint32_t shared,
@@ -1887,8 +1892,8 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -1924,7 +1929,7 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -1962,7 +1967,7 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -1975,7 +1980,7 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_64x64x16(uint32_t rows, uint32_t shared,
@@ -2041,8 +2046,8 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -2078,7 +2083,7 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -2116,7 +2121,7 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -2129,7 +2134,7 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_64x64x16_on(uint32_t rows, uint32_t shared,
@@ -2194,7 +2199,7 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -2232,7 +2237,8 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -2271,8 +2277,8 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -2286,7 +2292,7 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_64x128x16(uint32_t rows, uint32_t shared,
@@ -2354,7 +2360,7 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -2392,7 +2398,8 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -2431,8 +2438,8 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -2446,7 +2453,7 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_64x128x16_on(uint32_t rows, uint32_t shared,
@@ -2511,7 +2518,7 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -2549,7 +2556,8 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -2588,8 +2596,8 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -2603,7 +2611,7 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_64x256x16(uint32_t rows, uint32_t shared,
@@ -2671,7 +2679,7 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -2709,7 +2717,8 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -2748,8 +2757,8 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -2763,7 +2772,7 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_64x256x16_on(uint32_t rows, uint32_t shared,
@@ -2828,7 +2837,7 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -2866,7 +2875,8 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -2905,8 +2915,8 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -2920,7 +2930,7 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 8U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_64x512x16(uint32_t rows, uint32_t shared,
@@ -2988,7 +2998,7 @@ __hoisted_g_spmm_f32_64x512x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -3026,7 +3036,8 @@ __hoisted_g_spmm_f32_64x512x16_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -3065,8 +3076,8 @@ __hoisted_g_spmm_f32_64x512x16_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -3080,7 +3091,7 @@ __hoisted_g_spmm_f32_64x512x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 8U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_64x512x16_on(uint32_t rows, uint32_t shared,
@@ -3143,8 +3154,8 @@ __hoisted_g_spmm_f32_128x64x16_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -3180,7 +3191,7 @@ __hoisted_g_spmm_f32_128x64x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -3218,7 +3229,7 @@ __hoisted_g_spmm_f32_128x64x16_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -3231,7 +3242,7 @@ __hoisted_g_spmm_f32_128x64x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x64x16(uint32_t rows, uint32_t shared,
@@ -3297,8 +3308,8 @@ __hoisted_g_spmm_f32_128x64x16_on_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -3334,7 +3345,7 @@ __hoisted_g_spmm_f32_128x64x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -3372,7 +3383,7 @@ __hoisted_g_spmm_f32_128x64x16_on_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -3385,7 +3396,7 @@ __hoisted_g_spmm_f32_128x64x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x64x16_on(uint32_t rows, uint32_t shared,
@@ -3450,7 +3461,7 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -3488,7 +3499,8 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -3527,8 +3539,8 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -3542,7 +3554,7 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x128x16(uint32_t rows, uint32_t shared,
@@ -3610,7 +3622,7 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -3648,7 +3660,8 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -3687,8 +3700,8 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -3702,7 +3715,7 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x128x16_on(uint32_t rows, uint32_t shared,
@@ -3765,8 +3778,8 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -3802,7 +3815,7 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -3840,7 +3853,7 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -3853,7 +3866,7 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x128x32(uint32_t rows, uint32_t shared,
@@ -3919,8 +3932,8 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -3956,7 +3969,7 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -3994,7 +4007,7 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -4007,7 +4020,7 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x128x32_on(uint32_t rows, uint32_t shared,
@@ -4072,7 +4085,7 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -4110,7 +4123,8 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -4149,8 +4163,8 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -4164,7 +4178,7 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x256x16(uint32_t rows, uint32_t shared,
@@ -4232,7 +4246,7 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -4270,7 +4284,8 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -4309,8 +4324,8 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -4324,7 +4339,7 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x256x16_on(uint32_t rows, uint32_t shared,
@@ -4389,7 +4404,7 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -4427,7 +4442,8 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -4466,8 +4482,8 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -4481,7 +4497,7 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x256x32(uint32_t rows, uint32_t shared,
@@ -4549,7 +4565,7 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -4587,7 +4603,8 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -4626,8 +4643,8 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -4641,7 +4658,7 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x256x32_on(uint32_t rows, uint32_t shared,
@@ -4706,7 +4723,7 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -4744,7 +4761,8 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -4783,8 +4801,8 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -4798,7 +4816,7 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 8U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x512x16(uint32_t rows, uint32_t shared,
@@ -4866,7 +4884,7 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -4904,7 +4922,8 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -4943,8 +4962,8 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -4958,7 +4977,7 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 8U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x512x16_on(uint32_t rows, uint32_t shared,
@@ -5023,7 +5042,7 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -5061,7 +5080,8 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -5100,8 +5120,8 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -5115,7 +5135,7 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x512x32(uint32_t rows, uint32_t shared,
@@ -5183,7 +5203,7 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -5221,7 +5241,8 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -5260,8 +5281,8 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -5275,7 +5296,7 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_128x512x32_on(uint32_t rows, uint32_t shared,
@@ -5338,8 +5359,8 @@ __hoisted_g_spmm_f32_256x64x16_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -5375,7 +5396,7 @@ __hoisted_g_spmm_f32_256x64x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -5413,7 +5434,7 @@ __hoisted_g_spmm_f32_256x64x16_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -5426,7 +5447,7 @@ __hoisted_g_spmm_f32_256x64x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x64x16(uint32_t rows, uint32_t shared,
@@ -5492,8 +5513,8 @@ __hoisted_g_spmm_f32_256x64x16_on_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -5529,7 +5550,7 @@ __hoisted_g_spmm_f32_256x64x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -5567,7 +5588,7 @@ __hoisted_g_spmm_f32_256x64x16_on_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -5580,7 +5601,7 @@ __hoisted_g_spmm_f32_256x64x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x64x16_on(uint32_t rows, uint32_t shared,
@@ -5645,7 +5666,7 @@ __hoisted_g_spmm_f32_256x128x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -5683,7 +5704,8 @@ __hoisted_g_spmm_f32_256x128x16_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -5722,8 +5744,8 @@ __hoisted_g_spmm_f32_256x128x16_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -5737,7 +5759,7 @@ __hoisted_g_spmm_f32_256x128x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x128x16(uint32_t rows, uint32_t shared,
@@ -5805,7 +5827,7 @@ __hoisted_g_spmm_f32_256x128x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -5843,7 +5865,8 @@ __hoisted_g_spmm_f32_256x128x16_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -5882,8 +5905,8 @@ __hoisted_g_spmm_f32_256x128x16_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -5897,7 +5920,7 @@ __hoisted_g_spmm_f32_256x128x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x128x16_on(uint32_t rows, uint32_t shared,
@@ -5960,8 +5983,8 @@ __hoisted_g_spmm_f32_256x128x32_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -5997,7 +6020,7 @@ __hoisted_g_spmm_f32_256x128x32_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -6035,7 +6058,7 @@ __hoisted_g_spmm_f32_256x128x32_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -6048,7 +6071,7 @@ __hoisted_g_spmm_f32_256x128x32_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x128x32(uint32_t rows, uint32_t shared,
@@ -6114,8 +6137,8 @@ __hoisted_g_spmm_f32_256x128x32_on_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -6151,7 +6174,7 @@ __hoisted_g_spmm_f32_256x128x32_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -6189,7 +6212,7 @@ __hoisted_g_spmm_f32_256x128x32_on_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -6202,7 +6225,7 @@ __hoisted_g_spmm_f32_256x128x32_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x128x32_on(uint32_t rows, uint32_t shared,
@@ -6267,7 +6290,7 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -6305,7 +6328,8 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -6344,8 +6368,8 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -6359,7 +6383,7 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x256x16(uint32_t rows, uint32_t shared,
@@ -6427,7 +6451,7 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -6465,7 +6489,8 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -6504,8 +6529,8 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -6519,7 +6544,7 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x256x16_on(uint32_t rows, uint32_t shared,
@@ -6584,7 +6609,7 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -6622,7 +6647,8 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -6661,8 +6687,8 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -6676,7 +6702,7 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x256x32(uint32_t rows, uint32_t shared,
@@ -6744,7 +6770,7 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -6782,7 +6808,8 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -6821,8 +6848,8 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -6836,7 +6863,7 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x256x32_on(uint32_t rows, uint32_t shared,
@@ -6899,8 +6926,8 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -6936,7 +6963,7 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 64U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -6974,7 +7001,7 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -6987,7 +7014,7 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 64U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 64U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 64U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x256x64(uint32_t rows, uint32_t shared,
@@ -7053,8 +7080,8 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -7090,7 +7117,7 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 64U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -7128,7 +7155,7 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -7141,7 +7168,7 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 64U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 64U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 64U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x256x64_on(uint32_t rows, uint32_t shared,
@@ -7206,7 +7233,7 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -7244,7 +7271,8 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -7283,8 +7311,8 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -7298,7 +7326,7 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 8U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x512x16(uint32_t rows, uint32_t shared,
@@ -7366,7 +7394,7 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -7404,7 +7432,8 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -7443,8 +7472,8 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -7458,7 +7487,7 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 8U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x512x16_on(uint32_t rows, uint32_t shared,
@@ -7523,7 +7552,7 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -7561,7 +7590,8 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -7600,8 +7630,8 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -7615,7 +7645,7 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x512x32(uint32_t rows, uint32_t shared,
@@ -7683,7 +7713,7 @@ __hoisted_g_spmm_f32_256x512x32_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -7721,7 +7751,8 @@ __hoisted_g_spmm_f32_256x512x32_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -7760,8 +7791,8 @@ __hoisted_g_spmm_f32_256x512x32_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -7775,7 +7806,7 @@ __hoisted_g_spmm_f32_256x512x32_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x512x32_on(uint32_t rows, uint32_t shared,
@@ -7840,7 +7871,7 @@ __hoisted_g_spmm_f32_256x512x64_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -7878,7 +7909,8 @@ __hoisted_g_spmm_f32_256x512x64_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 64U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 64U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -7917,8 +7949,8 @@ __hoisted_g_spmm_f32_256x512x64_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -7932,7 +7964,7 @@ __hoisted_g_spmm_f32_256x512x64_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 64U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 64U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 64U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x512x64(uint32_t rows, uint32_t shared,
@@ -8000,7 +8032,7 @@ __hoisted_g_spmm_f32_256x512x64_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -8038,7 +8070,8 @@ __hoisted_g_spmm_f32_256x512x64_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 64U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 64U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -8077,8 +8110,8 @@ __hoisted_g_spmm_f32_256x512x64_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -8092,7 +8125,7 @@ __hoisted_g_spmm_f32_256x512x64_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 64U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 64U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 64U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_256x512x64_on(uint32_t rows, uint32_t shared,
@@ -8155,8 +8188,8 @@ __hoisted_g_spmm_f32_512x64x16_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -8192,7 +8225,7 @@ __hoisted_g_spmm_f32_512x64x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -8230,7 +8263,7 @@ __hoisted_g_spmm_f32_512x64x16_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -8243,7 +8276,7 @@ __hoisted_g_spmm_f32_512x64x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x64x16(uint32_t rows, uint32_t shared,
@@ -8309,8 +8342,8 @@ __hoisted_g_spmm_f32_512x64x16_on_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -8346,7 +8379,7 @@ __hoisted_g_spmm_f32_512x64x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -8384,7 +8417,7 @@ __hoisted_g_spmm_f32_512x64x16_on_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -8397,7 +8430,7 @@ __hoisted_g_spmm_f32_512x64x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x64x16_on(uint32_t rows, uint32_t shared,
@@ -8462,7 +8495,7 @@ __hoisted_g_spmm_f32_512x128x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -8500,7 +8533,8 @@ __hoisted_g_spmm_f32_512x128x16_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -8539,8 +8573,8 @@ __hoisted_g_spmm_f32_512x128x16_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -8554,7 +8588,7 @@ __hoisted_g_spmm_f32_512x128x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x128x16(uint32_t rows, uint32_t shared,
@@ -8622,7 +8656,7 @@ __hoisted_g_spmm_f32_512x128x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -8660,7 +8694,8 @@ __hoisted_g_spmm_f32_512x128x16_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -8699,8 +8734,8 @@ __hoisted_g_spmm_f32_512x128x16_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -8714,7 +8749,7 @@ __hoisted_g_spmm_f32_512x128x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x128x16_on(uint32_t rows, uint32_t shared,
@@ -8777,8 +8812,8 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -8814,7 +8849,7 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -8852,7 +8887,7 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -8865,7 +8900,7 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x128x32(uint32_t rows, uint32_t shared,
@@ -8931,8 +8966,8 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -8968,7 +9003,7 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -9006,7 +9041,7 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -9019,7 +9054,7 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x128x32_on(uint32_t rows, uint32_t shared,
@@ -9084,7 +9119,7 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -9122,7 +9157,8 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -9161,8 +9197,8 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -9176,7 +9212,7 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x256x16(uint32_t rows, uint32_t shared,
@@ -9244,7 +9280,7 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -9282,7 +9318,8 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -9321,8 +9358,8 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -9336,7 +9373,7 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x256x16_on(uint32_t rows, uint32_t shared,
@@ -9401,7 +9438,7 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -9439,7 +9476,8 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -9478,8 +9516,8 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -9493,7 +9531,7 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x256x32(uint32_t rows, uint32_t shared,
@@ -9561,7 +9599,7 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -9599,7 +9637,8 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -9638,8 +9677,8 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -9653,7 +9692,7 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x256x32_on(uint32_t rows, uint32_t shared,
@@ -9716,8 +9755,8 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -9753,7 +9792,7 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 64U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -9791,7 +9830,7 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -9804,7 +9843,7 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 64U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 64U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 64U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x256x64(uint32_t rows, uint32_t shared,
@@ -9870,8 +9909,8 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -9907,7 +9946,7 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 64U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -9945,7 +9984,7 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -9958,7 +9997,7 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 64U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 64U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 64U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x256x64_on(uint32_t rows, uint32_t shared,
@@ -10023,7 +10062,7 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -10061,7 +10100,8 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -10100,8 +10140,8 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -10115,7 +10155,7 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t rows, uint32_t cols,
     for (; i0 < 8U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x512x16(uint32_t rows, uint32_t shared,
@@ -10183,7 +10223,7 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -10221,7 +10261,8 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 16U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -10260,8 +10301,8 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 16U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -10275,7 +10316,7 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 8U; i0++)
         if (n_idx + i0 * 16U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 16U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 16U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x512x16_on(uint32_t rows, uint32_t shared,
@@ -10340,7 +10381,7 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -10378,7 +10419,8 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -10417,8 +10459,8 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -10432,7 +10474,7 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x512x32(uint32_t rows, uint32_t shared,
@@ -10500,7 +10542,7 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -10538,7 +10580,8 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 32U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -10577,8 +10620,8 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 32U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -10592,7 +10635,7 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 4U; i0++)
         if (n_idx + i0 * 32U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 32U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 32U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x512x32_on(uint32_t rows, uint32_t shared,
@@ -10657,7 +10700,7 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -10695,7 +10738,8 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 64U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 64U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -10734,8 +10778,8 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -10749,7 +10793,7 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 64U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 64U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 64U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x512x64(uint32_t rows, uint32_t shared,
@@ -10817,7 +10861,7 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                            gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -10855,7 +10899,8 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t rows, uint32_t cols,
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr + n_idx + __anf013 * 64U * 4U));
+                                gB + (cols * kr +
+                                         (n_idx + __anf013 * 64U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t ixv = ix;
@@ -10894,8 +10939,8 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t rows, uint32_t cols,
                 if (n_idx + __anf04 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 64U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -10909,7 +10954,7 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 2U; i0++)
         if (n_idx + i0 * 64U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 64U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 64U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x512x64_on(uint32_t rows, uint32_t shared,
@@ -10972,8 +11017,8 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 128U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 128U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -11009,7 +11054,7 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 128U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 128U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -11047,7 +11092,7 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 128U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 128U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -11060,7 +11105,7 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 128U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 128U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 128U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x512x128(uint32_t rows, uint32_t shared,
@@ -11126,8 +11171,8 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t rows, uint32_t cols,
                     uint32_t __anf04 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + n_idx + __anf04 * 128U * 4U));
+                    vec_memcpy(lchunk,
+                        gB + (cols * kr + (n_idx + __anf04 * 128U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t ixv = ix;
@@ -11163,7 +11208,7 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t rows, uint32_t cols,
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + n_idx + __anf013 * 128U * 4U));
+                            gB + (cols * kr + (n_idx + __anf013 * 128U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t ixv = ix;
@@ -11201,7 +11246,7 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t rows, uint32_t cols,
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + n_idx + __anf04 * 128U * 4U));
+                    lchunk, gB + (cols * kr + (n_idx + __anf04 * 128U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++) {
                     uint32_t ixv = ix;
@@ -11214,7 +11259,7 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t rows, uint32_t cols,
     for (; i0 < 1U; i0++)
         if (n_idx + i0 * 128U * 4U < cols)
             vec_memcpy(
-                gC + (cols * m_idx + n_idx + i0 * 128U * 4U), out + i0 * 4U);
+                gC + (cols * m_idx + (n_idx + i0 * 128U * 4U)), out + i0 * 4U);
 }
 
 void Klas_SPMM_g_spmm_f32_512x512x128_on(uint32_t rows, uint32_t shared,
