@@ -229,7 +229,7 @@ echo-krml:
 
 .depend: $(ROOTS) .fstar.touch
 	$(call msg,"DEPEND",$@)
-	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' --dep full $(ROOTS) -o $@.tmp
+	$(Q)$(FSTAR) --codegen KrmlC --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' --dep full $(ROOTS) -o $@.tmp
 	# HUGE HACK: append (not prepend!) a .plugin.touch dependency for every krml file.
 	$(sed) ':outer; /krml: \\$$/{n;:inner;/[^\\]$$/{s/.*/& .plugin.touch/; b outer};n;b inner}' < $@.tmp > $@
 	rm -f $@.tmp
@@ -237,7 +237,7 @@ echo-krml:
 depgraph: depend.pdf
 depend.pdf: .depend .force
 	$(call msg, "DEPEND GRAPH", $(SRC))
-	$(FSTAR) --dep graph --codegen krml --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' $(ROOTS) $(DEPFLAGS) -o .depend.graph
+	$(FSTAR) --dep graph --codegen KrmlC --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' $(ROOTS) $(DEPFLAGS) -o .depend.graph
 	./FStar/.scripts/simpl_graph.py .depend.graph > .depend.simpl
 	# Tweak ratio
 	$(sed) -i 's/^digraph{/& ratio=1;/' .depend.simpl
