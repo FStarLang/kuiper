@@ -255,7 +255,7 @@ let block_count_commuted
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (p : parameters et)
   : Lemma (SZ.v (nblocks p) == divup (SZ.v p.cols) (SZ.v p.blockItemsX) * SZ.v p.rows)
-  = ()
+  = FStar.Math.Lemmas.swap_mul (SZ.v p.rows) (divup (SZ.v p.cols) (SZ.v p.blockItemsX))
 
 let output_column_aligned
   (#et : Type0) {| sized et, has_vec_cpy et |}

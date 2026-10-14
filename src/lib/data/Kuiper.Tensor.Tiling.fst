@@ -15,6 +15,28 @@ module SZ = Kuiper.SizeT
 
 include Kuiper.EMatrix.Tiling
 
+let tile_idx_bound (n : nat) (t : pos {t /? n}) (k : nat {k < n / t}) (j : nat {j < t})
+  : Lemma (t * k + j < n)
+  = FStar.Math.Lemmas.lemma_mult_le_left t (k + 1) (n / t);
+    FStar.Math.Lemmas.lemma_div_exact n t
+
+let tile_idx_bound_forall (n : nat) (t : pos {t /? n})
+  : Lemma (forall (k : nat {k < n / t}) (j : nat {j < t}). k * t + j < n)
+  = introduce forall (k : nat {k < n / t}) (j : nat {j < t}). k * t + j < n
+    with tile_idx_bound n t k j
+
+let tile_divmod (t : pos) (k : int) (i : nat {i < t})
+  : Lemma ((k * t + i) / t == k /\ (k * t + i) % t == i)
+  = FStar.Math.Lemmas.lemma_div_plus i k t;
+    FStar.Math.Lemmas.lemma_mod_plus i k t;
+    FStar.Math.Lemmas.small_div i t;
+    FStar.Math.Lemmas.small_mod i t
+
+let tile_divmod_forall (t : pos) (k : int)
+  : Lemma (forall (i : nat {i < t}). (k * t + i) / t == k /\ (k * t + i) % t == i)
+  = introduce forall (i : nat {i < t}). (k * t + i) / t == k /\ (k * t + i) % t == i
+    with tile_divmod t k i
+
 #push-options "--z3rlimit 20"
 inline_for_extraction noextract
 let c_subtile_layout
@@ -32,6 +54,8 @@ let c_subtile_layout
       all_fit = ();
       cimap = (fun (x : conc (trows @| tcols @| INil)) ->
                 match x with | (i, (j, ())) ->
+                tile_idx_bound rows trows tr (SZ.v i);
+                tile_idx_bound cols tcols tc (SZ.v j);
                 [@@inline_let] let x' =
                   (concr trows *^ concr tr +^ i,
                    (concr tcols *^ concr tc +^ j,
@@ -112,6 +136,8 @@ fn array2_tile
       (tc : natlt (cols / tcols)).
         array2_subtile gm trows tcols tr tc |-> Frac f (ematrix_subtile em trows tcols tr tc)
 {
+  tile_idx_bound_forall rows trows;
+  tile_idx_bound_forall cols tcols;
   tensor_ilower2 gm;
   forevery_factor_2 rows (rows / trows) trows
     cols (cols / tcols) tcols
@@ -170,6 +196,8 @@ fn array2_untile_with_exists'
   ensures
     gm |-> Frac f (ematrix_from_tiles trows tcols tf)
 {
+  tile_idx_bound_forall rows trows;
+  tile_idx_bound_forall cols tcols;
   let em = ematrix_from_tiles trows tcols tf;
   ghost
   fn aux (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
@@ -190,6 +218,8 @@ fn array2_untile_with_exists'
           (acc2 em (tr * trows + i) (tc * tcols + j)))
       fn i j {
         cell_convert_eq gm trows tcols tr tc i j f (acc2 (tf tr tc) i j);
+        tile_divmod trows tr i;
+        tile_divmod tcols tc j;
         assert pure ((tr * trows + i) / trows == tr);
         assert pure ((tc * tcols + j) / tcols == tc);
         assert pure ((tr * trows + i) % trows == i);
@@ -537,6 +567,8 @@ fn array2_explode_tiled
       tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
         (acc2 em (tr * trows + i) (tc * tcols + j))
 {
+  tile_idx_bound_forall rows trows;
+  tile_idx_bound_forall cols tcols;
   array2_tile gm trows tcols;
   ghost
   fn aux (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
@@ -547,6 +579,8 @@ fn array2_explode_tiled
         tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
           (acc2 em (tr * trows + i) (tc * tcols + j))
   {
+    tile_idx_bound_forall rows trows;
+    tile_idx_bound_forall cols tcols;
     tensor_ilower2 (array2_subtile gm trows tcols tr tc);
     forevery_ext_2
       (fun (i:natlt trows) (j:natlt tcols) ->
@@ -586,6 +620,8 @@ fn array2_implode_tiled
     gm |-> mk2 (fun (row : natlt rows) (col : natlt cols) ->
       val_fn (row / trows) (col / tcols) (row % trows) (col % tcols))
 {
+  tile_idx_bound_forall rows trows;
+  tile_idx_bound_forall cols tcols;
   let em' = mk2 (fun (row : natlt rows) (col : natlt cols) ->
     val_fn (row / trows) (col / tcols) (row % trows) (col % tcols));
 
@@ -598,6 +634,10 @@ fn array2_implode_tiled
     ensures
       array2_subtile gm trows tcols tr tc |-> ematrix_subtile em' trows tcols tr tc
   {
+    tile_idx_bound_forall rows trows;
+    tile_idx_bound_forall cols tcols;
+    tile_divmod_forall trows tr;
+    tile_divmod_forall tcols tc;
     assert pure (forall (i:natlt trows) (j:natlt tcols). (tr * trows + i) / trows == tr);
     assert pure (forall (i:natlt trows) (j:natlt tcols). (tc * tcols + j) / tcols == tc);
     assert pure (forall (i:natlt trows) (j:natlt tcols). (tr * trows + i) % trows == i);

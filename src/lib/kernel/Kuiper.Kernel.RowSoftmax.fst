@@ -42,6 +42,13 @@ let chest1_rsum_exp_pos (#n : nat { n > 0 }) (c : chest1 real n)
   = chest_rowsum_exp_seq c;
     sum_non_zero (seq_map exp (chest1_to_seq c)) 0.0R
 
+(* Non-zero form of [chest1_rsum_exp_pos], proven in a clean context: deriving
+   [=!= 0.0R] from [>. 0.0R] inside the fuel-heavy cell lemmas below no longer
+   fits in the rlimit. *)
+let chest1_rsum_exp_nz (#n : nat { n > 0 }) (c : chest1 real n)
+  : Lemma (chest1_rsum (chest_map exp c) =!= 0.0R)
+  = chest1_rsum_exp_pos c
+
 (* Transport an approximation across a real equality by pure congruence, keeping
    the reals abstract so Z3 never unfolds [%~] over the arithmetic-heavy
    [chest1_rsum] terms (which crashes the 4.13.3 lar_solver). *)
@@ -81,11 +88,14 @@ let softmax_real_cell (#n : nat { n > 0 }) (row : chest1 real n) (j : natlt n)
 #push-options "--fuel 4 --ifuel 2"
 let acc2_row_softmax_real (#m : nat) (#n : nat { n > 0 })
   (ra : chest2 real m n) (i : natlt m) (j : natlt n)
-  : Lemma (acc2 (row_softmax_real #m #n ra) i j
+  : Lemma (// the denominator is non-zero (well-formedness of the division below);
+           // the old Z3 found this by unfolding, Z3 5.1 needs the explicit lemma
+           chest1_rsum_exp_nz (chest2_row ra i);
+           acc2 (row_softmax_real #m #n ra) i j
            == exp (acc2 ra i j) /. chest1_rsum (chest_map exp (chest2_row ra i)))
           [SMTPat (acc2 (row_softmax_real #m #n ra) i j)]
   = // the row-sum denominator is strictly positive, hence the division is well-defined
-    chest1_rsum_exp_pos (chest2_row ra i);
+    chest1_rsum_exp_nz (chest2_row ra i);
     // row_softmax_real ra i j = acc1 (softmax_real (chest2_row ra i)) j
     mk2_cell (fun (i : natlt m) (j : natlt n) ->
                 acc1 (SM.softmax_real (chest2_row ra i)) j) i j;

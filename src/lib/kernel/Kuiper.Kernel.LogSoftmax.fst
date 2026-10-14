@@ -26,23 +26,57 @@ from every cell. We don't do that yet. *)
 open Kuiper
 module Vec = Pulse.Lib.Vec
 module SZ = Kuiper.SizeT
+module KS = Kuiper.Spec.Softmax
 open Kuiper.Real { log }
 open Kuiper.Seq.Common
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 
-#push-options ""
+(* The proof of [log_softmax_approx] is split into small lemmas, each in a
+   clean context: in one query, Z3 no longer finds the combination of the
+   real-arithmetic (log/exp) and approximation facts within the rlimit. *)
+
+(* The row sum of exponentials is strictly positive. *)
+let rsum_exp_pos (#n : nat { n > 0 }) (ra : chest1 real n)
+  : Lemma (chest1_rsum (chest_map exp ra) >. 0.0R)
+  = let sq = chest1_to_seq (chest_map exp ra) in
+    assert (Seq.length sq == n);
+    assert (forall (j : natlt n). Seq.index sq j == exp (acc1 ra j));
+    Kuiper.Real.sum_non_zero sq 0.0R
+
+(* Cell-wise value of [log_softmax_real]: [x_i - log (sum exp x)]. *)
+let log_softmax_real_cell (#n : nat { n > 0 }) (ra : chest1 real n) (i : natlt n)
+  : Lemma (rsum_exp_pos ra;
+           acc1 (log_softmax_real ra) i
+           == acc1 ra i -. log (chest1_rsum (chest_map exp ra)))
+  = let rs = chest1_rsum (chest_map exp ra) in
+    rsum_exp_pos ra;
+    assert (acc1 (KS.softmax_real ra) i == exp (acc1 ra i) /. rs);
+    assert (acc1 (log_softmax_real ra) i == log (exp (acc1 ra i) /. rs));
+    FStar.Math.Exp.log_div (exp (acc1 ra i)) rs;
+    FStar.Math.Exp.log_exp (acc1 ra i)
+
 let log_softmax_approx
     (#et:Type0) {| floating et, real_like et, floating_real_like et |}
     (#n:nat) (va:chest1 et n) (ra:chest1 real n { va %~ ra /\ n > 0 })
     (summ : et { summ %~ chest1_rsum (chest_map exp ra) })
   : Lemma (ensures chest_map (fun x -> x `sub` flog summ) va %~ log_softmax_real ra)
-  = let aux (i : natlt n)
+  = let rs = chest1_rsum (chest_map exp ra) in
+    rsum_exp_pos ra;
+    let lrs : real = log rs in
+    (* flog summ approximates log rs *)
+    flog_models_pat et;
+    assert (flog summ %~ lrs);
+    let aux (i : natlt n)
       : Lemma (acc1 (chest_map (fun x -> x `sub` flog summ) va) i
                %~ acc1 (log_softmax_real ra) i)
-      = () in
+      = assert (acc1 (chest_map (fun x -> x `sub` flog summ) va) i
+                == acc1 va i `sub` flog summ);
+        assert (acc1 va i %~ acc1 ra i);
+        approx_apply2 sub Kuiper.Float.Realops.r_sub (acc1 va i) (flog summ) (acc1 ra i) lrs;
+        log_softmax_real_cell ra i
+    in
     Classical.forall_intro aux
-#pop-options
 
 
 

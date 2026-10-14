@@ -14,6 +14,21 @@ module SZ = Kuiper.SizeT
 
 #set-options "--z3rlimit 60"
 
+let div_mul_le (m n t u : pos)
+  : Lemma ((m / t) * (n / u) <= m * n)
+  = FStar.Math.Lemmas.lemma_div_le m (m * t) t;
+    FStar.Math.Lemmas.cancel_mul_div m t;
+    FStar.Math.Lemmas.lemma_div_le n (n * u) u;
+    FStar.Math.Lemmas.cancel_mul_div n u;
+    FStar.Math.Lemmas.lemma_mult_le_right (n / u) (m / t) m;
+    FStar.Math.Lemmas.lemma_mult_le_left m (n / u) n
+
+let mul_div_exact (a b c : pos)
+  : Lemma (requires b % c == 0) (ensures a * (b / c) == (a * b) / c)
+  = FStar.Math.Lemmas.lemma_div_exact b c;
+    FStar.Math.Lemmas.paren_mul_right a (b / c) c;
+    FStar.Math.Lemmas.cancel_mul_div (a * (b / c)) c
+
 inline_for_extraction noextract
 fn specialize_gpu
   // specialize
@@ -86,7 +101,9 @@ fn specialize_gpu
   assert pure (chunk et_ab /?+ cols);
   lemma_aligned_strided_row_major_l2_row_major #(SZ.v shared) #(SZ.v cols) (chunk et_ab);
 
+  div_mul_le (SZ.v rows) (SZ.v cols) (SZ.v bm) (SZ.v bn);
   let nblk = rows/^bm *^ (cols/^bn);
+  mul_div_exact (SZ.v bm / SZ.v tm) (SZ.v bn) (SZ.v tn);
   let nthr = bm/^tm *^ (bn/^tn) *^ warp_size;
 
   assert pure (rows/bm <= rows);

@@ -287,6 +287,35 @@ let divides_helper
     lemma_divides_sum d a (b * r);
     lemma_divides_sum d (a + b * r) c
 
+(* Alignment of the vector read in [cp_array2_vec], proved here in a small
+   context rather than inside the (large) loop body. *)
+let cp_cell_aligned
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
+  (#rows #cols : erased nat)
+  (#l : layout2 rows cols)
+  (srm : strided_row_major l)
+  (row : natlt rows) (col : natlt cols)
+  : Lemma (requires aligned_strided_row_major (chunk et) srm /\ chunk et /?+ col)
+          (ensures 16 /?+ (cell_of_pos l row col * size #et))
+  = let c : pos = SZ.v (chunk et) in
+    assert (c * size #et == 16);
+    srm.pf row col;
+    lemma_nat_divides_pos_divides c (SZ.v srm.offset);
+    lemma_nat_divides_pos_divides c (SZ.v srm.stride);
+    lemma_nat_divides_pos_divides c col;
+    divides_helper c srm.offset srm.stride row col;
+    let cell = cell_of_pos l row col in
+    assert (c /? cell);
+    eliminate exists (z : int). c * z == cell
+    with begin
+      FStar.Math.Lemmas.paren_mul_right c z (size #et);
+      FStar.Math.Lemmas.swap_mul z (size #et);
+      FStar.Math.Lemmas.paren_mul_right c (size #et) z;
+      assert (cell * size #et == 16 * z);
+      lemma_divides_product 16 z;
+      lemma_nat_divides_pos_divides 16 (cell * size #et)
+    end
+
 #push-options "--z3rlimit 16 --fuel 0 --ifuel 1"
 let cp_chunk_et_divides_col'
   (et : Type0) {| scalar et, has_vec_cpy et |}
@@ -321,6 +350,33 @@ let cp_chunk_et_divides_col
     chunk et /?+ col /\ col + chunk et <= cols /\
     offset == tid * chunk et /\ row < rows /\ col < cols - chunk et + 1))
 = cp_chunk_et_divides_col' et rows cols nthr tid it ()
+
+(* Alignment of the source cell read at iteration [it], stated directly on
+   the div/mod expressions so that the call has only cheap preconditions. *)
+let cp_chunk_cell_aligned
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
+  (#rows #cols : erased nat)
+  (#l : layout2 rows cols)
+  (srm : strided_row_major l)
+  (arr : array et)
+  (nthr : pos) (tid it : nat)
+  (sq: squash (rows > 0 /\ cols > 0 /\ aligned_strided_row_major (chunk et) srm /\
+               aligned 16 arr /\
+               chunk et /?+ cols /\ tid < nthr /\ it < (rows*cols) / (nthr * chunk et)))
+: Lemma (ensures (
+    let i0 = it * nthr * chunk et in
+    let offset = tid * chunk et in
+    let row = (i0 + offset) / cols in
+    let col = (i0 + offset) % cols in
+    row < rows /\ col < cols /\
+    aligned' 16 arr (cell_of_pos l row col)))
+= cp_chunk_et_divides_col et rows cols nthr tid it ();
+  let i0 = it * nthr * chunk et in
+  let offset = tid * chunk et in
+  let row = (i0 + offset) / cols in
+  let col = (i0 + offset) % cols in
+  cp_cell_aligned #et srm row col;
+  FStar.Math.Lemmas.modulo_distributivity (base_address arr) (cell_of_pos l row col * size #et) 16
 
 let cp_in_chunk
   (et : Type0) {| scalar et, has_vec_cpy et |}
@@ -426,6 +482,116 @@ let em_fade'_fade
 
 // VERY slow and brittle
 #push-options "--z3rlimit 120 --fuel 2 --ifuel 1"
+(* The per-element write loop of [cp_array2_vec], factored out so that it is
+   verified in a small context: inside [cp_array2_vec] the many nonlinear
+   facts about the outer loop made these queries slow and brittle. *)
+inline_for_extraction noextract
+fn cp_write_chunk
+  (#et : Type0) {| scalar et, has_vec_cpy et |}
+  (rows cols : szp)
+  (#ldst : layout2 rows cols)
+  {| T.ctlayout ldst |}
+  (dst : array2 et ldst)
+  (#esrc #edst : chest2 et rows cols)
+  (nthr : szp)
+  (tid : szlt nthr)
+  (ite : erased nat)
+  (row : szlt rows)
+  (col : szlt (cols - chunk et + 1))
+  (local : array et)
+  requires
+    pure (chunk et /?+ cols /\
+          chunk et * nthr /?+ (rows * cols) /\
+          ite < (rows * cols) / (nthr * chunk et) /\
+          SZ.v row == (ite * nthr * chunk et + tid * chunk et) / cols /\
+          SZ.v col == (ite * nthr * chunk et + tid * chunk et) % cols)
+  requires
+    local |-> Seq.init_ghost (chunk et) (fun x -> acc2 esrc row (col + x))
+  requires
+    own_strided_chunks dst (em_fade edst esrc nthr ite) nthr tid
+  ensures
+    local |-> Seq.init_ghost (chunk et) (fun x -> acc2 esrc row (col + x))
+  ensures
+    exists* em'.
+      own_strided_chunks dst em' nthr tid **
+      pure (Kuiper.Chest.equal em' (em_fade' edst esrc nthr ite row col (chunk et)))
+{
+  let mut k = 0sz;
+  while (!k <^ chunk et)
+    invariant live k ** pure (!k <= chunk et)
+    invariant
+      exists* em'.
+        own_strided_chunks dst em' nthr tid **
+        pure (Kuiper.Chest.equal em'
+          (em_fade' edst esrc nthr ite row col !k))
+    decreases (SZ.v (chunk et) - SZ.v !k)
+  {
+    with em'. unfold own_strided_chunks dst em' nthr tid;
+    with vk . assert (pts_to k vk);
+    Kuiper.Math.Silly.lemma_le_plus_lt col vk (chunk et) cols;
+    assert pure (col + !k < cols);
+    let nrow : erased (natlt rows) = SZ.v row;
+    let colpk : erased (natlt cols) = SZ.v col + SZ.v !k;
+    let ecell : erased (natlt rows & natlt cols) = Mktuple2 #(natlt rows) #(natlt cols) (reveal nrow) (reveal colpk);
+    cp_in_chunk et rows cols nthr tid ite !k ();
+    assert pure (in_chunk (chunk et) rows cols nthr tid ecell);
+    forevery_remove'
+      #(natlt rows & natlt cols)
+      (fun (ij : (natlt rows & natlt cols)) -> in_chunk (chunk et) rows cols nthr tid ij)
+      _ ecell;
+
+    assert (tensor_pts_to_cell dst (idx2 ((reveal ecell)._1) ((reveal ecell)._2))
+                (acc2 em' (reveal ecell)._1 (reveal ecell)._2));
+    rewrite
+      tensor_pts_to_cell dst (idx2 ((reveal ecell)._1) ((reveal ecell)._2))
+                (acc2 em' (reveal ecell)._1 (reveal ecell)._2)
+    as
+      tensor_pts_to_cell dst (idx2 (reveal nrow) (reveal colpk))
+                (acc2 em' (reveal nrow) (reveal colpk));
+
+    with s. assert local |-> s;
+    let v = Pulse.Lib.Array.op_Dot_Lparen_Rparen local !k #_ #s;
+    let ridx : szlt rows = row;
+    let cidx : szlt cols = col +^ !k;
+    assert pure (SZ.v ridx == reveal nrow);
+    assert pure (SZ.v cidx == reveal colpk);
+    assert pure (idx2 (SZ.v ridx <: natlt rows) (SZ.v cidx <: natlt cols)
+                 == idx2 (reveal nrow) (reveal colpk));
+    rewrite
+      tensor_pts_to_cell dst (idx2 (reveal nrow) (reveal colpk)) (acc2 em' (reveal nrow) (reveal colpk))
+    as
+      tensor_pts_to_cell dst (idx2 (SZ.v ridx <: natlt rows) (SZ.v cidx <: natlt cols)) (acc2 em' (reveal nrow) (reveal colpk));
+    tensor_write_cell dst (ridx, (cidx, ())) v;
+
+    let em'' : chest2 et rows cols = upd2 em' (reveal nrow) (reveal colpk) v;
+
+    rewrite
+      tensor_pts_to_cell dst (idx2 (SZ.v ridx <: natlt rows) (SZ.v cidx <: natlt cols)) v
+    as
+      tensor_pts_to_cell dst (idx2 ((reveal ecell)._1) ((reveal ecell)._2))
+                (acc2 em'' (reveal ecell)._1 (reveal ecell)._2);
+
+    forevery_ext
+      #(ij : (natlt rows & natlt cols){in_chunk (chunk et) rows cols nthr tid ij /\ ij =!= ecell})
+      (fun ij -> tensor_pts_to_cell dst (idx2 ij._1 ij._2) (acc2 em' ij._1 ij._2))
+      (fun ij -> tensor_pts_to_cell dst (idx2 ij._1 ij._2) (acc2 em'' ij._1 ij._2));
+
+    forevery_insert
+      #(natlt rows & natlt cols)
+      #(fun ij -> in_chunk (chunk et) rows cols nthr tid ij /\ ij =!= ecell)
+      _ ecell;
+    forevery_refine_ext
+      #(natlt rows & natlt cols)
+      #(fun ij -> (in_chunk (chunk et) rows cols nthr tid ij /\ ij =!= ecell) \/ reveal ecell == ij)
+      (fun ij -> in_chunk (chunk et) rows cols nthr tid ij)
+      (fun ij -> tensor_pts_to_cell dst (idx2 ij._1 ij._2) (acc2 em'' ij._1 ij._2));
+
+    fold own_strided_chunks dst em'' nthr tid;
+
+    k := !k +^ 1sz;
+  };
+}
+
 inline_for_extraction noextract
 fn cp_array2_vec
   (#et : Type0) {| scalar et, has_vec_cpy et |}
@@ -457,6 +623,7 @@ fn cp_array2_vec
 {
   open FStar.SizeT;
   let mlen = rows *^ cols;
+  Kuiper.Math.Silly.lemma_mul_pos_recip rows cols;
 
   assert pure (SZ.fits (tid * chunk et));
   let offset : sz = tid *^ chunk et;
@@ -492,11 +659,7 @@ fn cp_array2_vec
     assert pure (row < rows);
     assert pure (col < cols - chunk et + 1);
 
-    assert pure (SZ.v (chunk et) * size #et == 16);
-    src_str.pf row col;
-    divides_helper (chunk et) src_str.offset src_str.stride row col;
-    assert pure (chunk et /? cell_of_pos lsrc row col);
-    assert pure (16 /?+ (cell_of_pos lsrc row col * size #et));
+    cp_chunk_cell_aligned #et src_str (core src) nthr tid (GR.read git) ();
 
     assume pure (aligned 16 local); // FIXME local arrays do not need alignment
     array2_vec_read src row col local;
@@ -504,76 +667,7 @@ fn cp_array2_vec
     let ite : erased nat = GR.read git;
     mul_inv_2 ite (!i) nthr (chunk et);
 
-    let mut k = 0sz;
-    while (!k <^ chunk et)
-      invariant live k ** pure (!k <= chunk et)
-      invariant
-        exists* em'.
-          own_strided_chunks dst em' nthr tid **
-          pure (Kuiper.Chest.equal em'
-            (em_fade' edst esrc nthr ite row col !k))
-      decreases (SZ.v (chunk et) - SZ.v !k)
-    {
-      with em'. unfold own_strided_chunks dst em' nthr tid;
-      with vk . assert (pts_to k vk);
-      Kuiper.Math.Silly.lemma_le_plus_lt col vk (chunk et) cols;
-      assert pure (col + !k < cols);
-      let nrow : erased (natlt rows) = SZ.v row;
-      let colpk : erased (natlt cols) = SZ.v col + SZ.v !k;
-      let ecell : erased (natlt rows & natlt cols) = Mktuple2 #(natlt rows) #(natlt cols) (reveal nrow) (reveal colpk);
-      cp_in_chunk et rows cols nthr tid (GR.read git) !k ();
-      assert pure (in_chunk (chunk et) rows cols nthr tid ecell);
-      forevery_remove'
-        #(natlt rows & natlt cols)
-        (fun (ij : (natlt rows & natlt cols)) -> in_chunk (chunk et) rows cols nthr tid ij)
-        _ ecell;
-
-      assert (tensor_pts_to_cell dst (idx2 ((reveal ecell)._1) ((reveal ecell)._2))
-                  (acc2 em' (reveal ecell)._1 (reveal ecell)._2));
-      rewrite
-        tensor_pts_to_cell dst (idx2 ((reveal ecell)._1) ((reveal ecell)._2))
-                  (acc2 em' (reveal ecell)._1 (reveal ecell)._2)
-      as
-        tensor_pts_to_cell dst (idx2 (reveal nrow) (reveal colpk))
-                  (acc2 em' (reveal nrow) (reveal colpk));
-
-      with s. assert local |-> s;
-      let v = Pulse.Lib.Array.op_Dot_Lparen_Rparen local !k #_ #s;
-      let ridx : szlt rows = row;
-      let cidx : szlt cols = col +^ !k;
-      rewrite
-        tensor_pts_to_cell dst (idx2 (reveal nrow) (reveal colpk)) (acc2 em' (reveal nrow) (reveal colpk))
-      as
-        tensor_pts_to_cell dst (idx2 (SZ.v ridx <: natlt rows) (SZ.v cidx <: natlt cols)) (acc2 em' (reveal nrow) (reveal colpk));
-      tensor_write_cell dst (ridx, (cidx, ())) v;
-
-      let em'' : chest2 et rows cols = upd2 em' (reveal nrow) (reveal colpk) v;
-
-      rewrite
-        tensor_pts_to_cell dst (idx2 (SZ.v ridx <: natlt rows) (SZ.v cidx <: natlt cols)) v
-      as
-        tensor_pts_to_cell dst (idx2 ((reveal ecell)._1) ((reveal ecell)._2))
-                  (acc2 em'' (reveal ecell)._1 (reveal ecell)._2);
-
-      forevery_ext
-        #(ij : (natlt rows & natlt cols){in_chunk (chunk et) rows cols nthr tid ij /\ ij =!= ecell})
-        (fun ij -> tensor_pts_to_cell dst (idx2 ij._1 ij._2) (acc2 em' ij._1 ij._2))
-        (fun ij -> tensor_pts_to_cell dst (idx2 ij._1 ij._2) (acc2 em'' ij._1 ij._2));
-
-      forevery_insert
-        #(natlt rows & natlt cols)
-        #(fun ij -> in_chunk (chunk et) rows cols nthr tid ij /\ ij =!= ecell)
-        _ ecell;
-      forevery_refine_ext
-        #(natlt rows & natlt cols)
-        #(fun ij -> (in_chunk (chunk et) rows cols nthr tid ij /\ ij =!= ecell) \/ reveal ecell == ij)
-        (fun ij -> in_chunk (chunk et) rows cols nthr tid ij)
-        (fun ij -> tensor_pts_to_cell dst (idx2 ij._1 ij._2) (acc2 em'' ij._1 ij._2));
-
-      fold own_strided_chunks dst em'' nthr tid;
-
-      k := !k +^ 1sz;
-    };
+    cp_write_chunk rows cols dst #esrc #edst nthr tid ite row col local;
 
     let vi = !i;
     let vgit = GR.read git;
