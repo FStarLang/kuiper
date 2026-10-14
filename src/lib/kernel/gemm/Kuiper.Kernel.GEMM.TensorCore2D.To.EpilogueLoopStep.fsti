@@ -16,6 +16,14 @@ open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc.Epilogue
 open Kuiper.Kernel.GEMM.TensorCore2D.To.EpilogueState
 
+(* [epilogue_frame] below needs [warp_size /?+ nthr], i.e. [nthr % 32 = 0],
+   from the refinement [nthr == ... * warp_size].  This nonlinear modulo fact
+   is not reliably found by Z3; this pattern supplies it. *)
+let mul_warp_size_mod (k : int)
+  : Lemma ((k * 32) % 32 == 0)
+          [SMTPat (k * 32)]
+  = FStar.Math.Lemmas.cancel_mul_mod k 32
+
 inline_for_extraction noextract
 fn epilogue_loop_step
   (#et_ab #et_cd #et_acc : Type0)
