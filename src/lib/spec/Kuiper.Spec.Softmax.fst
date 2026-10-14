@@ -55,11 +55,16 @@ let rec fold_div_scale (acc : real) (k : real { k =!= 0.0R }) (s : Seq.seq real)
         seq_fold_left (+.) acc s /. k;
       }
 
+let zero_div (k : real { k =!= 0.0R })
+  : Lemma (0.0R /. k == 0.0R)
+  = ()
+
 let rsum_div_scale (s : Seq.seq real) (k : real { k =!= 0.0R })
   : Lemma (ensures rsum (seq_map (fun w -> w /. k) s) == rsum s /. k)
   = (* fold_div_scale gives the result starting from accumulator [0.0R /. k];
        bridge that to [rsum] (which folds from [0.0R]) via [0.0R /. k == 0.0R]. *)
     fold_div_scale 0.0R k s;
+    zero_div k;
     calc (==) {
       rsum (seq_map (fun w -> w /. k) s);
       == { (* rsum = seq_fold_left (+.) 0.0R, and 0.0R == 0.0R /. k *) }
