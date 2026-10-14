@@ -295,6 +295,14 @@ fn even_barrier_p_to_q
       live_strided_chunks (from_array l1 sar1) nthr tid) _;
 }
 
+(* [it < 2 * n ==> it / 2 < n].  Triggered, because it is needed to typecheck
+   [it/2] as an index in the specs below, where no explicit call can be made;
+   Z3 no longer finds this division bound on its own there. *)
+let half_lt_pat (it n : nat)
+  : Lemma (requires it < 2 * n) (ensures 0 <= it / 2 /\ it / 2 < n)
+          [SMTPat (it / 2); SMTPat (2 * n)]
+  = ()
+
 #push-options "--z3rlimit 80"
 ghost
 fn odd_barrier_p_to_q
@@ -328,6 +336,7 @@ fn odd_barrier_p_to_q
       bp_sharing (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr **
       bp_sharing (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr
 {
+  half_lt_pat it (shared / bk);
   forevery_unzip _ _;
   own_strided_chunks_to_bp_sharing l1 sar1 _ nthr;
   own_strided_chunks_to_bp_sharing l2 sar2 _ nthr;

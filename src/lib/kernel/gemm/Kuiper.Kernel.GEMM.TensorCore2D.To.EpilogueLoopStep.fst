@@ -137,6 +137,39 @@ fn output_epilogue_extract_step
       gD bm bn tm tn wm wn bid wid lane rD (SZ.v done + 1));
 }
 
+(* Instantiating the [fragarrayAcc_approximates] quantifier at
+   [(done / wn, done % wn)] inline in [epilogue_loop_step] is slow (over a
+   minute, with retries); do it here in a small context. *)
+let frag_approx_at
+  (#et : Type0) {| scalar et, real_like et |}
+  (#tm #tn : pos)
+  (wm wn : pos)
+  (em : seq (chest2 et tm tn))
+  (rm : chest2 real (wm * tm) (wn * tn))
+  (d : natlt (wm * wn))
+  : Lemma
+    (requires
+      Seq.length em == wm * wn /\
+      (forall (i : natlt wm) (j : natlt wn).
+        Seq.index em (i * wn + j) %~ ematrix_subtile rm tm tn i j))
+    (ensures
+      Seq.index em d %~ ematrix_subtile rm tm tn (d / wn) (d % wn))
+= FStar.Math.Lemmas.euclidean_division_definition d wn
+
+(* [epilogue_frame] needs [warp_size /?+ nthr]; deriving it from the [nthr]
+   refinement is a nonlinear modulo query that times out in the large context
+   of [epilogue_loop_step], so it is proven here and called explicitly. *)
+let epilogue_loop_warp_divides
+  (bm bn tm tn wm wn : szp)
+  (nthr : szp{
+    SZ.v nthr == bm / (wm * tm) * (bn / (wn * tn)) * warp_size})
+  : Lemma (warp_size /?+ nthr)
+=
+  FStar.Math.Lemmas.cancel_mul_mod
+    (SZ.v bm / (SZ.v wm * SZ.v tm) *
+      (SZ.v bn / (SZ.v wn * SZ.v tn)))
+    (SZ.v warp_size)
+
 (* The epilogue-state step below needs 4x the file's default rlimit. *)
 #push-options "--z3rlimit 60"
 inline_for_extraction noextract
@@ -211,15 +244,25 @@ fn epilogue_loop_step
   assert pure (SZ.fits (bm * bk) /\ SZ.fits (bk * bn));
   assert pure (SZ.fits ((nthr / warp_size) * tm * tn));
   assert pure (SZ.fits (tm * tn + warp_size));
+  epilogue_loop_warp_divides bm bn tm tn wm wn nthr;
   unfold epilogue_frame #et_ab #et_cd #et_acc
     #_ #_ #_ #_ #_
     #m #n gC fC eC rC
-    bm bn bk tm tn tk wm wn nthr sh accFrags rAcc tid;
+    bm bn bk tm tn tk wm wn nthr
+    sh accFrags rAcc tid;
 
   let mrow = bid /^ (n /^ bn);
   let mcol = bid %^ (n /^ bn);
   let warpRow = wid /^ (bn /^ (wn *^ tn));
   let warpCol = wid %^ (bn /^ (wn *^ tn));
+  (* Record the coordinate facts needed by [epilogue_fragment_from_warp]
+     here, while the context is still small; proving them at the call site
+     times out. *)
+  assert pure (
+    SZ.v mrow == SZ.v bid / (SZ.v n / SZ.v bn) /\
+    SZ.v mcol == SZ.v bid % (SZ.v n / SZ.v bn) /\
+    SZ.v warpRow == SZ.v wid / (SZ.v bn / (SZ.v wn * SZ.v tn)) /\
+    SZ.v warpCol == SZ.v wid % (SZ.v bn / (SZ.v wn * SZ.v tn)));
   assert pure (
     rCWarp ==
     ematrix_subtile
@@ -288,6 +331,7 @@ fn epilogue_loop_step
   let eAccFrag : chest2 et_acc tm tn =
     Seq.Base.index eAccFrags done;
 
+  frag_approx_at wm wn eAccFrags rAcc (SZ.v done);
   assert pure (eAccFrag %~ rAccFrag);
   epilogue_fragment_from_warp comb comb_r gC
     bm bn tm tn wm wn
@@ -360,7 +404,8 @@ fn epilogue_loop_step
   fold epilogue_frame #et_ab #et_cd #et_acc
     #_ #_ #_ #_ #_
     #m #n gC fC eC rC
-    bm bn bk tm tn tk wm wn nthr sh accFrags rAcc tid;
+    bm bn bk tm tn tk wm wn nthr
+    sh accFrags rAcc tid;
 
   fold output_epilogue_state
     gD bm bn tm tn wm wn bid wid lane

@@ -412,7 +412,24 @@ let tcol_fits
 =
   FStar.Math.Lemmas.lemma_mult_lt_right (chunk et) tid p.blockWidth;
   assert (bcol p bid < p.cols);
-  assert (p.blockWidth * chunk et <= p.blockItemsX)
+  Kuiper.Divides.lemma_divides_le (p.blockWidth * chunk et) p.blockItemsX;
+  assert (p.blockWidth * chunk et <= p.blockItemsX);
+  FStar.Math.Lemmas.multiply_fractions p.blockItemsX p.blockWidth;
+  assert (tcol p bid tid + p.blockItemsX / p.blockWidth * p.blockWidth < 30000);
+  assert_norm (pow2 16 == 65536);
+  FStar.SizeT.fits_at_least_16 (tcol p bid tid + p.blockItemsX / p.blockWidth * p.blockWidth)
+
+(* The masked first tile: zero-padding followed by the in-row prefix is the
+   [k]-prefix of the padded row. *)
+let masked_tile_prefix
+  (#a : Type0) (z : a) (s : Seq.seq a) (ri' ri re k : nat)
+: Lemma
+  (requires ri' <= ri /\ ri <= ri' + k /\ ri' + k <= re /\ re <= Seq.length s)
+  (ensures
+    Seq.equal
+      (Seq.create (ri - ri') z @+ Seq.slice s ri (ri' + k))
+      (Seq.slice (Seq.create (ri - ri') z @+ Seq.slice s ri re) 0 k))
+= ()
 
 (* Check the length of a padded row without the kernel's approximation facts. *)
 let padded_row
@@ -582,6 +599,8 @@ fn kf_head
       out0
   );
 
+  masked_tile_prefix #et zero elems ri' ri re p.blockItemsK;
+  masked_tile_prefix #real 0.0R relems ri' ri re p.blockItemsK;
   assert pure (
     Seq.equal
       (Seq.create (ri - ri') zero @+ Seq.slice elems ri (ri' + p.blockItemsK))

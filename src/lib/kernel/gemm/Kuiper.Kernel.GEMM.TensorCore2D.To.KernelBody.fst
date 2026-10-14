@@ -32,6 +32,15 @@ open Kuiper.Kernel.GEMM.TensorCore2D.To.Epilogue
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KLoop
 open Kuiper.Kernel.GEMM.TensorCore2D.To.Finish
 
+(* [a %^ b] with its value stated using [%]. [SZ.rem] specifies its result
+   as [a - (a/b)*b] (nonlinear); relating that to [a % b] inside [kf] times
+   out under Z3 5.1.0, so do it here with an explicit lemma. *)
+inline_for_extraction noextract
+let kb_rem (a : SZ.t) (b : szp) (bnd : Ghost.erased int { SZ.v b <= bnd })
+  : r : szlt bnd { SZ.v r == SZ.v a % SZ.v b }
+  = FStar.Math.Lemmas.euclidean_division_definition (SZ.v a) (SZ.v b);
+    a %^ b
+
 #push-options ""
 inline_for_extraction noextract
 fn kf
@@ -116,6 +125,29 @@ fn kf
         (fst sh) (fst (snd sh)) nthr bid) **
     B.barrier_state (2 * (k / bk))
 {
+  (* Block/warp coordinates.  Computed (and their defining equations
+     recorded) before unfolding [kpre_to], while the context is still small;
+     proving these equations later, e.g. at the [compute_acc] call, times
+     out. *)
+  let num_n_tiles = n /^ bn;
+  assert pure (SZ.v num_n_tiles == SZ.v n / SZ.v bn);
+  let mrow = bid /^ num_n_tiles;
+  assert pure (SZ.v mrow == SZ.v bid / (SZ.v n / SZ.v bn));
+  assert pure (mrow < m / bm);
+  let mcol = kb_rem bid num_n_tiles (n / bn);
+  assert pure (SZ.v mcol == SZ.v bid % (SZ.v n / SZ.v bn));
+  assert pure (mcol < n / bn);
+  let wid = tid /^ warp_size;
+  assert pure (SZ.v wid == SZ.v tid / warp_size);
+  let nwc = bn /^ (wn *^ tn);
+  assert pure (SZ.v nwc == SZ.v bn / (SZ.v wn * SZ.v tn));
+  let warpRow : szlt (bm / (wm * tm)) = wid /^ nwc;
+  assert pure (SZ.v warpRow == (SZ.v tid / warp_size) /
+                 (SZ.v bn / (SZ.v wn * SZ.v tn)));
+  let warpCol : szlt (bn / (wn * tn)) = kb_rem wid nwc (bn / (wn * tn));
+  assert pure (SZ.v warpCol == (SZ.v tid / warp_size) %
+                 (SZ.v bn / (SZ.v wn * SZ.v tn)));
+
   unfold kpre_to gA eA gB eB gC eC gD
     bm bn bk tm tn tk wm wn fA fB fC rA rB rC
     nblk nthr sh bid tid;
@@ -125,14 +157,6 @@ fn kf
     nblk nthr bid tid;
   let (sarA, (sarB, (sarAcc, sarTail))) = sh;
 
-  let num_n_tiles = n /^ bn;
-  let mrow = bid /^ num_n_tiles;
-  assert pure (mrow < m / bm);
-  let mcol = bid %^ num_n_tiles;
-  assert pure (mcol < n / bn);
-  let wid = tid /^ warp_size;
-  let warpRow : szlt (bm / (wm * tm)) = wid /^ (bn /^ (wn *^ tn));
-  let warpCol : szlt (bn / (wn * tn)) = wid %^ (bn /^ (wn *^ tn));
   Kuiper.Divides.lemma_div_product (wm * tm) bm m;
   FStar.Math.Lemmas.lemma_eucl_div_bound
     warpRow mrow (bm / (wm * tm));
