@@ -57,6 +57,22 @@ let zero_tile_offset (tile : pos) (i : nat) (_ : unit)
   : Lemma (tile * i == tile * i + 0 * tile)
 = ()
 
+// [a * q + x < n] for a tile index [a] and an offset [x] within the tile.
+let kl_tile_index_bound (a x : nat) (q : pos) (n : nat)
+  : Lemma (requires a < n / q /\ x < q /\ n % q == 0)
+          (ensures a * q + x < n)
+= Math.Lemmas.lemma_mult_le_right q (a+1) (n/q);
+  Math.Lemmas.distributivity_add_left a 1 q;
+  Math.Lemmas.lemma_div_exact n q;
+  Math.Lemmas.swap_mul q (n/q)
+
+// Global index of a cell of a nested subtile.
+let kl_nested_index (ir gr orr o ix i : int)
+  : Lemma (requires ir * gr == orr * o + ix * ir)
+          (ensures o * orr + (ix * ir + i) == gr * ir + i)
+= Math.Lemmas.swap_mul ir gr;
+  Math.Lemmas.swap_mul orr o
+
 // A nested subtile is the corresponding cell of the directly tiled matrix.
 let nested_subtile_tiled_cell
   (#et : Type0)
@@ -87,6 +103,25 @@ let nested_subtile_tiled_cell
   Math.Lemmas.swap_mul inner_cols global_col;
   Math.Lemmas.swap_mul outer_cols outer_col;
   macc_ematrix_tiled em inner_rows inner_cols global_row global_col;
+  (* Pointwise, with the index arithmetic spelled out. *)
+  introduce forall (i : natlt inner_rows) (j : natlt inner_cols).
+    acc2 (ematrix_subtile outer inner_rows inner_cols inner_row inner_col) i j
+    == acc2 (ematrix_subtile em inner_rows inner_cols global_row global_col) i j
+  with begin
+    kl_tile_index_bound inner_row i inner_rows outer_rows;
+    kl_tile_index_bound inner_col j inner_cols outer_cols;
+    subtile_acc2 outer inner_rows inner_cols inner_row inner_col i j;
+    subtile_acc2 em outer_rows outer_cols outer_row outer_col
+      (inner_row * inner_rows + i) (inner_col * inner_cols + j);
+    kl_tile_index_bound global_row i inner_rows rows;
+    kl_tile_index_bound global_col j inner_cols cols;
+    kl_nested_index inner_rows global_row outer_rows outer_row inner_row i;
+    kl_nested_index inner_cols global_col outer_cols outer_col inner_col j;
+    subtile_acc2 em inner_rows inner_cols global_row global_col i j
+  end;
+  Kuiper.EMatrix.lemma_equal_intro
+    (ematrix_subtile outer inner_rows inner_cols inner_row inner_col)
+    (acc2 (ematrix_tiled em inner_rows inner_cols) global_row global_col);
   Kuiper.Chest.ext
     (ematrix_subtile outer inner_rows inner_cols inner_row inner_col)
     (acc2 (ematrix_tiled em inner_rows inner_cols) global_row global_col)

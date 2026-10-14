@@ -94,13 +94,27 @@ let brow_
 : Tot (m : sz {SZ.v m == brow p bid})
 = bid %^ p.rows
 
-#push-options "--z3rlimit 10"
+(* [bid < rows * divup cols x ==> (bid / rows) * x < cols], with every
+   nonlinear step explicit. *)
+let bcol_bound (rows cols x : pos) (bid : nat)
+: Lemma (requires bid < rows * divup cols x)
+        (ensures (bid / rows) * x < cols)
+= let q = bid / rows in
+  let d = divup cols x in
+  FStar.Math.Lemmas.euclidean_division_definition bid rows;
+  if q >= d then FStar.Math.Lemmas.lemma_mult_le_left rows d q;
+  assert (q + 1 <= d);
+  FStar.Math.Lemmas.lemma_mult_le_right x (q + 1) d;
+  FStar.Math.Lemmas.distributivity_add_left q 1 x;
+  FStar.Math.Lemmas.euclidean_division_definition (cols + (x - 1)) x;
+  FStar.Math.Lemmas.swap_mul d x
+
 let bcol
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et) (bid : natlt (nblocks_ p))
 : GTot (natlt p.cols)
-= (bid / p.rows) * p.blockItemsX
-#pop-options
+= bcol_bound p.rows p.cols p.blockItemsX bid;
+  (bid / p.rows) * p.blockItemsX
 
 inline_for_extraction noextract
 let bcol_
@@ -143,6 +157,12 @@ let tcol_
   assert (SZ.v tid < SZ.v p.blockWidth /\ SZ.v p.blockWidth <= SZ.v max_threads);
   let c : (c : sz { SZ.v c == SZ.v tid * SZ.v (chunk et) }) = tid *^ chunk et in
   let b : (b : sz { SZ.v b == bcol p bid }) = bcol_ p bid in
+  (* [c <= 1024 * 16] and [b < 10000], so [b + c] fits in 16 bits *)
+  FStar.Math.Lemmas.lemma_mult_le_right (SZ.v (chunk et)) (SZ.v tid) 1024;
+  FStar.Math.Lemmas.lemma_mult_le_left 1024 (SZ.v (chunk et)) 16;
+  assert (SZ.v c <= 16384);
+  assert_norm (pow2 16 == 65536);
+  FStar.SizeT.fits_at_least_16 (SZ.v b + SZ.v c);
   b +^ c
 #pop-options
 

@@ -17,6 +17,19 @@ open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 open Kuiper.Kernel.GEMM.TensorCore2D.KernelDesc { constraints }
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc
 
+(* Block-level sendability of a fractional global-tensor points-to, stated
+   directly in the [|-> Frac] form.  [|-> Frac f] unfolds to
+   [tensor_pts_to #(1.0R *. f)], so relating it to
+   [is_send_across_global_tensor] needs a (real-arithmetic) SMT query; doing
+   it once here keeps that query out of the large contexts below. *)
+let global_frac_send
+  (#et : Type0) (#r : nat) (#d : shape r) (#l : tlayout d)
+  (a : tensor et l { is_global a })
+  (f : perm) (s : chest d et)
+  : is_send_across block_of (a |-> Frac f s)
+= send_across_if_send_across_gpu (a |-> Frac f s)
+    (is_send_across_global_tensor a #f s)
+
 let output_lane_live_sendable_to
   (#et : Type0) {| scalar et |}
   (#m #n : szp)
@@ -143,6 +156,9 @@ let kpre1_sendable_to
         bm bn bk tm tn tk wm wn fA fB fC rA rB rC
         nblk nthr bid tid)
 =
+  (* Positivity of the share count, so the [/.] fractions below are
+     well-typed without nonlinear reasoning in the large context. *)
+  FStar.Math.Lemmas.pos_times_pos_is_pos (SZ.v nblk) (SZ.v nthr);
   let output_send =
     output_lane_live_sendable_to gD
       bm bn bk tm tn tk wm wn #_ nblk nthr bid tid in
@@ -158,14 +174,11 @@ let kpre1_sendable_to
   let pPure =
     pAlignedA ** pAlignedB ** pApproxA ** pApproxB ** pApproxC in
   let sendA : is_send_across block_of pA =
-    send_across_if_send_across_gpu pA
-      (is_send_across_global_tensor gA #(fA /. (nblk * nthr)) eA) in
+    global_frac_send gA (fA /. (nblk * nthr)) eA in
   let sendB : is_send_across block_of pB =
-    send_across_if_send_across_gpu pB
-      (is_send_across_global_tensor gB #(fB /. (nblk * nthr)) eB) in
+    global_frac_send gB (fB /. (nblk * nthr)) eB in
   let sendC : is_send_across block_of pC =
-    send_across_if_send_across_gpu pC
-      (is_send_across_global_tensor gC #(fC /. (nblk * nthr)) eC) in
+    global_frac_send gC (fC /. (nblk * nthr)) eC in
   let sendAlignedA : is_send_across block_of pAlignedA =
     is_send_across_placeless pAlignedA
       #(placeless_pure (aligned 16 (core gA))) in
@@ -254,6 +267,7 @@ let kpost1_sendable_to
     reveal (warp_tile_idx_cols
       (SZ.v bm) (SZ.v bn) (SZ.v wm * SZ.v tm) (SZ.v wn * SZ.v tn) wid)
       == wid % (SZ.v bn / (SZ.v wn * SZ.v tn)));
+  FStar.Math.Lemmas.pos_times_pos_is_pos (SZ.v nblk) (SZ.v nthr);
   let pA = gA |-> Frac (fA /. (nblk * nthr)) eA in
   let pB = gB |-> Frac (fB /. (nblk * nthr)) eB in
   let pC = gC |-> Frac (fC /. (nblk * nthr)) eC in
@@ -269,14 +283,11 @@ let kpost1_sendable_to
         ((tid / warp_size) / (bn / (wn * tn)))
         ((tid / warp_size) % (bn / (wn * tn)))) in
   let sendA : is_send_across block_of pA =
-    send_across_if_send_across_gpu pA
-      (is_send_across_global_tensor gA #(fA /. (nblk * nthr)) eA) in
+    global_frac_send gA (fA /. (nblk * nthr)) eA in
   let sendB : is_send_across block_of pB =
-    send_across_if_send_across_gpu pB
-      (is_send_across_global_tensor gB #(fB /. (nblk * nthr)) eB) in
+    global_frac_send gB (fB /. (nblk * nthr)) eB in
   let sendC : is_send_across block_of pC =
-    send_across_if_send_across_gpu pC
-      (is_send_across_global_tensor gC #(fC /. (nblk * nthr)) eC) in
+    global_frac_send gC (fC /. (nblk * nthr)) eC in
   let sendCOutput =
     is_send_across_star pC pOutput #sendC #output_send in
   let sendBC =

@@ -92,6 +92,15 @@ let warp_divides_thread_count
     (SZ.v warp_size);
   ()
 
+(* [teardown_to] needs [tm /?+ (wm * tm) /\ tn /?+ (wn * tn)]; inferring it
+   in the large context of [kernel_desc_to] times out, so it is supplied
+   explicitly. *)
+let tile_divides_warp_tile (tm tn wm wn : szp)
+  : squash (tm /?+ (wm * tm) /\ tn /?+ (wn * tn))
+=
+  FStar.Math.Lemmas.cancel_mul_mod (SZ.v wm) (SZ.v tm);
+  FStar.Math.Lemmas.cancel_mul_mod (SZ.v wn) (SZ.v tn)
+
 let shmem_inv_components_to
   (#et_ab #et_acc : Type0)
   {| sized et_ab, sized et_acc |}
@@ -329,7 +338,8 @@ let mk_kernel
     fA fB fC rA rB rC;
   teardown = teardown_to comb_r
     gA eA gB eB gC eC gD #mn_fits
-    bm bn bk tm tn tk wm wn #block_divides nblk nthr
+    bm bn bk tm tn tk wm wn #block_divides
+    #_ #(tile_divides_warp_tile tm tn wm wn) nblk nthr
     fA fB fC rA rB rC;
 
   block_frame    = (fun _ar _bid -> emp);

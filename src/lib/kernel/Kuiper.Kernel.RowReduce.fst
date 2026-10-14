@@ -446,7 +446,9 @@ let seq_stride_snoc_ (s : seq real) (x : real) (nth : pos) (off : natlt nth)
     end else begin
       let old_sl = seq_stride_length s nth off in
       let aux (i : nat{i < old_sl}) : Lemma (Seq.index new_stride i == Seq.index old_stride i)
-        = assert ((off + i * nth) % nth == off);
+        = FStar.Math.Lemmas.lemma_mod_plus off i nth;
+          FStar.Math.Lemmas.small_mod off nth;
+          assert ((off + i * nth) % nth == off);
           assert (off + i * nth <> n);
           assert (off + i * nth < n)
       in
@@ -647,6 +649,11 @@ let stride_length_exact (k n stride off : nat)
   = Math.Lemmas.lemma_div_le (k * stride) (n - off + stride - 1) stride;
     Math.Lemmas.cancel_mul_div k stride
 
+(* Advancing a strided index by one stride. *)
+let stride_index_step (i g st o : int)
+  : Lemma (requires i == g * st + o) (ensures i + st == (g + 1) * st + o)
+  = FStar.Math.Lemmas.distributivity_add_left g 1 st
+
 #push-options "--fuel 2 --ifuel 2 --z3rlimit 40"
 inline_for_extraction noextract
 fn sum_stride_map_2d
@@ -704,6 +711,9 @@ fn sum_stride_map_2d
 
     let vgidx = gread gidx;
     Math.Lemmas.distributivity_add_left vgidx 1 stride;
+    assert pure (vgidx < seq_stride_length (lseq_map pre_map_r vr_row) stride off);
+    assert pure (SZ.v idx_raw + SZ.v stride < SZ.v cols + SZ.v stride);
+    stride_index_step (SZ.v idx_raw) vgidx (SZ.v stride) (SZ.v off);
 
     acc := !acc `add` v';
     idx := !idx +^ stride;

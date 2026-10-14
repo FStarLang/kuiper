@@ -103,7 +103,7 @@ let lemma_divides_product_l (d : pos) (a c : int)
           (ensures d /? (a * c))
   = calc (==) {
       d * ((a/d) * c);
-      == {}
+      == { FStar.Math.Lemmas.paren_mul_right d (a/d) c }
       (d * (a/d)) * c;
       == {}
       a * c;

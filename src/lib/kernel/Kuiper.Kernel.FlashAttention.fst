@@ -28,7 +28,10 @@ let fa_tile_row_bound
   (tid : natlt br)
   : Lemma (requires br /? n)
           (ensures br * i + tid < n)
-  = Kuiper.Divides.lemma_divides_exact br n
+  = Kuiper.Divides.lemma_divides_exact br n;
+    (* br * i + tid < br * (i + 1) <= br * (n / br) == n *)
+    FStar.Math.Lemmas.distributivity_add_right br i 1;
+    FStar.Math.Lemmas.lemma_mult_le_left br (i + 1) (n / br)
 
 (* Projecting [rin]/[rout] out of the record literal built by
    [fa_barrier_contract] is no longer reduced for the SMT solver, so we

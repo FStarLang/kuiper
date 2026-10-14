@@ -306,6 +306,7 @@ let __bkIdx_loop_step
       = let local_r : natlt bm = tm * threadRow + idx / tn in
         let local_c : natlt bn = tn * threadCol + idx % tn in
         __gms_tiled_step mapA mapB eA eB bm bn bk mrow mcol local_r local_c bkIdx bk;
+        FStar.Math.Lemmas.distributivity_add_left bkIdx 1 bk;
         assert (bkIdx * bk + bk == (bkIdx + 1) * bk)
     in
     FStar.Classical.forall_intro aux
@@ -530,6 +531,13 @@ let div_lt_bound_pat_r (x a b : nat)
 let sz_rem_spec (a : SZ.t) (b : SZ.t{SZ.v b <> 0})
   : Lemma (SZ.v (a %^ b) == SZ.v a % SZ.v b)
   = FStar.Math.Lemmas.euclidean_division_definition (SZ.v a) (SZ.v b)
+
+(* [x*bm + (y*tm + z)] after substituting the three coordinates; stated in an
+   empty context because, inside [bkf], Z3 can diverge on this substitution. *)
+let coord_subst (x bm y tm z x' y' z' : int)
+  : Lemma (requires x == x' /\ y == y' /\ z == z')
+          (ensures x * bm + y * tm + z == x' * bm + (y' * tm + z'))
+  = ()
 
 (* Positivity of a product of positives, proved in an empty context. *)
 let mul_pos (a b : pos) : Lemma (a * b > 0) = ()
@@ -2005,6 +2013,14 @@ fn bkf
     assert rewrites_to cci (page, (grow_sz, (gcol_sz, ())));
     (* Coordinate equality via a standalone lemma (clean context); [bkf]'s heavy
        VC cannot reliably re-derive the nonlinear substitution inline. *)
+    coord_subst (SZ.v br) (SZ.v bm) (SZ.v tr) (SZ.v tm) (SZ.v irow)
+      (SZ.v bid / SZ.v batch / (SZ.v n / SZ.v bn))
+      (SZ.v tid / (SZ.v bn / SZ.v tn))
+      (SZ.v ci0 / SZ.v tn);
+    coord_subst (SZ.v bc) (SZ.v bn) (SZ.v tc) (SZ.v tn) (SZ.v icol)
+      (SZ.v bid / SZ.v batch % (SZ.v n / SZ.v bn))
+      (SZ.v tid % (SZ.v bn / SZ.v tn))
+      (SZ.v ci0 % SZ.v tn);
     assert pure (SZ.v grow_sz == (SZ.v bid / SZ.v batch / (SZ.v n / SZ.v bn)) * SZ.v bm
                    + ((SZ.v tid / (SZ.v bn / SZ.v tn)) * SZ.v tm + SZ.v ci0 / SZ.v tn));
     assert pure (SZ.v gcol_sz == (SZ.v bid / SZ.v batch % (SZ.v n / SZ.v bn)) * SZ.v bn
