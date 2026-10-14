@@ -85,7 +85,97 @@ let cancel_left (k x y : nat)
     FStar.Math.Lemmas.swap_mul k y;
     FStar.Math.Lemmas.multiple_division_lemma x k;
     FStar.Math.Lemmas.multiple_division_lemma y k
+
 #pop-options
+
+(* Iteration-index arithmetic for the main loop of [kf], stated in an empty
+   context and called explicitly. *)
+let even_step_facts (k : nat)
+  : Lemma ((2 * k % 2 = 0) == true /\ even (2 * k))
+  = even_2x k
+
+let odd_step_facts (k : nat)
+  : Lemma (2 * (k + 1) == 2 * k + 2 /\ even (2 * k + 2) /\ (2 * k + 1) / 2 == k)
+  = even_2x (k + 1)
+
+(* Block coordinates [mrow = bid / (cols/bn)] and [mcol = bid % (cols/bn)].
+   Kept opaque: exposing these div/mod facts in the (large) kernel context
+   makes the nonlinear arithmetic in every later query of the main loop blow
+   up.  They are only revealed inside the wrappers below. *)
+[@@"opaque_to_smt"]
+let block_coords (cols bn bid mrow mcol : nat) : prop =
+  bn > 0 /\ cols / bn > 0 /\ mrow == bid / (cols / bn) /\ mcol == bid % (cols / bn)
+
+(* [SZ.rem] is specified via [mod_spec] ([a - (a/b)*b]), not [%]; relating
+   the two is nonlinear, so it is done here, in an empty context. *)
+let block_coords_intro (bid nnt mrow mcol : SZ.t) (cols bn : pos)
+  : Lemma (requires SZ.v nnt == cols / bn /\ SZ.v nnt > 0 /\
+                    mrow == bid /^ nnt /\ mcol == bid %^ nnt)
+          (ensures block_coords cols bn (SZ.v bid) (SZ.v mrow) (SZ.v mcol))
+  = reveal_opaque (`%block_coords) block_coords;
+    FStar.Math.Lemmas.euclidean_division_definition (SZ.v bid) (SZ.v nnt)
+
+ghost
+fn fold_barrier_p_odd_bc
+  (#etA #etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
+  (#rows #shared #cols : pos)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
+  (#bm : pos{bm /?+ rows})
+  (#bk : pos{bk /?+ shared})
+  (#bn : pos{bn /?+ cols})
+  (#l1 : layout2 bm bk)
+  (#l2 : layout2 bk bn)
+  (m1 : array2 etA l1)
+  (m2 : array2 etB l2)
+  (nthr : pos)
+  (bid : natlt (rows/bm * (cols/bn)))
+  (mrow : natlt (rows / bm))
+  (mcol : natlt (cols / bn))
+  (bkIdx : natlt (shared / bk))
+  (tid : natlt nthr)
+  requires
+    FB.own_strided_chunks m1 (ematrix_subtile eA bm bk mrow bkIdx) nthr tid **
+    FB.own_strided_chunks m2 (ematrix_subtile eB bk bn bkIdx mcol) nthr tid **
+    pure (block_coords cols bn bid mrow mcol)
+  ensures
+    FB.barrier_p eA eB m1 m2 nthr bid (2 * bkIdx + 1) tid
+{
+  reveal_opaque (`%block_coords) block_coords;
+  FB.fold_barrier_p_odd eA eB m1 m2 nthr bid mrow mcol bkIdx tid;
+}
+
+ghost
+fn unfold_barrier_q_odd_bc
+  (#etA #etB : Type0)
+  {| sized etA, has_vec_cpy etA, sized etB, has_vec_cpy etB |}
+  (#rows #shared #cols : pos)
+  (eA : chest2 etA rows shared)
+  (eB : chest2 etB shared cols)
+  (#bm : pos{bm /?+ rows})
+  (#bk : pos{bk /?+ shared})
+  (#bn : pos{bn /?+ cols})
+  (#l1 : layout2 bm bk)
+  (#l2 : layout2 bk bn)
+  (m1 : array2 etA l1)
+  (m2 : array2 etB l2)
+  (nthr : pos)
+  (bid : natlt (rows/bm * (cols/bn)))
+  (mrow : natlt (rows / bm))
+  (mcol : natlt (cols / bn))
+  (bkIdx : natlt (shared / bk))
+  (tid : natlt nthr)
+  requires
+    FB.barrier_q eA eB m1 m2 nthr bid (2 * bkIdx + 1) tid **
+    pure (block_coords cols bn bid mrow mcol)
+  ensures
+    FB.bp_sharing m1 (ematrix_subtile eA bm bk mrow bkIdx) nthr **
+    FB.bp_sharing m2 (ematrix_subtile eB bk bn bkIdx mcol) nthr
+{
+  reveal_opaque (`%block_coords) block_coords;
+  FB.unfold_barrier_q_odd eA eB m1 m2 nthr bid mrow mcol bkIdx tid;
+}
 
 let live_warp_tile
   (#et : Type0) {| scalar et |}
@@ -425,6 +515,9 @@ fn kf
   FStar.Math.Lemmas.lemma_mod_lt (SZ.v bid) (SZ.v n / SZ.v bn);
   assert pure (SZ.v mrow < SZ.v m / SZ.v bm);
   assert pure (SZ.v mcol < SZ.v n / SZ.v bn);
+  (* Record the block coordinates in the form [FB.fold_barrier_p_odd] expects,
+     behind an opaque predicate (see [block_coords]). *)
+  block_coords_intro bid num_n_tiles mrow mcol (SZ.v n) (SZ.v bn);
 
   let wid = tid /^ warp_size;
   let warpRow = wid /^ (bn/^tn);
@@ -462,9 +555,7 @@ fn kf
       B.barrier_state (2 * !bkIdx)
     decreases (num_k_tiles - !bkIdx)
   {
-    even_2x !bkIdx;
-    assert pure ((2 * !bkIdx % 2 = 0) == true);
-    assert pure (even (2 * !bkIdx));
+    even_step_facts !bkIdx;
     FB.fold_barrier_p_even eA eB sA sB nthr bid !bkIdx tid;
     FB.bp_to_rin eA eB (rm bm bk) (rm bk bn) sarA sarB sA sB nthr bid (2 * !bkIdx) tid;
 
@@ -494,17 +585,16 @@ fn kf
 
     odd_2x1 !bkIdx;
     assert (pure (odd (2 * !bkIdx + 1)));
-    FB.fold_barrier_p_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
+    fold_barrier_p_odd_bc eA eB sA sB nthr bid mrow mcol !bkIdx tid;
     FB.bp_to_rin eA eB (rm bm bk) (rm bk bn) sarA sarB sA sB nthr bid (2 * !bkIdx + 1) tid;
 
     B.barrier_wait ();
 
-    even_2x (!bkIdx + 1);
-    assert (pure (2 * (!bkIdx + 1) == 2 * !bkIdx + 2));
-    assert (pure (even (2 * !bkIdx + 2)));
-    assert (pure ((2 * !bkIdx + 1) / 2 == !bkIdx));
+    (* Stated as a lemma: proving these as [assert]s in the loop's large
+       context is too slow for the solver. *)
+    odd_step_facts !bkIdx;
     FB.rout_to_bq eA eB (rm bm bk) (rm bk bn) sarA sarB sA sB nthr bid (2 * !bkIdx + 1) tid;
-    FB.unfold_barrier_q_odd eA eB sA sB nthr bid mrow mcol !bkIdx tid;
+    unfold_barrier_q_odd_bc eA eB sA sB nthr bid mrow mcol !bkIdx tid;
 
     unfold FB.bp_sharing sA (ematrix_subtile eA bm bk mrow !bkIdx) nthr;
     unfold FB.bp_sharing sB (ematrix_subtile eB bk bn !bkIdx mcol) nthr;

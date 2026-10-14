@@ -400,6 +400,37 @@ fn thread_share_chunks
     fn tid { fold thread_live_chunks x nthr tid };
 }
 
+let chunk_vec_bound (n m i nthr ch k tid : nat)
+  : Lemma
+    (requires nthr > 0 /\ ch > 0 /\ nthr * ch > 0 /\ (nthr * ch) /? n /\ i + n <= m /\
+              k < n / (nthr * ch) /\ tid < nthr)
+    (ensures i + (k * nthr + tid) * ch <= m - ch)
+  = let q = n / (nthr * ch) in
+    FStar.Math.Lemmas.lemma_div_exact n (nthr * ch);
+    FStar.Math.Lemmas.lemma_mult_le_right nthr (k + 1) q;
+    FStar.Math.Lemmas.lemma_mult_le_right ch (k * nthr + tid + 1) (q * nthr);
+    FStar.Math.Lemmas.distributivity_add_left (k * nthr + tid) 1 ch;
+    FStar.Math.Lemmas.paren_mul_right q nthr ch
+
+let chunk_vec_bound_all (n m i nthr ch : nat)
+  : Lemma
+    (requires nthr > 0 /\ ch > 0 /\ nthr * ch > 0 /\ (nthr * ch) /? n /\ i + n <= m)
+    (ensures
+      (forall (k tid : nat). {:pattern ((k * nthr + tid) * ch)}
+        k < n / (nthr * ch) /\ tid < nthr ==> i + (k * nthr + tid) * ch <= m - ch) /\
+      (forall (k tid j : nat). {:pattern (k * (nthr * ch) + (tid * ch + j))}
+        k < n / (nthr * ch) /\ tid < nthr /\ j < ch ==>
+          i + (k * (nthr * ch) + (tid * ch + j)) < m))
+  = introduce forall (k tid : nat).
+      k < n / (nthr * ch) /\ tid < nthr ==> i + (k * nthr + tid) * ch <= m - ch
+    with introduce _ ==> _
+    with chunk_vec_bound n m i nthr ch k tid;
+    introduce forall (k tid j : nat).
+      k < n / (nthr * ch) /\ tid < nthr /\ j < ch ==>
+        i + (k * (nthr * ch) + (tid * ch + j)) < m
+    with introduce _ ==> _
+    with (chunk_vec_bound n m i nthr ch k tid; chunk_cell_offset k nthr tid ch j)
+
 #push-options "--z3rlimit_factor 2"
 ghost
 fn thread_gather_chunks
@@ -417,6 +448,7 @@ fn thread_gather_chunks
   ensures x |-> Seq.slice s i (i + n)
 {
   let ch = v (chunk et);
+  chunk_vec_bound_all n m i nthr (v (chunk et));
   forevery_map
     (fun tid -> thread_pts_to_chunks x s i nthr tid)
     (fun tid ->

@@ -63,11 +63,13 @@ let wid_of_ij
 let silly_modulo_helper (p : pos)
   (a : nat) (b : natlt p)
   : Lemma ((a * p + b) % p == b)
-  = ()
+  = FStar.Math.Lemmas.lemma_mod_plus b a p;
+    FStar.Math.Lemmas.small_mod b p
 let silly_div_helper (p : pos)
   (a : nat) (b : natlt p)
   : Lemma ((a * p + b) / p == a)
-  = ()
+  = FStar.Math.Lemmas.lemma_div_plus b a p;
+    FStar.Math.Lemmas.small_div b p
 
 (* Package the two flatten/unflatten facts once, outside the much larger Pulse
    context in [reconstruct_from_warp_approx]. *)
@@ -87,6 +89,18 @@ let tile_flatten_div_mod (rows : nat) (cols : pos)
     = silly_modulo_helper cols row col in
   Classical.forall_intro_2 mod_helper
 
+(* Recompose a coordinate from its block index, its warp-tile index within
+   the block and its offset within the warp tile.  Proved in a small context
+   with every nonlinear step explicit. *)
+let tile_coord_recompose (i : nat) (b : pos) (w : pos)
+  : Lemma (requires b % w == 0)
+          (ensures ((i/b) * (b/w) + (i % b) / w) * w + (i % b) % w == i)
+= Math.Lemmas.distributivity_add_left ((i/b) * (b/w)) ((i % b) / w) w;
+  Math.Lemmas.euclidean_division_definition (i % b) w;
+  Math.Lemmas.paren_mul_right (i/b) (b/w) w;
+  Math.Lemmas.lemma_div_exact b w;
+  Math.Lemmas.euclidean_division_definition i b
+
 let lem_i
   (m n k : nat)
   (bm bn bk
@@ -105,7 +119,7 @@ let lem_i
   = let bid = bid_of_ij m n bm bn i j in
     let wid = wid_of_ij m n bm bn tm tn wm wn i j in
     assert (j/bn < n/bn);
-    silly_modulo_helper (n/bn) (i/bm) (j/bn);
+    silly_div_helper (n/bn) (i/bm) (j/bn);
     assert (bid / (n/bn) == i / bm);
     silly_div_helper (bn/(wn*tn)) ((i%bm)/(wm*tm)) ((j%bn)/(wn*tn));
     assert (wid / (bn/(wn*tn)) == (i % bm) / (wm*tm));
@@ -121,12 +135,7 @@ let lem_i
       == {}
       ((i/bm) * (bm / (wm*tm)) + (i % bm) / (wm*tm)) * (wm*tm)
         + ((i % bm) % (wm*tm));
-      == {}
-      (i/bm) * (bm / (wm*tm)) * (wm*tm) + ((i % bm) / (wm*tm)) * (wm*tm)
-        + ((i % bm) % (wm*tm));
-      == { Math.Lemmas.euclidean_division_definition (i % bm) (wm*tm) }
-      (i/bm) * (bm / (wm*tm)) * (wm*tm) + (i % bm);
-      == {}
+      == { tile_coord_recompose i bm (wm*tm) }
       i;
     };
     ()
@@ -165,12 +174,7 @@ let lem_j
       == {}
       ((j/bn) * (bn/(wn*tn)) + (j % bn) / (wn*tn)) * (wn*tn)
         + ((j % bn) % (wn*tn));
-      == {}
-      (j/bn) * (bn/(wn*tn)) * (wn*tn) + ((j % bn) / (wn*tn)) * (wn*tn)
-        + ((j % bn) % (wn*tn));
-      == { Math.Lemmas.euclidean_division_definition (j % bn) (wn*tn) }
-      (j/bn) * (bn/(wn*tn)) * (wn*tn) + (j % bn);
-      == {}
+      == { tile_coord_recompose j bn (wn*tn) }
       j;
     };
     ()
@@ -186,6 +190,23 @@ private let div_lt_mul (a p : nat) (q:pos)
       Math.Lemmas.euclidean_division_definition a q
     end
 #pop-options
+
+private let kd_tile_index_bound (a x : nat) (q : pos) (n : nat)
+  : Lemma (requires a < n / q /\ x < q /\ n % q == 0)
+          (ensures a * q + x < n)
+= Math.Lemmas.lemma_mult_le_right q (a+1) (n/q);
+  Math.Lemmas.distributivity_add_left a 1 q;
+  Math.Lemmas.lemma_div_exact n q;
+  Math.Lemmas.swap_mul q (n/q)
+
+private let kd_approximates_elim
+  (#et : Type0) {| scalar et, real_like et |}
+  (#rows #cols : nat)
+  (m1 : chest2 et rows cols)
+  (m2 : chest2 real rows cols)
+  (i : natlt rows) (j : natlt cols)
+  : Lemma (requires m1 %~ m2) (ensures acc2 m1 i j %~ acc2 m2 i j)
+= ()
 
 (* The C-input warp tile that [setup] scatters (a subtile of eC within block
    [bid], warp [wid]) approximates the corresponding warp subtile of the real
@@ -228,6 +249,14 @@ let c_subtile_approx_lemma
   (* Exact divisibility: (bm/(wm*tm))*(wm*tm) == bm, idem for n. *)
   Math.Lemmas.euclidean_division_definition bm (wm*tm);
   Math.Lemmas.euclidean_division_definition bn (wn*tn);
+  assert (wti == bi * (bm/(wm*tm)) + wri);
+  assert (wtj == bj * (bn/(wn*tn)) + wrj);
+  Math.Lemmas.distributivity_add_left (bi * (bm/(wm*tm))) wri (wm*tm);
+  Math.Lemmas.paren_mul_right bi (bm/(wm*tm)) (wm*tm);
+  Math.Lemmas.lemma_div_exact bm (wm*tm);
+  Math.Lemmas.distributivity_add_left (bj * (bn/(wn*tn))) wrj (wn*tn);
+  Math.Lemmas.paren_mul_right bj (bn/(wn*tn)) (wn*tn);
+  Math.Lemmas.lemma_div_exact bn (wn*tn);
   assert (wti * (wm*tm) == bi * bm + wri * (wm*tm));
   assert (wtj * (wn*tn) == bj * bn + wrj * (wn*tn));
   let aux (i : natlt (wm*tm)) (j : natlt (wn*tn))
@@ -235,8 +264,19 @@ let c_subtile_approx_lemma
                     (ematrix_subtile eC bm bn bi bj)
                     (wm*tm) (wn*tn) wri wrj) i j
              %~ acc2 (ematrix_subtile rC (wm*tm) (wn*tn) wti wtj) i j)
-  = () in
-  Classical.forall_intro_2 aux
+  = kd_tile_index_bound wri i (wm*tm) bm;
+    kd_tile_index_bound wrj j (wn*tn) bn;
+    kd_tile_index_bound wti i (wm*tm) m;
+    kd_tile_index_bound wtj j (wn*tn) n;
+    subtile_acc2 (ematrix_subtile eC bm bn bi bj) (wm*tm) (wn*tn) wri wrj i j;
+    subtile_acc2 eC bm bn bi bj (wri*(wm*tm)+i) (wrj*(wn*tn)+j);
+    subtile_acc2 rC (wm*tm) (wn*tn) wti wtj i j;
+    kd_approximates_elim eC rC (wti*(wm*tm)+i) (wtj*(wn*tn)+j)
+  in
+  Classical.forall_intro_2 aux;
+  lemma_approximates_intro
+    (ematrix_subtile (ematrix_subtile eC bm bn bi bj) (wm*tm) (wn*tn) wri wrj)
+    (ematrix_subtile rC (wm*tm) (wn*tn) wti wtj)
 
 ghost
 fn gpu_slice_gather_underspec
@@ -292,6 +332,24 @@ ensures
   forevery_factor (nblk * nthr) nblk nthr _;
 }
 
+(* Warp-id bound, stated once with a pattern so the [natlt] refinements on
+   [tid/warp_size] in [setup] need no nonlinear reasoning in a big context. *)
+private let warp_id_bound_forall (nthr k : nat)
+  : Lemma (requires nthr == k * warp_size)
+          (ensures forall (tid : natlt nthr). {:pattern (tid / warp_size)}
+                     tid / warp_size < k)
+= introduce forall (tid : natlt nthr). tid / warp_size < k
+  with div_lt_mul tid k warp_size
+
+private let tile_div_bound_forall (p q : pos)
+  : Lemma (forall (x : natlt (p * q)). {:pattern (x / q)} x / q < p)
+= introduce forall (x : natlt (p * q)). x / q < p
+  with div_lt_mul x p q
+
+private let tile_mod_bound_forall (q : pos)
+  : Lemma (forall (x : nat). {:pattern (x % q)} x % q < q)
+= ()
+
 ghost
 fn setup
   (#et_ab #et_c : Type0)
@@ -337,6 +395,11 @@ fn setup
       kpre1 gA eA gB eB gC eC bm bn bk tm tn tk wm wn fA fB rA rB rC nthr bid tid) **
     pure (SZ.fits (lC.ulen)) // frame
 {
+  warp_id_bound_forall nthr (bm/(wm*tm) * (bn/(wn*tn)));
+  tile_div_bound_forall (m/bm) (n/bn);
+  tile_mod_bound_forall (n/bn);
+  tile_div_bound_forall (bm/(wm*tm)) (bn/(wn*tn));
+  tile_mod_bound_forall (bn/(wn*tn));
   tensor_pts_to_ref gC;
   array2_share_threads gA nblk nthr;
   array2_share_threads gB nblk nthr;
@@ -547,6 +610,30 @@ fn block_teardown
 }
 
 
+(* Triggered tile-index bounds.  The [unfold]ed tile-index helpers
+   ([block_tile_idx_rows], [warp_tile_idx_cols], ...) carry [natlt]
+   refinements of the shape [x / q < p] and [x % q < q], and [nthr / warp_size]
+   must be recognised as the warp count; these are nonlinear and arise in
+   type-level positions (signatures, [fold]/[unfold]) where no lemma call can
+   be inserted. *)
+#push-options "--fuel 0 --ifuel 0"
+let tile_div_lt_pat (x p : nat) (q : pos)
+  : Lemma (requires x < p * q)
+          (ensures x / q < p)
+          [SMTPat (x / q); SMTPat (p * q)]
+  = div_lt_mul x p q
+
+let tile_mod_lt_pat (x : nat) (q : pos)
+  : Lemma (x % q < q)
+          [SMTPat (x % q)]
+  = ()
+
+let warp_count_eq (nthr k : nat)
+  : Lemma (requires nthr == k * warp_size)
+          (ensures nthr / warp_size == k)
+  = Math.Lemmas.cancel_mul_div k warp_size
+#pop-options
+
 ghost
 fn warp_tile_pts_to_eq
   (#et : Type0) {| scalar et |}
@@ -646,6 +733,8 @@ fn rhs_is_constant_for_warps_approx
   (rC : chest2 real m n)
   (#_ : squash (wm * tm /?+ m)) // obvious, but SMT is flaky
   (#_ : squash (wn * tn /?+ n)) // idem
+  (#_ : squash (nthr / warp_size == bm/(wm*tm) * (bn/(wn*tn))))
+    // ^ the warp count; nonlinear, so supplied by the caller
   (bid : natlt nblk)
   (emf : natlt nthr -> chest2 et_c (wm*tm) (wn*tn))
   norewrite
@@ -885,6 +974,7 @@ fn reconstruct_from_warp_approx
      a cheap name match instead. Same technique already applied to
      [output_fragment] in [Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc.fst]
      ([split_output_to_lanes]). *)
+  warp_count_eq nthr (bm/(wm*tm) * (bn/(wn*tn)));
   let wtb_tid = (fun (bid : natlt nblk) (tid : natlt nthr) ->
     wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size));
   let wtb_wid = (fun (bid : natlt nblk) (wid : natlt (nthr / warp_size)) ->
@@ -931,6 +1021,7 @@ fn reconstruct_from_warp_approx
         (fun tid ->
           warp_tile_pts_to gC bm bn tm tn wm wn bid (tid / warp_size) (emf bid tid) **
           pure (emf bid tid %~ (wt_target mapA mapB comb bm bn bk tm tn tk wm wn rA rB rC nthr bid (tid / warp_size))));
+      warp_count_eq nthr (bm/(wm*tm) * (bn/(wn*tn)));
       rhs_is_constant_for_warps_approx gC eA eB eC bm bn bk tm tn tk wm wn nblk nthr mapA mapB comb rA rB rC bid (emf bid);
       forevery_ext #(natlt (nthr / warp_size))
         (fun wid ->
@@ -1049,6 +1140,7 @@ fn reconstruct_from_warp_approx
         ==
         (br * (n/bn) + bc) / (n/bn)
       );
+      silly_div_helper (n/bn) br bc;
       assert pure ((br * (n/bn) + bc) / (n/bn) == br);
       rewrite each
         block_tile_idx_rows m n (SZ.v bm) (SZ.v bn) (br * (n/bn) + bc)
@@ -1059,6 +1151,7 @@ fn reconstruct_from_warp_approx
         ==
         (br * (n/bn) + bc) % (n/bn)
       );
+      silly_modulo_helper (n/bn) br bc;
       assert pure ((br * (n/bn) + bc) % (n/bn) == bc);
       rewrite each
         block_tile_idx_cols m n (SZ.v bm) (SZ.v bn) (br * (n/bn) + bc)

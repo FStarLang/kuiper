@@ -317,6 +317,19 @@ let aligned_cont_offset
   (ensures aligned' 16 (core a) (cl.offset + off))
 = ()
 
+(* [c /? a /\ c /? b /\ a < b ==> a + c <= b], proven with explicit
+   nonlinear steps rather than left to Z3 in the large context below. *)
+let divides_lt_add (c : pos) (a b : nat)
+  : Lemma (requires c /? a /\ c /? b /\ a < b) (ensures a + c <= b)
+  = let qa = a / c in
+    let qb = b / c in
+    Kuiper.Divides.lemma_divides_exact c a;
+    Kuiper.Divides.lemma_divides_exact c b;
+    assert (c * qa < c * qb);
+    if qa >= qb then FStar.Math.Lemmas.lemma_mult_le_left c qb qa;
+    FStar.Math.Lemmas.lemma_mult_le_left c (qa + 1) qb;
+    FStar.Math.Lemmas.distributivity_add_right c qa 1
+
 #push-options "--z3rlimit 15"
 inline_for_extraction noextract
 fn array_vec_cpy'
@@ -351,6 +364,8 @@ fn array_vec_cpy'
 
     aligned_cont_offset dst_arr (SZ.v dst_off);
     aligned_cont_offset src_arr (SZ.v src_off);
+    divides_lt_add (SZ.v (chunk et)) (SZ.v dst_off) dst_sz;
+    divides_lt_add (SZ.v (chunk et)) (SZ.v src_off) (SZ.v src_sz);
 
     array_vec_cpy
       (core dst_arr) (dst_cl.offset +^ dst_off)
@@ -400,6 +415,7 @@ fn array_vec_cpy_dh
     src_cl.pf src_off;
 
     aligned_cont_offset src_arr (SZ.v src_off);
+    divides_lt_add (SZ.v (chunk et)) (SZ.v src_off) (SZ.v src_sz);
 
     Pulse.Lib.Array.PtsTo.pts_to_len dst_arr;
     array_vec_cpy

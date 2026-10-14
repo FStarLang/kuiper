@@ -21,6 +21,22 @@ let load_array_vec_bounds
       i + (k * nthr + tid) * ch <= m - ch
     with ()
 
+(* The k-th chunk of thread [tid] ends at or before [n]. *)
+let load_array_vec_chunk_end
+  (n : nat) (nthr ch : pos) (tid : natlt nthr) (k : natlt (n / nthr / ch))
+  : Lemma (requires nthr * ch /? n)
+          (ensures (k * nthr + tid) * ch + ch <= n)
+  = let q = n / (nthr * ch) in
+    FStar.Math.Lemmas.division_multiplication_lemma n nthr ch;
+    Kuiper.Divides.lemma_divides_exact (nthr * ch) n;
+    FStar.Math.Lemmas.lemma_div_exact n (nthr * ch);
+    assert (n == q * (nthr * ch));
+    // k * nthr + tid + 1 <= q * nthr
+    FStar.Math.Lemmas.lemma_mult_le_right nthr (k + 1) q;
+    FStar.Math.Lemmas.lemma_mult_le_right ch (k * nthr + tid + 1) (q * nthr);
+    FStar.Math.Lemmas.paren_mul_right q nthr ch;
+    FStar.Math.Lemmas.distributivity_add_left (k * nthr + tid) 1 ch
+
 let load_array_vec_size (n : nat) (nthr ch : pos)
   : Lemma (n / (nthr * ch) == n / nthr / ch)
   = FStar.Math.Lemmas.division_multiplication_lemma n nthr ch
@@ -64,6 +80,7 @@ fn load_array_vec
     // tid < nthr give (k * nthr + tid) * chunk et < n, and nthr * chunk et
     // divides n closes the gap to the end of the chunk. Spelled out because as
     // a single query the nonlinear chain times out.
+    load_array_vec_chunk_end n nthr (chunk et) tid k;
     assert pure ((k * nthr + tid) * chunk et < n);
     assert pure ((k * nthr + tid) * chunk et + chunk et <= n);
     array_vec_cpy_device

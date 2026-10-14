@@ -414,6 +414,30 @@ let chest2_tile_col
     else chest2_col em1 k1
 
 
+(* If [x] and [n] are multiples of [c] and [x + r >= n] for [r < c],
+   then already [x >= n]. *)
+let mult_add_rem_ge (c : pos) (x n : int) (r : nat)
+: Lemma
+  (requires c /? x /\ c /? n /\ r < c /\ x + r >= n)
+  (ensures x >= n)
+= Kuiper.Divides.lemma_divides_exact c x;
+  Kuiper.Divides.lemma_divides_exact c n;
+  if x < n then (
+    FStar.Math.Lemmas.lemma_mult_lt_left c (x / c) (n / c);
+    FStar.Math.Lemmas.lemma_mult_le_left c (x / c + 1) (n / c);
+    FStar.Math.Lemmas.distributivity_add_right c (x / c) 1
+  )
+
+(* Instance used by [chest2_tile_col_lemma_]: the column [k1] falls outside
+   [n2] iff its chunk start does. *)
+let tile_col_out_of_bounds (c : pos) (n2 : nat) (j : nat) (step : nat) (k1 : nat)
+: Lemma
+  (requires c /? j /\ c /? n2 /\ j + k1 / c * step * c + k1 % c >= n2)
+  (ensures j + k1 / c * step * c >= n2)
+= Kuiper.Divides.lemma_divides_product_r c (k1 / c * step) c;
+  Kuiper.Divides.lemma_divides_sum c j (k1 / c * step * c);
+  mult_add_rem_ge c (j + k1 / c * step * c) n2 (k1 % c)
+
 #push-options "--z3rlimit 20"
 let chest2_tile_col_lemma_
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -451,6 +475,7 @@ let chest2_tile_col_lemma_
           k1
       )
       else (
+        tile_col_out_of_bounds (chunk et) n2 j step k1;
         chest1_tile_cpy_col_lemma2
           (chest2_row em1 i)
           (chest2_row em2 (row_ind `Seq.index` i))

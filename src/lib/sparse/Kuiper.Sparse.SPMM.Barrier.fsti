@@ -20,6 +20,24 @@ private let div_times_two_nonneg_pat (a : nat) (b : pos)
   = FStar.Math.Lemmas.nat_over_pos_is_nat a b;
     FStar.Math.Lemmas.nat_times_nat_is_nat (a / b) 2
 
+(* [round2 k n] rounds [n] down to a multiple of [k]: [n - k < round2 k n <= n].
+   Nonlinear (Euclidean division), needed to typecheck the slice bounds in
+   [barrier_in]/[barrier_out] below; supplied as a triggered fact. *)
+private let round2_bounds_pat (k : pos) (n : nat)
+  : Lemma (round2 k n <= n /\ n - round2 k n < k) [SMTPat (round2 k n)]
+  = FStar.Math.Lemmas.euclidean_division_definition n k;
+    FStar.Math.Lemmas.lemma_mod_lt n k
+
+(* Every chunk size is at most [blockItemsK] (since [blockWidth * chunk]
+   divides it); together with [round2_bounds_pat] this bounds the slices
+   [ri .. ri' + blockItemsK] below. *)
+private let chunk_le_blockItemsK_pat
+  (#et : Type0) {| sized et, has_vec_cpy et |} (p : parameters et)
+  : Lemma (chunk et <= p.blockItemsK /\ chunk sz <= p.blockItemsK)
+          [SMTPat p.blockItemsK]
+  = Kuiper.Divides.lemma_divides_le (p.blockWidth * chunk et) p.blockItemsK;
+    Kuiper.Divides.lemma_divides_le (p.blockWidth * chunk sz) p.blockItemsK
+
 (* --- Barrier slprop definitions --- *)
 
 let barrier_in

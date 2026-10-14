@@ -95,11 +95,27 @@ let brow_
 : Tot (m : sz {SZ.v m == brow p bid})
 = bid %^ p.rows
 
+(* [bid < rows * divup cols x ==> (bid / rows) * x < cols], with every
+   nonlinear step explicit. *)
+let bcol_bound (rows cols x : pos) (bid : nat)
+: Lemma (requires bid < rows * divup cols x)
+        (ensures (bid / rows) * x < cols)
+= let q = bid / rows in
+  let d = divup cols x in
+  FStar.Math.Lemmas.euclidean_division_definition bid rows;
+  if q >= d then FStar.Math.Lemmas.lemma_mult_le_left rows d q;
+  assert (q + 1 <= d);
+  FStar.Math.Lemmas.lemma_mult_le_right x (q + 1) d;
+  FStar.Math.Lemmas.distributivity_add_left q 1 x;
+  FStar.Math.Lemmas.euclidean_division_definition (cols + (x - 1)) x;
+  FStar.Math.Lemmas.swap_mul d x
+
 let bcol
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et) (bid : natlt (nblocks_ p))
 : GTot (natlt p.cols) // por que Ghost?
-= (bid / p.rows) * p.blockItemsX
+= bcol_bound p.rows p.cols p.blockItemsX bid;
+  (bid / p.rows) * p.blockItemsX
 
 inline_for_extraction noextract
 let bcol_
@@ -141,6 +157,12 @@ let tcol_
   assert (SZ.v tid < SZ.v p.blockWidth /\ SZ.v p.blockWidth <= SZ.v max_threads);
   let c : (c : sz { SZ.v c == SZ.v tid * SZ.v (chunk et) }) = tid *^ chunk et in
   let b : (b : sz { SZ.v b == bcol p bid }) = bcol_ p bid in
+  (* [c <= 1024 * 16] and [b < 10000], so [b + c] fits in 16 bits *)
+  FStar.Math.Lemmas.lemma_mult_le_right (SZ.v (chunk et)) (SZ.v tid) 1024;
+  FStar.Math.Lemmas.lemma_mult_le_left 1024 (SZ.v (chunk et)) 16;
+  assert (SZ.v c <= 16384);
+  assert_norm (pow2 16 == 65536);
+  FStar.SizeT.fits_at_least_16 (SZ.v b + SZ.v c);
   b +^ c
 
 // MAYBE definir threadItemsX?
@@ -187,6 +209,28 @@ let block_lemma_off whole block k off
           (ensures k * block + off < whole)
   = block_lemma whole block k
 
+(* An offset that is a multiple of [chunk et] is 16-byte aligned, since
+   [chunk et * size et == 16]; nonlinear, so proven here with explicit steps. *)
+let chunk_offset_aligned
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (x : array et { aligned 16 x })
+  (off : nat)
+: Lemma
+  (requires chunk et /? off)
+  (ensures aligned' 16 x off)
+=
+  let c : pos = SZ.v (chunk et) in
+  assert (c * size #et == 16);
+  let z = off / c in
+  lemma_divides_exact c off;
+  assert (off == c * z);
+  FStar.Math.Lemmas.paren_mul_right c z (size #et);
+  FStar.Math.Lemmas.swap_mul z (size #et);
+  FStar.Math.Lemmas.paren_mul_right c (size #et) z;
+  assert (off * size #et == 16 * z);
+  FStar.Math.Lemmas.swap_mul 16 z;
+  FStar.Math.Lemmas.lemma_mod_plus (base_address x) z 16
+
 #push-options "--z3rlimit 30"
 let offset_aligned_lemma_et
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -205,7 +249,7 @@ let offset_aligned_lemma_et
   assert chunk et /? i';
   prod_divides p.blockWidth (chunk et) p.blockItemsK;
   lineal_divides (chunk et) i' p.blockItemsK k;
-  ()
+  chunk_offset_aligned x (i' + k * p.blockItemsK)
 
 let offset_aligned_lemma_sz
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -224,7 +268,7 @@ let offset_aligned_lemma_sz
   assert chunk sz /? i';
   prod_divides p.blockWidth (chunk sz) p.blockItemsK;
   lineal_divides (chunk sz) i' p.blockItemsK k;
-  ()
+  chunk_offset_aligned x (i' + k * p.blockItemsK)
 #pop-options
 
 // TODO mejores nombress
@@ -243,7 +287,7 @@ let offset_aligned_lemma_et'
   let i' = round2 (max (chunk et) (chunk sz)) i in
   round2_chunk_lemma et sz i;
   assert chunk et /? i';
-  ()
+  chunk_offset_aligned x i'
 
 let offset_aligned_lemma_sz'
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -260,7 +304,7 @@ let offset_aligned_lemma_sz'
   let i' = round2 (max (chunk et) (chunk sz)) i in
   round2_chunk_lemma et sz i;
   assert chunk sz /? i';
-  ()
+  chunk_offset_aligned x i'
 
 open Kuiper.Chest
 open Kuiper.EMatrix

@@ -247,6 +247,12 @@ let barrier_step_lemma (i : nat)
   = ()
 //
 
+(* Grid order used by [setup]: column tiles outermost. *)
+let nblocks_comm
+  (#et : Type0) {| sized et, has_vec_cpy et |} (p : parameters et)
+: Lemma (nblocks_ p == divup p.cols p.blockItemsX * p.rows)
+= FStar.Math.Lemmas.swap_mul p.rows (divup p.cols p.blockItemsX)
+
 #push-options "--z3rlimit 30"
 ghost
 fn setup
@@ -378,6 +384,7 @@ fn setup
   (* Flatten column tiles outermost so adjacent block ids visit different rows
      of the same dense-matrix panel, matching Sputnik's 2-D grid order. *)
   forevery_commute _;
+  nblocks_comm p;
   forevery_unfactor'
     (nblocks p) (divup p.cols p.blockItemsX) p.rows _;
   forevery_ext_3
@@ -1120,7 +1127,7 @@ let offset_aligned_lemma_et'
   let i' = round2 (max (chunk et) (chunk sz)) i in
   round2_chunk_lemma et sz i;
   assert chunk et /? i';
-  ()
+  chunk_offset_aligned x i'
 
 let offset_aligned_lemma_sz'
   (et : Type0) {| sized et, has_vec_cpy et |}
@@ -1137,7 +1144,7 @@ let offset_aligned_lemma_sz'
   let i' = round2 (max (chunk et) (chunk sz)) i in
   round2_chunk_lemma et sz i;
   assert chunk sz /? i';
-  ()
+  chunk_offset_aligned x i'
 //
 
 open Kuiper.Seq.Common { (@+) }
@@ -1286,7 +1293,9 @@ let lem0
 let lem
   (a : nat) (c d : pos)
 : Lemma (requires (c * d) /? a) (ensures c /? (a / d) /\ d /? (a / c))
-= lem0 a c d; lem0 a d c
+= lem0 a c d;
+  FStar.Math.Lemmas.swap_mul c d;
+  lem0 a d c
 
 let threadItemsX
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
@@ -1306,7 +1315,31 @@ let tcol_fits
 =
   FStar.Math.Lemmas.lemma_mult_lt_right (chunk et) tid p.blockWidth;
   assert (bcol p bid < p.cols);
-  assert (p.blockWidth * chunk et <= p.blockItemsX)
+  Kuiper.Divides.lemma_divides_le (p.blockWidth * chunk et) p.blockItemsX;
+  assert (p.blockWidth * chunk et <= p.blockItemsX);
+  FStar.Math.Lemmas.multiply_fractions p.blockItemsX p.blockWidth;
+  assert (tcol p bid tid + p.blockItemsX / p.blockWidth * p.blockWidth < 30000);
+  assert_norm (pow2 16 == 65536);
+  FStar.SizeT.fits_at_least_16 (tcol p bid tid + p.blockItemsX / p.blockWidth * p.blockWidth)
+
+(* The masked first tile: zero-padding followed by the in-row prefix is the
+   [k]-prefix of the padded row. *)
+let masked_tile_prefix
+  (#a : Type0) (z : a) (s : Seq.seq a) (ri' ri re k : nat)
+: Lemma
+  (requires ri' <= ri /\ ri <= ri' + k /\ ri' + k <= re /\ re <= Seq.length s)
+  (ensures
+    Seq.equal
+      (Seq.create (ri - ri') z @+ Seq.slice s ri (ri' + k))
+      (Seq.slice (Seq.create (ri - ri') z @+ Seq.slice s ri re) 0 k))
+= ()
+
+let masked_row_length
+  (#a : Type0) (z : a) (s : Seq.seq a) (ri' ri re : nat)
+: Lemma
+  (requires ri' <= ri /\ ri <= re /\ re <= Seq.length s)
+  (ensures Seq.length (Seq.create (ri - ri') z @+ Seq.slice s ri re) == re - ri')
+= ()
 
 // TODO refactorizar? Dividir en dos partes?
 #push-options "--z3rlimit 20"
@@ -1422,6 +1455,7 @@ fn kf_head
     elems_tile col_ind_tile bid ri ri' re tid;
 
   // TODO mejores nombres
+  masked_row_length #et zero elems ri' ri re;
   let elems'   : erased (lseq et (re - ri')) = Seq.create (ri - ri') zero @+ Seq.slice elems ri re;
   let col_ind' : erased (lseq sz (re - ri')) = Seq.slice col_ind ri' re;
 
@@ -1453,6 +1487,7 @@ fn kf_head
       out0
   );
 
+  masked_tile_prefix #et zero elems ri' ri re p.blockItemsK;
   assert pure (
     Seq.equal
       (Seq.create (ri - ri') zero @+ Seq.slice elems ri (ri' + p.blockItemsK))
