@@ -311,6 +311,156 @@ let __bkIdx_loop_step
     in
     FStar.Classical.forall_intro aux
 
+(* Register-tile product invariant of [subproducts2d]: the first [bound]
+   entries of [v] hold [v_cur] plus their rank-1 update, the rest equal
+   [v_cur].  Opaque so the loop VCs reason about it only through the lemmas
+   below (the inlined quantifier with [idx / tn], [idx % tn] was seed-fragile). *)
+(* Every row/column of register tile [a] lies inside the block:
+   [t * a + j < b] for all [j < t], when [t] divides [b] and [a < b / t]. *)
+let reg_tile_bound (b t : pos) (a : nat)
+  : Lemma (requires b % t == 0 /\ a < b / t)
+          (ensures t * a + t <= b /\ (forall (j : natlt t). t * a + j < b))
+  = FStar.Math.Lemmas.lemma_div_exact b t;
+    FStar.Math.Lemmas.lemma_mult_le_left t (a + 1) (b / t);
+    FStar.Math.Lemmas.distributivity_add_right t a 1
+
+(* Opaque prefix invariants for the register caches of [subproducts2d]:
+   [v] holds the first [bound] entries of column [d] (resp. row [d]) of
+   register tile [a] of [e]. Kept opaque so that the loop VCs only see
+   the step lemmas below. *)
+[@@"opaque_to_smt"]
+let cacheA (#t : Type) (#d0 #d1 : nat) (e : chest2 t d0 d1)
+  (tm : pos) (a d : nat) (v : seq t) (bound : nat) : prop
+  = d < d1 /\ tm * a + tm <= d0 /\ bound <= tm /\ len v == tm /\
+    (forall (k : natlt bound). v @! k == acc2 e (tm * a + k) d)
+
+[@@"opaque_to_smt"]
+let cacheB (#t : Type) (#d0 #d1 : nat) (e : chest2 t d0 d1)
+  (tn : pos) (a d : nat) (v : seq t) (bound : nat) : prop
+  = d < d0 /\ tn * a + tn <= d1 /\ bound <= tn /\ len v == tn /\
+    (forall (k : natlt bound). v @! k == acc2 e d (tn * a + k))
+
+let cacheA_init (#t : Type) (#d0 #d1 : nat) (e : chest2 t d0 d1)
+  (tm : pos) (a d : nat) (v : seq t)
+  : Lemma (requires d < d1 /\ tm * a + tm <= d0 /\ len v == tm)
+          (ensures cacheA e tm a d v 0)
+  = reveal_opaque (`%cacheA) (cacheA e tm a d v 0)
+
+let cacheA_step (#t : Type) (#d0 #d1 : nat) (e : chest2 t d0 d1)
+  (tm : pos) (a d : nat) (v : seq t) (j : nat) (x : t)
+  : Lemma (requires len v == tm /\ cacheA e tm a d v j /\ j < tm /\ tm * a + j < d0 /\ d < d1 /\
+                    x == acc2 e (tm * a + j) d)
+          (ensures cacheA e tm a d (Seq.upd v j x) (j + 1))
+  = reveal_opaque (`%cacheA) (cacheA e tm a d v j);
+    reveal_opaque (`%cacheA) (cacheA e tm a d (Seq.upd v j x) (j + 1))
+
+let cacheA_full (#t : Type) (#d0 #d1 : nat) (e : chest2 t d0 d1)
+  (tm : pos) (a d : nat) (v : seq t)
+  : Lemma (requires cacheA e tm a d v tm)
+          (ensures d < d1 /\ tm * a + tm <= d0 /\ len v == tm /\
+                   (forall (k : natlt tm). v @! k == acc2 e (tm * a + k) d))
+  = reveal_opaque (`%cacheA) (cacheA e tm a d v tm)
+
+let cacheB_init (#t : Type) (#d0 #d1 : nat) (e : chest2 t d0 d1)
+  (tn : pos) (a d : nat) (v : seq t)
+  : Lemma (requires d < d0 /\ tn * a + tn <= d1 /\ len v == tn)
+          (ensures cacheB e tn a d v 0)
+  = reveal_opaque (`%cacheB) (cacheB e tn a d v 0)
+
+let cacheB_step (#t : Type) (#d0 #d1 : nat) (e : chest2 t d0 d1)
+  (tn : pos) (a d : nat) (v : seq t) (j : nat) (x : t)
+  : Lemma (requires len v == tn /\ cacheB e tn a d v j /\ j < tn /\ tn * a + j < d1 /\ d < d0 /\
+                    x == acc2 e d (tn * a + j))
+          (ensures cacheB e tn a d (Seq.upd v j x) (j + 1))
+  = reveal_opaque (`%cacheB) (cacheB e tn a d v j);
+    reveal_opaque (`%cacheB) (cacheB e tn a d (Seq.upd v j x) (j + 1))
+
+let cacheB_full (#t : Type) (#d0 #d1 : nat) (e : chest2 t d0 d1)
+  (tn : pos) (a d : nat) (v : seq t)
+  : Lemma (requires cacheB e tn a d v tn)
+          (ensures d < d0 /\ tn * a + tn <= d1 /\ len v == tn /\
+                   (forall (k : natlt tn). v @! k == acc2 e d (tn * a + k)))
+  = reveal_opaque (`%cacheB) (cacheB e tn a d v tn)
+
+let sub_row (tm tn : pos) (idx : natlt (tm * tn)) : natlt tm =
+  FStar.Math.Lemmas.euclidean_division_definition idx tn;
+  if idx / tn >= tm then FStar.Math.Lemmas.lemma_mult_le_right tn tm (idx / tn);
+  idx / tn
+
+[@@"opaque_to_smt"]
+let sub_inv
+  (#ta #tb #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (tm tn : pos)
+  (v_cur : seq tacc)
+  (vrAcol : lseq ta tm) (vrBrow : lseq tb tn)
+  (bound : nat) (v : seq tacc)
+  : prop
+  = len v_cur == tm * tn /\ len v == tm * tn /\
+    (forall (idx : natlt (tm * tn)).
+      v @! idx ==
+        (if idx < bound
+         then add (v_cur @! idx) (__mulm mapA mapB (vrAcol @! sub_row tm tn idx) (vrBrow @! (idx % tn)))
+         else v_cur @! idx))
+
+let sub_inv_init
+  (#ta #tb #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (tm tn : pos) (v_cur : seq tacc)
+  (vrAcol : lseq ta tm) (vrBrow : lseq tb tn)
+  : Lemma (requires len v_cur == tm * tn)
+          (ensures sub_inv mapA mapB tm tn v_cur vrAcol vrBrow 0 v_cur)
+  = reveal_opaque (`%sub_inv) (sub_inv mapA mapB tm tn v_cur vrAcol vrBrow 0 v_cur)
+
+let sub_inv_step
+  (#ta #tb #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (tm tn : pos) (v_cur : seq tacc)
+  (vrAcol : lseq ta tm) (vrBrow : lseq tb tn)
+  (m : natlt tm) (n : natlt tn) (v : seq tacc) (x : tacc)
+  : Lemma
+    (requires
+      sub_inv mapA mapB tm tn v_cur vrAcol vrBrow (m * tn + n) v /\
+      m * tn + n < len v /\
+      x == add (Seq.index v (m * tn + n)) (mul (mapA (vrAcol @! m)) (mapB (vrBrow @! n))))
+    (ensures
+      m * tn + n < tm * tn /\
+      sub_inv mapA mapB tm tn v_cur vrAcol vrBrow (m * tn + (n + 1))
+        (Seq.upd v (m * tn + n) x))
+  = reveal_opaque (`%sub_inv) (sub_inv mapA mapB tm tn v_cur vrAcol vrBrow (m * tn + n) v);
+    reveal_opaque (`%sub_inv) (sub_inv mapA mapB tm tn v_cur vrAcol vrBrow (m * tn + (n + 1))
+                                 (Seq.upd v (m * tn + n) x));
+    let j = m * tn + n in
+    FStar.Math.Lemmas.lemma_div_plus n m tn;
+    FStar.Math.Lemmas.small_div n tn;
+    FStar.Math.Lemmas.lemma_mod_plus n m tn;
+    FStar.Math.Lemmas.small_mod n tn;
+    assert (j / tn == m /\ j % tn == n)
+
+let sub_inv_row_done
+  (#ta #tb #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (tm tn : pos) (v_cur : seq tacc)
+  (vrAcol : lseq ta tm) (vrBrow : lseq tb tn)
+  (m : nat) (v : seq tacc)
+  : Lemma
+    (requires sub_inv mapA mapB tm tn v_cur vrAcol vrBrow (m * tn + tn) v)
+    (ensures sub_inv mapA mapB tm tn v_cur vrAcol vrBrow ((m + 1) * tn) v)
+  = FStar.Math.Lemmas.distributivity_add_left m 1 tn
+
+let sub_inv_full
+  (#ta #tb #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (tm tn : pos) (v_cur : seq tacc)
+  (vrAcol : lseq ta tm) (vrBrow : lseq tb tn)
+  (v : seq tacc)
+  : Lemma
+    (requires sub_inv mapA mapB tm tn v_cur vrAcol vrBrow (tm * tn) v)
+    (ensures len v_cur == tm * tn /\ len v == tm * tn /\
+      (forall (idx : natlt (tm * tn)).
+        v @! idx == add (v_cur @! idx) (__mulm mapA mapB (vrAcol @! (idx / tn)) (vrBrow @! (idx % tn)))))
+  = reveal_opaque (`%sub_inv) (sub_inv mapA mapB tm tn v_cur vrAcol vrBrow (tm * tn) v)
+
 inline_for_extraction noextract
 fn subproducts2d
   (#ta #tb #tacc : Type0) {| scalar ta, scalar tb, scalar tacc |}
@@ -343,6 +493,8 @@ fn subproducts2d
         __gms mapA mapB (vrchProd @! idx) eA eB (tm * arow + i) (tn * bcol + j) bk)
 {
   open Pulse.Lib.Array;
+  reg_tile_bound bm tm (SZ.v arow);
+  reg_tile_bound bn tn (SZ.v bcol);
 
   let mut dotIdx : sz = 0sz;
   while (!dotIdx <^ bk)
@@ -360,49 +512,59 @@ fn subproducts2d
     let mut rAcol : Pulse.Lib.Array.array ta = [| zero #ta #_ ; tm |];
     let mut rBrow : Pulse.Lib.Array.array tb = [| zero #tb #_ ; tn |];
 
+    with vrA0. assert rAcol |-> vrA0;
+    cacheA_init eA tm arow !dotIdx vrA0;
     let mut j0 = 0sz;
     while (!j0 <^ tm)
       invariant exists* (vj0 : sz{SZ.v vj0 <= tm}). j0 |-> vj0
       invariant exists* (vrAcol : lseq ta tm).
         rAcol |-> vrAcol **
-        pure (forall (k : natlt (!j0)).
-                vrAcol @! k == acc2 eA (tm * arow + k) !dotIdx)
+        pure (cacheA eA tm arow !dotIdx vrAcol !j0)
       decreases (tm - !j0)
     {
+      with vrA. assert rAcol |-> vrA;
       pts_to_len rAcol;
       let vj0r = !j0;
       let vdir = !dotIdx;
       let va = tensor_read gA ((tm *^ arow +^ vj0r <: szlt _), ((vdir <: szlt _), ()));
-      rAcol.(!j0) <- va;
-      j0 := !j0 +^ 1sz;
+      cacheA_step eA tm arow vdir vrA (SZ.v vj0r) va;
+      rAcol.(vj0r) <- va;
+      j0 := vj0r +^ 1sz;
     };
     with vrAcol. assert rAcol |-> vrAcol;
+    cacheA_full eA tm arow !dotIdx vrAcol;
     assert
         pure (forall (k : natlt tm).
                 vrAcol @! k == acc2 eA (tm * arow + k) !dotIdx);
 
+    with vrB0. assert rBrow |-> vrB0;
+    cacheB_init eB tn bcol !dotIdx vrB0;
     let mut j1 = 0sz;
     while (!j1 <^ tn)
       invariant exists* (vj1 : sz{SZ.v vj1 <= tn}). j1 |-> vj1
       invariant exists* (vrBrow : lseq tb tn).
         rBrow |-> vrBrow **
-        pure (forall (k : natlt (!j1)).
-                vrBrow @! k == acc2 eB !dotIdx (tn * bcol + k))
+        pure (cacheB eB tn bcol !dotIdx vrBrow !j1)
       decreases (tn - !j1)
     {
+      with vrB. assert rBrow |-> vrB;
       pts_to_len rBrow;
       let vdir2 = !dotIdx;
       let vj1r = !j1;
       let vb = tensor_read gB ((vdir2 <: szlt _), ((tn *^ bcol +^ vj1r <: szlt _), ()));
-      rBrow.(!j1) <- vb;
-      j1 := !j1 +^ 1sz;
+      cacheB_step eB tn bcol vdir2 vrB (SZ.v vj1r) vb;
+      rBrow.(vj1r) <- vb;
+      j1 := vj1r +^ 1sz;
     };
     with vrBrow. assert rBrow |-> vrBrow;
+    cacheB_full eB tn bcol !dotIdx vrBrow;
     assert
         pure (forall (k : natlt tn).
                 vrBrow @! k == acc2 eB !dotIdx (tn * bcol + k));
 
     with v_cur. assert rchProd |-> v_cur;
+    pts_to_len rchProd;
+    sub_inv_init mapA mapB tm tn v_cur vrAcol vrBrow;
 
     let mut resIdxM = 0sz;
     while (!resIdxM <^ tm)
@@ -410,11 +572,7 @@ fn subproducts2d
       invariant exists* (v_m : seq tacc).
         rchProd |-> v_m **
         pure (len v_m == tm * tn /\
-              (forall (idx : natlt (tm * tn)).
-                v_m @! idx ==
-                  (if idx < !resIdxM * tn
-                   then add (v_cur @! idx) (__mulm mapA mapB (vrAcol @! (idx / tn)) (vrBrow @! (idx % tn)))
-                   else v_cur @! idx)))
+              sub_inv mapA mapB tm tn v_cur vrAcol vrBrow (!resIdxM * tn) v_m)
       decreases (tm - !resIdxM)
     {
       let mut resIdxN = 0sz;
@@ -423,30 +581,34 @@ fn subproducts2d
         invariant exists* (v_n : seq tacc).
           rchProd |-> v_n **
           pure (len v_n == tm * tn /\
-                (forall (idx : natlt (tm * tn)).
-                  v_n @! idx ==
-                    (if idx < !resIdxM * tn + !resIdxN
-                     then add (v_cur @! idx) (__mulm mapA mapB (vrAcol @! (idx / tn)) (vrBrow @! (idx % tn)))
-                     else v_cur @! idx)))
+                sub_inv mapA mapB tm tn v_cur vrAcol vrBrow (!resIdxM * tn + !resIdxN) v_n)
         decreases (tn - !resIdxN)
       {
         pts_to_len rAcol;
         pts_to_len rBrow;
         pts_to_len rchProd;
+        with v_n. assert rchProd |-> v_n;
 
         (* works on arrays and therefore does not have the nice matrix abstraction *)
-        let ra = rAcol.(!resIdxM);
-        let rb = rBrow.(!resIdxN);
-        let idx = !resIdxM *^ tn +^ !resIdxN;
+        let vm = !resIdxM;
+        let vn = !resIdxN;
+        let ra = rAcol.(vm);
+        let rb = rBrow.(vn);
+        let idx = vm *^ tn +^ vn;
         let old = rchProd.(idx);
         let mad = old `add` ((mapA ra) `mul` (mapB rb));
+        sub_inv_step mapA mapB tm tn v_cur vrAcol vrBrow (SZ.v vm) (SZ.v vn) v_n mad;
         rchProd.(idx) <- mad;
 
-        resIdxN := !resIdxN +^ 1sz;
+        resIdxN := vn +^ 1sz;
       };
 
+      with v_r. assert rchProd |-> v_r;
+      sub_inv_row_done mapA mapB tm tn v_cur vrAcol vrBrow (SZ.v !resIdxM) v_r;
       resIdxM := !resIdxM +^ 1sz;
     };
+    with v_all. assert rchProd |-> v_all;
+    sub_inv_full mapA mapB tm tn v_cur vrAcol vrBrow v_all;
 
     (* After the double loop: all elements are updated.
        Re-establish the outer loop invariant for dotIdx + 1.
