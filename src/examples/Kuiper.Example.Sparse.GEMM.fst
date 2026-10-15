@@ -90,7 +90,7 @@ let matmul_dotprod_lemma
   let rcol_ind : lseq nat (re - ri) = Seq.slice col_ind ri re in
 
   unsparse_row_lemma rows shared elems col_ind row_off i;
-  assert unsparse (re - ri) shared relems rcol_ind == ematrix_row eA i;
+  assert seq_unsparse (re - ri) shared relems rcol_ind == ematrix_row eA i;
 
   sparse_dprod_lemma relems rcol_ind (ematrix_col eB j);
 

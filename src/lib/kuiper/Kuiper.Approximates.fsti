@@ -1,5 +1,6 @@
 module Kuiper.Approximates
 
+(* Base re-exports Scalar and Core, including real_like, can_approximate and %~. *)
 include Kuiper.Approximates.Base
 include Kuiper.Approximates.U8
 include Kuiper.Approximates.U16
@@ -14,13 +15,6 @@ open Kuiper.Scalars
 open Kuiper.Seq.Common
 open Kuiper.Len
 
-(* This class provides some syntactic sugar to use the %~ operator
-   on scalars, sequences, matrices, etc. *)
-[@@Tactics.Typeclasses.fundeps[1]] // OK?
-class can_approximate (c m : Type) = {
-  approximates : c -> m -> prop;
-}
-
 instance erased_can_approximate_lhs (c m : Type)
   {| _: can_approximate c m |}
   : can_approximate (erased c) m = {
@@ -33,9 +27,6 @@ instance erased_can_approximate_rhs (c m : Type)
   approximates = (fun (x: c) (y: erased m) -> approximates x (reveal y));
 }
 
-unfold let (%~) #c #m (x:c) (y:m) {| can_approximate c m |}
-  : prop = approximates x y
-
 let pts_to_approx_via #pt #rt #mt {| has_pts_to pt rt, can_approximate rt mt |}
   (p : pt) (#[full_default()] f:perm) (v : rt) (m : mt)
 =
@@ -47,11 +38,6 @@ let ( |~> ) #pt #rt #mt {| has_pts_to pt rt, can_approximate rt mt |}
   (p : pt) (#[full_default()] f:perm) (m : mt)
   : slprop =
   exists* (v : rt). pts_to_approx_via p #f v m
-
-instance real_like_can_approximate (#a:Type) (_ : scalar a) (_ : real_like a)
-  : can_approximate a real = {
-  approximates = v_approximates;
-}
 
 let seq_approximates (#a:Type) {| scalar a, real_like a |}
   (s : seq a) (r : seq real) : prop
@@ -114,11 +100,3 @@ let approx2
   : prop
   = forall x y r s.
       x %~ r /\ y %~ s ==> f x y %~ g r s
-
-(* Could we use this instead of approx2? *)
-instance approx_function_can_approximate
-  (dom1 dom2 cod1 cod2 : Type)
-  {| can_approximate dom1 dom2, can_approximate cod1 cod2 |}
-  : can_approximate (dom1 -> cod1) (dom2 -> cod2) = {
-  approximates = (fun f g -> forall x y. x %~ y ==> f x %~ g y);
-}

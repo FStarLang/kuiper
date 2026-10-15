@@ -3,6 +3,7 @@ module Kuiper.Sparse.Matrix.PtsTo
 #lang-pulse
 
 open Kuiper
+open Kuiper.Sparse.Math { divup }
 open FStar.Tactics.V2 { exact }
 open Kuiper.Sparse.Common
 open Kuiper.Tensor

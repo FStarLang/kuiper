@@ -621,6 +621,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Base.get_bdim", [], [ _unit; _erasednthr; _erasedntid ] ->
     EQualified ([], "blockDim_x")
 
+  | "Kuiper.Base.get_bid", [], [ _unit; _erasednblk; _erasednbid ] ->
+    EQualified ([], "blockIdx_x")
+
+  | "Kuiper.Base.get_tid", [], [ _unit; _erasednthr; _erasedntid ] ->
+    EQualified ([], "threadIdx_x")
+
   (******** BARRIERS ********)
 
   | "Kuiper.Barrier.barrier_wait", [], [ _unit; _n; _contract; _it; _tid ] ->
@@ -824,8 +830,19 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
 
   | "Kuiper.Float32.Base.fexp", [], [] -> EQualified ([], "expf")
   | "Kuiper.Float32.Base.flog", [], [] -> EQualified ([], "logf")
+  | "Kuiper.Float32.FastMath.log", [], [] -> EQualified ([], "__logf")
   | "Kuiper.Float32.Base.fexpm1", [], [] -> EQualified ([], "expm1f")
   | "Kuiper.Float32.Base.flog1p", [], [] -> EQualified ([], "log1pf")
+  | "Kuiper.Float32.add_rn_ftz", [], [] -> EQualified ([], "kpr_f32_add_rn_ftz")
+  | "Kuiper.Float32.fma_rn_ftz", [], [] -> EQualified ([], "kpr_f32_fma_rn_ftz")
+  | "Kuiper.Float32.mul_rn_ftz", [], [] -> EQualified ([], "kpr_f32_mul_rn_ftz")
+  | "Kuiper.Float32.exp2_approx_ftz", [], [] -> EQualified ([], "kpr_f32_exp2_approx_ftz")
+  | "Kuiper.Float32.rcp_approx_ftz", [], [] -> EQualified ([], "kpr_f32_rcp_approx_ftz")
+  | "Kuiper.Float32.rsqrt_approx_ftz", [], [] -> EQualified ([], "kpr_f32_rsqrt_approx_ftz")
+  | "Kuiper.Float32.FastMath.exp", [], [] -> EQualified ([], "__expf")
+  | "Kuiper.Float32.FastMath.divide", [], [] -> EQualified ([], "__fdividef")
+  | "Kuiper.Float32.FastMath.fma_rn", [], [] -> EQualified ([], "__fmaf_rn")
+  | "Kuiper.Float32.FastMath.sub_rn", [], [] -> EQualified ([], "__fsub_rn")
   | "Kuiper.Float32.Base.valid",  [], [] -> EQualified ([], "kpr_fisvalid")
   | "Kuiper.Float32.Base.largest",  [], [] -> EConstant (Float32, "FLT_MAX")
   | "Kuiper.Float32.Base.infinity", [], [] -> EConstant (Float32, "INFINITY")
@@ -896,6 +913,8 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
   | "Kuiper.Float32.Base.rsqrt", [], [] -> EQualified ([], "rsqrtf")
   | "Kuiper.Float32.Base.sin",   [], [] -> EQualified ([], "sinf")
   | "Kuiper.Float32.Base.cos",   [], [] -> EQualified ([], "cosf")
+  | "Kuiper.Float32.FastMath.sin", [], [] -> EQualified ([], "__sinf")
+  | "Kuiper.Float32.FastMath.cos", [], [] -> EQualified ([], "__cosf")
   | "Kuiper.Float32.Base.tan",   [], [] -> EQualified ([], "tanf")
   | "Kuiper.Float32.Base.asin",  [], [] -> EQualified ([], "asinf")
   | "Kuiper.Float32.Base.acos",  [], [] -> EQualified ([], "acosf")
@@ -974,6 +993,12 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     ECast (cb x, TInt Float32)
 
   (******** REFERENCES ********)
+
+  (* Keep the dereference marker bare: Karamel does not recognize it under a
+     cast. SizeT and UInt32 both extract to UInt32 in Kuiper. *)
+  | "FStar.SizeT.uint32_to_sizet", [], [ x ]
+    when hta x = Some ("Pulse.Lib.Pervasives._zero_for_deref", [], []) ->
+    cb x
 
   (* Sadly these two are still primitive. *)
   | "Kuiper.Ref.memcpy_host_to_device", [ty], [ sz; dst_gr; src_r; f; v; gv ] ->
@@ -1063,7 +1088,10 @@ let kpr_translate_expr : translate_expr_t = fun env e ->
     [ _sized; _has_vec_cpy;
       dst_arr; dst_off; _dst_slice_i; _dst_slice_j;
       src_arr; src_off; _src_slice_i; _src_slice_j;
-      _f; _ss; _ds; _sq1; _sq2; _sq3; _sq4 ] ->
+      _f; _ss; _ds ] ->
+    (* [array_vec_cpy]'s four trailing [squash] implicits are dropped by
+       extraction (they are spec binders and carry no computational content),
+       so they do not appear among the arguments here. *)
     let dst_arr = EBufSub (cb dst_arr, cb dst_off) in
     let src_arr = EBufSub (cb src_arr, cb src_off) in
     EApp (EQualified ([], "vec_memcpy"), [ dst_arr; src_arr; ])

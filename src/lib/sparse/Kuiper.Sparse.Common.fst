@@ -3,6 +3,7 @@ module Kuiper.Sparse.Common
 #lang-pulse
 
 open Kuiper
+open Kuiper.Sparse.Math { divup }
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l1_forward }
 open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }

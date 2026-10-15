@@ -1586,7 +1586,7 @@ fn kf_main
               (ri' + !idx * p.blockItemsK + p.blockItemsK))
       );
 
-      assert pure (row_elems == seq_mask (ri - ri') row_elems_); 
+      assert pure (row_elems == seq_mask (ri - ri') row_elems_);
       seq_mask_source_slice elems ri' ri re row_elems_ row_elems
         (!idx * p.blockItemsK)
         (!idx * p.blockItemsK + p.blockItemsK);

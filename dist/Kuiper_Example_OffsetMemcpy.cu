@@ -4,7 +4,7 @@
 uint64_t Kuiper_Example_OffsetMemcpy_main(void)
 {
     uint64_t *src = (uint64_t *) KRML_HOST_CALLOC(8U, sizeof(uint64_t));
-    *src = 10ULL;
+    src[0U] = 10ULL;
     src[1U] = 20ULL;
     src[2U] = 30ULL;
     src[3U] = 40ULL;

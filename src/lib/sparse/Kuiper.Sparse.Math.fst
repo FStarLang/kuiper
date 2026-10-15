@@ -106,8 +106,11 @@ let prod_preserves_divides (c d : pos) (a : nat)
 =
   lemma_divides_product_l c a d;
   lemma_divides_exact c (a * d);
-  intro_divides (c * d) (a / c) (a * d);
-  admit()
+  lemma_divides_exact c a;
+  FStar.Math.Lemmas.paren_mul_right c d (a / c);
+  FStar.Math.Lemmas.swap_mul d (a / c);
+  FStar.Math.Lemmas.paren_mul_right c (a / c) d;
+  intro_divides (c * d) (a / c) (a * d)
 
 let divides_leq
   (d : pos)
@@ -116,8 +119,7 @@ let divides_leq
   (requires d /? a /\ d /? b)
   (ensures b < a <==> b + d <= a)
 = lemma_divides_exact d a;
-  lemma_divides_exact d b;
-  admit()
+  lemma_divides_exact d b
 
 let divides_chain (a b c : nat)
 : Lemma (requires a /? b /\ b /? c) (ensures a /? c)

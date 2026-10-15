@@ -9,6 +9,8 @@ open Kuiper.Base
 open Kuiper.Sized
 open Kuiper.Array
 
+module SZ = Kuiper.SizeT
+
 inline_for_extraction noextract
 let gpu_ref (a:Type u#0) : Type u#0 =
   x : larray a 1 { is_global_array x /\ is_full_array x }
@@ -120,7 +122,7 @@ fn read
   ensures  pure (v == reveal v0)
 {
   unfold gpu_pts_to;
-  let x = r.(0sz);
+  let x = r.(SZ.uint32_to_sizet _zero_for_deref);
   fold gpu_pts_to;
   x
 }
@@ -136,7 +138,7 @@ fn write
   ensures   r |-> v
 {
   unfold gpu_pts_to;
-  r.(0sz) <- v;
+  r.(SZ.uint32_to_sizet _zero_for_deref) <- v;
   with s.
     assert Pulse.Lib.Array.pts_to r #1.0R s;
   assert pure (s `Seq.equal` seq![v]);

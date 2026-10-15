@@ -135,8 +135,19 @@ let __it_of_nat (#len:nat) (i : natlt len) : GTot (either (natlt ((len + 1) / 2)
     Inr (i / 2)
 
 #push-options "--z3rlimit 20"
+let all_in_image (len i : nat)
+  : Lemma (i < len ==> in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)
+          [SMTPat (in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)]
+  = if i < len then (
+      let vw = sum_aview (even_view u32 len) (odd_view u32 len) in
+      assert (it_to_nat vw (__it_of_nat #len i) == i)
+    )
+#pop-options
+
+#push-options "--z3rlimit 20"
 let it_of_nat_lem_1 (#len:nat) (i : natlt len) :
-  Lemma (__it_of_nat #len i == it_of_nat (sum_aview (even_view u32 len) (odd_view u32 len)) i)
+  Lemma (requires in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)
+        (ensures __it_of_nat #len i == it_of_nat (sum_aview (even_view u32 len) (odd_view u32 len)) i)
         [SMTPat (it_of_nat (sum_aview (even_view u32 len) (odd_view u32 len)) i)]
   = let vw = sum_aview (even_view u32 len) (odd_view u32 len) in
     assert (it_to_nat vw (__it_of_nat #len i) == i);
@@ -144,15 +155,11 @@ let it_of_nat_lem_1 (#len:nat) (i : natlt len) :
 #pop-options
 
 let it_of_nat_lem (#len:nat) (i : natlt len)
-  : Lemma (it_to_nat (sum_aview (even_view u32 len) (odd_view u32 len)) (__it_of_nat #len i) == i)
+  : Lemma (requires in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)
+          (ensures it_to_nat (sum_aview (even_view u32 len) (odd_view u32 len)) (__it_of_nat #len i) == i)
           [SMTPat (it_of_nat (sum_aview (even_view u32 len) (odd_view u32 len)) i)]
   = it_of_nat_lem_1 #len i;
     ()
-
-let all_in_image (len i : nat)
-  : Lemma (i < len ==> in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)
-          [SMTPat (in_image (sum_aview (even_view u32 len) (odd_view u32 len)).iview.step.imap.f i)]
-  = if i < len then (let j = __it_of_nat #len i in it_of_nat_lem #len i)
 
 let is_full (et:Type) (len:nat)
   : Lemma (is_full_view (sum_aview (even_view et len) (odd_view et len)))

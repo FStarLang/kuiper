@@ -614,7 +614,7 @@ fn iteration
 
       let s = fmax s1 s2;
       (**)lem_append_slice vr tid nextid end_;
-      (* fmax_approx_pat lifts s1, s2 approximations through fmax/rmax. *)
+      (* The fmax function model lifts s1, s2 approximations through fmax/rmax. *)
       (**)assert (pure ((s1 `fmax` s2) `approximates`
       (**)              rmax (seq_max (Seq.slice vr tid nextid)) (seq_max (Seq.slice vr nextid end_))));
       (**)seq_max_append (Seq.slice vr tid nextid) (Seq.slice vr nextid end_);

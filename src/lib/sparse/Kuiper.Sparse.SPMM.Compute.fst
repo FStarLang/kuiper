@@ -484,6 +484,8 @@ fn load_vmprod_chunk
   {
     let mut lchunk = [| zero #et #_; chunk et |];
     assume pure (aligned 16 lchunk);
+    (* [array_cpy_chunk] slices [row] at [k2 .. k2 + chunk et]. *)
+    __divides_next (chunk et) k2 n2;
     rewrite (row |-> Frac frow vrow)
          as (row |-> Frac frow (seq_to_chest1 (chest1_to_seq vrow)));
     chunk_end_bound n2 k2 (chunk et);
@@ -570,6 +572,9 @@ fn load_vmprod_row
       )
     decreases (n1 /^ chunk et - !k)
   {
+    lemma_divides_exact (chunk et) n1;
+    FStar.Math.Lemmas.lemma_mult_le_left (chunk et) !k (n1 / chunk et);
+    FStar.Math.Lemmas.lemma_mult_le_right step (chunk et * !k) n1;
     assert pure (fits (j + !k * step * chunk et));
     lemma_divides_vmprod_offset et j !k step;
     assert pure (chunk et /? (j +^ !k *^ step *^ chunk et));
@@ -767,7 +772,14 @@ let seq_fma_cell_prop'
   (ix : natlt cnt)
 : prop
 =
-  k2 < n ==> y @! k1 + ix == add (y0 @! k1 + ix) (x1 `mul` (x2 @! k2 + ix))
+  (* This is a [prop] *definition*, so there is no statement position in which
+     to sequence the lemma call the [Seq] indices need.  Binding it with
+     [let _ = ... in] puts its conclusion in scope for the body -- which works
+     precisely because a [Lemma] is now [Tot (squash _)], so sequencing one
+     introduces a binder whose type is the fact. *)
+  k2 < n ==>
+    (let _ = __divides_next cnt k2 n in
+     y @! k1 + ix == add (y0 @! k1 + ix) (x1 `mul` (x2 @! k2 + ix)))
 
 noextract
 let seq_fma_lemma0'
@@ -1017,6 +1029,17 @@ let rec seq_load_vmprod_cell_lemma
       (elems @! to - 1)
       (ematrix_row em (row_ind @! to - 1))
       j step (n1 / chunk et) (k1 / chunk et) (k1 % chunk et);
+    seq_load_vmprod_row_cell_prop_equiv
+      (seq_load_vmprod y elems row_ind em j step (to - 1))
+      (elems @! to - 1)
+      (ematrix_row em (row_ind @! to - 1))
+      j step
+      (seq_load_vmprod_row
+        (seq_load_vmprod y elems row_ind em j step (to - 1))
+        (elems @! to - 1)
+        (ematrix_row em (row_ind @! to - 1))
+        j step (n1 / chunk et))
+      (n1 / chunk et) k1;
     ()
   )
 

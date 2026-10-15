@@ -239,6 +239,10 @@ let from_stride_subtiles_id
   ()
 #pop-options
 
+let __nat_mul_pos_nonneg (a : nat) (b : pos)
+  : Lemma (a * b >= 0) [SMTPat (a * b)]
+  = FStar.Math.Lemmas.nat_times_nat_is_nat a b
+
 let update_stride_tile_self
   (#et : _)
   (#rows #cols : _)

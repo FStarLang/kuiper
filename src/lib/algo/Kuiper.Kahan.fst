@@ -5,11 +5,19 @@ open Kuiper.Sum { sum }
 
 open Kuiper
 open Kuiper.Approximates
+open Kuiper.Float.Realops
 open Kuiper.Sum { sum, sum_pop_right }
 
 let sum_step (len : nat) (vf : natlt len -> GTot real) (k : nat{k < len})
   : Lemma (sum 0 (k+1) vf == sum 0 k vf +. vf k)
   = sum_pop_right 0 (k+1) vf
+
+(* Prove this separately: approximation patterns make the same goal
+   expensive inside kahan_sum. *)
+let kahan_delta_zero (s0 s1 y : real)
+  : Lemma (requires s1 == s0 +. y)
+          (ensures (s1 -. s0) -. (y -. 0.0R) == 0.0R)
+  = ()
 
 #push-options "--z3rlimit 20 --fuel 1 --ifuel 1"
 inline_for_extraction noextract
@@ -43,7 +51,7 @@ fn kahan_sum
     let old_c = !c;
     let old_acc = !acc;
     let yc = y `sub` old_c;
-    sub_approx y old_c (vf !k) 0.0R;
+    approx_apply2 sub r_sub y old_c (vf !k) 0.0R;
     let t = old_acc `add` yc;
     a_add old_acc yc (sum 0 !k vf) (vf !k -. 0.0R);
     sum_step len vf !k;
@@ -53,11 +61,12 @@ fn kahan_sum
     // SMT's quantifier matching.  On a busy context that made the final loop
     // VC exhaust several successively larger solver limits.
     let delta = t `sub` old_acc;
-    sub_approx t old_acc (sum 0 (!k + 1) vf) (sum 0 !k vf);
+    approx_apply2 sub r_sub t old_acc (sum 0 (!k + 1) vf) (sum 0 !k vf);
     let new_c = delta `sub` yc;
-    sub_approx delta yc
+    approx_apply2 sub r_sub delta yc
       (sum 0 (!k + 1) vf -. sum 0 !k vf)
       (vf !k -. 0.0R);
+    kahan_delta_zero (sum 0 !k vf) (sum 0 (!k + 1) vf) (vf !k);
     assert pure (new_c %~ 0.0R);
     c := new_c;
     acc := t;

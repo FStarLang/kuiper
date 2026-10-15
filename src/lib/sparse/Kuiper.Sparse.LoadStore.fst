@@ -54,6 +54,10 @@ fn array_vec_cpy_device
   assert pure (u `Seq.equal` Seq.slice v (soff - i) (soff - i + chunk a));
 }
 
+let load_array_vec_size (n : nat) (nthr ch : pos)
+  : Lemma (n / (nthr * ch) == n / nthr / ch)
+  = FStar.Math.Lemmas.division_multiplication_lemma n nthr ch
+
 #push-options "--z3rlimit 30"
 inline_for_extraction noextract
 fn load_array_vec
@@ -77,6 +81,7 @@ fn load_array_vec
 {
   unfold thread_live_chunks x nthr tid;
 
+  load_array_vec_size n nthr (chunk et);
   forevery_rw_size (n / (nthr * (chunk et))) (n /^ nthr /^ chunk et);
 
   load_array_vec_bounds n m i nthr (chunk et) tid;
@@ -118,7 +123,7 @@ fn load_cell
   (j : szlt n)
   preserves gpu ** y |-> Frac f s
   requires array_live_cell x i
-  ensures  Cell (x <: array et) (SZ.v i) |-> Seq.index s j
+  ensures  Cell (x <: array et) (SZ.v i <: nat) |-> Seq.index s j
 {
   unfold array_live_cell x;
   slice_write x i (Pulse.Lib.Array.(y.(j)));

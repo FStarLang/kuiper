@@ -142,7 +142,7 @@ let rec cunflatten
     | CCons #_ #h ch #t ct ->
       let major : szlt h          = x /^ csizeof ct in
       let minor : szlt (sizeof t) = x %^ csizeof ct in
-      (major, cunflatten ct minor)
+      ((major, cunflatten ct minor) <: (szlt h & conc t))
 
 [@@strict_on_arguments [2]]
 inline_for_extraction noextract

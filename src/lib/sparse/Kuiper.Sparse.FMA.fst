@@ -62,6 +62,18 @@ fn fma_arr
   );
 }
 
+(* No SMTPat: triggering on divides interferes with the termination proof
+   in seq_fma'. *)
+let __divides_next (cnt k n : nat)
+  : Lemma (requires cnt /? k /\ cnt /? n /\ k < n)
+          (ensures k + cnt <= n)
+  = if cnt = 0 then ()
+    else begin
+      lemma_divides_exact cnt k;
+      lemma_divides_exact cnt n;
+      FStar.Math.Lemmas.lemma_mult_le_left cnt (k / cnt + 1) (n / cnt)
+    end
+
 noextract
 let seq_fma'
   (#et : Type0) {| scalar et |}
@@ -76,5 +88,6 @@ let seq_fma'
 : Tot (lseq et sz_y)
 =
   if k2 < n
-    then seq_fma x1 #cnt (Seq.slice x2 k2 (k2 + cnt)) y k1 cnt
+    then (__divides_next cnt k2 n;
+          seq_fma x1 #cnt (Seq.slice x2 k2 (k2 + cnt)) y k1 cnt)
     else y

@@ -129,7 +129,7 @@ let s_row_div_exp_approx_softmax
       // sa %~ ra at this cell, transported to sums and exp via the _pat lemmas
       assert (v_approximates (acc2 sa i j) (acc2 ra i j));
       assert (v_approximates (acc1 sums i) denom);
-      // exp_approx_pat + div_approx_pat
+      // Function approximation facts for exp and division
       assert (v_approximates (div (fexp (acc2 sa i j)) (acc1 sums i))
                              (exp (acc2 ra i j) /. denom));
       // both sides reduce (acc_pat) to the canonical cell forms
@@ -167,7 +167,7 @@ let subtract_approx
       let (i, (j, ())) = idx in
       assert (v_approximates (acc2 sa i j) (acc2 ra i j));  // from sa %~ ra
       assert (v_approximates (acc1 maxs i) (cs i));         // from requires
-      // sub_approx_pat fires: sub (acc2 sa i j) (acc1 maxs i) %~ (acc2 ra i j -. cs i)
+      // The function approximation fact for subtraction gives: sub (acc2 sa i j) (acc1 maxs i) %~ (acc2 ra i j -. cs i)
       ()
     in
     Classical.forall_intro aux
@@ -312,7 +312,7 @@ let unshift_sums_correct
       chest_rowsum_exp_seq (chest2_row ra1 i);
       chest_rowsum_exp_seq (chest2_row ra i);
       chest1_to_seq_map_gen (fun (z:real) -> z -. cs i) (chest2_row ra i);
-      exp_approx (acc1 maxs_v i) (cs i);
+      approx_apply fexp Kuiper.Float.Realops.r_exp (acc1 maxs_v i) (cs i);
       a_mul (acc1 sums_v i) (fexp (acc1 maxs_v i))
             (chest1_rsum (chest_map exp (chest2_row ra1 i))) (exp (cs i));
       // rsum(exp(row - c)) *. exp c == rsum(exp row): recover the true row sum

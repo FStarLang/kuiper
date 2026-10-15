@@ -1,5 +1,9 @@
 module Kuiper.Float32
 
+#lang-pulse
+
+open Pulse.Lib.Core
+open Kuiper.Locs
 open FStar.Tactics.Typeclasses { solve }
 open Kuiper.Sized
 open Kuiper.Canonical
@@ -7,6 +11,8 @@ open Kuiper.Scalars.Base
 open Kuiper.Floating.Base
 open Kuiper.Approximates.Base
 open Kuiper.Real
+open Kuiper.Float.Realops
+module Sqrt = FStar.Math.Sqrt
 
 open Kuiper.Float32.Base
 
@@ -42,27 +48,86 @@ instance is_floating : floating t = {
 instance is_real_like          : real_like t = magic()
 instance is_floating_real_like : floating_real_like t = magic()
 
+let lt_ordered (x y : t) = Kuiper.Float32.Base.lt_ordered x y
+let lt_transitive (x y z : t) = Kuiper.Float32.Base.lt_transitive x y z
+
 inline_for_extraction noextract
 let fexpm1 = Kuiper.Float32.Base.fexpm1
 
 inline_for_extraction noextract
 let flog1p = Kuiper.Float32.Base.flog1p
 
-(* Approximation semantics for these CUDA math operations is assumed. *)
-let expm1_approx
-  (x : t)
-  (r : real)
-  : Lemma
-      (requires v_approximates x r)
-      (ensures v_approximates (fexpm1 x) (exp r -. 1.0R))
-= admit()
+(* Extracted primitively; the approximation contracts are trusted. *)
+noextract
+fn add_rn_ftz (x y : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr yr : real).
+      v_approximates x xr /\ v_approximates y yr ==>
+      v_approximates result (r_add xr yr))
+{
+  admit()
+}
 
-let log1p_approx
-  (x : t)
-  (r : real { r >. 0.0R -. 1.0R })
-  : Lemma
-      (requires v_approximates x r)
-      (ensures v_approximates (flog1p x) (log (1.0R +. r)))
-= admit()
+noextract
+fn fma_rn_ftz (x y z : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr yr zr : real).
+      v_approximates x xr /\ v_approximates y yr /\ v_approximates z zr ==>
+      v_approximates result (r_fma xr yr zr))
+{
+  admit()
+}
+
+noextract
+fn mul_rn_ftz (x y : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr yr : real).
+      v_approximates x xr /\ v_approximates y yr ==>
+      v_approximates result (r_mul xr yr))
+{
+  admit()
+}
+
+noextract
+fn exp2_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : real).
+      v_approximates x xr ==>
+      v_approximates result (r_exp2 xr))
+{
+  admit()
+}
+
+noextract
+fn rcp_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : real{xr =!= 0.0R}).
+      v_approximates x xr ==>
+      v_approximates result (r_rcp xr))
+{
+  admit()
+}
+
+noextract
+fn rsqrt_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : Sqrt.rpos).
+      v_approximates x xr ==>
+      v_approximates result (r_rsqrt xr))
+{
+  admit()
+}
 
 let lem_sizeof () = ()

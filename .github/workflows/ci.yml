@@ -243,14 +243,18 @@ jobs:
   # Branch protection points here
   ciok:
     runs-on: ubuntu-latest
-    if: ${{ cancelled() || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'failure') }}
-    # ^ Workaround for insane github behavior: https://github.com/actions/runner/issues/2566
+    # Skipped required checks permit merging, so always run and require success.
+    if: ${{ always() }}
     needs:
       - verify
       - test-and-bench
       - bench-spmm
       - check-dist
     steps:
-      # Note: we only run on failure. Otherwise this is skipped, which counts
-      # as a success.
-      - run: exit 1
+      - name: Require all CI jobs to succeed
+        shell: bash
+        run: |
+          test "${{ needs.verify.result }}" = success
+          test "${{ needs.test-and-bench.result }}" = success
+          test "${{ needs.bench-spmm.result }}" = success
+          test "${{ needs.check-dist.result }}" = success

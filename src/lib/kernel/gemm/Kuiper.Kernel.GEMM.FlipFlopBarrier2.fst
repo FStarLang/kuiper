@@ -295,6 +295,7 @@ fn even_barrier_p_to_q
       live_strided_chunks (from_array l1 sar1) nthr tid) _;
 }
 
+#push-options "--z3rlimit 80"
 ghost
 fn odd_barrier_p_to_q
   (#etA #etB : Type0)
@@ -335,6 +336,7 @@ fn odd_barrier_p_to_q
       bp_sharing (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr)
       _;
 }
+#pop-options
 
 (* ---- Main barrier_p_to_q_transform ---- *)
 

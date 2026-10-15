@@ -107,7 +107,7 @@ int main(int argc, char **argv)
     cudaMemcpy(dB, B, sizeof B[0] * N * N, cudaMemcpyHostToDevice);
     uint32_t *dC = (uint32_t *) kpr_wait_alloc(sizeof dC[0], N * N);
 
-    Kuiper_Example_Sparse_GEMM__gemm_u32_rr(N, N, N, dA, dB, dC);
+    Kuiper_Example_Sparse_GEMM__mm_u32_rr(N, N, N, dA, dB, dC);
     matmul(AD, B, CD);
 
     uint32_t *C = (uint32_t *) calloc(N * N, sizeof C[0]);

@@ -54,6 +54,17 @@ val eq_spec : (x : t) -> (y : t) ->
        (x == y \/ (is_zero x /\ is_zero y))))
           [SMTPat (eq x y)]
 
+(* Trusted laws of native ordered binary32 comparison, not real approximation. *)
+val lt_ordered (x y : t)
+  : Lemma
+      (requires lt x y)
+      (ensures ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+
+val lt_transitive (x y z : t)
+  : Lemma
+      (requires lt x y /\ lt y z)
+      (ensures lt x z)
+
 val lte_is_lt_or_eq : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
           (ensures lte x y <==> lt x y \/ eq x y)
