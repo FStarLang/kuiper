@@ -143,6 +143,16 @@ let ematrix_row_chunk
 : GTot (lseq et (chunk et))
 = ematrix_row_chunk_ em i j
 
+let ematrix_row_chunk_index
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : pos { chunk et /? cols })
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (j : natlt cols { chunk et /? j })
+  (k : natlt (chunk et))
+  : Lemma (Seq.index (ematrix_row_chunk em i j) k == acc2 em i (j + k))
+  = ()
+
 let is_ematrix_tile_at
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })

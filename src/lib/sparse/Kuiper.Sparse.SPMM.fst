@@ -242,7 +242,25 @@ let lem_div2 (n : nat) (d : pos) (r : natlt d)
 let barrier_step_lemma (i : nat)
   : Lemma (i * 2 + 1 + 1 == (i + 1) * 2)
   = ()
-//
+
+let block_count_commuted
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (p : parameters et {size_req p})
+  : Lemma (SZ.v (nblocks p) == divup (SZ.v p.cols) (SZ.v p.blockItemsX) * SZ.v p.rows)
+  = ()
+
+let output_column_aligned
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (p : parameters et) (bid : natlt (nblocks_ p))
+  : Lemma (SZ.v (chunk et) /? bcol p bid)
+  = let _ = tcol p bid 0 in ()
+
+let output_tile_bound
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (p : parameters et)
+  (b : natlt (divup (SZ.v p.cols) (SZ.v p.blockItemsX)))
+  : Lemma (b * SZ.v p.blockItemsX < SZ.v p.cols)
+  = ()
 
 #push-options "--z3rlimit 30"
 ghost
@@ -288,108 +306,59 @@ fn setup
   tensor_explode2 gC;
   forevery_unflatten' _;
 
+  // Keep each cell's initial value while grouping rows into column tiles.
+  Math.prod_divides p.blockWidth (chunk et) p.blockItemsX;
+  Math.prod_cancel_divides p.blockItemsX (chunk et) p.blockWidth;
   forevery_map
-    (fun r ->
-      forall+ (c : natlt p.cols).
-        tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 eC r c)
-    )
-    (fun r ->
-      forall+
-        (b : natlt (divup p.cols p.blockItemsX)) (tid : natlt p.blockWidth)
-        (k : natlt(p.blockItemsX / p.blockWidth)).
-          when__ (b * p.blockItemsX + k * p.blockWidth + tid < p.cols)
-            (fun _ ->
-              matrix_live_cell gC r
-              (b * p.blockItemsX + k * p.blockWidth + tid)
-            )
-    )
-    fn (r : natlt p.rows) {
+    (fun r -> forall+ (c : natlt p.cols).
+      tensor_pts_to_cell gC (idx2 r c) (acc2 eC r c))
+    (fun r -> forall+ (b : natlt (divup p.cols p.blockItemsX)).
+      pts_to_tile_in_matrix gC r (b * p.blockItemsX) eC p.blockItemsX)
+    fn r {
       forevery_factor_ p.cols p.blockItemsX _;
-
-      forevery_map
-        #(natlt (divup p.cols p.blockItemsX))
-        (fun b ->
-          forall+ (ix : natlt p.blockItemsX { b * p.blockItemsX + ix < p.cols }).
-            tensor_pts_to_cell gC (idx2 (r) (b * p.blockItemsX + ix))
-              (acc2 eC r (b * p.blockItemsX + ix))
-        )
-        (fun b ->
-          forall+
-            (tid : natlt p.blockWidth)
-            (k : natlt(p.blockItemsX / p.blockWidth)).
-            when__ (b * p.blockItemsX + k * p.blockWidth + tid < p.cols)
-              (fun _ ->
-                matrix_live_cell gC r
-                (b * p.blockItemsX + k * p.blockWidth + tid)
-              )
-        )
+      forevery_map #(natlt (divup p.cols p.blockItemsX))
+        (fun b -> forall+ (ix : natlt p.blockItemsX {b * p.blockItemsX + ix < p.cols}).
+          tensor_pts_to_cell gC (idx2 r (b * p.blockItemsX + ix))
+            (acc2 eC r (b * p.blockItemsX + ix)))
+        (fun b -> pts_to_tile_in_matrix gC r (b * p.blockItemsX) eC p.blockItemsX)
         fn b {
-          forevery_map
-            #(ix : natlt p.blockItemsX { b * p.blockItemsX + ix  < p.cols })
-            (fun ix ->
-              tensor_pts_to_cell gC (idx2 (r) (b * p.blockItemsX + ix))
-                (acc2 eC r (b * p.blockItemsX + ix))
-            )
-            (fun ix ->
-              matrix_live_cell gC r (b * p.blockItemsX + ix)
-            )
-            fn ix {
-              fold matrix_live_cell gC r (b * p.blockItemsX + ix);
-            };
           forevery_unrefine_pred' #(natlt p.blockItemsX)
-            (fun ix -> b * p.blockItemsX + ix  < p.cols)
-            (fun ix _ -> matrix_live_cell gC r (b * p.blockItemsX + ix));
-
-          Math.prod_divides p.blockWidth (chunk et) p.blockItemsX;
-          forevery_rw_size p.blockItemsX
-            ((p.blockItemsX / p.blockWidth) * p.blockWidth);
-          forevery_factor
-            ((p.blockItemsX / p.blockWidth) * p.blockWidth)
-            (p.blockItemsX / p.blockWidth) p.blockWidth
-            (fun ix ->
-              when__ (b * p.blockItemsX + ix < p.cols)
-                (fun _ -> matrix_live_cell gC r (b * p.blockItemsX + ix))
-            );
-
-          forevery_commute
-            #(natlt (p.blockItemsX / p.blockWidth)) #(natlt p.blockWidth)
-            (fun k tid ->
-              when__ (b * p.blockItemsX + (k * p.blockWidth + tid) < p.cols)
-                (fun _ -> matrix_live_cell gC r (b * p.blockItemsX + (k * p.blockWidth + tid)))
-            );
-          forevery_ext_2
-            #(natlt p.blockWidth)
-            #(natlt (p.blockItemsX / p.blockWidth))
-            (fun tid k ->
-              when__ (b * p.blockItemsX + (k * p.blockWidth + tid) < p.cols)
-                (fun _ -> matrix_live_cell gC r (b * p.blockItemsX + (k * p.blockWidth + tid)))
-            )
-            (fun tid k ->
-              when__ (b * p.blockItemsX + k * p.blockWidth + tid < p.cols)
-                (fun _ -> matrix_live_cell gC r (b * p.blockItemsX + k * p.blockWidth + tid))
-            );
+            (fun ix -> b * p.blockItemsX + ix < p.cols)
+            (fun ix _ -> tensor_pts_to_cell gC (idx2 r (b * p.blockItemsX + ix))
+              (acc2 eC r (b * p.blockItemsX + ix)));
+          fold pts_to_tile_in_matrix gC r (b * p.blockItemsX) eC p.blockItemsX;
         };
     };
   forevery_iso (Kuiper.Bijection.bij_sym row_perm) _;
 
-  (* Flatten column tiles outermost so adjacent block ids visit different rows
-     of the same dense-matrix panel, matching Sputnik's 2-D grid order. *)
+  // Column tiles are outermost, so adjacent blocks visit different rows.
   forevery_commute _;
+  block_count_commuted p;
   forevery_unfactor'
     (nblocks p) (divup p.cols p.blockItemsX) p.rows _;
-  forevery_ext_3
-    #(natlt (nblocks p))
-    #(natlt p.blockWidth)
-    #(natlt (p.blockItemsX / p.blockWidth))
-    _
-    (fun bid tid k ->
-      when__ (bcol p bid + k * p.blockWidth + tid < p.cols)
-        (fun _ ->
-          matrix_live_cell gC
-            (brow p bid |~> row_perm)
-            (bcol p bid + k * p.blockWidth + tid)
-        )
-    );
+  forevery_ext #(natlt (nblocks p)) _
+    (fun bid -> pts_to_tile_in_matrix gC
+      (brow p bid |~> row_perm) (bcol p bid) eC p.blockItemsX);
+  forevery_map #(natlt (nblocks p))
+    (fun bid -> pts_to_tile_in_matrix gC
+      (brow p bid |~> row_perm) (bcol p bid) eC p.blockItemsX)
+    (fun bid -> forall+ (tid : natlt p.blockWidth).
+      thread_live_tile_vec gC (brow p bid |~> row_perm) (tcol p bid tid)
+        (p.blockItemsX / p.blockWidth) p.blockWidth)
+    fn bid {
+      output_column_aligned p bid;
+      rewrite pts_to_tile_in_matrix gC
+          (brow p bid |~> row_perm) (bcol p bid) eC p.blockItemsX
+        as pts_to_tile_in_matrix gC
+          (brow p bid |~> row_perm) (bcol p bid) eC
+          ((p.blockItemsX / p.blockWidth) * p.blockWidth);
+      thread_live_tile_vec_scatter gC (brow p bid |~> row_perm) (bcol p bid) eC
+        p.blockWidth (p.blockItemsX / p.blockWidth);
+      forevery_ext #(natlt p.blockWidth) _
+        (fun tid -> thread_live_tile_vec gC
+          (brow p bid |~> row_perm) (tcol p bid tid)
+          (p.blockItemsX / p.blockWidth) p.blockWidth);
+    };
 
   Kuiper.Array.Extra.array_share row_indices (allthreads p);
   forevery_factor (allthreads p) (nblocks p) p.blockWidth _;
@@ -412,11 +381,6 @@ fn setup
       smatrix_pts_to' gA #(fA /. (allthreads p)) elems col_ind row_off eA
     )
     _;
-
-  // TODO: scalar->vectorized ownership conversion for gC tile
-  // (fold `forall+ (z). matrix_live_cell` into `thread_live_tile_vec`);
-  // needs a new bundling lemma. Admitted for now.
-  admit();
 }
 
 #pop-options
@@ -622,10 +586,11 @@ fn block_teardown
 let block_index_bound #et {| sized et, has_vec_cpy et |} (p : parameters et)
   : Lemma (forall (r : natlt (SZ.v p.rows))
                   (b : natlt (divup (SZ.v p.cols) (SZ.v p.blockItemsX))).
+             0 <= b * SZ.v p.rows + r /\
              b * SZ.v p.rows + r < nblocks_ p)
   = introduce forall (r : natlt (SZ.v p.rows))
                      (b : natlt (divup (SZ.v p.cols) (SZ.v p.blockItemsX))).
-      b * SZ.v p.rows + r < nblocks_ p
+      0 <= b * SZ.v p.rows + r /\ b * SZ.v p.rows + r < nblocks_ p
     with FStar.Math.Lemmas.lemma_mult_le_right
            (SZ.v p.rows) (b + 1)
            (divup (SZ.v p.cols) (SZ.v p.blockItemsX))
@@ -687,193 +652,68 @@ fn teardown
     (fun _ _ -> gB |-> Frac (fB /. allthreads p) eB);
   tensor_gather_n gB (allthreads p) #fB;
 
-
-  // TODO: vectorized->scalar ownership conversion for gC tile
-  // (unfold `forall+ (x)(y). thread_pts_to_tile_vec` into the scalar
-  // `forall+ (x)(tid)(k). tensor_pts_to_cell` form the reshape below
-  // consumes); needs the inverse of setup's bundling lemma. Admitted for now.
-  admit();
-
+  // Gather each block's vectors into a scalar tile, preserving the value
+  // of every cell. Then undo the block ordering and the row permutation.
+  Math.prod_divides p.blockWidth (chunk et) p.blockItemsX;
+  Math.prod_cancel_divides p.blockItemsX (chunk et) p.blockWidth;
   forevery_map #(natlt (nblocks p))
-    (fun bid ->
-      forall+
-        (tid: natlt p.blockWidth)
-        (k: natlt (p.blockItemsX / p.blockWidth)).
-        when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
-          (fun _ ->
-            tensor_pts_to_cell gC
-              (idx2 (brow p bid |~> row_perm) (bcol p bid + k * v p.blockWidth + tid))
-              (MS.matmul_single eA
-                  eB
-                  (brow p bid |~> row_perm)
-                  (bcol p bid + k * v p.blockWidth + tid)))
-    )
-    (fun bid ->
-      forall+ (ix : natlt p.blockItemsX).
-        when__
-          (bcol p bid + ix < p.cols)
-          (fun _ ->
-            tensor_pts_to_cell gC
-              (idx2 (brow p bid |~> row_perm) (bcol p bid + ix))
-              (MS.matmul_single eA eB
-                (brow p bid |~> row_perm)
-                (bcol p bid + ix)
-              )
-          )
-    )
+    (fun bid -> forall+ (tid : natlt p.blockWidth).
+      thread_pts_to_tile_vec gC
+        (brow p bid |~> row_perm) (tcol p bid tid)
+        (MS.matmul eA eB) (p.blockItemsX / p.blockWidth) p.blockWidth)
+    (fun bid -> pts_to_tile_in_matrix gC
+      (brow p bid |~> row_perm) (bcol p bid) (MS.matmul eA eB) p.blockItemsX)
     fn bid {
-      forevery_ext_2
-        #(natlt p.blockWidth)
-        #(natlt (p.blockItemsX / p.blockWidth))
-        (fun tid k ->
-          when__ (bcol p bid + k * v p.blockWidth + tid < v p.cols)
-            (fun _ ->
-              tensor_pts_to_cell gC
-                (idx2 (brow p bid |~> row_perm) (bcol p bid + k * v p.blockWidth + tid))
-                (MS.matmul_single eA
-                    eB
-                    (brow p bid |~> row_perm)
-                    (bcol p bid + k * v p.blockWidth + tid)))
-        )
-        (fun tid k ->
-          when__ (bcol p bid + (k * v p.blockWidth + tid) < v p.cols)
-            (fun _ ->
-              tensor_pts_to_cell gC
-                (idx2 (brow p bid |~> row_perm) (bcol p bid + (k * v p.blockWidth + tid)))
-                (MS.matmul_single eA
-                    eB
-                    (brow p bid |~> row_perm)
-                    (bcol p bid + (k * v p.blockWidth + tid)))
-            )
-        );
-      forevery_commute _;
-      Math.prod_divides p.blockWidth (chunk et) p.blockItemsX;
-      forevery_unfactor
-        ((p.blockItemsX / p.blockWidth) * p.blockWidth)
-        (p.blockItemsX / p.blockWidth) p.blockWidth
-        (fun ix ->
-          when__
-            (bcol p bid + ix < p.cols)
-            (fun _ ->
-              tensor_pts_to_cell gC
-                (idx2 (brow p bid |~> row_perm) (bcol p bid + ix))
-                (MS.matmul_single eA eB
-                  (brow p bid |~> row_perm)
-                  (bcol p bid + ix)
-                )
-            )
-        );
-      forevery_rw_size
-        ((p.blockItemsX / p.blockWidth) * p.blockWidth) p.blockItemsX;
+      output_column_aligned p bid;
+      forevery_ext #(natlt p.blockWidth)
+        _
+        (fun tid -> thread_pts_to_tile_vec gC
+          (brow p bid |~> row_perm) (thread_offset et (bcol p bid) tid)
+          (MS.matmul eA eB) (p.blockItemsX / p.blockWidth) p.blockWidth);
+      thread_pts_to_tile_vec_gather gC
+        (brow p bid |~> row_perm) (bcol p bid) (MS.matmul eA eB)
+        p.blockWidth (p.blockItemsX / p.blockWidth);
+      rewrite pts_to_tile_in_matrix gC
+          (brow p bid |~> row_perm) (bcol p bid) (MS.matmul eA eB)
+          ((p.blockItemsX / p.blockWidth) * p.blockWidth)
+        as pts_to_tile_in_matrix gC
+          (brow p bid |~> row_perm) (bcol p bid) (MS.matmul eA eB) p.blockItemsX;
     };
   block_index_bound p;
+  block_count_commuted p;
   forevery_factor
     (nblocks p) (divup p.cols p.blockItemsX) p.rows _;
+  forevery_map_2 #(natlt (divup p.cols p.blockItemsX)) #(natlt p.rows)
+    (fun b r -> pts_to_tile_in_matrix gC
+      (brow p (b * p.rows + r) |~> row_perm) (bcol p (b * p.rows + r))
+      (MS.matmul eA eB) p.blockItemsX)
+    (fun b r -> pts_to_tile_in_matrix gC
+      (r |~> row_perm) (b * p.blockItemsX) (MS.matmul eA eB) p.blockItemsX)
+    fn b r {
+      lem_div2 b p.rows r;
+      rewrite each (brow p (b * p.rows + r)) as r;
+      lem_div1 b p.rows r;
+      output_tile_bound p b;
+      rewrite each (bcol p (b * p.rows + r)) as (b * p.blockItemsX);
+    };
   forevery_commute _;
   forevery_map #(natlt p.rows)
-    (fun r ->
-      forall+
-        (b: natlt (divup p.cols p.blockItemsX))
-        (ix : natlt p.blockItemsX).
-        when__
-          (bcol p (b * p.rows + r) + ix < p.cols)
-          (fun _ ->
-            tensor_pts_to_cell gC
-              (idx2 (brow p (b * p.rows + r) |~> row_perm) (bcol p (b * p.rows + r) + ix))
-              (MS.matmul_single eA eB
-                (brow p (b * p.rows + r) |~> row_perm)
-                (bcol p (b * p.rows + r) + ix)
-              )
-          )
-    )
-    (fun r ->
-      forall+ (c : natlt p.cols).
-        tensor_pts_to_cell gC (idx2 (r |~> row_perm) (c))
-          (MS.matmul_single eA eB (r |~> row_perm) c)
-    )
+    (fun r -> forall+ (b : natlt (divup p.cols p.blockItemsX)).
+      pts_to_tile_in_matrix gC (r |~> row_perm) (b * p.blockItemsX)
+        (MS.matmul eA eB) p.blockItemsX)
+    (fun r -> forall+ (c : natlt p.cols).
+      tensor_pts_to_cell gC (idx2 (r |~> row_perm) c)
+        (acc2 (MS.matmul eA eB) (r |~> row_perm) c))
     fn r {
-      forevery_map_2 #(natlt (divup p.cols p.blockItemsX)) #(natlt p.blockItemsX)
-        (fun b ix ->
-          when__
-            (bcol p (b * p.rows + r) + ix < p.cols)
-            (fun _ ->
-              tensor_pts_to_cell gC
-                (idx2 (brow p (b * p.rows + r) |~> row_perm) (bcol p (b * p.rows + r) + ix))
-                (MS.matmul_single eA eB
-                  (brow p (b * p.rows + r) |~> row_perm)
-                  (bcol p (b * p.rows + r) + ix)
-                )
-            )
-        )
-        (fun b ix ->
-          when__
-            (b * p.blockItemsX + ix < p.cols)
-            (fun _ ->
-              tensor_pts_to_cell gC
-                (idx2 (r |~> row_perm) (b * p.blockItemsX + ix))
-                (MS.matmul_single eA eB (r |~> row_perm) (b * p.blockItemsX + ix))
-            )
-        )
-        fn b ix {
-          lem_div2 b p.rows r;
-          rewrite each (brow p (b * p.rows + r))
-            as r;
-          lem_div1 b p.rows r;
-          rewrite each (bcol p (b * p.rows + r))
-            as (b * p.blockItemsX);
-        };
-      forevery_map #(natlt (divup p.cols p.blockItemsX))
-        (fun b ->
-          forall+ (ix : natlt p.blockItemsX).
-            when__
-              (b * p.blockItemsX + ix < p.cols)
-              (fun _ ->
-                tensor_pts_to_cell gC
-                  (idx2 (r |~> row_perm) (b * p.blockItemsX + ix))
-                  (MS.matmul_single eA eB
-                    (r |~> row_perm) (b * p.blockItemsX + ix)
-                  )
-              )
-        )
-        (fun b ->
-          forall+ (ix : natlt p.blockItemsX {b * p.blockItemsX + ix < p.cols}).
-            tensor_pts_to_cell gC
-              (idx2 (r |~> row_perm) (b * p.blockItemsX + ix))
-              (MS.matmul_single
-                eA eB (r |~> row_perm) (b * p.blockItemsX + ix)
-              )
-        )
-        fn b {
-          forevery_refine_pred' #(natlt p.blockItemsX)
-            (fun ix -> b * p.blockItemsX + ix < p.cols) _;
-        };
-
-      forevery_unfactor_
-        p.cols
-        (p.blockItemsX)
-        (fun c ->
-          tensor_pts_to_cell gC (idx2 (r |~> row_perm) (c))
-            (MS.matmul_single eA eB (r |~> row_perm) c)
-        );
+      gather_pts_to_tile_in_row gC (r |~> row_perm) (MS.matmul eA eB) p.blockItemsX;
     };
-
-  forevery_iso row_perm (fun r ->
-    forall+ (c : natlt p.cols).
-      tensor_pts_to_cell gC (idx2 (r |~> row_perm) (c))
-        (MS.matmul_single eA eB (r |~> row_perm) c)
-  );
+  forevery_iso row_perm (fun r -> forall+ (c : natlt p.cols).
+    tensor_pts_to_cell gC (idx2 (r |~> row_perm) c)
+      (acc2 (MS.matmul eA eB) (r |~> row_perm) c));
   forevery_ext_2 #(natlt p.rows) #(natlt p.cols)
-    (fun (r : natlt p.rows) (c : natlt p.cols) ->
-      tensor_pts_to_cell gC
-        (idx2 (row_perm.gg r |~> row_perm) (c))
-        (MS.matmul_single eA eB (row_perm.gg r |~> row_perm) c)
-    )
-    (fun (r : natlt p.rows) (c : natlt p.cols) ->
-      tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 (MS.matmul eA eB) r c));
+    _
+    (fun r c -> tensor_pts_to_cell gC (idx2 r c) (acc2 (MS.matmul eA eB) r c));
   forevery_flatten _;
-  forevery_ext
-    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (idx2 (rc._1) (rc._2)) (acc2 (MS.matmul eA eB) rc._1 rc._2))
-    (fun (rc : natlt p.rows & natlt p.cols) -> tensor_pts_to_cell gC (idx2 (rc._1) (rc._2)) (acc2 (MS.matmul eA eB) rc._1 rc._2));
   tensor_implode2 gC;
 
   ();

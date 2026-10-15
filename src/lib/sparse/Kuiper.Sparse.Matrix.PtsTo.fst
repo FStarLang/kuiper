@@ -233,17 +233,21 @@ fn unfold_matrix_pts_to_vec_in_matrix_in_bounds
   ensures forall+ (x : natlt (chunk et)).
     matrix_pts_to_cell_in_matrix_in_bounds gm i (j + x) em
 {
-  admit();
   if (j < cols)
   {
     when__elim_true _ _;
     unfold matrix_pts_to_vec gm i j _;
-    forevery_ext #(natlt (chunk et))
-      _
+    forevery_map #(natlt (chunk et))
+      (fun x -> Cell gm (idx2 i (j + x <: natlt cols)) |-> Seq.index (ematrix_row_chunk em i j) x)
       (fun x ->
         matrix_pts_to_cell_in_matrix_in_bounds gm
           i (j + x) em
-      );
+      )
+      fn x {
+        ematrix_row_chunk_index em i j x;
+        when__intro_true (j + x < cols)
+          (Cell gm (idx2 i (j + x <: natlt cols)) |-> acc2 em i (j + x));
+      };
   }
   else
   {
@@ -354,6 +358,87 @@ fn thread_pts_to_tile_vec_gather
   fold pts_to_tile_in_matrix gm i j em (trow_tile * nthr);
 }
 #pop-options
+
+(* Partition a scalar tile into the contiguous vector chunks owned by each
+   thread. Out-of-bounds chunks carry no cells, but still need a sequence
+   witness for the live-vector predicate. *)
+ghost
+fn thread_live_tile_vec_scatter
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : pos { chunk et /? cols })
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
+  (i : natlt rows)
+  (j : natlt cols { chunk et /? j })
+  (em : chest2 et rows cols)
+  (nthr : pos)
+  (trow_tile : nat { chunk et /? trow_tile })
+  requires pts_to_tile_in_matrix gm i j em (trow_tile * nthr)
+  ensures forall+ (tid : natlt nthr).
+    thread_live_tile_vec gm i (thread_offset et j tid) trow_tile nthr
+{
+  unfold pts_to_tile_in_matrix gm;
+  lemma_divides_product_l (chunk et) trow_tile nthr;
+  lemma_divides_exact (chunk et) trow_tile;
+  assert pure (trow_tile * nthr == ((trow_tile / chunk et) * nthr) * chunk et);
+  FStar.Math.Lemmas.multiple_division_lemma ((trow_tile / chunk et) * nthr) (chunk et);
+  forevery_factor (trow_tile * nthr)
+    (trow_tile * nthr / chunk et) (chunk et)
+    (fun k -> matrix_pts_to_cell_in_matrix_in_bounds gm i (j + k) em);
+  forevery_map #(natlt (trow_tile * nthr / chunk et))
+    (fun x -> forall+ (y : natlt (chunk et)).
+      matrix_pts_to_cell_in_matrix_in_bounds gm i (j + (x * chunk et + y)) em)
+    (fun x -> matrix_live_vec_in_bounds gm i (offset_chunk et j x 1))
+    fn x {
+      let off = offset_chunk et j x 1;
+      if (off < cols) {
+        Kuiper.Sparse.Math.divides_leq (chunk et) cols off;
+        let s = ematrix_row_chunk em i off;
+        forevery_map #(natlt (chunk et))
+          (fun y -> matrix_pts_to_cell_in_matrix_in_bounds
+            gm i (j + (x * chunk et + y)) em)
+          (fun y -> Cell gm (idx2 i (off + y <: natlt cols)) |-> Seq.index s y)
+          fn y {
+            when__elim_true _ _;
+            ematrix_row_chunk_index em i off y;
+            rewrite each (j + (x * chunk et + y)) as (off + y);
+            rewrite each (acc2 em i (off + y)) as (Seq.index s y);
+          };
+        fold matrix_pts_to_vec gm i off s;
+        fold_matrix_pts_to_vec_in_bounds gm i off s;
+        fold matrix_live_vec_in_bounds gm i off;
+        rewrite each off as (offset_chunk et j x 1);
+      } else {
+        forevery_map #(natlt (chunk et))
+          (fun y -> matrix_pts_to_cell_in_matrix_in_bounds
+            gm i (j + (x * chunk et + y)) em)
+          (fun _ -> emp)
+          fn y { when__elim_false _ _; };
+        forevery_emp_elim (natlt (chunk et));
+        let s = Seq.create (chunk et) (acc2 em i 0);
+        fold_matrix_pts_to_vec_not_in_bounds gm i off s;
+        fold matrix_live_vec_in_bounds gm i off;
+        rewrite each off as (offset_chunk et j x 1);
+      }
+    };
+  forevery_factor (trow_tile * nthr / chunk et)
+    (trow_tile / chunk et) nthr
+    (fun x -> matrix_live_vec_in_bounds gm i (offset_chunk et j x 1));
+  forevery_map_2
+    #(natlt (trow_tile / chunk et)) #(natlt nthr)
+    (fun k tid -> matrix_live_vec_in_bounds gm i (offset_chunk et j (k * nthr + tid) 1))
+    (fun k tid -> thread_live_vec gm i (thread_offset et j tid) trow_tile nthr k)
+    fn k tid {
+      rewrite each (offset_chunk et j (k * nthr + tid) 1)
+        as (offset_chunk et (thread_offset et j tid) k nthr);
+    };
+  forevery_commute _;
+  forevery_map #(natlt nthr)
+    (fun tid -> forall+ (k : natlt (trow_tile / chunk et)).
+      thread_live_vec gm i (thread_offset et j tid) trow_tile nthr k)
+    (fun tid -> thread_live_tile_vec gm i (thread_offset et j tid) trow_tile nthr)
+    fn tid { fold thread_live_tile_vec gm i (thread_offset et j tid) trow_tile nthr; };
+}
 
 ghost
 fn gather_pts_to_tile_in_row

@@ -132,6 +132,15 @@ val ematrix_row_chunk
   (j : natlt cols { chunk et /? j })
 : GTot (lseq et (chunk et))
 
+val ematrix_row_chunk_index
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : pos { chunk et /? cols })
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (j : natlt cols { chunk et /? j })
+  (k : natlt (chunk et))
+  : Lemma (Seq.index (ematrix_row_chunk em i j) k == Kuiper.Chest.acc2 em i (j + k))
+
 let offset_chunk
   (et : Type0) {| sized et, has_vec_cpy et |}
   (j : nat { chunk et /? j })

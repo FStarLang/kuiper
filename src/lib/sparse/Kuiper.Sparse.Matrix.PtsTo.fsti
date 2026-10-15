@@ -375,6 +375,21 @@ fn thread_pts_to_tile_vec_gather
   ensures pts_to_tile_in_matrix gm i j em (trow_tile * nthr)
 
 ghost
+fn thread_live_tile_vec_scatter
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : pos { chunk et /? cols })
+  (#l : layout2 rows cols)
+  (gm : array2 et l)
+  (i : natlt rows)
+  (j : natlt cols { chunk et /? j })
+  (em : chest2 et rows cols)
+  (nthr : pos)
+  (trow_tile : nat { chunk et /? trow_tile })
+  requires pts_to_tile_in_matrix gm i j em (trow_tile * nthr)
+  ensures forall+ (tid : natlt nthr).
+    thread_live_tile_vec gm i (thread_offset et j tid) trow_tile nthr
+
+ghost
 fn gather_pts_to_tile_in_row
   (#et : Type0)
   (#rows #cols : nat)
