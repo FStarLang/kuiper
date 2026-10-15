@@ -1087,6 +1087,17 @@ let barrier_count
   assert (re >= ri');
   ((re - ri') / p.blockItemsK + 1) * 2
 
+let residue_index
+  (block_items : pos)
+  (ri ri' : nat)
+  (re : nat { ri' <= re })
+  (idx residue : nat)
+  : Lemma
+      (requires residue_pred block_items ri ri' re idx residue)
+      (ensures idx == (re - ri') / block_items)
+  = if re - ri' < block_items then
+      FStar.Math.Lemmas.small_division_lemma_1 (re - ri') block_items
+
 // Defs de algignment
 // TODO mover a otro lado
 noextract inline_for_extraction
@@ -1775,7 +1786,8 @@ fn kf_residue
   requires
     barrier_in p row_perm elems col_ind row_off
       elems_tile col_ind_tile bid (idx * 2) tid
-  requires exists* vout.
+  // Keep the erased output's lseq type explicit at the tile_mm boundary.
+  requires exists* (vout : lseq et (threadItemsX p)).
     out |-> (vout <: seq et) **
     pure (
       Compute.tile_mm_result #_ #_ #_ #hvc
@@ -1790,7 +1802,7 @@ fn kf_residue
   ensures B.barrier_state ((idx + 1) * 2)
   ensures exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s
   ensures exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s
-  ensures exists* vout.
+  ensures exists* (vout : lseq et (threadItemsX p)).
     out |-> (vout <: seq et) **
     pure (
       Compute.tile_mm_result #_ #_ #_ #hvc
@@ -1846,6 +1858,7 @@ fn kf_residue
       (Seq.slice row_ind ((re - ri) - residue) (re - ri))
   );
 
+  assert pure (threadItemsX p == p.blockItemsX / p.blockWidth);
   tcol_fits p bid tid;
 
   Compute.tile_mm
@@ -2009,6 +2022,11 @@ fn kf
     nnz idx;
 
   //------------------residue-----------------------------------------
+
+  residue_index (SZ.v p.blockItemsK) (SZ.v ri) (SZ.v ri') (SZ.v re)
+    (SZ.v !idx) (SZ.v !nnz);
+  assert pure ((SZ.v !idx + 1) * 2 ==
+    barrier_count p row_perm col_ind row_off bid);
 
   kf_residue
     p row_perm
