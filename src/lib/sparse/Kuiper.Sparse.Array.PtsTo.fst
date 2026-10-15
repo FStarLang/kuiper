@@ -271,14 +271,13 @@ fn thread_share_chunks
 ghost
 fn thread_gather_chunks
   (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#n : nat)
+  (#n : pos)
   (x : larray et n)
   (#m : nat)
   (s : lseq et m)
   (i : natle (m - n))
   (nthr : pos)
   (#_: squash ((nthr * chunk et) /? n))
-  requires array_exists x
   requires
     (forall+ (tid : natlt nthr). thread_pts_to_chunks x s i nthr tid)
   ensures x |-> Seq.slice s i (i + n)
@@ -360,6 +359,66 @@ fn thread_gather_chunks
     (fun (k : natlt n) ->
       pts_to_cell x k (Seq.slice s i (i + n) @! k)
     );
-  array_unslice_1_with_exists x;
+  let _ = nonempty_intro (0 <: natlt n);
+  array_unslice_1 x;
 }
 #pop-options
+
+
+(* Join contiguous vector slices without imposing values on unwritten cells. *)
+ghost
+fn rec gather_live_vecs
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#n : pos)
+  (x : larray et n)
+  (count : pos { count * chunk et <= n })
+  requires forall+ (k : natlt count). live_vec x (k * chunk et)
+  ensures slice_live x 0 (count * chunk et)
+  decreases count
+{
+  if (count = 1) {
+    forevery_singleton_elim' (fun (k : natlt count) -> live_vec x (k * chunk et)) 0;
+    rewrite each (0 * chunk et) as 0;
+    unfold live_vec x 0;
+    fold slice_live x 0 (count * chunk et);
+  } else {
+    forevery_natlt_pop count (fun k -> live_vec x (k * chunk et));
+    gather_live_vecs x (count - 1);
+    unfold slice_live x 0 ((count - 1) * chunk et);
+    unfold live_vec x ((count - 1) * chunk et);
+    slice_concat x 0 ((count - 1) * chunk et) (count * chunk et);
+    fold slice_live x 0 (count * chunk et);
+  }
+}
+
+ghost
+fn thread_gather_live_chunks
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#n : pos)
+  (x : larray et n)
+  (nthr : pos)
+  (#_: squash ((nthr * chunk et) /? n))
+  requires forall+ (tid : natlt nthr). thread_live_chunks x nthr tid
+  ensures live x
+{
+  let ch = v (chunk et);
+  let count = n / (nthr * ch);
+  assert pure (count * (nthr * ch) == n);
+  assert pure (count > 0);
+  forevery_map
+    (fun tid -> thread_live_chunks x nthr tid)
+    (fun tid -> forall+ (k : natlt count). live_vec x ((k * nthr + tid) * ch))
+    fn tid {
+      unfold thread_live_chunks x nthr tid;
+      rewrite each (v (chunk et)) as ch;
+      forevery_rw_size (n / (nthr * ch)) count;
+    };
+  forevery_commute _;
+  forevery_unfactor (count * nthr) count nthr (fun k -> live_vec x (k * ch));
+  rewrite each ch as (v (chunk et));
+  gather_live_vecs x (count * nthr);
+  rewrite each ((count * nthr) * chunk et) as n;
+  unfold slice_live x 0 n;
+  slice_to_array_full x;
+  fold live x;
+}

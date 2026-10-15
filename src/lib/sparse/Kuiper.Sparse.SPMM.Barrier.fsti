@@ -21,7 +21,23 @@ private let div_times_two_nonneg_pat (a : nat) (b : pos)
   = FStar.Math.Lemmas.nat_over_pos_is_nat a b;
     FStar.Math.Lemmas.nat_times_nat_is_nat (a / b) 2
 
+(* Alignment padding fits strictly inside the first vector tile. *)
+let row_prefix_bound
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (p : parameters et) (ri : nat)
+  : Lemma (ri - round2 (max (chunk et) (chunk sz)) ri < p.blockItemsK)
+  = Kuiper.Sparse.Math.prod_divides p.blockWidth (chunk et) p.blockItemsK;
+    Kuiper.Sparse.Math.prod_divides p.blockWidth (chunk sz) p.blockItemsK;
+    Kuiper.Divides.lemma_divides_le (chunk et) p.blockItemsK;
+    Kuiper.Divides.lemma_divides_le (chunk sz) p.blockItemsK;
+    FStar.Math.Lemmas.euclidean_division_definition ri (max (chunk et) (chunk sz))
+
 (* --- Barrier slprop definitions --- *)
+
+(* Whole slices retained by every thread carry only 1/blockWidth permission.
+   The partial phase includes off = re: the kernel still executes its two
+   barriers for an empty remainder, and must retain the shared allocation.
+   A first partial tile starts at the actual row start, without masking. *)
 
 let barrier_in
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -43,6 +59,7 @@ let barrier_in
     let trow = brow p bid |~> row_perm in
     let ri = row_off @! trow in
     let re = row_off @! trow + 1 in
+    let _ = row_prefix_bound p ri in
     let ri' = round2 (max (chunk et) (chunk sz)) ri in
     let off = ri' + (it / 2) * p.blockItemsK in
     if off + p.blockItemsK <= re then (
@@ -55,7 +72,7 @@ let barrier_in
       else if it = 1 then
         thread_slice_pts_to_value elems_tile 0 (ri - ri') zero
           p.blockWidth tid **
-        pts_to_slice elems_tile (ri - ri') p.blockItemsK
+        pts_to_slice elems_tile #(1.0R /. p.blockWidth) (ri - ri') p.blockItemsK
           (Seq.slice elems ri (ri' + p.blockItemsK))
       // MAIN
       // Pre: share
@@ -67,7 +84,7 @@ let barrier_in
         thread_pts_to_chunks elems_tile elems off p.blockWidth tid **
         thread_pts_to_chunks col_ind_tile col_ind off p.blockWidth tid
     )
-    else if off < re then (
+    else if off <= re then (
       // RESIDUE0 (sin computo previo)
       // Pre: share
       if it = 0 then
@@ -76,16 +93,15 @@ let barrier_in
       // Post: gather
       else if it = 1 then
         thread_slice_pts_to elems_tile 0 (re - ri)
-          elems off p.blockWidth tid **
+          elems ri p.blockWidth tid **
         // aca podriamos obviar el resto pero prob sea mas comodo así
-        slice_live elems_tile (re - ri) p.blockItemsK **
+        slice_live elems_tile #(1.0R /. p.blockWidth) (re - ri) p.blockItemsK **
         thread_slice_pts_to col_ind_tile 0 (re - ri)
-          col_ind off p.blockWidth tid **
-        slice_live col_ind_tile (re - ri) p.blockItemsK
+          col_ind ri p.blockWidth tid **
+        slice_live col_ind_tile #(1.0R /. p.blockWidth) (re - ri) p.blockItemsK
       // RESIDUE
       // Pre: share
-      // else if even it then
-      else if it = (re - ri') / p.blockItemsK * 2 then
+      else if even it then
         (exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s) **
         (exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s)
       // Post: gather
@@ -121,6 +137,7 @@ let barrier_out
     let trow = brow p bid |~> row_perm in
     let ri = row_off @! trow in
     let re = row_off @! trow + 1 in
+    let _ = row_prefix_bound p ri in
     let ri' = round2 (max (chunk et) (chunk sz)) ri in
     let off = ri' + (it / 2) * p.blockItemsK in
     if off + p.blockItemsK <= re then (
@@ -128,7 +145,7 @@ let barrier_out
       // Pre: pasamos de ownership vectorial a escalar
       if it = 0 then
         thread_slice_live elems_tile 0 (ri - ri') p.blockWidth tid **
-        pts_to_slice elems_tile (ri - ri') p.blockItemsK
+        pts_to_slice elems_tile #(1.0R /. p.blockWidth) (ri - ri') p.blockItemsK
           (Seq.slice elems ri (ri' + p.blockItemsK)) **
         col_ind_tile |-> Frac (1.0R /. p.blockWidth)
           (Seq.slice col_ind off (off + p.blockItemsK))
@@ -153,24 +170,24 @@ let barrier_out
         col_ind_tile |-> Frac (1.0R /. p.blockWidth)
           (Seq.slice col_ind off (off + p.blockItemsK))
     )
-    else if off < re then (
+    else if off <= re then (
       // RESIDUE0 (sin computo previo)
       // Pre: share
       if it = 0 then
         thread_slice_live elems_tile 0 (re - ri) p.blockWidth tid **
-        slice_live elems_tile (re - ri) p.blockItemsK **
+        slice_live elems_tile #(1.0R /. p.blockWidth) (re - ri) p.blockItemsK **
         thread_slice_live col_ind_tile 0 (re - ri) p.blockWidth tid **
-        slice_live col_ind_tile (re - ri) p.blockItemsK
+        slice_live col_ind_tile #(1.0R /. p.blockWidth) (re - ri) p.blockItemsK
       // Post: gather
       else if it = 1 then
-        pts_to_slice elems_tile 0 (re - ri) (Seq.slice elems ri re) **
+        pts_to_slice elems_tile #(1.0R /. p.blockWidth) 0 (re - ri) (Seq.slice elems ri re) **
         // aca podriamos obviar el resto pero prob sea mas comodo así
-        slice_live elems_tile (re - ri) p.blockItemsK **
-        pts_to_slice col_ind_tile 0 (re - ri) (Seq.slice col_ind ri re) **
-        slice_live col_ind_tile (re - ri) p.blockItemsK
+        slice_live elems_tile #(1.0R /. p.blockWidth) (re - ri) p.blockItemsK **
+        pts_to_slice col_ind_tile #(1.0R /. p.blockWidth) 0 (re - ri) (Seq.slice col_ind ri re) **
+        slice_live col_ind_tile #(1.0R /. p.blockWidth) (re - ri) p.blockItemsK
       // RESIDUE
       // Pre: share
-      else if it = (re - ri') / p.blockItemsK * 2 then
+      else if even it then
         thread_slice_live elems_tile 0 (re - off) p.blockWidth tid **
         slice_live elems_tile #(1.0R /. p.blockWidth) (re - off) p.blockItemsK **
         thread_slice_live col_ind_tile 0 (re - off) p.blockWidth tid **
@@ -261,7 +278,7 @@ fn barrier_in_fold_mask_post
   requires
     thread_slice_pts_to_value elems_tile 0 (ri_ - ri) zero
       p.blockWidth tid **
-    pts_to_slice elems_tile (ri_ - ri) p.blockItemsK
+    pts_to_slice elems_tile #(1.0R /. p.blockWidth) (ri_ - ri) p.blockItemsK
       (Seq.slice elems ri_ (ri + p.blockItemsK))
   ensures barrier_in p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid 1 tid
@@ -290,7 +307,7 @@ fn barrier_out_unfold_mask_pre
     elems_tile col_ind_tile bid 0 tid
   ensures
     thread_slice_live elems_tile 0 (ri_ - ri) p.blockWidth tid **
-    pts_to_slice elems_tile (ri_ - ri) p.blockItemsK
+    pts_to_slice elems_tile #(1.0R /. p.blockWidth) (ri_ - ri) p.blockItemsK
       (Seq.slice elems ri_ (ri + p.blockItemsK)) **
     col_ind_tile |-> Frac (1.0R /. p.blockWidth)
       (Seq.slice col_ind ri (ri + p.blockItemsK))

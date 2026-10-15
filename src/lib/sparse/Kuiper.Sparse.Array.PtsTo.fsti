@@ -178,3 +178,26 @@ fn thread_share_chunks
   requires live x
   ensures forall+ (tid : natlt nthr). thread_live_chunks x nthr tid
   ensures array_exists x
+
+ghost
+fn thread_gather_chunks
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#n : pos)
+  (x : larray et n)
+  (#m : nat)
+  (s : lseq et m)
+  (i : natle (m - n))
+  (nthr : pos)
+  (#_: squash ((nthr * chunk et) /? n))
+  requires forall+ (tid : natlt nthr). thread_pts_to_chunks x s i nthr tid
+  ensures x |-> Seq.slice s i (i + n)
+
+ghost
+fn thread_gather_live_chunks
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#n : pos)
+  (x : larray et n)
+  (nthr : pos)
+  (#_: squash ((nthr * chunk et) /? n))
+  requires forall+ (tid : natlt nthr). thread_live_chunks x nthr tid
+  ensures live x
