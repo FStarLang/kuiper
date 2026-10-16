@@ -92,9 +92,16 @@ let l_distr_r' (a b c: real) : ((a +. b) *. c == (a *. c) +. (b *. c)) = ()
 
 let cancel_md (a : real) (b : real{b =!= 0.0R}) : Lemma (a *. b /. b == a) = ()
 let cancel_dm (a : real) (b : real{b =!= 0.0R}) : Lemma (a /. b *. b == a) = ()
+(* Small steps for [abcd_adcb]: proving it in one shot is seed-sensitive. *)
+let div_mul_swap (x c : real) (b : real{b =!= 0.0R}) : Lemma (x /. b *. c == (x *. c) /. b) = ()
+let div_div_swap (y : real) (b d : real{b =!= 0.0R /\ d =!= 0.0R}) : Lemma (y /. b /. d == y /. d /. b) = ()
+
 let abcd_adcb (a b c d : real)
   : Lemma (requires b =!= 0.0R /\ d =!= 0.0R)
-          (ensures a /. b *. c /. d == a /. d *. c /. b) = ()
+          (ensures a /. b *. c /. d == a /. d *. c /. b)
+  = div_mul_swap a c b;
+    div_mul_swap a c d;
+    div_div_swap (a *. c) b d
 
 let assoc_mul (a b c: real) : Lemma ((a *. b) *. c == a *. (b *. c)) = ()
 
@@ -108,6 +115,9 @@ let assoc_mul_div (a b c : real{c =!= 0.0R}) : Lemma ((a *. b) /. c == a *. (b /
   ()
 
 let mul_one_div (a : real) (b : real{b =!= 0.0R}) : Lemma (a *. (1.0R /. b) == a /. b) = ()
+
+(* 0 is a left zero of real multiplication, as a standalone fact. *)
+let zero_mul (a : real) : Lemma (0.0R *. a == 0.0R) = ()
 
 (* Stated in a clean context: proving this inline in [softmax_step] makes Z3
    diverge (exp SMT patterns introduce many nonlinear terms). *)
@@ -125,6 +135,8 @@ let softmax_step #x (xst : st x) (xi : real) :
   =
   let m' = rmax xst.m xi in
   seq_max_cons_lem x xi;
+  lem_rmax_comm xst.m xi;
+  assert (xst.m == seq_max x);
   assert m' == seq_max (x @+ seq![xi]);
   let fxi = exp (xi -. m') in
   let adj = exp (xst.m -. m') in
@@ -337,7 +349,7 @@ let lem_online_softmax_adj_aux
        0.0R *. r2 == 0.0R, so the helper's rescaled initial accumulator
        matches our initial 0.0R. *)
     lemma_seq_fold_left_distrib_mul op op_distrib_mul 0.0R r2 s1;
-    assert (0.0R *. r2 == 0.0R);
+    zero_mul r2;
     assert (seq_fold_left op 0.0R s1_scaled == v1 *. r2);
     assert (seq_fold_left op 0.0R s2_prefix == v1 *. r2);
 

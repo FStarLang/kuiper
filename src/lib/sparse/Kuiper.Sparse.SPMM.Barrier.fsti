@@ -32,13 +32,22 @@ let row_prefix_bound
     Kuiper.Divides.lemma_divides_le (chunk sz) p.blockItemsK;
     FStar.Math.Lemmas.euclidean_division_definition ri (max (chunk et) (chunk sz))
 
+(* The barrier offset [ri' + (it / 2) * blockItemsK] is natural (and equal
+   to [ri'] in the first two iterations); the product is nonlinear, so supply
+   these facts as a triggered lemma. *)
+private let half_times_nonneg_pat (a : nat) (b : nat)
+  : Lemma (a / 2 * b >= 0 /\ (a < 2 ==> a / 2 * b == 0)) [SMTPat (a / 2 * b)]
+  = FStar.Math.Lemmas.nat_times_nat_is_nat (a / 2) b;
+    if a < 2 then FStar.Math.Lemmas.small_div a 2
+
 (* [round2 k n] rounds [n] down to a multiple of [k]: [n - k < round2 k n <= n].
    Nonlinear (Euclidean division), needed to typecheck the slice bounds in
    [barrier_in]/[barrier_out] below; supplied as a triggered fact. *)
 private let round2_bounds_pat (k : pos) (n : nat)
-  : Lemma (round2 k n <= n /\ n - round2 k n < k) [SMTPat (round2 k n)]
+  : Lemma (0 <= round2 k n /\ round2 k n <= n /\ n - round2 k n < k) [SMTPat (round2 k n)]
   = FStar.Math.Lemmas.euclidean_division_definition n k;
-    FStar.Math.Lemmas.lemma_mod_lt n k
+    FStar.Math.Lemmas.lemma_mod_lt n k;
+    FStar.Math.Lemmas.nat_times_nat_is_nat (n / k) k
 
 (* Every chunk size is at most [blockItemsK] (since [blockWidth * chunk]
    divides it); together with [round2_bounds_pat] this bounds the slices
@@ -48,7 +57,16 @@ private let chunk_le_blockItemsK_pat
   : Lemma (chunk et <= p.blockItemsK /\ chunk sz <= p.blockItemsK)
           [SMTPat p.blockItemsK]
   = Kuiper.Divides.lemma_divides_le (p.blockWidth * chunk et) p.blockItemsK;
-    Kuiper.Divides.lemma_divides_le (p.blockWidth * chunk sz) p.blockItemsK
+    Kuiper.Divides.lemma_divides_le (p.blockWidth * chunk sz) p.blockItemsK;
+    FStar.Math.Lemmas.lemma_mult_le_right (SZ.v (chunk et)) 1 (SZ.v p.blockWidth);
+    FStar.Math.Lemmas.lemma_mult_le_right (SZ.v (chunk sz)) 1 (SZ.v p.blockWidth)
+
+(* Offsets [ri + idx * blockItemsK] are natural: nonlinear sign fact, supplied
+   as a triggered lemma on the product. *)
+private let times_blockItemsK_nonneg_pat
+  (#et : Type0) {| sized et, has_vec_cpy et |} (p : parameters et) (a : nat)
+  : Lemma (a * p.blockItemsK >= 0) [SMTPat (a * p.blockItemsK)]
+  = FStar.Math.Lemmas.nat_times_nat_is_nat a (SZ.v p.blockItemsK)
 
 (* --- Barrier slprop definitions --- *)
 

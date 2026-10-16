@@ -30,6 +30,21 @@ let global_frac_send
 = send_across_if_send_across_gpu (a |-> Frac f s)
     (is_send_across_global_tensor a #f s)
 
+(* Every output fragment of a global matrix is global; proved once here,
+   in a small context, rather than under the quantifier below. *)
+let output_fragment_is_global
+  (#et : Type0) {| scalar et |}
+  (#m #n : nat)
+  (gD : array2 et (rm m n) { is_global gD })
+  (bm bn tm tn wm wn : pos)
+  (#_ : squash (bm /?+ m /\ bn /?+ n /\
+                wm * tm /?+ bm /\ wn * tn /?+ bn))
+  (bid : natlt (m / bm * (n / bn)))
+  (wid : natlt (bm / (wm * tm) * (bn / (wn * tn))))
+  : Lemma (forall (mi : natlt wm) (nj : natlt wn).
+             is_global (output_fragment gD bm bn tm tn wm wn bid wid mi nj))
+= ()
+
 let output_lane_live_sendable_to
   (#et : Type0) {| scalar et |}
   (#m #n : szp)
@@ -67,6 +82,7 @@ let output_lane_live_sendable_to
     reveal (warp_tile_idx_cols
       (SZ.v bm) (SZ.v bn) (SZ.v wm * SZ.v tm) (SZ.v wn * SZ.v tn) wid)
       == wid % (SZ.v bn / (SZ.v wn * SZ.v tn)));
+  output_fragment_is_global gD bm bn tm tn wm wn bid wid;
   assert (forall (mi : natlt wm) (nj : natlt wn).
     is_global (output_fragment gD bm bn tm tn wm wn bid wid mi nj));
   solve
@@ -121,6 +137,7 @@ let output_lane_approximates_sendable_to
     reveal (warp_tile_idx_cols
       (SZ.v bm) (SZ.v bn) (SZ.v wm * SZ.v tm) (SZ.v wn * SZ.v tn) wid)
       == wid % (SZ.v bn / (SZ.v wn * SZ.v tn)));
+  output_fragment_is_global gD bm bn tm tn wm wn bid wid;
   assert (forall (mi : natlt wm) (nj : natlt wn).
     is_global (output_fragment gD bm bn tm tn wm wn bid wid mi nj));
   solve

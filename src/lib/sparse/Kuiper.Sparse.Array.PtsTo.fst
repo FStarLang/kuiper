@@ -14,6 +14,34 @@ let chunk_cell_offset (k nthr tid ch i : nat)
       i + (k * nthr + tid) * ch == (k * nthr + tid) * ch + i)
   = ()
 
+
+let chunk_slice_bound (n : nat) (nthr ch : pos) (k : natlt (n / (nthr * ch))) (tid : natlt nthr)
+  : Lemma ((k * nthr + tid) * ch + ch <= n)
+  = let m = nthr * ch in
+    FStar.Math.Lemmas.lemma_div_mod n m;
+    FStar.Math.Lemmas.lemma_mult_le_right m (k + 1) (n / m);
+    FStar.Math.Lemmas.lemma_mult_le_right ch (tid + 1) nthr;
+    FStar.Math.Lemmas.distributivity_add_left (k * nthr) (tid + 1) ch;
+    FStar.Math.Lemmas.paren_mul_right k nthr ch;
+    FStar.Math.Lemmas.distributivity_add_left k 1 m
+
+let chunk_k_bound (n : nat) (m : pos) (k : natlt (n / m))
+  : Lemma (k * m + m <= n)
+  = FStar.Math.Lemmas.lemma_div_mod n m;
+    FStar.Math.Lemmas.lemma_mult_le_right m (k + 1) (n / m)
+
+let chunk_tid_cell_bound (nthr ch : pos) (tid : natlt nthr) (i : natlt ch)
+  : Lemma (tid * ch + i < nthr * ch)
+  = FStar.Math.Lemmas.lemma_mult_le_right ch (tid + 1) nthr
+
+(* Scoped (non-global) version of the bound above: called inside
+   thread_share_chunks so the pattern does not leak to client modules. *)
+let chunk_tid_cells_bound (nthr ch : pos)
+  : Lemma (forall (tid : natlt nthr) (i : natlt ch). {:pattern (tid * ch + i)}
+             tid * ch + i < nthr * ch)
+  = introduce forall (tid : natlt nthr) (i : natlt ch). tid * ch + i < nthr * ch
+    with chunk_tid_cell_bound nthr ch tid i
+
 (* Helpers *)
 
 open Kuiper.Bijection
@@ -29,6 +57,21 @@ let share_thread_gg
 : (natlt n)
 = (k * nthr + tid)
 
+(* Euclidean round trip k -> (k%nthr, k/nthr) -> k, proved without NL search *)
+let share_thread_gg_ff_lem (n : nat) (nthr : pos) (k : natlt n)
+: Lemma (let (| tid, q |) = share_thread_ff n nthr k in
+         share_thread_gg n nthr tid q == k)
+= FStar.Math.Lemmas.euclidean_division_definition k nthr
+
+(* Round trip (tid, k) -> k*nthr+tid -> (tid, k) *)
+let share_thread_ff_gg_lem (n : nat) (nthr : pos)
+  (tid : natlt nthr) (k : natlt ((n - tid) `divup` nthr))
+: Lemma (share_thread_ff n nthr (share_thread_gg n nthr tid k) == (| tid, k |))
+= FStar.Math.Lemmas.lemma_mod_plus tid k nthr;
+  FStar.Math.Lemmas.lemma_div_plus tid k nthr;
+  FStar.Math.Lemmas.small_mod tid nthr;
+  FStar.Math.Lemmas.small_div tid nthr
+
 let share_thread_bij (n : nat) (nthr : pos)
 : bijection
   (natlt n)
@@ -38,8 +81,8 @@ let share_thread_bij (n : nat) (nthr : pos)
   ff = (fun k -> share_thread_ff n nthr k);
   gg = (fun (| tid, k |) -> share_thread_gg n nthr tid k);
 
-  ff_gg = ez;
-  gg_ff = ez;
+  ff_gg = (fun (| tid, k |) -> share_thread_ff_gg_lem n nthr tid k);
+  gg_ff = (fun k -> share_thread_gg_ff_lem n nthr k);
 }
 
 ghost
@@ -207,6 +250,8 @@ fn thread_share_chunks
       forall+ (tid : natlt nthr). live_vec x ((k * nthr + tid) * chunk et)
     )
     fn k {
+      chunk_k_bound n (nthr * ch) k;
+      chunk_tid_cells_bound nthr ch;
       forevery_factor (nthr * ch) nthr ch _;
       forevery_map #(natlt nthr)
         (fun tid ->
@@ -219,6 +264,7 @@ fn thread_share_chunks
           live_vec x ((k * nthr + tid) * chunk et)
         )
         fn tid {
+          chunk_slice_bound n nthr ch k tid;
           let v : lseq et ch = Seq.slice s
             ((k * nthr + tid) * ch)
             ((k * nthr + tid) * ch + ch);

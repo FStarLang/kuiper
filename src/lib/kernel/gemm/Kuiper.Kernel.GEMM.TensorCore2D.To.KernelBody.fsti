@@ -3,8 +3,9 @@ module Kuiper.Kernel.GEMM.TensorCore2D.To.KernelBody
 #lang-pulse
 
 open Kuiper
-(* Same budget as the implementation: the signature alone needs it. *)
-#set-options "--ifuel 1 --initial_fuel 0 --max_fuel 1 --z3rlimit 15"
+(* Same budget as the implementation: the signature alone needs it (fuel 1
+   to type [fst sh] / [fst (snd sh)] against [c_shmems]). *)
+#set-options "--ifuel 1 --fuel 1 --z3rlimit 15"
 
 open Kuiper.Array.Vectorized { has_vec_cpy, chunk }
 open Kuiper.Tensor

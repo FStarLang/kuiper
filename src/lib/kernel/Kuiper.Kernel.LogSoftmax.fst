@@ -67,10 +67,12 @@ let log_softmax_approx
     (* flog summ approximates log rs *)
     flog_models_pat et;
     assert (flog summ %~ lrs);
-    let aux (i : natlt n)
-      : Lemma (acc1 (chest_map (fun x -> x `sub` flog summ) va) i
-               %~ acc1 (log_softmax_real ra) i)
-      = assert (acc1 (chest_map (fun x -> x `sub` flog summ) va) i
+    (* Quantify directly over chest indices, matching [chest_approximates]. *)
+    let aux (ii : abs (n @| INil))
+      : Lemma (acc (chest_map (fun x -> x `sub` flog summ) va) ii
+               %~ acc (log_softmax_real ra) ii)
+      = let (i, ()) = ii in
+        assert (acc1 (chest_map (fun x -> x `sub` flog summ) va) i
                 == acc1 va i `sub` flog summ);
         assert (acc1 va i %~ acc1 ra i);
         approx_apply2 sub Kuiper.Float.Realops.r_sub (acc1 va i) (flog summ) (acc1 ra i) lrs;

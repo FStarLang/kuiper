@@ -134,6 +134,80 @@ let tile_prefix_bound
     FStar.Math.Lemmas.lemma_mult_le_right
       tile (tile_idx + 1) (whole / tile)
 
+(* Global index [tile_idx * tile + i] of a tile prefix, returned with its
+   range facts so callers need no nonlinear reasoning. *)
+let tile_glob
+  (whole : nat)
+  (tile : pos {tile /? whole})
+  (tile_idx : natlt (whole / tile))
+  (i : nat {i <= tile})
+  : r:nat{r == tile_idx * tile + i /\ r <= whole}
+  = tile_prefix_bound whole tile tile_idx i;
+    tile_idx * tile + i
+
+(* Global index [tile_idx * tile + i] of an in-tile position, strictly in range. *)
+let tile_glob_lt
+  (whole : nat)
+  (tile : pos {tile /? whole})
+  (tile_idx : natlt (whole / tile))
+  (i : natlt tile)
+  : r:natlt whole{r == tile_idx * tile + i}
+  = tile_prefix_bound whole tile tile_idx (i + 1);
+    tile_idx * tile + i
+
+(* Subtile element accesses at inner index [j] of K tile [bkIdx].  The global
+   indices are passed in already range-refined, so typing the statement needs
+   no nonlinear tile arithmetic. *)
+let __gms_tile_acc
+  (#ta #tb : Type0)
+  (#m #n #k : nat)
+  (eA : chest2 ta m k)
+  (eB : chest2 tb k n)
+  (bm : pos{bm /?+ m})
+  (bn : pos{bn /?+ n})
+  (bk : pos{bk /?+ k})
+  (mrow : natlt (m/bm))
+  (mcol : natlt (n/bn))
+  (local_r : natlt bm)
+  (local_c : natlt bn)
+  (bkIdx : natlt (k/bk))
+  (j : natlt bk)
+  (gr : natlt m) (gc : natlt n) (gk : natlt k)
+  : Lemma
+    (requires gr == mrow * bm + local_r /\ gc == mcol * bn + local_c /\ gk == bkIdx * bk + j)
+    (ensures
+     acc2 (ematrix_subtile eA bm bk mrow bkIdx) local_r j == acc2 eA gr gk /\
+     acc2 (ematrix_subtile eB bk bn bkIdx mcol) j local_c == acc2 eB gk gc)
+  = Kuiper.EMatrix.Tiling.subtile_acc2 eA bm bk mrow bkIdx local_r j;
+    Kuiper.EMatrix.Tiling.subtile_acc2 eB bk bn bkIdx mcol j local_c
+
+(* One inductive step of [__gms_tiled_step], stated over abstract indices
+   (no tile arithmetic): unfold both sums one step and combine with the IH. *)
+let __gms_tiled_step_aux
+  (#ta #tb #tacc : Type0) {| scalar tacc |}
+  (mapA : ta -> tacc) (mapB : tb -> tacc)
+  (#m #n #k #bm #bn #bk : nat)
+  (z : tacc)
+  (sA : chest2 ta bm bk)
+  (sB : chest2 tb bk bn)
+  (eA : chest2 ta m k)
+  (eB : chest2 tb k n)
+  (lr : natlt bm) (lc : natlt bn)
+  (gr : natlt m) (gc : natlt n)
+  (base : nat)
+  (d : pos{d <= bk /\ base + d <= k})
+  : Lemma
+    (requires
+      __gms mapA mapB z sA sB lr lc (d - 1)
+        == __gms mapA mapB (zero #tacc) eA eB gr gc (base + (d - 1)) /\
+      acc2 sA lr (d - 1) == acc2 eA gr (base + (d - 1)) /\
+      acc2 sB (d - 1) lc == acc2 eB (base + (d - 1)) gc)
+    (ensures
+      __gms mapA mapB z sA sB lr lc d
+        == __gms mapA mapB (zero #tacc) eA eB gr gc (base + d))
+  = __gms_fwd mapA mapB z sA sB lr lc (d - 1);
+    __gms_fwd mapA mapB (zero #tacc) eA eB gr gc (base + (d - 1))
+
 (* Tiled accumulation step: computing __gms on a subtile with the previous
    accumulation equals advancing the full accumulation by d more elements. *)
 let rec __gms_tiled_step
@@ -164,17 +238,17 @@ let rec __gms_tiled_step
   = if d = 0 then ()
     else (
       __gms_tiled_step mapA mapB eA eB bm bn bk mrow mcol local_r local_c bkIdx (d - 1);
-      MS.__gmatmul_single_lemma
-        (__gms mapA mapB (zero #tacc) eA eB (mrow * bm + local_r) (mcol * bn + local_c) (bkIdx * bk))
-        (__mulm mapA mapB) add
+      let gr = tile_glob_lt m bm mrow local_r in
+      let gc = tile_glob_lt n bn mcol local_c in
+      let base = tile_glob k bk bkIdx 0 in
+      let gk = tile_glob_lt k bk bkIdx (d - 1) in
+      tile_prefix_bound k bk bkIdx d;
+      __gms_tile_acc eA eB bm bn bk mrow mcol local_r local_c bkIdx (d - 1) gr gc gk;
+      __gms_tiled_step_aux mapA mapB
+        (__gms mapA mapB (zero #tacc) eA eB gr gc base)
         (ematrix_subtile eA bm bk mrow bkIdx)
         (ematrix_subtile eB bk bn bkIdx mcol)
-        local_r local_c d;
-      tile_prefix_bound k bk bkIdx d;
-      MS.__gmatmul_single_lemma
-        (zero #tacc) (__mulm mapA mapB) add eA eB
-        (mrow * bm + local_r) (mcol * bn + local_c)
-        (bkIdx * bk + d)
+        eA eB local_r local_c gr gc base d
     )
 
 (* Non-recursive wrapper for d=bk with SMTPat: the full tile step. *)
