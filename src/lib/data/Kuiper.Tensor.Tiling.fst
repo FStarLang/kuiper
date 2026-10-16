@@ -15,10 +15,29 @@ module SZ = Kuiper.SizeT
 
 include Kuiper.EMatrix.Tiling
 
+(* Module-local SMT patterns for the tile bound lemmas of the interface
+   (kept out of the .fsti so that they do not affect clients). *)
+let tile_row_bound_pat (rows : nat) (trows : pos) (tr : nat)
+  : Lemma (requires trows /? rows /\ tr < rows / trows)
+          (ensures 0 <= tr * trows /\ tr * trows + trows <= rows)
+          [SMTPat (tr * trows); SMTPat (natlt (rows / trows))]
+  = tile_row_bound rows trows tr
+
+let tile_coord_bound_pat (rows : nat) (trows : pos) (row : nat)
+  : Lemma (requires trows /? rows /\ row < rows)
+          (ensures 0 <= row / trows /\ row / trows < rows / trows)
+          [SMTPat (row / trows); SMTPat (natlt (rows / trows))]
+  = tile_coord_bound rows trows row
+
+
+#push-options "--fuel 0 --ifuel 0"
 let tile_idx_bound (n : nat) (t : pos {t /? n}) (k : nat {k < n / t}) (j : nat {j < t})
   : Lemma (t * k + j < n)
-  = FStar.Math.Lemmas.lemma_mult_le_left t (k + 1) (n / t);
+  = Kuiper.Divides.lemma_divides_mod t n;
+    FStar.Math.Lemmas.lemma_mult_le_left t (k + 1) (n / t);
+    FStar.Math.Lemmas.distributivity_add_right t k 1;
     FStar.Math.Lemmas.lemma_div_exact n t
+#pop-options
 
 let tile_idx_bound_forall (n : nat) (t : pos {t /? n})
   : Lemma (forall (k : nat {k < n / t}) (j : nat {j < t}). k * t + j < n)
@@ -94,6 +113,8 @@ let array2_subtile_base
     [SMTPat (core (array2_subtile gm trows tcols tr tc))]
   = ()
 
+(* Kuiper.Divides.lemma_divides_product causes a matching loop in this signature's VCs. *)
+#push-options "--using_facts_from '* -Kuiper.Divides.lemma_divides_product'"
 let cell_convert_eq
   (#et : _)
   (#rows #cols : erased nat)
@@ -115,6 +136,7 @@ let cell_convert_eq
   = tensor_pts_to_cell_eq gm (idx2 (tr * trows + i) (tc * tcols + j)) f v;
     tensor_pts_to_cell_eq (array2_subtile gm trows tcols tr tc) (idx2 i j) f v;
     ()
+#pop-options
 
 #push-options "--z3rlimit 80"
 ghost
@@ -543,6 +565,8 @@ fn array2_extract_tile_ro'
   array2_subtile gm trows tcols tr tc;
 }
 
+(* Kuiper.Divides.lemma_divides_product causes a matching loop in these signatures' VCs. *)
+#push-options "--using_facts_from '* -Kuiper.Divides.lemma_divides_product'"
 (* Explode a matrix into tiled per-cell ownership.
    Combines explode + factor + subcell_to_cell in one step.
 
@@ -654,3 +678,4 @@ fn array2_implode_tiled
   forevery_map_2 _ _ aux;
   array2_untile_with_exists gm trows tcols;
 }
+#pop-options

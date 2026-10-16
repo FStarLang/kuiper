@@ -349,6 +349,17 @@ fn odd_barrier_p_to_q
 
 (* ---- Main barrier_p_to_q_transform ---- *)
 
+(* The barrier guard [2 * shared / bk] equals [2 * (shared / bk)] when bk divides shared. *)
+#push-options "--fuel 0 --ifuel 0"
+let two_mul_div_exact (shared : nat) (bk : pos)
+  : Lemma (requires shared % bk = 0) (ensures 2 * shared / bk == 2 * (shared / bk))
+  = FStar.Math.Lemmas.lemma_div_exact shared bk;
+    FStar.Math.Lemmas.paren_mul_right 2 (shared / bk) bk;
+    FStar.Math.Lemmas.swap_mul bk (shared / bk);
+    FStar.Math.Lemmas.multiple_division_lemma (2 * (shared / bk)) bk
+#pop-options
+
+
 ghost
 fn barrier_p_to_q_transform
   (#etA #etB : Type0)
@@ -379,6 +390,8 @@ fn barrier_p_to_q_transform
     forall+ (tid : natlt nthr).
       barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
 {
+  two_mul_div_exact shared bk;
+  div_lt_mul_pat bid (rows/bm) (cols/bn);
   if (it >= 2 * (shared / bk)) {
     forevery_map
       (fun (tid : natlt nthr) ->

@@ -41,7 +41,9 @@ let kb_rem (a : SZ.t) (b : szp) (bnd : Ghost.erased int { SZ.v b <= bnd })
   = FStar.Math.Lemmas.euclidean_division_definition (SZ.v a) (SZ.v b);
     a %^ b
 
-#push-options ""
+(* [fst sh] / [fst (snd sh)] in the spec need one unfolding of [c_shmems];
+   at fuel 0 those goals time out before the fuel-1 retry succeeds. *)
+#push-options "--fuel 1"
 inline_for_extraction noextract
 fn kf
   (#et_ab #et_cd #et_acc : Type0)
@@ -155,7 +157,6 @@ fn kf
   unfold kpre1_to gA eA gB eB gC eC gD
     bm bn bk tm tn tk wm wn fA fB fC rA rB rC
     nblk nthr bid tid;
-  let (sarA, (sarB, (sarAcc, sarTail))) = sh;
 
   Kuiper.Divides.lemma_div_product (wm * tm) bm m;
   FStar.Math.Lemmas.lemma_eucl_div_bound
@@ -177,7 +178,7 @@ fn kf
     mcol * (bn / (wn * tn)) + warpCol;
 
   let (sA, sB) = setup #et_ab #et_acc
-    bm bn bk tm tn nthr (sarA, (sarB, (sarAcc, sarTail))) tid;
+    bm bn bk tm tn nthr sh tid;
 
   let rAcc'' : chest2 real (wm * tm) (wn * tn) =
     MS.matmul
@@ -200,11 +201,11 @@ fn kf
     #_ #_ #_ #_ #_
     #m #n gC (fC /. (m / bm * (n / bn) * nthr)) eC rC
     bm bn bk tm tn tk wm wn nthr
-    (sarA, (sarB, (sarAcc, sarTail))) accFrags rAcc'' tid;
+    sh accFrags rAcc'' tid;
   finish #et_ab #et_cd #et_acc comb comb_r
     gC gD
     bm bn bk tm tn tk wm wn
-    rA rB rC nthr (sarA, (sarB, (sarAcc, sarTail))) sA sB
+    rA rB rC nthr sh sA sB
     bid tid mrow mcol wid warpRow warpCol gwRow gwCol
     accFrags rAcc'';
   rewrite each (SZ.v mrow) as (SZ.v bid / (SZ.v n / SZ.v bn));
@@ -216,11 +217,6 @@ fn kf
   fold kpost1_to comb_r gA eA gB eB gC eC gD
     bm bn bk tm tn tk wm wn fA fB fC rA rB rC
     nblk nthr bid tid;
-  rewrite
-    shared_thread_live bm bn bk tm tn nthr
-      (sarA, (sarB, (sarAcc, sarTail))) tid
-  as
-    shared_thread_live bm bn bk tm tn nthr sh tid;
   fold kpost_to comb_r gA eA gB eB gC eC gD
     bm bn bk tm tn tk wm wn fA fB fC rA rB rC
     nblk nthr sh bid tid;

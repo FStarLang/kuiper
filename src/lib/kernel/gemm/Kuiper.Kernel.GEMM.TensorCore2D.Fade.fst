@@ -69,7 +69,8 @@ let tile_flat_index_bound (tm tn wm wn : pos)
 
 (* Pointwise version of [em_fade_comb_tiles_full], with the tile
    coordinate arithmetic spelled out: proving it inline under the
-   quantifier no longer goes through. *)
+   quantifier no longer goes through.  The goal needs fuel 1; start there. *)
+#push-options "--fuel 1"
 let em_fade_comb_tiles_full_at
   (comb : real -> real -> real)
   (tm tn wm wn : pos)
@@ -89,6 +90,7 @@ let em_fade_comb_tiles_full_at
   FStar.Math.Lemmas.euclidean_division_definition j tn;
   subtile_acc2 rm1 tm tn (i/tm) (j/tn) (i%tm) (j%tn);
   subtile_acc2 rm2 tm tn (i/tm) (j/tn) (i%tm) (j%tn)
+#pop-options
 
 #push-options "--z3rlimit 20"
 let em_fade_comb_tiles_full
@@ -132,7 +134,8 @@ let em_fade_comb_current_subtile_approximates
 
 (* [%~] on a [chest2] quantifies over the *flat* index, so bridging a
    per-tile approximation up to a whole-matrix one (or vice versa) needs an
-   explicit hop through that flat quantifier. *)
+   explicit hop through that flat quantifier.  Needs fuel 1 to unfold [%~]. *)
+#push-options "--fuel 1"
 let approximates_elim
   (#et : Type0) {| scalar et, real_like et |}
   (#rows #cols : nat)
@@ -141,6 +144,7 @@ let approximates_elim
   (i : natlt rows) (j : natlt cols)
   : Lemma (requires m1 %~ m2) (ensures Chest.acc2 m1 i j %~ Chest.acc2 m2 i j)
 = ()
+#pop-options
 
 let ematrix_subtile_approximates_forall
   (#et : Type0) {| scalar et, real_like et |}

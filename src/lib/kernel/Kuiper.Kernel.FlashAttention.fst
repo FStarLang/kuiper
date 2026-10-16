@@ -33,6 +33,9 @@ let fa_tile_row_bound
     FStar.Math.Lemmas.distributivity_add_right br i 1;
     FStar.Math.Lemmas.lemma_mult_le_left br (i + 1) (n / br)
 
+(* Barrier-step arithmetic, kept out of the large loop-body context. *)
+let fa_2x_succ (j : nat) : Lemma (2 * j + 1 + 1 == 2 * (j + 1)) = ()
+
 (* Projecting [rin]/[rout] out of the record literal built by
    [fa_barrier_contract] is no longer reduced for the SMT solver, so we
    discharge those slprop equalities by normalization instead. *)
@@ -382,8 +385,8 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
       with vlt. assert glt |-> vlt;
       with vmt. assert gmt |-> vmt;
       let ii = !i;
-      let qi = br *^ ii +^ tid;
       (**)fa_tile_row_bound n br ii tid;
+      let qi = br *^ ii +^ tid;
 
       mextract_row_ro gQ qi;
       let gQit = mrow gQ (SZ.v qi);
@@ -779,7 +782,7 @@ fn flashattention_inner_smem
 // (content-free) barrier contract.  Inlines the per-thread sub-view extraction
 // (cf. flashattention_kf_outer) and the outer K/V-tile loop, adding K/V/Q
 // shared caching with two barriers around the inner loop.
-#push-options "--z3rlimit 100 --fuel 1 --ifuel 1"
+#push-options "--z3rlimit 25 --fuel 1 --ifuel 1"
 inline_for_extraction noextract
 fn flashattention_kf_smem
   (#et:Type0){| scalar et, floating et |}
@@ -878,6 +881,7 @@ fn flashattention_kf_smem
   {
     let vj = !j;
     assert pure (SZ.v vj < SZ.v tc);
+    fa_tile_row_bound n nthr vj tid;
     let kr = nthr *^ vj +^ tid;
     assert pure (SZ.v nthr * SZ.v vj <= SZ.v n);
     assert pure (SZ.v kr == SZ.v nthr * SZ.v vj + SZ.v tid);
@@ -949,7 +953,7 @@ fn flashattention_kf_smem
          as ((exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r) **
              (exists* (r:chest2 et 1 (SZ.v d)). array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0 |-> Frac 1.0R r));
 
-    assert pure (2 * SZ.v vj + 1 + 1 == 2 * (SZ.v vj + 1));
+    fa_2x_succ (SZ.v vj);
     j := !j +^ 1sz;
   };
 

@@ -67,10 +67,12 @@ let log_softmax_approx
     (* flog summ approximates log rs *)
     flog_models_pat et;
     assert (flog summ %~ lrs);
-    let aux (i : natlt n)
-      : Lemma (acc1 (chest_map (fun x -> x `sub` flog summ) va) i
-               %~ acc1 (log_softmax_real ra) i)
-      = assert (acc1 (chest_map (fun x -> x `sub` flog summ) va) i
+    (* Quantify directly over chest indices, matching [chest_approximates]. *)
+    let aux (ii : abs (n @| INil))
+      : Lemma (acc (chest_map (fun x -> x `sub` flog summ) va) ii
+               %~ acc (log_softmax_real ra) ii)
+      = let (i, ()) = ii in
+        assert (acc1 (chest_map (fun x -> x `sub` flog summ) va) i
                 == acc1 va i `sub` flog summ);
         assert (acc1 va i %~ acc1 ra i);
         approx_apply2 sub Kuiper.Float.Realops.r_sub (acc1 va i) (flog summ) (acc1 ra i) lrs;
@@ -110,6 +112,21 @@ fn log_softmax_gpu
   ()
 }
 
+(* Transport the device-side chest approximation to the host sequence view. *)
+let approx_to_seq_l1
+    (#et:Type0) {| floating et, real_like et |}
+    (#n:nat) (res : chest1 et n) (r : chest1 real n)
+  : Lemma (requires res %~ r)
+          (ensures (to_seq (l1_forward n) res <: lseq et n) %~ chest1_to_seq r)
+  = let s : lseq et n = to_seq (l1_forward n) res in
+    let q = chest1_to_seq r in
+    introduce forall (i:nat). i < n ==> (s @! i) %~ (q @! i)
+    with introduce _ ==> _
+    with (
+      assert (s @! i == acc res (i, ()));
+      assert (q @! i == acc r (i, ()))
+    )
+
 inline_for_extraction noextract
 fn log_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -142,6 +159,7 @@ fn log_softmax
     };
   log_softmax_gpu nth ga (seq_to_chest1 ra);
   with res. assert on gpu_loc (ga |-> res);
+  approx_to_seq_l1 res (log_softmax_real (seq_to_chest1 ra));
   map_loc gpu_loc #(ga |-> res) #(core ga |-> to_seq (l1_forward lena) res)
     fn _ { tensor_concr ga; };
   memcpy_device_to_host a (core ga) lena;
