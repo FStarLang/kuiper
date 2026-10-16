@@ -351,6 +351,11 @@ let cp_chunk_et_divides_col
     offset == tid * chunk et /\ row < rows /\ col < cols - chunk et + 1))
 = cp_chunk_et_divides_col' et rows cols nthr tid it ()
 
+(* Sum of two 16-aligned offsets is 16-aligned. *)
+let aligned_sum16 (a b : nat)
+  : Lemma (requires 16 /?+ a /\ 16 /?+ b) (ensures 16 /?+ (a + b))
+  = FStar.Math.Lemmas.modulo_distributivity a b 16
+
 (* Alignment of the source cell read at iteration [it], stated directly on
    the div/mod expressions so that the call has only cheap preconditions. *)
 let cp_chunk_cell_aligned
@@ -376,7 +381,7 @@ let cp_chunk_cell_aligned
   let row = (i0 + offset) / cols in
   let col = (i0 + offset) % cols in
   cp_cell_aligned #et srm row col;
-  FStar.Math.Lemmas.modulo_distributivity (base_address arr) (cell_of_pos l row col * size #et) 16
+  aligned_sum16 (base_address arr) (cell_of_pos l row col * size #et)
 
 let cp_in_chunk
   (et : Type0) {| scalar et, has_vec_cpy et |}
@@ -405,6 +410,15 @@ let cp_in_chunk
   FStar.Math.Lemmas.small_div k (chunk et);
   FStar.Math.Lemmas.lemma_mod_plus tid it nthr
 
+(* Euclidean decomposition of a flat index whose chunk index is it * nthr + tid. *)
+#push-options "--fuel 0 --ifuel 0"
+let flat_idx_decomp (f c nthr it tid : nat)
+  : Lemma (requires c > 0 /\ f / c == it * nthr + tid)
+          (ensures f == it * nthr * c + tid * c + f % c)
+  = FStar.Math.Lemmas.euclidean_division_definition f c;
+    FStar.Math.Lemmas.distributivity_add_left (it * nthr) tid c
+#pop-options
+
 let em_fade'_fade_aux
   (et : Type0) {| scalar et, has_vec_cpy et |}
   (rows cols nthr : pos) (tid it : nat)
@@ -432,6 +446,7 @@ let em_fade'_fade_aux
     if chunk_idx / nthr = it && chunk_idx % nthr = tid then begin
       assert (chunk_idx == it * nthr + tid);
       let flat_idx_rem = flat_idx % chunk et in
+      flat_idx_decomp flat_idx (chunk et) nthr it tid;
       assert (flat_idx == it * nthr * chunk et + tid * chunk et + flat_idx_rem);
       cp_chunk_et_divides_col et rows cols nthr tid it ();
       cp_in_chunk et rows cols nthr tid it flat_idx_rem ();
