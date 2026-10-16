@@ -38,10 +38,10 @@ using namespace nvcuda;
   } while (0)
 
 // Read-modify-write store: copy the accumulator [fr] into a scratch fragment
-// [_kpr_old] (a value copy, purely to obtain [fr]'s opaque 'auto' type), load
-// the resident tile from [gm] into [_kpr_old], combine it register-wise with
-// [fr] via the (inlined) [combined] expression, then store [fr]. The two register
-// reads are bound here to named locals [_kpr_old_v] (old C) and [_kpr_new_v]
+// [_kpr_tmp] (a value copy, purely to obtain [fr]'s opaque 'auto' type), load
+// the resident tile from [gm] into [_kpr_tmp], combine it register-wise with
+// [fr] via the (inlined) [combined] expression, then store [_kpr_tmp], preserving
+// [fr]. The two register reads are bound to [_kpr_old_v] (old C) and [_kpr_new_v]
 // (accumulator), and the plugin builds [combined] in terms of them (e.g.
 // g(_kpr_old_v, _kpr_new_v)). Binding the reads to locals -- rather than emitting
 // them inside [combined] -- is what lets an overwrite combine (g old new = new)
@@ -49,14 +49,14 @@ using namespace nvcuda;
 // one is dropped instead of being hoisted out of this macro as a stray ignore.
 #define KPR_STORE_COMB(gm, fr, ldm, combined)                                  \
   do {                                                                         \
-    auto _kpr_old = (fr);                                                      \
-    wmma::load_matrix_sync(_kpr_old, (gm), (ldm), wmma::mem_row_major);        \
-    for (uint32_t _kpr_i = 0; _kpr_i < KPR_NELEM(fr); _kpr_i++) {             \
-      [[maybe_unused]] auto _kpr_old_v = KPR_FRAG_GET(_kpr_old, _kpr_i);      \
-      [[maybe_unused]] auto _kpr_new_v = KPR_FRAG_GET(fr, _kpr_i);            \
-      KPR_FRAG_SET(fr, _kpr_i, (combined));                                    \
+    auto _kpr_tmp = (fr);                                                      \
+    wmma::load_matrix_sync(_kpr_tmp, (gm), (ldm), wmma::mem_row_major);        \
+    for (uint32_t _kpr_i = 0; _kpr_i < KPR_NELEM(fr); _kpr_i++) {              \
+      [[maybe_unused]] auto _kpr_old_v = KPR_FRAG_GET(_kpr_tmp, _kpr_i);       \
+      [[maybe_unused]] auto _kpr_new_v = KPR_FRAG_GET(fr, _kpr_i);             \
+      KPR_FRAG_SET(_kpr_tmp, _kpr_i, (combined));                              \
     }                                                                          \
-    wmma::store_matrix_sync((gm), (fr), (ldm), wmma::mem_row_major);           \
+    wmma::store_matrix_sync((gm), _kpr_tmp, (ldm), wmma::mem_row_major);       \
   } while (0)
 
 #endif /* KUIPER_TENSORCORES_H */
