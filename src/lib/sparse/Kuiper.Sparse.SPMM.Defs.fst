@@ -87,13 +87,19 @@ let brow
 : GTot (natlt p.rows)
 = bid % p.rows
 
+(* [%^] is specified via [mod_spec] (a - (a/b)*b); relate it to [%] explicitly *)
+let rem_eq_mod (a : sz) (b : szp)
+  : Lemma (SZ.v (a %^ b) == SZ.v a % SZ.v b)
+  = FStar.Math.Lemmas.euclidean_division_definition (SZ.v a) (SZ.v b)
+
 inline_for_extraction noextract
 let brow_
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et) (bid : szlt (nblocks_ p))
   (#_ : squash (fits (p.cols + p.blockItemsX)))
 : Tot (m : sz {SZ.v m == brow p bid})
-= bid %^ p.rows
+= rem_eq_mod bid p.rows;
+  bid %^ p.rows
 
 (* [bid < rows * divup cols x ==> (bid / rows) * x < cols], with every
    nonlinear step explicit. *)
@@ -145,6 +151,12 @@ let tcol
   lemma_divides_sum (chunk et) (bcol p bid) (tid * chunk et);
   bcol p bid + tid * chunk et
 
+(* [c * s == 16] implies [c <= 16], with explicit nonlinear steps *)
+let chunk_le_16 (c s : nat)
+  : Lemma (requires c * s == 16) (ensures c <= 16)
+  = if s = 0 then FStar.Math.Lemmas.mul_zero_right_is_zero c
+    else FStar.Math.Lemmas.lemma_mult_le_left c 1 s
+
 inline_for_extraction noextract
 let tcol_
   (#et : Type0) {| sized et, has_vec_cpy et |}
@@ -153,6 +165,7 @@ let tcol_
   (tid : szlt p.blockWidth)
 : Pure sz (requires true) (ensures fun c -> SZ.v c == tcol p bid tid)
 = assert (SZ.v (chunk et) * SZ.v (size #et) == 16);
+  chunk_le_16 (SZ.v (chunk et)) (SZ.v (size #et));
   assert (SZ.v (chunk et) <= 16);
   assert (SZ.v tid < SZ.v p.blockWidth /\ SZ.v p.blockWidth <= SZ.v max_threads);
   let c : (c : sz { SZ.v c == SZ.v tid * SZ.v (chunk et) }) = tid *^ chunk et in

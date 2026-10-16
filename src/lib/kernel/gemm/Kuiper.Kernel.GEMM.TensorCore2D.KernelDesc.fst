@@ -704,6 +704,14 @@ fn warp_tile_pts_to_gatherwarp
   ();
 }
 
+(* (wid * warp_size + i) / warp_size == wid for small i; proved without nonlinear search. *)
+#push-options "--fuel 0 --ifuel 0"
+let warp_div_lemma (wid : nat) (i : nat{i < warp_size})
+  : Lemma ((wid * warp_size + i) / warp_size == wid)
+  = Math.Lemmas.lemma_div_plus i wid warp_size;
+    Math.Lemmas.small_div i warp_size
+#pop-options
+
 (* The relevant leaf goals need [ifuel 2].  Asking for it up front avoids two
    doomed rlimit-sized attempts at [ifuel 1]. *)
 #push-options "--ifuel 2"
@@ -765,6 +773,7 @@ fn rhs_is_constant_for_warps_approx
     forevery_natlt_pop_shift _ _;
 
     rewrite each (wid * warp_size + 0) as (wid * warp_size);
+    warp_div_lemma wid 0;
     rewrite each ((wid * warp_size) / warp_size) as wid;
     let em0 = emf (wid * warp_size);
     assert rewrites_to em0 (emf (wid * warp_size));
@@ -783,6 +792,7 @@ fn rhs_is_constant_for_warps_approx
       (fun i -> warp_tile_pts_to gC bm bn tm tn wm wn bid wid em0)
       // ^ NB: dropping the pure part above, it doesn't matter as we already have this fact about em0
       fn i {
+        warp_div_lemma wid (i + 1);
         rewrite each ((wid * warp_size + (i + 1)) / warp_size) as wid;
         warp_tile_pts_to_eq gC bm bn tm tn wm wn bid wid (emf (wid * warp_size + (i+1))) em0;
         ()

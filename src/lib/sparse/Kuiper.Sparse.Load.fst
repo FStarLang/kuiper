@@ -86,6 +86,45 @@ fn array_vec_cpy_local
   assert pure (u `Seq.equal` Seq.slice v soff (soff + chunk a));
 }
 
+(* One cell of a strided row-major matrix, seen as a cell of its core array;
+   proved in a small context. *)
+ghost
+fn strided_cell_to_core
+  (#et:Type0)
+  (#rows #cols : erased nat)
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (gm : array2 et l)
+  (i : natlt rows) (j0 : nat) (x : nat { j0 + x < cols }) (off0 : nat)
+  (v : et)
+  requires Cell gm (idx2 i (j0 + x <: natlt cols)) |-> v
+  requires pure (off0 == SZ.v strided.offset + SZ.v strided.stride * i + j0)
+  ensures  Cell (core gm <: array et) (off0 + x <: nat) |-> v
+{
+  tensor_pts_to_cell_eq gm (idx2 i (j0 + x <: natlt cols)) 1.0R v;
+  strided.pf i (j0 + x);
+  rewrite Cell gm (idx2 i (j0 + x <: natlt cols)) |-> v
+  as Cell (core gm <: array et) (off0 + x <: nat) |-> v;
+}
+
+(* Converse of [strided_cell_to_core]. *)
+ghost
+fn strided_core_to_cell
+  (#et:Type0)
+  (#rows #cols : erased nat)
+  (#l : layout2 rows cols) {| T.ctlayout l, strided : strided_row_major l |}
+  (gm : array2 et l)
+  (i : natlt rows) (j0 : nat) (x : nat { j0 + x < cols }) (off0 : nat)
+  (v : et)
+  requires pts_to_cell (core gm) (off0 + x) v
+  requires pure (off0 == SZ.v strided.offset + SZ.v strided.stride * i + j0)
+  ensures  tensor_pts_to_cell gm (idx2 i (j0 + x <: natlt cols)) v
+{
+  tensor_pts_to_cell_eq gm (idx2 i (j0 + x <: natlt cols)) 1.0R v;
+  strided.pf i (j0 + x);
+  rewrite pts_to_cell (core gm) (off0 + x) v
+  as tensor_pts_to_cell gm (idx2 i (j0 + x <: natlt cols)) v;
+}
+
 inline_for_extraction noextract
 fn matrix_vec_store
   (#et:Type0) {| sized et, has_vec_cpy et |}
@@ -113,21 +152,14 @@ fn matrix_vec_store
 
   strided.pf i j;
   let offset : sz = strided.offset +^ strided.stride *^ i +^ j;
+  assert pure (SZ.v offset ==
+    SZ.v strided.offset + SZ.v strided.stride * SZ.v i + SZ.v j);
 
   forevery_map #(natlt (chunk et))
     (fun x -> Cell gm (idx2 (i <: natlt rows) (j + x <: natlt cols)) |-> (Seq.index v x))
     (fun x -> Cell (core gm <: array et) (offset + x <: nat) |-> (Seq.index v x))
     fn x {
-      let j' : natlt cols = j + x;
-      assert rewrites_to j' (j + x);
-      let i' : natlt rows = SZ.v i;
-      assert rewrites_to i' (SZ.v i);
-
-      tensor_pts_to_cell_eq gm (idx2 i' j') 1.0R (Seq.index v x);
-      strided.pf i' j';
-
-      rewrite Cell gm (idx2 i' j') |-> Seq.index v x
-      as Cell (core gm <: array et) (offset + x <: nat) |-> Seq.index v x;
+      strided_cell_to_core gm (SZ.v i) (SZ.v j) x (SZ.v offset) (Seq.index v x);
     };
 
   forevery_rw_size (chunk et) ((offset + chunk et) - offset);
@@ -151,21 +183,10 @@ fn matrix_vec_store
       tensor_pts_to_cell gm (idx2 i (j + x)) (Seq.index (seq_chunk s k) x)
     )
     fn x {
-      let j' : natlt cols = j + x;
-      assert rewrites_to j' (j + x);
-      let i' : natlt rows = SZ.v i;
-      assert rewrites_to i' (SZ.v i);
-
-      tensor_pts_to_cell_eq gm (idx2 i' j') 1.0R (Seq.index (Seq.slice s k (k + chunk et)) x);
-      strided.pf i' j';
-
-      // assert pure (Seq.slice s k (k + chunk et) @! x == seq_chunk s k @! x);
-      rewrite
-        pts_to_cell
-          (core gm)
-          (offset + x)
-          (Seq.index (Seq.slice s k (k + chunk et)) x)
-      as tensor_pts_to_cell gm (idx2 i' j') (Seq.index (seq_chunk s k) x);
+      strided_core_to_cell gm (SZ.v i) (SZ.v j) x (SZ.v offset)
+        (Seq.index (Seq.slice s k (k + chunk et)) x);
+      rewrite each Seq.index (Seq.slice s k (k + chunk et)) x
+        as Seq.index (seq_chunk s k) x;
     };
   fold matrix_pts_to_vec gm i j (seq_chunk s k);
   fold matrix_pts_to_vec_slice gm i j s k;
@@ -315,7 +336,21 @@ let aligned_cont_offset
     aligned_cont_layout (chunk et) cl
   )
   (ensures aligned' 16 (core a) (cl.offset + off))
-= ()
+= (* explicit nonlinear steps: (off+offset) = c*q, so (off+offset)*size = q*16 *)
+  let c : pos = SZ.v (chunk et) in
+  let o : nat = SZ.v cl.offset + off in
+  Kuiper.Divides.lemma_nat_divides_pos_divides c (SZ.v cl.offset);
+  Kuiper.Divides.lemma_divides_sum c (SZ.v cl.offset) off;
+  Kuiper.Divides.lemma_divides_exact c o;
+  assert (c * size #et == 16);
+  let q = o / c in
+  assert (o == c * q);
+  FStar.Math.Lemmas.paren_mul_right c q (size #et);
+  FStar.Math.Lemmas.swap_mul q (size #et);
+  FStar.Math.Lemmas.paren_mul_right c (size #et) q;
+  assert (o * size #et == 16 * q);
+  FStar.Math.Lemmas.swap_mul 16 q;
+  FStar.Math.Lemmas.lemma_mod_plus (base_address (core a)) q 16
 
 (* [c /? a /\ c /? b /\ a < b ==> a + c <= b], proven with explicit
    nonlinear steps rather than left to Z3 in the large context below. *)
@@ -329,6 +364,61 @@ let divides_lt_add (c : pos) (a b : nat)
     if qa >= qb then FStar.Math.Lemmas.lemma_mult_le_left c qb qa;
     FStar.Math.Lemmas.lemma_mult_le_left c (qa + 1) qb;
     FStar.Math.Lemmas.distributivity_add_right c qa 1
+
+(* Pointwise characterization of [seq_blit], in a small context. *)
+let seq_blit_index (#a:Type) (s1 s2 : Seq.seq a) (off1 off2 cnt : nat) (i : nat)
+  : Lemma
+    (requires off1 + cnt <= Seq.length s1 /\ off2 + cnt <= Seq.length s2 /\ i < Seq.length s1)
+    (ensures
+      Seq.length (Kuiper.Seq.Common.seq_blit s1 off1 s2 off2 cnt) == Seq.length s1 /\
+      Seq.index (Kuiper.Seq.Common.seq_blit s1 off1 s2 off2 cnt) i ==
+        (if i < off1 || off1 + cnt <= i then Seq.index s1 i
+         else Seq.index s2 (off2 + i - off1)))
+  = let cut = Seq.slice s2 off2 (off2 + cnt) in
+    let left = Seq.slice s1 0 off1 in
+    let right = Seq.slice s1 (off1 + cnt) (Seq.length s1) in
+    let lc = Seq.append left cut in
+    assert (Kuiper.Seq.Common.seq_blit s1 off1 s2 off2 cnt == Seq.append lc right);
+    if i < off1 then begin
+      Seq.lemma_index_app1 lc right i;
+      Seq.lemma_index_app1 left cut i;
+      Seq.lemma_index_slice s1 0 off1 i
+    end else if i < off1 + cnt then begin
+      Seq.lemma_index_app1 lc right i;
+      Seq.lemma_index_app2 left cut i;
+      Seq.lemma_index_slice s2 off2 (off2 + cnt) (i - off1)
+    end else begin
+      Seq.lemma_index_app2 lc right i;
+      Seq.lemma_index_slice s1 (off1 + cnt) (Seq.length s1) (i - (off1 + cnt))
+    end
+
+(* A chunk copy between the sequence views of two chests is [chest1_blit'];
+   proved here in a small context. *)
+let seq_blit_chest1_blit'
+  (#et : Type u#0) {| sized et, has_vec_cpy et |}
+  (#n1 : pos) (ds : chest1 et n1) (off1 : natlt n1)
+  (#n2 : pos) (ss : chest1 et n2) (off2 : natlt n2)
+  : Lemma
+    (requires
+      chunk et /? n1 /\ chunk et /? off1 /\ chunk et /? n2 /\ chunk et /? off2 /\
+      off1 + chunk et <= n1 /\ off2 + chunk et <= n2)
+    (ensures
+      seq_to_chest1 #_ #n1
+        (Kuiper.Seq.Common.seq_blit (chest1_to_seq ds) off1 (chest1_to_seq ss) off2 (chunk et))
+      `equal` chest1_blit' ds off1 ss off2 (chunk et))
+  = let cnt = chunk et in
+    let s1 = chest1_to_seq ds in
+    let s2 = chest1_to_seq ss in
+    let s = Kuiper.Seq.Common.seq_blit s1 off1 s2 off2 cnt in
+    let lhs = seq_to_chest1 #_ #n1 s in
+    let rhs = chest1_blit' ds off1 ss off2 cnt in
+    assert (rhs == chest_blit ds off1 ss off2 cnt);
+    let aux (k : abs (n1 @| INil)) : Lemma (acc lhs k == acc rhs k) =
+      let (i, ()) = k in
+      seq_blit_index s1 s2 off1 off2 cnt i
+    in
+    Classical.forall_intro aux;
+    lemma_equal_intro lhs rhs
 
 #push-options "--z3rlimit 15"
 inline_for_extraction noextract
@@ -375,6 +465,7 @@ fn array_vec_cpy'
     raise_cont src_arr #f;
 
     with ds'. assert dst_arr |-> ds';
+    seq_blit_chest1_blit' ds (SZ.v dst_off) ss (SZ.v src_off);
     assert pure (
       ds' `equal` (chest1_blit' ds dst_off ss src_off (chunk et))
     );

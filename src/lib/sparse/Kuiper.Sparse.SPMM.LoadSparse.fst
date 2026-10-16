@@ -8,18 +8,7 @@ open Kuiper.Sparse.Load
 open Kuiper.Array.Vectorized
 open Kuiper.Array2.Vectorized
 open Kuiper.EMatrix
-
-let load_array_vec_bounds
-  (n m i : nat)
-  (nthr ch : pos)
-  (tid : natlt nthr)
-  : Lemma
-      (requires nthr * ch /? n /\ i + n <= m)
-      (ensures forall (k : natlt (n / nthr / ch)).
-        i + (k * nthr + tid) * ch <= m - ch)
-  = introduce forall (k : natlt (n / nthr / ch)).
-      i + (k * nthr + tid) * ch <= m - ch
-    with ()
+module SZ = Kuiper.SizeT
 
 (* The k-th chunk of thread [tid] ends at or before [n]. *)
 let load_array_vec_chunk_end
@@ -36,6 +25,31 @@ let load_array_vec_chunk_end
     FStar.Math.Lemmas.lemma_mult_le_right ch (k * nthr + tid + 1) (q * nthr);
     FStar.Math.Lemmas.paren_mul_right q nthr ch;
     FStar.Math.Lemmas.distributivity_add_left (k * nthr + tid) 1 ch
+
+(* Every chunk of thread [tid] lies within [y], from offset [i]. *)
+let load_array_vec_bounds
+  (n m i : nat)
+  (nthr ch : pos)
+  (tid : natlt nthr)
+  : Lemma
+      (requires nthr * ch /? n /\ i + n <= m)
+      (ensures forall (k : natlt (n / nthr / ch)).
+        i + (k * nthr + tid) * ch <= m - ch)
+  = introduce forall (k : natlt (n / nthr / ch)).
+      i + (k * nthr + tid) * ch <= m - ch
+    with load_array_vec_chunk_end n nthr ch tid k
+
+(* Moving an aligned offset by a whole number of chunks keeps it aligned. *)
+let load_array_vec_aligned
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (x : array et) (o j : nat)
+  : Lemma (requires aligned' 16 x o)
+          (ensures aligned' 16 x (o + j * chunk et))
+  = let c : pos = SZ.v (chunk et) in
+    assert (c * size #et == 16);
+    FStar.Math.Lemmas.distributivity_add_left o (j * c) (size #et);
+    FStar.Math.Lemmas.paren_mul_right j c (size #et);
+    FStar.Math.Lemmas.lemma_mod_plus (base_address x + o * size #et) j 16
 
 let load_array_vec_size (n : nat) (nthr ch : pos)
   : Lemma (n / (nthr * ch) == n / nthr / ch)
@@ -83,6 +97,9 @@ fn load_array_vec
     load_array_vec_chunk_end n nthr (chunk et) tid k;
     assert pure ((k * nthr + tid) * chunk et < n);
     assert pure ((k * nthr + tid) * chunk et + chunk et <= n);
+    assert pure (aligned' 16 x 0);
+    load_array_vec_aligned x 0 (k * nthr + tid);
+    load_array_vec_aligned y i (k * nthr + tid);
     array_vec_cpy_device
       x ((k *^ nthr +^ tid) *^ chunk et)
       y (i +^ ((k *^ nthr +^ tid) *^ chunk et));

@@ -82,6 +82,34 @@ let lemma_divides_tile_offset
   lemma_divides_sum (chunk et) j (k * step * chunk et)
 #pop-options
 
+(* Bounds and divisibility of the destination offset of chunk [k]. *)
+let lemma_tile_dst_offset
+  (c : pos) (n : nat) (k : nat { k < n / c })
+: Lemma (k * c < n /\ c /? (k * c))
+= FStar.Math.Lemmas.lemma_mult_le_right c (k + 1) (n / c);
+  FStar.Math.Lemmas.lemma_div_mod n c;
+  FStar.Math.Lemmas.distributivity_add_left k 1 c;
+  lemma_divides_product c k
+
+(* One step of [chest1_tile_cpy], unfolded in a small context. *)
+let chest1_tile_cpy_succ
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#n1 : nat { chunk et /? n1 })
+  (s1 : chest1 et n1)
+  (#n2 : nat { chunk et /? n2 })
+  (s2 : chest1 et n2)
+  (j2 : nat { chunk et /? j2 })
+  (step : nat)
+  (k : nat { k < n1 / chunk et })
+  (off1 : natlt n1 { off1 == k * chunk et /\ chunk et /? off1 })
+  (off2 : nat { off2 == j2 + k * step * chunk et /\ chunk et /? off2 })
+: Lemma
+  (chest1_tile_cpy s1 s2 j2 step (k + 1) ==
+    chest1_blit' (chest1_tile_cpy s1 s2 j2 step k) off1 s2 off2 (chunk et))
+= assert_norm (chest1_tile_cpy s1 s2 j2 step (k + 1) ==
+    chest1_blit' (chest1_tile_cpy s1 s2 j2 step k) (k * chunk et) s2
+      (j2 + k * step * chunk et) (chunk et))
+
 inline_for_extraction noextract
 fn tile_vec_cpy
   (#et:Type0) {| sized et, has_vec_cpy et |}
@@ -114,11 +142,17 @@ fn tile_vec_cpy
       x1 |-> chest1_tile_cpy s1 s2 j step vk
     decreases (n1 / chunk et - !k)
   {
-    lemma_fits_tile_offset et n1 j !k step;
-    lemma_divides_tile_offset et j !k step;
-    assert pure (fits (j + !k * step * chunk et));
-    array_vec_cpy' x1 (!k *^ chunk et) x2 (j +^ !k *^ step *^ chunk et);
-    k := !k +^ 1sz;
+    let vk = !k;
+    lemma_fits_tile_offset et n1 j vk step;
+    lemma_divides_tile_offset et j vk step;
+    assert pure (fits (j + vk * step * chunk et));
+    lemma_tile_dst_offset (chunk et) n1 vk;
+    let off1 : sz = vk *^ chunk et;
+    let off2 : sz = j +^ vk *^ step *^ chunk et;
+    assert pure (off1 < n1 /\ chunk et /? off1 /\ chunk et /? off2);
+    chest1_tile_cpy_succ s1 s2 j step vk off1 off2;
+    array_vec_cpy' x1 off1 x2 off2;
+    k := vk +^ 1sz;
 
   }
 }
@@ -158,6 +192,25 @@ let chest2_tile_cpy
 
 open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
 
+
+(* One loop step of [matrix_tile_vec_cpy]: updating row [vk] with its target
+   row extends the invariant from [vk] to [vk + 1]. *)
+let matrix_tile_vec_cpy_step
+  (#et : Type0)
+  (#m1 #n1 : erased nat)
+  (em em1 : chest2 et m1 n1)
+  (vk : natlt m1)
+  (tgt : natlt m1 -> GTot (chest1 et n1))
+: Lemma
+  (requires
+    (forall (i : natlt m1 { i < vk }). chest2_row em i == tgt i) /\
+    (forall (i : natlt m1 { vk <= i }). chest2_row em i == chest2_row em1 i))
+  (ensures (
+    let em' = chest2_upd_row em vk (tgt vk) in
+    (forall (i : natlt m1 { i < vk + 1 }). chest2_row em' i == tgt i) /\
+    (forall (i : natlt m1 { vk + 1 <= i }). chest2_row em' i == chest2_row em1 i)))
+=
+  chest2_upd_row_lemma em vk (tgt vk)
 
 inline_for_extraction noextract
 fn matrix_tile_vec_cpy
@@ -235,9 +288,10 @@ fn matrix_tile_vec_cpy
     Pulse.Lib.Trade.elim_trade _ _;
 
 
-    chest2_upd_row_lemma em !k
-      (chest1_tile_cpy
-        (chest2_row em1 !k) (chest2_row em2 ri)
+    matrix_tile_vec_cpy_step em em1 !k
+      (fun i -> chest1_tile_cpy
+        (chest2_row em1 i)
+        (chest2_row em2 (Seq.index vrow_ind i))
         j step (n1 / chunk et));
 
     k := !k +^ 1sz;
@@ -373,9 +427,10 @@ let rec chest1_tile_cpy_col_lemma2
     let k2 = k % chunk et in
 
     if (to - 1) * chunk et <= k && k < to * chunk et then (
+      assert ((to - 1 + 1) * chunk et == to * chunk et);
       lem1 (chunk et) k (to - 1);
-      assert k1 = j2 + (to - 1) * step * chunk et;
-      assert k2 = k - (to - 1) * chunk et
+      assert (k / chunk et == to - 1);
+      assert (k1 == j2 + (to - 1) * step * chunk et)
     )
     else
       chest1_blit_lemma1
