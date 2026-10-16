@@ -15,6 +15,33 @@ module SZ = Kuiper.SizeT
 
 include Kuiper.EMatrix.Tiling
 
+(* Linear bound on tiled indices, so SMT can show tr * trows + i < rows without nonlinear reasoning.
+   No SMTPat here (it would leak into every client); Tiling.fst adds a local pattern wrapper. *)
+#push-options "--fuel 0 --ifuel 0"
+let tile_row_bound (rows : nat) (trows : pos) (tr : nat)
+  : Lemma (requires trows /? rows /\ tr < rows / trows)
+          (ensures 0 <= tr * trows /\ tr * trows + trows <= rows)
+  = Kuiper.Divides.lemma_divides_mod trows rows;
+    FStar.Math.Lemmas.lemma_div_exact rows trows;
+    FStar.Math.Lemmas.lemma_mult_le_right trows (tr + 1) (rows / trows);
+    FStar.Math.Lemmas.distributivity_add_left tr 1 trows;
+    FStar.Math.Lemmas.nat_times_nat_is_nat tr trows;
+    FStar.Math.Lemmas.swap_mul trows (rows / trows)
+
+(* Linear bound on tile coordinates, so SMT can show row / trows < rows / trows. *)
+let tile_coord_bound (rows : nat) (trows : pos) (row : nat)
+  : Lemma (requires trows /? rows /\ row < rows)
+          (ensures 0 <= row / trows /\ row / trows < rows / trows)
+  = Kuiper.Divides.lemma_divides_mod trows rows;
+    FStar.Math.Lemmas.lemma_div_exact rows trows;
+    FStar.Math.Lemmas.lemma_div_le row rows trows;
+    FStar.Math.Lemmas.nat_over_pos_is_nat row trows;
+    FStar.Math.Lemmas.euclidean_division_definition row trows;
+    FStar.Math.Lemmas.swap_mul trows (rows / trows);
+    if row / trows = rows / trows then
+      FStar.Math.Lemmas.lemma_mod_lt row trows
+#pop-options
+
 let tile_inj_f
   (#rows #cols : nat)
   (trows : pos {trows /? rows})
@@ -23,7 +50,27 @@ let tile_inj_f
   (tc : natlt (cols / tcols))
   : abs ((trows @| tcols @| INil)) -> abs ((rows @| cols @| INil))
 =
+   tile_row_bound rows trows tr;
+   tile_row_bound cols tcols tc;
    (fun (i, (j, ())) -> (tr * trows + i, (tc * tcols + j, ())))
+
+(* Injectivity of tile_inj_f, proved by explicit destructuring. *)
+#push-options "--using_facts_from '* -Kuiper.Divides.lemma_divides_product'"
+let tile_inj_f_inj
+  (#rows #cols : nat)
+  (trows : pos {trows /? rows})
+  (tcols : pos {tcols /? cols})
+  (tr : natlt (rows / trows))
+  (tc : natlt (cols / tcols))
+  (x y : abs ((trows @| tcols @| INil)))
+  : Lemma (requires tile_inj_f trows tcols tr tc x == tile_inj_f trows tcols tr tc y)
+          (ensures x == y)
+  = let (i1, (j1, ())) = x <: natlt trows & (natlt tcols & unit) in
+    let (i2, (j2, ())) = y <: natlt trows & (natlt tcols & unit) in
+    assert (tile_inj_f trows tcols tr tc x == (tr * trows + i1, (tc * tcols + j1, ())));
+    assert (tile_inj_f trows tcols tr tc y == (tr * trows + i2, (tc * tcols + j2, ())));
+    assert (i1 == i2 /\ j1 == j2)
+#pop-options
 
 let tile_inj
   (#rows #cols : nat)
@@ -34,6 +81,7 @@ let tile_inj
   : (abs ((trows @| tcols @| INil)) @~> abs ((rows @| cols @| INil)))
 = {
    f      = tile_inj_f trows tcols tr tc;
+   is_inj = (fun x y -> tile_inj_f_inj trows tcols tr tc x y);
 }
 
 let subtile_layout
@@ -105,6 +153,8 @@ let is_array2_subtile_global
   [SMTPat (is_global (array2_subtile gm trows tcols tr tc))]
 = array2_subtile_base gm trows tcols tr tc
 
+(* Kuiper.Divides.lemma_divides_product causes a matching loop in this signature's VCs. *)
+#push-options "--using_facts_from '* -Kuiper.Divides.lemma_divides_product'"
 val cell_convert_eq
   (#et : _)
   (#rows #cols : erased nat)
@@ -123,6 +173,7 @@ val cell_convert_eq
     ==
     tensor_pts_to_cell gm #f (idx2 (tr * trows + i) (tc * tcols + j)) v
   )
+#pop-options
 
 ghost
 fn array2_tile
@@ -352,6 +403,8 @@ fn array2_extract_tile_ro'
       (gm' |-> Frac f (ematrix_subtile em trows tcols tr tc))
       (gm |-> Frac f em)
 
+(* Kuiper.Divides.lemma_divides_product causes a matching loop in these signatures' VCs. *)
+#push-options "--using_facts_from '* -Kuiper.Divides.lemma_divides_product'"
 (* Explode a matrix into tiled per-cell ownership.
    Combines explode + factor + subcell_to_cell in one step.
 
@@ -402,3 +455,4 @@ fn array2_implode_tiled
   ensures
     gm |-> mk2 (fun (row : natlt rows) (col : natlt cols) ->
       val_fn (row / trows) (col / tcols) (row % trows) (col % tcols))
+#pop-options
