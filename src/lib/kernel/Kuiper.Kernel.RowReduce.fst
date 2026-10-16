@@ -199,6 +199,35 @@ let barrier_matrix
       (if_ (not (div_pow2 (it + 1) from) && (div_pow2 it from))
            (array1_pts_to_slice_sum r from (min (from + pow2 it) nth) vr))
 
+(* Pointwise rewriting used by [mk_barrier_pre]'s [tid >= pow2 it] branch,
+   proved in a clean context. *)
+let barrier_matrix_from_if
+  (#et:Type0) {| scalar et, real_like et |}
+  (nth : szp)
+  (#l : layout1 nth)
+  (r : array1 et l)
+  (vr : lseq real nth)
+  (tid : natlt nth)
+  (it : nat { tid >= pow2 it })
+  : Lemma (forall (i:natlt nth).
+             if_ (op_Equals #(natlt nth) i (tid - pow2 it))
+               (if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid))
+                 (array1_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vr))
+             == barrier_matrix nth r vr it tid i)
+  = ()
+
+(* In [mk_barrier_pre]'s [tid < pow2 it] branch the slice guard is false
+   (only tid = 0 is divisible, and then also by pow2 (it+1)). *)
+#push-options "--fuel 0 --ifuel 0 --using_facts_from '* -Kuiper.Divides.lemma_divides_product'"
+let barrier_pre_guard_false (tid it : nat)
+  : Lemma (requires tid < pow2 it)
+          (ensures not (not (div_pow2 (it + 1) tid) && div_pow2 it tid))
+  = Kuiper.Divides.lemma_divides_mod (pow2 it) tid;
+    Kuiper.Divides.lemma_divides_mod (pow2 (it + 1)) tid;
+    if tid = 0 then FStar.Math.Lemmas.small_mod 0 (pow2 (it + 1))
+    else FStar.Math.Lemmas.small_mod tid (pow2 it)
+#pop-options
+
 ghost
 fn mk_barrier_pre
   (#et:Type0) {| scalar et, real_like et |}
@@ -219,6 +248,7 @@ fn mk_barrier_pre
     forevery_if_intro #(natlt nth) (tid - pow2 it) (fun i ->
       if_ (not (div_pow2 (it + 1) tid) && (div_pow2 it tid))
         (array1_pts_to_slice_sum r tid (min (tid + pow2 it) nth) vr));
+    barrier_matrix_from_if nth r vr tid it;
     forevery_ext
       (fun (i:natlt nth) ->
         if_ (op_Equals #(natlt nth) i (tid - pow2 it))
@@ -227,7 +257,7 @@ fn mk_barrier_pre
       (fun (i:natlt nth) -> barrier_matrix nth r vr it tid i);
   } else {
     assert pure (pow2 it > tid);
-    assert pure (tid % pow2 it == tid);
+    barrier_pre_guard_false tid it;
     if_elim_false _;
     forevery_emp_intro (natlt nth);
     forevery_ext
@@ -358,6 +388,18 @@ let min_tid_pow2_step (tid nth k : nat)
   : Lemma (requires tid < nth /\ pow2 k == 1)
           (ensures min (tid + pow2 k) nth == tid + 1)
   = ()
+
+(* Arithmetic facts for one step of [kf_block]'s reduction loop (bounds on
+   the counter and the decreasing measure), proved in a clean context. *)
+let hreduce_loop_step (k nth : nat)
+  : Lemma (requires pow2 k < nth /\ nth <= 1024)
+          (ensures k < 31 /\ k + 1 < 32 /\ pow2 (k + 1) == 2 * pow2 k /\
+                   2 * nth - pow2 (k + 1) < 2 * nth - pow2 k /\
+                   2 * nth - pow2 (k + 1) >= 0 /\
+                   pow2 (k + 1 - 1) < nth)
+  = if k >= 10 then FStar.Math.Lemmas.pow2_le_compat k 10;
+    assert_norm (pow2 10 == 1024);
+    FStar.Math.Lemmas.pow2_double_mult k
 
 (* Quantifier-free arithmetic step, proved in a clean context (stable):
    a half-open range of width 1 contains only its left endpoint. Proved as a
@@ -784,9 +826,23 @@ let kpost_block
         pure (v %~ chest1_rsum (chest_map pre_map_r (chest2_row vr bid)))
     )
 
+(* Thread [tid]'s strided partial sum is entry [tid] of [vr_partial], and
+   the width-1 slice at [tid] sums to it; proved apart from [kf_block]. *)
+let psum_vr_partial (#et:Type0) {| scalar et, real_like et |}
+  (pre_map_r : real -> real) (#cols : nat) (vr_chest : chest1 real cols)
+  (nth : pos) (tid : natlt nth) (psum : et)
+  : Lemma (requires psum %~ rsum (seq_stride (lseq_map pre_map_r (chest1_to_seq vr_chest)) nth tid))
+          (ensures (let vr_s = vr_partial pre_map_r vr_chest nth in
+                    psum %~ (vr_s @! tid) /\
+                    Seq.equal (Seq.slice vr_s tid (tid + 1)) (seq![vr_s @! tid]) /\
+                    rsum (Seq.slice vr_s tid (tid + 1)) == vr_s @! tid))
+  = let vr_s = vr_partial pre_map_r vr_chest nth in
+    assert (Seq.equal (Seq.slice vr_s tid (tid + 1)) (seq![vr_s @! tid]));
+    rsum_singleton_ (vr_s @! tid)
+
 (* ── Per-thread kernel function ────────────────────────────────────────── *)
 
-#push-options "--z3rlimit 40 --z3seed 1"
+#push-options "--z3rlimit 10"
 inline_for_extraction noextract
 fn kf_block
   (#et:Type0) {| scalar et, real_like et |}
@@ -850,13 +906,7 @@ fn kf_block
 
   (* psum approximates the [tid]-th partial sum [vr_s @! tid]. *)
   (**)assert pure (psum %~ rsum (seq_stride (lseq_map pre_map_r vr_row) nth (SZ.v tid)));
-  (**)assert pure (reveal vr_s @! SZ.v tid
-  (**)             == rsum (seq_stride (seq_map pre_map_r (chest1_to_seq (reveal vr_chest))) nth (SZ.v tid)));
-  (**)assert pure (psum %~ (reveal vr_s @! SZ.v tid));
-  (**)assert pure (Seq.equal (Seq.slice (reveal vr_s) (SZ.v tid) (SZ.v tid + 1))
-  (**)                       (seq![reveal vr_s @! SZ.v tid]));
-  (**)rsum_singleton_ (reveal vr_s @! SZ.v tid);
-  (**)assert pure (rsum (Seq.slice (reveal vr_s) (SZ.v tid) (SZ.v tid + 1)) == (reveal vr_s @! SZ.v tid));
+  (**)psum_vr_partial pre_map_r (reveal vr_chest) (SZ.v nth) (SZ.v tid) psum;
 
   (**)singleton_range_eq (SZ.v tid);
   forevery_singleton_intro'
@@ -880,8 +930,10 @@ fn kf_block
       pure (v !n > 0 ==> pow2 (v !n - 1) < v nth)
     decreases (2 * nth - spow2 !n)
   {
-    iteration nth sa vr_s tid !n;
-    n := !n +^ 1sz;
+    let vn = !n;
+    hreduce_loop_step (SZ.v vn) (SZ.v nth);
+    iteration nth sa vr_s tid vn;
+    n := vn +^ 1sz;
   };
 
   with it. assert (B.barrier_state it);

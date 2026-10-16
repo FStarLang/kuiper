@@ -32,6 +32,18 @@ type constraints (bm bn bk tm tn tk wm wn : pos) : prop =
   wn * tn /?+ bn /\
   SZ.fits (wm * wn)
 
+(* [a < p * (b/c) ==> a / (b/c) < p], triggered only on a divisor that is
+   itself a quotient: the row index of a flat warp id (needed to typecheck
+   [warp_tile] below without nonlinear search). *)
+let warp_id_row_bound_pat (a p b : nat) (c : pos)
+  : Lemma (requires b / c > 0 /\ a < p * (b / c)) (ensures a / (b / c) < p)
+          [SMTPat (a / (b / c)); SMTPat (p * (b / c))]
+  = let q = b / c in
+    if a / q >= p then begin
+      FStar.Math.Lemmas.lemma_mult_le_right q p (a / q);
+      FStar.Math.Lemmas.euclidean_division_definition a q
+    end
+
 let warp_tile_pts_to
   (#et : Type0) {| scalar et |}
   (#m #n : nat)
