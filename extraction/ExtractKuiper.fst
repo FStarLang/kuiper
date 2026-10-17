@@ -1054,16 +1054,8 @@ let _ =
     match args with
     | [x] -> mk (ECast (x, u32)) u32 E_Pure
     | _ -> fail "sizet_to_u32: expected 1 argument");
-  (* Keep the dereference marker bare: Karamel does not recognize it under a
-     cast. SizeT and UInt32 both extract to UInt32 in Kuiper. *)
-  prim "FStar.SizeT.uint32_to_sizet" 1 (fun _ args ->
-    match args with
-    | [x] ->
-      (match (strip x).e with
-       | EQual ({ ns = ["Pulse"; "Lib"; "Pervasives"]; id = "_zero_for_deref" }, []) ->
-         { strip x with ty = usize }
-       | _ -> mk (ECast (x, usize)) usize x.eff)
-    | _ -> fail "uint32_to_sizet: expected 1 argument");
+  (* Custard's karamel backend prints [r[_zero_for_deref]] as [*r]. *)
+  cconst "Kuiper.Ref.deref_index" (cname "_zero_for_deref" usize);
 
   (* Pairs *)
   prim "FStar.Pervasives.Native.fst" 1 (tuple_proj 0);

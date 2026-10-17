@@ -10,14 +10,15 @@ __hoisted_g_matmul_f32_rrr_0(uint32_t tile, float *gA, float *gB, uint32_t kk,
     uint32_t nn, uint32_t k, uint32_t n, float *gC)
 {
     float *ar1 = (float *) KPR_SHMEM_AT(0U);
-    float *ar2 = (float *) KPR_SHMEM_AT((uint32_t) sizeof(float) * tile * tile);
+    float *ar2 =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(float) * (tile * tile));
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         float v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                      tile * bk + threadIdx.x % tile];
+                      (tile * bk + threadIdx.x % tile)];
         float v2 = gB[(tile * bk + threadIdx.x / tile) * n +
-                      tile * (blockIdx.x % nn) + threadIdx.x % tile];
+                      (tile * (blockIdx.x % nn) + threadIdx.x % tile)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -32,7 +33,7 @@ __hoisted_g_matmul_f32_rrr_0(uint32_t tile, float *gA, float *gB, uint32_t kk,
         sum += sum1;
     }
     gC[(blockIdx.x / nn * tile + threadIdx.x / tile) * n +
-        blockIdx.x % nn * tile + threadIdx.x % tile] = sum;
+        (blockIdx.x % nn * tile + threadIdx.x % tile)] = sum;
 }
 
 __global__
@@ -45,14 +46,14 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t tile, double *gA, double *gB, uint32_t kk,
 {
     double *ar1 = (double *) KPR_SHMEM_AT(0U);
     double *ar2 =
-        (double *) KPR_SHMEM_AT((uint32_t) sizeof(double) * tile * tile);
+        (double *) KPR_SHMEM_AT((uint32_t) sizeof(double) * (tile * tile));
     double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                       tile * bk + threadIdx.x % tile];
+                       (tile * bk + threadIdx.x % tile)];
         double v2 = gB[(tile * bk + threadIdx.x / tile) * n +
-                       tile * (blockIdx.x % nn) + threadIdx.x % tile];
+                       (tile * (blockIdx.x % nn) + threadIdx.x % tile)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -67,7 +68,7 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t tile, double *gA, double *gB, uint32_t kk,
         sum += sum1;
     }
     gC[(blockIdx.x / nn * tile + threadIdx.x / tile) * n +
-        blockIdx.x % nn * tile + threadIdx.x % tile] = sum;
+        (blockIdx.x % nn * tile + threadIdx.x % tile)] = sum;
 }
 
 __global__
@@ -80,14 +81,14 @@ __hoisted_g_matmul_u32_rrr_0(uint32_t tile, uint32_t *gA, uint32_t *gB,
 {
     uint32_t *ar1 = (uint32_t *) KPR_SHMEM_AT(0U);
     uint32_t *ar2 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint32_t) * tile * tile);
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint32_t) * (tile * tile));
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                         tile * bk + threadIdx.x % tile];
+                         (tile * bk + threadIdx.x % tile)];
         uint32_t v2 = gB[(tile * bk + threadIdx.x / tile) * n +
-                         tile * (blockIdx.x % nn) + threadIdx.x % tile];
+                         (tile * (blockIdx.x % nn) + threadIdx.x % tile)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -102,7 +103,7 @@ __hoisted_g_matmul_u32_rrr_0(uint32_t tile, uint32_t *gA, uint32_t *gB,
         sum += sum1;
     }
     gC[(blockIdx.x / nn * tile + threadIdx.x / tile) * n +
-        blockIdx.x % nn * tile + threadIdx.x % tile] = sum;
+        (blockIdx.x % nn * tile + threadIdx.x % tile)] = sum;
 }
 
 __global__
@@ -115,14 +116,14 @@ __hoisted_g_matmul_u64_rrr_0(uint32_t tile, uint64_t *gA, uint64_t *gB,
 {
     uint64_t *ar1 = (uint64_t *) KPR_SHMEM_AT(0U);
     uint64_t *ar2 =
-        (uint64_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint64_t) * tile * tile);
+        (uint64_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint64_t) * (tile * tile));
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint64_t v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                         tile * bk + threadIdx.x % tile];
+                         (tile * bk + threadIdx.x % tile)];
         uint64_t v2 = gB[(tile * bk + threadIdx.x / tile) * n +
-                         tile * (blockIdx.x % nn) + threadIdx.x % tile];
+                         (tile * (blockIdx.x % nn) + threadIdx.x % tile)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -137,7 +138,7 @@ __hoisted_g_matmul_u64_rrr_0(uint32_t tile, uint64_t *gA, uint64_t *gB,
         sum += sum1;
     }
     gC[(blockIdx.x / nn * tile + threadIdx.x / tile) * n +
-        blockIdx.x % nn * tile + threadIdx.x % tile] = sum;
+        (blockIdx.x % nn * tile + threadIdx.x % tile)] = sum;
 }
 
 __global__ __launch_bounds__(1024)
@@ -154,9 +155,9 @@ __hoisted_g_matmul_f32_tile32_rrr_0(float *gA, float *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         float v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                      32U * bk + threadIdx.x % 32U];
+                      (32U * bk + threadIdx.x % 32U)];
         float v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
-                      32U * (blockIdx.x % nn) + threadIdx.x % 32U];
+                      (32U * (blockIdx.x % nn) + threadIdx.x % 32U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -170,8 +171,8 @@ __hoisted_g_matmul_f32_tile32_rrr_0(float *gA, float *gB, uint32_t kk,
         }
         sum += sum1;
     }
-    gC[(blockIdx.x / nn * 32U + threadIdx.x / 32U) * n + blockIdx.x % nn * 32U +
-        threadIdx.x % 32U] = sum;
+    gC[(blockIdx.x / nn * 32U + threadIdx.x / 32U) * n +
+        (blockIdx.x % nn * 32U + threadIdx.x % 32U)] = sum;
 }
 
 __global__ __launch_bounds__(1024)
@@ -188,9 +189,9 @@ __hoisted_g_matmul_f64_tile32_rrr_0(double *gA, double *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                       32U * bk + threadIdx.x % 32U];
+                       (32U * bk + threadIdx.x % 32U)];
         double v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
-                       32U * (blockIdx.x % nn) + threadIdx.x % 32U];
+                       (32U * (blockIdx.x % nn) + threadIdx.x % 32U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -204,8 +205,8 @@ __hoisted_g_matmul_f64_tile32_rrr_0(double *gA, double *gB, uint32_t kk,
         }
         sum += sum1;
     }
-    gC[(blockIdx.x / nn * 32U + threadIdx.x / 32U) * n + blockIdx.x % nn * 32U +
-        threadIdx.x % 32U] = sum;
+    gC[(blockIdx.x / nn * 32U + threadIdx.x / 32U) * n +
+        (blockIdx.x % nn * 32U + threadIdx.x % 32U)] = sum;
 }
 
 __global__ __launch_bounds__(1024)
@@ -223,9 +224,9 @@ __hoisted_g_matmul_u32_tile32_rrr_0(uint32_t *gA, uint32_t *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                         32U * bk + threadIdx.x % 32U];
+                         (32U * bk + threadIdx.x % 32U)];
         uint32_t v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
-                         32U * (blockIdx.x % nn) + threadIdx.x % 32U];
+                         (32U * (blockIdx.x % nn) + threadIdx.x % 32U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -239,8 +240,8 @@ __hoisted_g_matmul_u32_tile32_rrr_0(uint32_t *gA, uint32_t *gB, uint32_t kk,
         }
         sum += sum1;
     }
-    gC[(blockIdx.x / nn * 32U + threadIdx.x / 32U) * n + blockIdx.x % nn * 32U +
-        threadIdx.x % 32U] = sum;
+    gC[(blockIdx.x / nn * 32U + threadIdx.x / 32U) * n +
+        (blockIdx.x % nn * 32U + threadIdx.x % 32U)] = sum;
 }
 
 __global__ __launch_bounds__(1024)
@@ -258,9 +259,9 @@ __hoisted_g_matmul_u64_tile32_rrr_0(uint64_t *gA, uint64_t *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint64_t v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                         32U * bk + threadIdx.x % 32U];
+                         (32U * bk + threadIdx.x % 32U)];
         uint64_t v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
-                         32U * (blockIdx.x % nn) + threadIdx.x % 32U];
+                         (32U * (blockIdx.x % nn) + threadIdx.x % 32U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -274,8 +275,8 @@ __hoisted_g_matmul_u64_tile32_rrr_0(uint64_t *gA, uint64_t *gB, uint32_t kk,
         }
         sum += sum1;
     }
-    gC[(blockIdx.x / nn * 32U + threadIdx.x / 32U) * n + blockIdx.x % nn * 32U +
-        threadIdx.x % 32U] = sum;
+    gC[(blockIdx.x / nn * 32U + threadIdx.x / 32U) * n +
+        (blockIdx.x % nn * 32U + threadIdx.x % 32U)] = sum;
 }
 
 __global__ __launch_bounds__(256)
@@ -292,9 +293,9 @@ __hoisted_g_matmul_f32_tile16_rrr_0(float *gA, float *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         float v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                      16U * bk + threadIdx.x % 16U];
+                      (16U * bk + threadIdx.x % 16U)];
         float v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
-                      16U * (blockIdx.x % nn) + threadIdx.x % 16U];
+                      (16U * (blockIdx.x % nn) + threadIdx.x % 16U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -308,8 +309,8 @@ __hoisted_g_matmul_f32_tile16_rrr_0(float *gA, float *gB, uint32_t kk,
         }
         sum += sum1;
     }
-    gC[(blockIdx.x / nn * 16U + threadIdx.x / 16U) * n + blockIdx.x % nn * 16U +
-        threadIdx.x % 16U] = sum;
+    gC[(blockIdx.x / nn * 16U + threadIdx.x / 16U) * n +
+        (blockIdx.x % nn * 16U + threadIdx.x % 16U)] = sum;
 }
 
 __global__ __launch_bounds__(256)
@@ -326,9 +327,9 @@ __hoisted_g_matmul_f64_tile16_rrr_0(double *gA, double *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                       16U * bk + threadIdx.x % 16U];
+                       (16U * bk + threadIdx.x % 16U)];
         double v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
-                       16U * (blockIdx.x % nn) + threadIdx.x % 16U];
+                       (16U * (blockIdx.x % nn) + threadIdx.x % 16U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -342,8 +343,8 @@ __hoisted_g_matmul_f64_tile16_rrr_0(double *gA, double *gB, uint32_t kk,
         }
         sum += sum1;
     }
-    gC[(blockIdx.x / nn * 16U + threadIdx.x / 16U) * n + blockIdx.x % nn * 16U +
-        threadIdx.x % 16U] = sum;
+    gC[(blockIdx.x / nn * 16U + threadIdx.x / 16U) * n +
+        (blockIdx.x % nn * 16U + threadIdx.x % 16U)] = sum;
 }
 
 __global__ __launch_bounds__(256)
@@ -361,9 +362,9 @@ __hoisted_g_matmul_u32_tile16_rrr_0(uint32_t *gA, uint32_t *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                         16U * bk + threadIdx.x % 16U];
+                         (16U * bk + threadIdx.x % 16U)];
         uint32_t v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
-                         16U * (blockIdx.x % nn) + threadIdx.x % 16U];
+                         (16U * (blockIdx.x % nn) + threadIdx.x % 16U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -377,8 +378,8 @@ __hoisted_g_matmul_u32_tile16_rrr_0(uint32_t *gA, uint32_t *gB, uint32_t kk,
         }
         sum += sum1;
     }
-    gC[(blockIdx.x / nn * 16U + threadIdx.x / 16U) * n + blockIdx.x % nn * 16U +
-        threadIdx.x % 16U] = sum;
+    gC[(blockIdx.x / nn * 16U + threadIdx.x / 16U) * n +
+        (blockIdx.x % nn * 16U + threadIdx.x % 16U)] = sum;
 }
 
 __global__ __launch_bounds__(256)
@@ -396,9 +397,9 @@ __hoisted_g_matmul_u64_tile16_rrr_0(uint64_t *gA, uint64_t *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint64_t v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                         16U * bk + threadIdx.x % 16U];
+                         (16U * bk + threadIdx.x % 16U)];
         uint64_t v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
-                         16U * (blockIdx.x % nn) + threadIdx.x % 16U];
+                         (16U * (blockIdx.x % nn) + threadIdx.x % 16U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -412,8 +413,8 @@ __hoisted_g_matmul_u64_tile16_rrr_0(uint64_t *gA, uint64_t *gB, uint32_t kk,
         }
         sum += sum1;
     }
-    gC[(blockIdx.x / nn * 16U + threadIdx.x / 16U) * n + blockIdx.x % nn * 16U +
-        threadIdx.x % 16U] = sum;
+    gC[(blockIdx.x / nn * 16U + threadIdx.x / 16U) * n +
+        (blockIdx.x % nn * 16U + threadIdx.x % 16U)] = sum;
 }
 
 __global__
@@ -425,14 +426,15 @@ __hoisted_g_gemm_f32_rrr_0(uint32_t tile, float *gA, float *gB, uint32_t kk,
     uint32_t nn, uint32_t k, uint32_t n, float *gC, float beta, float alpha)
 {
     float *ar1 = (float *) KPR_SHMEM_AT(0U);
-    float *ar2 = (float *) KPR_SHMEM_AT((uint32_t) sizeof(float) * tile * tile);
+    float *ar2 =
+        (float *) KPR_SHMEM_AT((uint32_t) sizeof(float) * (tile * tile));
     float sum = 0.0f;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         float v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                      tile * bk + threadIdx.x % tile];
+                      (tile * bk + threadIdx.x % tile)];
         float v2 = gB[(tile * bk + threadIdx.x / tile) * n +
-                      tile * (blockIdx.x % nn) + threadIdx.x % tile];
+                      (tile * (blockIdx.x % nn) + threadIdx.x % tile)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -461,14 +463,14 @@ __hoisted_g_gemm_f64_rrr_0(uint32_t tile, double *gA, double *gB, uint32_t kk,
 {
     double *ar1 = (double *) KPR_SHMEM_AT(0U);
     double *ar2 =
-        (double *) KPR_SHMEM_AT((uint32_t) sizeof(double) * tile * tile);
+        (double *) KPR_SHMEM_AT((uint32_t) sizeof(double) * (tile * tile));
     double sum = 0.0;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                       tile * bk + threadIdx.x % tile];
+                       (tile * bk + threadIdx.x % tile)];
         double v2 = gB[(tile * bk + threadIdx.x / tile) * n +
-                       tile * (blockIdx.x % nn) + threadIdx.x % tile];
+                       (tile * (blockIdx.x % nn) + threadIdx.x % tile)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -498,14 +500,14 @@ __hoisted_g_gemm_u32_rrr_0(uint32_t tile, uint32_t *gA, uint32_t *gB,
 {
     uint32_t *ar1 = (uint32_t *) KPR_SHMEM_AT(0U);
     uint32_t *ar2 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint32_t) * tile * tile);
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint32_t) * (tile * tile));
     uint32_t sum = 0U;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                         tile * bk + threadIdx.x % tile];
+                         (tile * bk + threadIdx.x % tile)];
         uint32_t v2 = gB[(tile * bk + threadIdx.x / tile) * n +
-                         tile * (blockIdx.x % nn) + threadIdx.x % tile];
+                         (tile * (blockIdx.x % nn) + threadIdx.x % tile)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -535,14 +537,14 @@ __hoisted_g_gemm_u64_rrr_0(uint32_t tile, uint64_t *gA, uint64_t *gB,
 {
     uint64_t *ar1 = (uint64_t *) KPR_SHMEM_AT(0U);
     uint64_t *ar2 =
-        (uint64_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint64_t) * tile * tile);
+        (uint64_t *) KPR_SHMEM_AT((uint32_t) sizeof(uint64_t) * (tile * tile));
     uint64_t sum = 0ULL;
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint64_t v1 = gA[(tile * (blockIdx.x / nn) + threadIdx.x / tile) * k +
-                         tile * bk + threadIdx.x % tile];
+                         (tile * bk + threadIdx.x % tile)];
         uint64_t v2 = gB[(tile * bk + threadIdx.x / tile) * n +
-                         tile * (blockIdx.x % nn) + threadIdx.x % tile];
+                         (tile * (blockIdx.x % nn) + threadIdx.x % tile)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -575,9 +577,9 @@ __hoisted_g_gemm_f32_tile32_rrr_0(float *gA, float *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         float v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                      32U * bk + threadIdx.x % 32U];
+                      (32U * bk + threadIdx.x % 32U)];
         float v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
-                      32U * (blockIdx.x % nn) + threadIdx.x % 32U];
+                      (32U * (blockIdx.x % nn) + threadIdx.x % 32U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -610,9 +612,9 @@ __hoisted_g_gemm_f64_tile32_rrr_0(double *gA, double *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                       32U * bk + threadIdx.x % 32U];
+                       (32U * bk + threadIdx.x % 32U)];
         double v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
-                       32U * (blockIdx.x % nn) + threadIdx.x % 32U];
+                       (32U * (blockIdx.x % nn) + threadIdx.x % 32U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -647,9 +649,9 @@ __hoisted_g_gemm_u32_tile32_rrr_0(uint32_t *gA, uint32_t *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                         32U * bk + threadIdx.x % 32U];
+                         (32U * bk + threadIdx.x % 32U)];
         uint32_t v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
-                         32U * (blockIdx.x % nn) + threadIdx.x % 32U];
+                         (32U * (blockIdx.x % nn) + threadIdx.x % 32U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -684,9 +686,9 @@ __hoisted_g_gemm_u64_tile32_rrr_0(uint64_t *gA, uint64_t *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint64_t v1 = gA[(32U * (blockIdx.x / nn) + threadIdx.x / 32U) * k +
-                         32U * bk + threadIdx.x % 32U];
+                         (32U * bk + threadIdx.x % 32U)];
         uint64_t v2 = gB[(32U * bk + threadIdx.x / 32U) * n +
-                         32U * (blockIdx.x % nn) + threadIdx.x % 32U];
+                         (32U * (blockIdx.x % nn) + threadIdx.x % 32U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -719,9 +721,9 @@ __hoisted_g_gemm_f32_tile16_rrr_0(float *gA, float *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         float v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                      16U * bk + threadIdx.x % 16U];
+                      (16U * bk + threadIdx.x % 16U)];
         float v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
-                      16U * (blockIdx.x % nn) + threadIdx.x % 16U];
+                      (16U * (blockIdx.x % nn) + threadIdx.x % 16U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -754,9 +756,9 @@ __hoisted_g_gemm_f64_tile16_rrr_0(double *gA, double *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         double v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                       16U * bk + threadIdx.x % 16U];
+                       (16U * bk + threadIdx.x % 16U)];
         double v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
-                       16U * (blockIdx.x % nn) + threadIdx.x % 16U];
+                       (16U * (blockIdx.x % nn) + threadIdx.x % 16U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -791,9 +793,9 @@ __hoisted_g_gemm_u32_tile16_rrr_0(uint32_t *gA, uint32_t *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint32_t v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                         16U * bk + threadIdx.x % 16U];
+                         (16U * bk + threadIdx.x % 16U)];
         uint32_t v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
-                         16U * (blockIdx.x % nn) + threadIdx.x % 16U];
+                         (16U * (blockIdx.x % nn) + threadIdx.x % 16U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -828,9 +830,9 @@ __hoisted_g_gemm_u64_tile16_rrr_0(uint64_t *gA, uint64_t *gB, uint32_t kk,
     uint32_t bk = 0U;
     for (; bk < kk; bk++) {
         uint64_t v1 = gA[(16U * (blockIdx.x / nn) + threadIdx.x / 16U) * k +
-                         16U * bk + threadIdx.x % 16U];
+                         (16U * bk + threadIdx.x % 16U)];
         uint64_t v2 = gB[(16U * bk + threadIdx.x / 16U) * n +
-                         16U * (blockIdx.x % nn) + threadIdx.x % 16U];
+                         (16U * (blockIdx.x % nn) + threadIdx.x % 16U)];
         __syncthreads();
         ar1[threadIdx.x] = v1;
         ar2[threadIdx.x] = v2;
@@ -857,18 +859,18 @@ void Klas_GEMM_SHMem_g_matmul_f32_rrr(uint32_t tile, uint32_t m, uint32_t n,
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS((uint32_t) sizeof(float) * tile * tile +
-                   (uint32_t) sizeof(float) * tile * tile);
-    if ((uint32_t) sizeof(float) * tile * tile +
-            (uint32_t) sizeof(float) * tile * tile >=
+    KPR_SHMEM_FITS((uint32_t) sizeof(float) * (tile * tile) +
+                   (uint32_t) sizeof(float) * (tile * tile));
+    if ((uint32_t) sizeof(float) * (tile * tile) +
+            (uint32_t) sizeof(float) * (tile * tile) >=
         49152U)
         MUST(cudaFuncSetAttribute(__hoisted_g_matmul_f32_rrr_0,
             cudaFuncAttributeMaxDynamicSharedMemorySize,
-            (uint32_t) sizeof(float) * tile * tile +
-                (uint32_t) sizeof(float) * tile * tile));
+            (uint32_t) sizeof(float) * (tile * tile) +
+                (uint32_t) sizeof(float) * (tile * tile)));
     KPR_KCALL(__hoisted_g_matmul_f32_rrr_0, mm * nn, tile * tile,
-        (uint32_t) sizeof(float) * tile * tile +
-            (uint32_t) sizeof(float) * tile * tile,
+        (uint32_t) sizeof(float) * (tile * tile) +
+            (uint32_t) sizeof(float) * (tile * tile),
         s, tile, gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -882,18 +884,18 @@ void Klas_GEMM_SHMem_g_matmul_f64_rrr(uint32_t tile, uint32_t m, uint32_t n,
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS((uint32_t) sizeof(double) * tile * tile +
-                   (uint32_t) sizeof(double) * tile * tile);
-    if ((uint32_t) sizeof(double) * tile * tile +
-            (uint32_t) sizeof(double) * tile * tile >=
+    KPR_SHMEM_FITS((uint32_t) sizeof(double) * (tile * tile) +
+                   (uint32_t) sizeof(double) * (tile * tile));
+    if ((uint32_t) sizeof(double) * (tile * tile) +
+            (uint32_t) sizeof(double) * (tile * tile) >=
         49152U)
         MUST(cudaFuncSetAttribute(__hoisted_g_matmul_f64_rrr_0,
             cudaFuncAttributeMaxDynamicSharedMemorySize,
-            (uint32_t) sizeof(double) * tile * tile +
-                (uint32_t) sizeof(double) * tile * tile));
+            (uint32_t) sizeof(double) * (tile * tile) +
+                (uint32_t) sizeof(double) * (tile * tile)));
     KPR_KCALL(__hoisted_g_matmul_f64_rrr_0, mm * nn, tile * tile,
-        (uint32_t) sizeof(double) * tile * tile +
-            (uint32_t) sizeof(double) * tile * tile,
+        (uint32_t) sizeof(double) * (tile * tile) +
+            (uint32_t) sizeof(double) * (tile * tile),
         s, tile, gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -907,18 +909,18 @@ void Klas_GEMM_SHMem_g_matmul_u32_rrr(uint32_t tile, uint32_t m, uint32_t n,
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS((uint32_t) sizeof(uint32_t) * tile * tile +
-                   (uint32_t) sizeof(uint32_t) * tile * tile);
-    if ((uint32_t) sizeof(uint32_t) * tile * tile +
-            (uint32_t) sizeof(uint32_t) * tile * tile >=
+    KPR_SHMEM_FITS((uint32_t) sizeof(uint32_t) * (tile * tile) +
+                   (uint32_t) sizeof(uint32_t) * (tile * tile));
+    if ((uint32_t) sizeof(uint32_t) * (tile * tile) +
+            (uint32_t) sizeof(uint32_t) * (tile * tile) >=
         49152U)
         MUST(cudaFuncSetAttribute(__hoisted_g_matmul_u32_rrr_0,
             cudaFuncAttributeMaxDynamicSharedMemorySize,
-            (uint32_t) sizeof(uint32_t) * tile * tile +
-                (uint32_t) sizeof(uint32_t) * tile * tile));
+            (uint32_t) sizeof(uint32_t) * (tile * tile) +
+                (uint32_t) sizeof(uint32_t) * (tile * tile)));
     KPR_KCALL(__hoisted_g_matmul_u32_rrr_0, mm * nn, tile * tile,
-        (uint32_t) sizeof(uint32_t) * tile * tile +
-            (uint32_t) sizeof(uint32_t) * tile * tile,
+        (uint32_t) sizeof(uint32_t) * (tile * tile) +
+            (uint32_t) sizeof(uint32_t) * (tile * tile),
         s, tile, gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -932,18 +934,18 @@ void Klas_GEMM_SHMem_g_matmul_u64_rrr(uint32_t tile, uint32_t m, uint32_t n,
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS((uint32_t) sizeof(uint64_t) * tile * tile +
-                   (uint32_t) sizeof(uint64_t) * tile * tile);
-    if ((uint32_t) sizeof(uint64_t) * tile * tile +
-            (uint32_t) sizeof(uint64_t) * tile * tile >=
+    KPR_SHMEM_FITS((uint32_t) sizeof(uint64_t) * (tile * tile) +
+                   (uint32_t) sizeof(uint64_t) * (tile * tile));
+    if ((uint32_t) sizeof(uint64_t) * (tile * tile) +
+            (uint32_t) sizeof(uint64_t) * (tile * tile) >=
         49152U)
         MUST(cudaFuncSetAttribute(__hoisted_g_matmul_u64_rrr_0,
             cudaFuncAttributeMaxDynamicSharedMemorySize,
-            (uint32_t) sizeof(uint64_t) * tile * tile +
-                (uint32_t) sizeof(uint64_t) * tile * tile));
+            (uint32_t) sizeof(uint64_t) * (tile * tile) +
+                (uint32_t) sizeof(uint64_t) * (tile * tile)));
     KPR_KCALL(__hoisted_g_matmul_u64_rrr_0, mm * nn, tile * tile,
-        (uint32_t) sizeof(uint64_t) * tile * tile +
-            (uint32_t) sizeof(uint64_t) * tile * tile,
+        (uint32_t) sizeof(uint64_t) * (tile * tile) +
+            (uint32_t) sizeof(uint64_t) * (tile * tile),
         s, tile, gA, gB, kk, nn, k, n, gC);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -1138,18 +1140,18 @@ void Klas_GEMM_SHMem_g_gemm_f32_rrr(uint32_t tile, float alpha, float beta,
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS((uint32_t) sizeof(float) * tile * tile +
-                   (uint32_t) sizeof(float) * tile * tile);
-    if ((uint32_t) sizeof(float) * tile * tile +
-            (uint32_t) sizeof(float) * tile * tile >=
+    KPR_SHMEM_FITS((uint32_t) sizeof(float) * (tile * tile) +
+                   (uint32_t) sizeof(float) * (tile * tile));
+    if ((uint32_t) sizeof(float) * (tile * tile) +
+            (uint32_t) sizeof(float) * (tile * tile) >=
         49152U)
         MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f32_rrr_0,
             cudaFuncAttributeMaxDynamicSharedMemorySize,
-            (uint32_t) sizeof(float) * tile * tile +
-                (uint32_t) sizeof(float) * tile * tile));
+            (uint32_t) sizeof(float) * (tile * tile) +
+                (uint32_t) sizeof(float) * (tile * tile)));
     KPR_KCALL(__hoisted_g_gemm_f32_rrr_0, mm * nn, tile * tile,
-        (uint32_t) sizeof(float) * tile * tile +
-            (uint32_t) sizeof(float) * tile * tile,
+        (uint32_t) sizeof(float) * (tile * tile) +
+            (uint32_t) sizeof(float) * (tile * tile),
         s, tile, gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -1163,18 +1165,18 @@ void Klas_GEMM_SHMem_g_gemm_f64_rrr(uint32_t tile, double alpha, double beta,
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS((uint32_t) sizeof(double) * tile * tile +
-                   (uint32_t) sizeof(double) * tile * tile);
-    if ((uint32_t) sizeof(double) * tile * tile +
-            (uint32_t) sizeof(double) * tile * tile >=
+    KPR_SHMEM_FITS((uint32_t) sizeof(double) * (tile * tile) +
+                   (uint32_t) sizeof(double) * (tile * tile));
+    if ((uint32_t) sizeof(double) * (tile * tile) +
+            (uint32_t) sizeof(double) * (tile * tile) >=
         49152U)
         MUST(cudaFuncSetAttribute(__hoisted_g_gemm_f64_rrr_0,
             cudaFuncAttributeMaxDynamicSharedMemorySize,
-            (uint32_t) sizeof(double) * tile * tile +
-                (uint32_t) sizeof(double) * tile * tile));
+            (uint32_t) sizeof(double) * (tile * tile) +
+                (uint32_t) sizeof(double) * (tile * tile)));
     KPR_KCALL(__hoisted_g_gemm_f64_rrr_0, mm * nn, tile * tile,
-        (uint32_t) sizeof(double) * tile * tile +
-            (uint32_t) sizeof(double) * tile * tile,
+        (uint32_t) sizeof(double) * (tile * tile) +
+            (uint32_t) sizeof(double) * (tile * tile),
         s, tile, gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -1189,18 +1191,18 @@ void Klas_GEMM_SHMem_g_gemm_u32_rrr(uint32_t tile, uint32_t alpha,
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS((uint32_t) sizeof(uint32_t) * tile * tile +
-                   (uint32_t) sizeof(uint32_t) * tile * tile);
-    if ((uint32_t) sizeof(uint32_t) * tile * tile +
-            (uint32_t) sizeof(uint32_t) * tile * tile >=
+    KPR_SHMEM_FITS((uint32_t) sizeof(uint32_t) * (tile * tile) +
+                   (uint32_t) sizeof(uint32_t) * (tile * tile));
+    if ((uint32_t) sizeof(uint32_t) * (tile * tile) +
+            (uint32_t) sizeof(uint32_t) * (tile * tile) >=
         49152U)
         MUST(cudaFuncSetAttribute(__hoisted_g_gemm_u32_rrr_0,
             cudaFuncAttributeMaxDynamicSharedMemorySize,
-            (uint32_t) sizeof(uint32_t) * tile * tile +
-                (uint32_t) sizeof(uint32_t) * tile * tile));
+            (uint32_t) sizeof(uint32_t) * (tile * tile) +
+                (uint32_t) sizeof(uint32_t) * (tile * tile)));
     KPR_KCALL(__hoisted_g_gemm_u32_rrr_0, mm * nn, tile * tile,
-        (uint32_t) sizeof(uint32_t) * tile * tile +
-            (uint32_t) sizeof(uint32_t) * tile * tile,
+        (uint32_t) sizeof(uint32_t) * (tile * tile) +
+            (uint32_t) sizeof(uint32_t) * (tile * tile),
         s, tile, gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
@@ -1215,18 +1217,18 @@ void Klas_GEMM_SHMem_g_gemm_u64_rrr(uint32_t tile, uint64_t alpha,
     uint32_t kk = k / tile;
     KPR_ASSERT(tile > 0U);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_SHMEM_FITS((uint32_t) sizeof(uint64_t) * tile * tile +
-                   (uint32_t) sizeof(uint64_t) * tile * tile);
-    if ((uint32_t) sizeof(uint64_t) * tile * tile +
-            (uint32_t) sizeof(uint64_t) * tile * tile >=
+    KPR_SHMEM_FITS((uint32_t) sizeof(uint64_t) * (tile * tile) +
+                   (uint32_t) sizeof(uint64_t) * (tile * tile));
+    if ((uint32_t) sizeof(uint64_t) * (tile * tile) +
+            (uint32_t) sizeof(uint64_t) * (tile * tile) >=
         49152U)
         MUST(cudaFuncSetAttribute(__hoisted_g_gemm_u64_rrr_0,
             cudaFuncAttributeMaxDynamicSharedMemorySize,
-            (uint32_t) sizeof(uint64_t) * tile * tile +
-                (uint32_t) sizeof(uint64_t) * tile * tile));
+            (uint32_t) sizeof(uint64_t) * (tile * tile) +
+                (uint32_t) sizeof(uint64_t) * (tile * tile)));
     KPR_KCALL(__hoisted_g_gemm_u64_rrr_0, mm * nn, tile * tile,
-        (uint32_t) sizeof(uint64_t) * tile * tile +
-            (uint32_t) sizeof(uint64_t) * tile * tile,
+        (uint32_t) sizeof(uint64_t) * (tile * tile) +
+            (uint32_t) sizeof(uint64_t) * (tile * tile),
         s, tile, gA, gB, kk, nn, k, n, gC, beta, alpha);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
