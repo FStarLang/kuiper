@@ -11,6 +11,12 @@ open Kuiper.Array
 
 module SZ = Kuiper.SizeT
 
+(* The index of a [gpu_ref]'s only cell. The extraction plugin turns it into
+   karamel's dereference marker, so that [r.(deref_index)] becomes [*r];
+   [no_specialize] stops Custard from unfolding it to [0] first. *)
+[@@FStar.Custard.no_specialize]
+let deref_index : SZ.t = SZ.uint32_to_sizet _zero_for_deref
+
 inline_for_extraction noextract
 let gpu_ref (a:Type u#0) : Type u#0 =
   x : larray a 1 { is_global_array x /\ is_full_array x }
@@ -122,7 +128,7 @@ fn read
   ensures  pure (v == reveal v0)
 {
   unfold gpu_pts_to;
-  let x = r.(SZ.uint32_to_sizet _zero_for_deref);
+  let x = r.(deref_index);
   fold gpu_pts_to;
   x
 }
@@ -138,7 +144,7 @@ fn write
   ensures   r |-> v
 {
   unfold gpu_pts_to;
-  r.(SZ.uint32_to_sizet _zero_for_deref) <- v;
+  r.(deref_index) <- v;
   with s.
     assert Pulse.Lib.Array.pts_to r #1.0R s;
   assert pure (s `Seq.equal` seq![v]);

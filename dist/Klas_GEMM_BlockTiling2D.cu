@@ -28,7 +28,7 @@ __hoisted_g_gemm_f32_32x32x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -41,10 +41,10 @@ __hoisted_g_gemm_f32_32x32x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -55,10 +55,10 @@ __hoisted_g_gemm_f32_32x32x32_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -114,7 +114,7 @@ __hoisted_g_gemm_bf16_32x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -129,10 +129,10 @@ __hoisted_g_gemm_bf16_32x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -147,10 +147,10 @@ __hoisted_g_gemm_bf16_32x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -204,7 +204,7 @@ __hoisted_g_gemm_f32_32x32x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -217,10 +217,10 @@ __hoisted_g_gemm_f32_32x32x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -231,10 +231,11 @@ __hoisted_g_gemm_f32_32x32x32_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -290,7 +291,7 @@ __hoisted_g_gemm_bf16_32x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -305,10 +306,10 @@ __hoisted_g_gemm_bf16_32x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -323,10 +324,11 @@ __hoisted_g_gemm_bf16_32x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -380,7 +382,7 @@ __hoisted_g_gemm_f32_32x32x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -393,10 +395,10 @@ __hoisted_g_gemm_f32_32x32x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -407,10 +409,11 @@ __hoisted_g_gemm_f32_32x32x32_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -466,7 +469,7 @@ __hoisted_g_gemm_bf16_32x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -481,10 +484,10 @@ __hoisted_g_gemm_bf16_32x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -499,10 +502,11 @@ __hoisted_g_gemm_bf16_32x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -556,7 +560,7 @@ __hoisted_g_gemm_f32_32x32x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -569,10 +573,10 @@ __hoisted_g_gemm_f32_32x32x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -583,10 +587,12 @@ __hoisted_g_gemm_f32_32x32x32_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -642,7 +648,7 @@ __hoisted_g_gemm_bf16_32x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -657,10 +663,10 @@ __hoisted_g_gemm_bf16_32x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -675,10 +681,12 @@ __hoisted_g_gemm_bf16_32x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -732,7 +740,7 @@ __hoisted_g_gemm_f32_32x32x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -745,10 +753,10 @@ __hoisted_g_gemm_f32_32x32x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -759,10 +767,10 @@ __hoisted_g_gemm_f32_32x32x64_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -818,7 +826,7 @@ __hoisted_g_gemm_bf16_32x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -833,10 +841,10 @@ __hoisted_g_gemm_bf16_32x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -851,10 +859,10 @@ __hoisted_g_gemm_bf16_32x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -908,7 +916,7 @@ __hoisted_g_gemm_f32_32x32x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -921,10 +929,10 @@ __hoisted_g_gemm_f32_32x32x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -935,10 +943,11 @@ __hoisted_g_gemm_f32_32x32x64_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -994,7 +1003,7 @@ __hoisted_g_gemm_bf16_32x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -1009,10 +1018,10 @@ __hoisted_g_gemm_bf16_32x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1027,10 +1036,11 @@ __hoisted_g_gemm_bf16_32x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1084,7 +1094,7 @@ __hoisted_g_gemm_f32_32x32x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -1097,10 +1107,10 @@ __hoisted_g_gemm_f32_32x32x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1111,10 +1121,11 @@ __hoisted_g_gemm_f32_32x32x64_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1170,7 +1181,7 @@ __hoisted_g_gemm_bf16_32x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -1185,10 +1196,10 @@ __hoisted_g_gemm_bf16_32x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1203,10 +1214,11 @@ __hoisted_g_gemm_bf16_32x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1260,7 +1272,7 @@ __hoisted_g_gemm_f32_32x32x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -1273,10 +1285,10 @@ __hoisted_g_gemm_f32_32x32x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1287,10 +1299,12 @@ __hoisted_g_gemm_f32_32x32x64_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1346,7 +1360,7 @@ __hoisted_g_gemm_bf16_32x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -1361,10 +1375,10 @@ __hoisted_g_gemm_bf16_32x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1379,10 +1393,12 @@ __hoisted_g_gemm_bf16_32x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1436,7 +1452,7 @@ __hoisted_g_gemm_f32_32x64x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -1449,10 +1465,10 @@ __hoisted_g_gemm_f32_32x64x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1463,10 +1479,10 @@ __hoisted_g_gemm_f32_32x64x32_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1522,7 +1538,7 @@ __hoisted_g_gemm_bf16_32x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -1537,10 +1553,10 @@ __hoisted_g_gemm_bf16_32x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1555,10 +1571,10 @@ __hoisted_g_gemm_bf16_32x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1612,7 +1628,7 @@ __hoisted_g_gemm_f32_32x64x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -1625,10 +1641,10 @@ __hoisted_g_gemm_f32_32x64x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1639,10 +1655,11 @@ __hoisted_g_gemm_f32_32x64x32_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1698,7 +1715,7 @@ __hoisted_g_gemm_bf16_32x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -1713,10 +1730,10 @@ __hoisted_g_gemm_bf16_32x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1731,10 +1748,11 @@ __hoisted_g_gemm_bf16_32x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1788,7 +1806,7 @@ __hoisted_g_gemm_f32_32x64x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -1801,10 +1819,10 @@ __hoisted_g_gemm_f32_32x64x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1815,10 +1833,11 @@ __hoisted_g_gemm_f32_32x64x32_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1874,7 +1893,7 @@ __hoisted_g_gemm_bf16_32x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -1889,10 +1908,10 @@ __hoisted_g_gemm_bf16_32x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1907,10 +1926,11 @@ __hoisted_g_gemm_bf16_32x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1964,7 +1984,7 @@ __hoisted_g_gemm_f32_32x64x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -1977,10 +1997,10 @@ __hoisted_g_gemm_f32_32x64x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1991,10 +2011,12 @@ __hoisted_g_gemm_f32_32x64x32_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2050,7 +2072,7 @@ __hoisted_g_gemm_bf16_32x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -2065,10 +2087,10 @@ __hoisted_g_gemm_bf16_32x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2083,10 +2105,12 @@ __hoisted_g_gemm_bf16_32x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2140,7 +2164,7 @@ __hoisted_g_gemm_f32_32x64x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -2153,10 +2177,10 @@ __hoisted_g_gemm_f32_32x64x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2167,10 +2191,10 @@ __hoisted_g_gemm_f32_32x64x64_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2226,7 +2250,7 @@ __hoisted_g_gemm_bf16_32x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -2241,10 +2265,10 @@ __hoisted_g_gemm_bf16_32x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2259,10 +2283,10 @@ __hoisted_g_gemm_bf16_32x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2316,7 +2340,7 @@ __hoisted_g_gemm_f32_32x64x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -2329,10 +2353,10 @@ __hoisted_g_gemm_f32_32x64x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2343,10 +2367,11 @@ __hoisted_g_gemm_f32_32x64x64_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2402,7 +2427,7 @@ __hoisted_g_gemm_bf16_32x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -2417,10 +2442,10 @@ __hoisted_g_gemm_bf16_32x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2435,10 +2460,11 @@ __hoisted_g_gemm_bf16_32x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2492,7 +2518,7 @@ __hoisted_g_gemm_f32_32x64x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -2505,10 +2531,10 @@ __hoisted_g_gemm_f32_32x64x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2519,10 +2545,11 @@ __hoisted_g_gemm_f32_32x64x64_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2578,7 +2605,7 @@ __hoisted_g_gemm_bf16_32x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -2593,10 +2620,10 @@ __hoisted_g_gemm_bf16_32x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2611,10 +2638,11 @@ __hoisted_g_gemm_bf16_32x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2668,7 +2696,7 @@ __hoisted_g_gemm_f32_32x64x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -2681,10 +2709,10 @@ __hoisted_g_gemm_f32_32x64x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2695,10 +2723,12 @@ __hoisted_g_gemm_f32_32x64x64_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2754,7 +2784,7 @@ __hoisted_g_gemm_bf16_32x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -2769,10 +2799,10 @@ __hoisted_g_gemm_bf16_32x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2787,10 +2817,12 @@ __hoisted_g_gemm_bf16_32x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2844,7 +2876,7 @@ __hoisted_g_gemm_f32_32x128x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -2856,11 +2888,11 @@ __hoisted_g_gemm_f32_32x128x32_8x8_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2871,10 +2903,12 @@ __hoisted_g_gemm_f32_32x128x32_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2930,7 +2964,7 @@ __hoisted_g_gemm_bf16_32x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -2944,11 +2978,11 @@ __hoisted_g_gemm_bf16_32x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2963,10 +2997,12 @@ __hoisted_g_gemm_bf16_32x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3020,7 +3056,7 @@ __hoisted_g_gemm_f32_32x128x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -3032,11 +3068,11 @@ __hoisted_g_gemm_f32_32x128x32_8x16_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3047,10 +3083,11 @@ __hoisted_g_gemm_f32_32x128x32_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3106,7 +3143,7 @@ __hoisted_g_gemm_bf16_32x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -3120,11 +3157,11 @@ __hoisted_g_gemm_bf16_32x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3139,10 +3176,11 @@ __hoisted_g_gemm_bf16_32x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3196,7 +3234,7 @@ __hoisted_g_gemm_f32_32x128x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -3208,11 +3246,11 @@ __hoisted_g_gemm_f32_32x128x32_16x8_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3223,10 +3261,12 @@ __hoisted_g_gemm_f32_32x128x32_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3282,7 +3322,7 @@ __hoisted_g_gemm_bf16_32x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -3296,11 +3336,11 @@ __hoisted_g_gemm_bf16_32x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3315,10 +3355,12 @@ __hoisted_g_gemm_bf16_32x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3372,7 +3414,7 @@ __hoisted_g_gemm_f32_32x128x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -3384,11 +3426,11 @@ __hoisted_g_gemm_f32_32x128x32_16x16_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3399,10 +3441,12 @@ __hoisted_g_gemm_f32_32x128x32_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3458,7 +3502,7 @@ __hoisted_g_gemm_bf16_32x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -3472,11 +3516,11 @@ __hoisted_g_gemm_bf16_32x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3491,10 +3535,12 @@ __hoisted_g_gemm_bf16_32x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3548,7 +3594,7 @@ __hoisted_g_gemm_f32_32x128x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -3560,11 +3606,11 @@ __hoisted_g_gemm_f32_32x128x64_8x8_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3575,10 +3621,12 @@ __hoisted_g_gemm_f32_32x128x64_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3634,7 +3682,7 @@ __hoisted_g_gemm_bf16_32x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -3648,11 +3696,11 @@ __hoisted_g_gemm_bf16_32x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3667,10 +3715,12 @@ __hoisted_g_gemm_bf16_32x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3724,7 +3774,7 @@ __hoisted_g_gemm_f32_32x128x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -3736,11 +3786,11 @@ __hoisted_g_gemm_f32_32x128x64_8x16_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3751,10 +3801,11 @@ __hoisted_g_gemm_f32_32x128x64_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3810,7 +3861,7 @@ __hoisted_g_gemm_bf16_32x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -3824,11 +3875,11 @@ __hoisted_g_gemm_bf16_32x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3843,10 +3894,11 @@ __hoisted_g_gemm_bf16_32x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3900,7 +3952,7 @@ __hoisted_g_gemm_f32_32x128x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -3912,11 +3964,11 @@ __hoisted_g_gemm_f32_32x128x64_16x8_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3927,10 +3979,12 @@ __hoisted_g_gemm_f32_32x128x64_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3986,7 +4040,7 @@ __hoisted_g_gemm_bf16_32x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -4000,11 +4054,11 @@ __hoisted_g_gemm_bf16_32x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4019,10 +4073,12 @@ __hoisted_g_gemm_bf16_32x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4076,7 +4132,7 @@ __hoisted_g_gemm_f32_32x128x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -4088,11 +4144,11 @@ __hoisted_g_gemm_f32_32x128x64_16x16_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4103,10 +4159,12 @@ __hoisted_g_gemm_f32_32x128x64_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4162,7 +4220,7 @@ __hoisted_g_gemm_bf16_32x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 32U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 32U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 32U + row] = local[k1];
@@ -4176,11 +4234,11 @@ __hoisted_g_gemm_bf16_32x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4195,10 +4253,12 @@ __hoisted_g_gemm_bf16_32x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4252,7 +4312,7 @@ __hoisted_g_gemm_f32_64x32x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -4265,10 +4325,10 @@ __hoisted_g_gemm_f32_64x32x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4279,10 +4339,10 @@ __hoisted_g_gemm_f32_64x32x32_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4338,7 +4398,7 @@ __hoisted_g_gemm_bf16_64x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -4353,10 +4413,10 @@ __hoisted_g_gemm_bf16_64x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4371,10 +4431,10 @@ __hoisted_g_gemm_bf16_64x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4428,7 +4488,7 @@ __hoisted_g_gemm_f32_64x32x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -4441,10 +4501,10 @@ __hoisted_g_gemm_f32_64x32x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4455,10 +4515,11 @@ __hoisted_g_gemm_f32_64x32x32_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4514,7 +4575,7 @@ __hoisted_g_gemm_bf16_64x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -4529,10 +4590,10 @@ __hoisted_g_gemm_bf16_64x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4547,10 +4608,11 @@ __hoisted_g_gemm_bf16_64x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4604,7 +4666,7 @@ __hoisted_g_gemm_f32_64x32x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -4617,10 +4679,10 @@ __hoisted_g_gemm_f32_64x32x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4631,10 +4693,11 @@ __hoisted_g_gemm_f32_64x32x32_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4690,7 +4753,7 @@ __hoisted_g_gemm_bf16_64x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -4705,10 +4768,10 @@ __hoisted_g_gemm_bf16_64x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4723,10 +4786,11 @@ __hoisted_g_gemm_bf16_64x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4780,7 +4844,7 @@ __hoisted_g_gemm_f32_64x32x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -4793,10 +4857,10 @@ __hoisted_g_gemm_f32_64x32x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4807,10 +4871,12 @@ __hoisted_g_gemm_f32_64x32x32_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4866,7 +4932,7 @@ __hoisted_g_gemm_bf16_64x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -4881,10 +4947,10 @@ __hoisted_g_gemm_bf16_64x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4899,10 +4965,12 @@ __hoisted_g_gemm_bf16_64x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4956,7 +5024,7 @@ __hoisted_g_gemm_f32_64x32x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -4969,10 +5037,10 @@ __hoisted_g_gemm_f32_64x32x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4983,10 +5051,10 @@ __hoisted_g_gemm_f32_64x32x64_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5042,7 +5110,7 @@ __hoisted_g_gemm_bf16_64x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -5057,10 +5125,10 @@ __hoisted_g_gemm_bf16_64x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5075,10 +5143,10 @@ __hoisted_g_gemm_bf16_64x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5132,7 +5200,7 @@ __hoisted_g_gemm_f32_64x32x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -5145,10 +5213,10 @@ __hoisted_g_gemm_f32_64x32x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5159,10 +5227,11 @@ __hoisted_g_gemm_f32_64x32x64_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5218,7 +5287,7 @@ __hoisted_g_gemm_bf16_64x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -5233,10 +5302,10 @@ __hoisted_g_gemm_bf16_64x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5251,10 +5320,11 @@ __hoisted_g_gemm_bf16_64x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5308,7 +5378,7 @@ __hoisted_g_gemm_f32_64x32x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -5321,10 +5391,10 @@ __hoisted_g_gemm_f32_64x32x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5335,10 +5405,11 @@ __hoisted_g_gemm_f32_64x32x64_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5394,7 +5465,7 @@ __hoisted_g_gemm_bf16_64x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -5409,10 +5480,10 @@ __hoisted_g_gemm_bf16_64x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5427,10 +5498,11 @@ __hoisted_g_gemm_bf16_64x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5484,7 +5556,7 @@ __hoisted_g_gemm_f32_64x32x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -5497,10 +5569,10 @@ __hoisted_g_gemm_f32_64x32x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5511,10 +5583,12 @@ __hoisted_g_gemm_f32_64x32x64_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5570,7 +5644,7 @@ __hoisted_g_gemm_bf16_64x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -5585,10 +5659,10 @@ __hoisted_g_gemm_bf16_64x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5603,10 +5677,12 @@ __hoisted_g_gemm_bf16_64x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5660,7 +5736,7 @@ __hoisted_g_gemm_f32_64x64x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -5673,10 +5749,10 @@ __hoisted_g_gemm_f32_64x64x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5687,10 +5763,10 @@ __hoisted_g_gemm_f32_64x64x32_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5746,7 +5822,7 @@ __hoisted_g_gemm_bf16_64x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -5761,10 +5837,10 @@ __hoisted_g_gemm_bf16_64x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5779,10 +5855,10 @@ __hoisted_g_gemm_bf16_64x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5836,7 +5912,7 @@ __hoisted_g_gemm_f32_64x64x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -5849,10 +5925,10 @@ __hoisted_g_gemm_f32_64x64x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5863,10 +5939,11 @@ __hoisted_g_gemm_f32_64x64x32_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5922,7 +5999,7 @@ __hoisted_g_gemm_bf16_64x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -5937,10 +6014,10 @@ __hoisted_g_gemm_bf16_64x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5955,10 +6032,11 @@ __hoisted_g_gemm_bf16_64x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6012,7 +6090,7 @@ __hoisted_g_gemm_f32_64x64x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -6025,10 +6103,10 @@ __hoisted_g_gemm_f32_64x64x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6039,10 +6117,11 @@ __hoisted_g_gemm_f32_64x64x32_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6098,7 +6177,7 @@ __hoisted_g_gemm_bf16_64x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -6113,10 +6192,10 @@ __hoisted_g_gemm_bf16_64x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6131,10 +6210,11 @@ __hoisted_g_gemm_bf16_64x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6188,7 +6268,7 @@ __hoisted_g_gemm_f32_64x64x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -6201,10 +6281,10 @@ __hoisted_g_gemm_f32_64x64x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6215,10 +6295,12 @@ __hoisted_g_gemm_f32_64x64x32_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6274,7 +6356,7 @@ __hoisted_g_gemm_bf16_64x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -6289,10 +6371,10 @@ __hoisted_g_gemm_bf16_64x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6307,10 +6389,12 @@ __hoisted_g_gemm_bf16_64x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6364,7 +6448,7 @@ __hoisted_g_gemm_f32_64x64x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -6377,10 +6461,10 @@ __hoisted_g_gemm_f32_64x64x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6391,10 +6475,10 @@ __hoisted_g_gemm_f32_64x64x64_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6450,7 +6534,7 @@ __hoisted_g_gemm_bf16_64x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -6465,10 +6549,10 @@ __hoisted_g_gemm_bf16_64x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6483,10 +6567,10 @@ __hoisted_g_gemm_bf16_64x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6540,7 +6624,7 @@ __hoisted_g_gemm_f32_64x64x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -6553,10 +6637,10 @@ __hoisted_g_gemm_f32_64x64x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6567,10 +6651,11 @@ __hoisted_g_gemm_f32_64x64x64_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6626,7 +6711,7 @@ __hoisted_g_gemm_bf16_64x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -6641,10 +6726,10 @@ __hoisted_g_gemm_bf16_64x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6659,10 +6744,11 @@ __hoisted_g_gemm_bf16_64x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6716,7 +6802,7 @@ __hoisted_g_gemm_f32_64x64x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -6729,10 +6815,10 @@ __hoisted_g_gemm_f32_64x64x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6743,10 +6829,11 @@ __hoisted_g_gemm_f32_64x64x64_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6802,7 +6889,7 @@ __hoisted_g_gemm_bf16_64x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -6817,10 +6904,10 @@ __hoisted_g_gemm_bf16_64x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6835,10 +6922,11 @@ __hoisted_g_gemm_bf16_64x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6892,7 +6980,7 @@ __hoisted_g_gemm_f32_64x64x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -6905,10 +6993,10 @@ __hoisted_g_gemm_f32_64x64x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6919,10 +7007,12 @@ __hoisted_g_gemm_f32_64x64x64_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6978,7 +7068,7 @@ __hoisted_g_gemm_bf16_64x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -6993,10 +7083,10 @@ __hoisted_g_gemm_bf16_64x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7011,10 +7101,12 @@ __hoisted_g_gemm_bf16_64x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7068,7 +7160,7 @@ __hoisted_g_gemm_f32_64x128x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -7080,11 +7172,11 @@ __hoisted_g_gemm_f32_64x128x32_8x8_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7095,10 +7187,12 @@ __hoisted_g_gemm_f32_64x128x32_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7154,7 +7248,7 @@ __hoisted_g_gemm_bf16_64x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -7168,11 +7262,11 @@ __hoisted_g_gemm_bf16_64x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7187,10 +7281,12 @@ __hoisted_g_gemm_bf16_64x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7244,7 +7340,7 @@ __hoisted_g_gemm_f32_64x128x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -7256,11 +7352,11 @@ __hoisted_g_gemm_f32_64x128x32_8x16_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7271,10 +7367,11 @@ __hoisted_g_gemm_f32_64x128x32_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7330,7 +7427,7 @@ __hoisted_g_gemm_bf16_64x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -7344,11 +7441,11 @@ __hoisted_g_gemm_bf16_64x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7363,10 +7460,11 @@ __hoisted_g_gemm_bf16_64x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7420,7 +7518,7 @@ __hoisted_g_gemm_f32_64x128x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -7432,11 +7530,11 @@ __hoisted_g_gemm_f32_64x128x32_16x8_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7447,10 +7545,12 @@ __hoisted_g_gemm_f32_64x128x32_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7506,7 +7606,7 @@ __hoisted_g_gemm_bf16_64x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -7520,11 +7620,11 @@ __hoisted_g_gemm_bf16_64x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7539,10 +7639,12 @@ __hoisted_g_gemm_bf16_64x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7596,7 +7698,7 @@ __hoisted_g_gemm_f32_64x128x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -7608,11 +7710,11 @@ __hoisted_g_gemm_f32_64x128x32_16x16_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7623,10 +7725,12 @@ __hoisted_g_gemm_f32_64x128x32_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7682,7 +7786,7 @@ __hoisted_g_gemm_bf16_64x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -7696,11 +7800,11 @@ __hoisted_g_gemm_bf16_64x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7715,10 +7819,12 @@ __hoisted_g_gemm_bf16_64x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7772,7 +7878,7 @@ __hoisted_g_gemm_f32_64x128x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -7784,11 +7890,11 @@ __hoisted_g_gemm_f32_64x128x64_8x8_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7799,10 +7905,12 @@ __hoisted_g_gemm_f32_64x128x64_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7858,7 +7966,7 @@ __hoisted_g_gemm_bf16_64x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -7872,11 +7980,11 @@ __hoisted_g_gemm_bf16_64x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7891,10 +7999,12 @@ __hoisted_g_gemm_bf16_64x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7948,7 +8058,7 @@ __hoisted_g_gemm_f32_64x128x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -7960,11 +8070,11 @@ __hoisted_g_gemm_f32_64x128x64_8x16_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7975,10 +8085,11 @@ __hoisted_g_gemm_f32_64x128x64_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8034,7 +8145,7 @@ __hoisted_g_gemm_bf16_64x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -8048,11 +8159,11 @@ __hoisted_g_gemm_bf16_64x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8067,10 +8178,11 @@ __hoisted_g_gemm_bf16_64x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8124,7 +8236,7 @@ __hoisted_g_gemm_f32_64x128x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -8136,11 +8248,11 @@ __hoisted_g_gemm_f32_64x128x64_16x8_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8151,10 +8263,12 @@ __hoisted_g_gemm_f32_64x128x64_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8210,7 +8324,7 @@ __hoisted_g_gemm_bf16_64x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -8224,11 +8338,11 @@ __hoisted_g_gemm_bf16_64x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8243,10 +8357,12 @@ __hoisted_g_gemm_bf16_64x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8300,7 +8416,7 @@ __hoisted_g_gemm_f32_64x128x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -8312,11 +8428,11 @@ __hoisted_g_gemm_f32_64x128x64_16x16_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8327,10 +8443,12 @@ __hoisted_g_gemm_f32_64x128x64_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8386,7 +8504,7 @@ __hoisted_g_gemm_bf16_64x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 64U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 64U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 64U + row] = local[k1];
@@ -8400,11 +8518,11 @@ __hoisted_g_gemm_bf16_64x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8419,10 +8537,12 @@ __hoisted_g_gemm_bf16_64x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8476,7 +8596,7 @@ __hoisted_g_gemm_f32_128x32x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -8489,10 +8609,10 @@ __hoisted_g_gemm_f32_128x32x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8503,10 +8623,11 @@ __hoisted_g_gemm_f32_128x32x32_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8562,7 +8683,7 @@ __hoisted_g_gemm_bf16_128x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -8577,10 +8698,10 @@ __hoisted_g_gemm_bf16_128x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8595,10 +8716,11 @@ __hoisted_g_gemm_bf16_128x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8652,7 +8774,7 @@ __hoisted_g_gemm_f32_128x32x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -8665,10 +8787,10 @@ __hoisted_g_gemm_f32_128x32x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8679,10 +8801,12 @@ __hoisted_g_gemm_f32_128x32x32_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8738,7 +8862,7 @@ __hoisted_g_gemm_bf16_128x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -8753,10 +8877,10 @@ __hoisted_g_gemm_bf16_128x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8771,10 +8895,12 @@ __hoisted_g_gemm_bf16_128x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8828,7 +8954,7 @@ __hoisted_g_gemm_f32_128x32x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -8841,10 +8967,10 @@ __hoisted_g_gemm_f32_128x32x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8855,10 +8981,11 @@ __hoisted_g_gemm_f32_128x32x32_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8914,7 +9041,7 @@ __hoisted_g_gemm_bf16_128x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -8929,10 +9056,10 @@ __hoisted_g_gemm_bf16_128x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8947,10 +9074,11 @@ __hoisted_g_gemm_bf16_128x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9004,7 +9132,7 @@ __hoisted_g_gemm_f32_128x32x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -9017,10 +9145,10 @@ __hoisted_g_gemm_f32_128x32x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -9031,10 +9159,12 @@ __hoisted_g_gemm_f32_128x32x32_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9090,7 +9220,7 @@ __hoisted_g_gemm_bf16_128x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -9105,10 +9235,10 @@ __hoisted_g_gemm_bf16_128x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -9123,10 +9253,12 @@ __hoisted_g_gemm_bf16_128x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9180,7 +9312,7 @@ __hoisted_g_gemm_f32_128x32x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -9193,10 +9325,10 @@ __hoisted_g_gemm_f32_128x32x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -9207,10 +9339,11 @@ __hoisted_g_gemm_f32_128x32x64_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9266,7 +9399,7 @@ __hoisted_g_gemm_bf16_128x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -9281,10 +9414,10 @@ __hoisted_g_gemm_bf16_128x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -9299,10 +9432,11 @@ __hoisted_g_gemm_bf16_128x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9356,7 +9490,7 @@ __hoisted_g_gemm_f32_128x32x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -9369,10 +9503,10 @@ __hoisted_g_gemm_f32_128x32x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -9383,10 +9517,12 @@ __hoisted_g_gemm_f32_128x32x64_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9442,7 +9578,7 @@ __hoisted_g_gemm_bf16_128x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -9457,10 +9593,10 @@ __hoisted_g_gemm_bf16_128x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -9475,10 +9611,12 @@ __hoisted_g_gemm_bf16_128x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9532,7 +9670,7 @@ __hoisted_g_gemm_f32_128x32x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -9545,10 +9683,10 @@ __hoisted_g_gemm_f32_128x32x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -9559,10 +9697,11 @@ __hoisted_g_gemm_f32_128x32x64_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9618,7 +9757,7 @@ __hoisted_g_gemm_bf16_128x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -9633,10 +9772,10 @@ __hoisted_g_gemm_bf16_128x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -9651,10 +9790,11 @@ __hoisted_g_gemm_bf16_128x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 8U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9708,7 +9848,7 @@ __hoisted_g_gemm_f32_128x32x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -9721,10 +9861,10 @@ __hoisted_g_gemm_f32_128x32x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -9735,10 +9875,12 @@ __hoisted_g_gemm_f32_128x32x64_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9794,7 +9936,7 @@ __hoisted_g_gemm_bf16_128x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -9809,10 +9951,10 @@ __hoisted_g_gemm_bf16_128x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 32U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 32U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 32U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 32U + col + k1] = local[k1];
+                sarB[row * 32U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -9827,10 +9969,12 @@ __hoisted_g_gemm_bf16_128x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 2U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 2U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + 16U * (threadIdx.x % 2U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9884,7 +10028,7 @@ __hoisted_g_gemm_f32_128x64x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -9897,10 +10041,10 @@ __hoisted_g_gemm_f32_128x64x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -9911,10 +10055,11 @@ __hoisted_g_gemm_f32_128x64x32_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -9970,7 +10115,7 @@ __hoisted_g_gemm_bf16_128x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -9985,10 +10130,10 @@ __hoisted_g_gemm_bf16_128x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -10003,10 +10148,11 @@ __hoisted_g_gemm_bf16_128x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10060,7 +10206,7 @@ __hoisted_g_gemm_f32_128x64x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -10073,10 +10219,10 @@ __hoisted_g_gemm_f32_128x64x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -10087,10 +10233,12 @@ __hoisted_g_gemm_f32_128x64x32_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10146,7 +10294,7 @@ __hoisted_g_gemm_bf16_128x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -10161,10 +10309,10 @@ __hoisted_g_gemm_bf16_128x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -10179,10 +10327,12 @@ __hoisted_g_gemm_bf16_128x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10236,7 +10386,7 @@ __hoisted_g_gemm_f32_128x64x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -10249,10 +10399,10 @@ __hoisted_g_gemm_f32_128x64x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -10263,10 +10413,11 @@ __hoisted_g_gemm_f32_128x64x32_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10322,7 +10473,7 @@ __hoisted_g_gemm_bf16_128x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -10337,10 +10488,10 @@ __hoisted_g_gemm_bf16_128x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -10355,10 +10506,11 @@ __hoisted_g_gemm_bf16_128x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10412,7 +10564,7 @@ __hoisted_g_gemm_f32_128x64x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -10425,10 +10577,10 @@ __hoisted_g_gemm_f32_128x64x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -10439,10 +10591,12 @@ __hoisted_g_gemm_f32_128x64x32_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10498,7 +10652,7 @@ __hoisted_g_gemm_bf16_128x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -10513,10 +10667,10 @@ __hoisted_g_gemm_bf16_128x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 32U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -10531,10 +10685,12 @@ __hoisted_g_gemm_bf16_128x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10588,7 +10744,7 @@ __hoisted_g_gemm_f32_128x64x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -10601,10 +10757,10 @@ __hoisted_g_gemm_f32_128x64x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -10615,10 +10771,11 @@ __hoisted_g_gemm_f32_128x64x64_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10674,7 +10831,7 @@ __hoisted_g_gemm_bf16_128x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -10689,10 +10846,10 @@ __hoisted_g_gemm_bf16_128x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -10707,10 +10864,11 @@ __hoisted_g_gemm_bf16_128x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10764,7 +10922,7 @@ __hoisted_g_gemm_f32_128x64x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -10777,10 +10935,10 @@ __hoisted_g_gemm_f32_128x64x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -10791,10 +10949,12 @@ __hoisted_g_gemm_f32_128x64x64_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10850,7 +11010,7 @@ __hoisted_g_gemm_bf16_128x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -10865,10 +11025,10 @@ __hoisted_g_gemm_bf16_128x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -10883,10 +11043,12 @@ __hoisted_g_gemm_bf16_128x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -10940,7 +11102,7 @@ __hoisted_g_gemm_f32_128x64x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -10953,10 +11115,10 @@ __hoisted_g_gemm_f32_128x64x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -10967,10 +11129,11 @@ __hoisted_g_gemm_f32_128x64x64_16x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11026,7 +11189,7 @@ __hoisted_g_gemm_bf16_128x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -11041,10 +11204,10 @@ __hoisted_g_gemm_bf16_128x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -11059,10 +11222,11 @@ __hoisted_g_gemm_bf16_128x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 8U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11116,7 +11280,7 @@ __hoisted_g_gemm_f32_128x64x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -11129,10 +11293,10 @@ __hoisted_g_gemm_f32_128x64x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i1 + threadIdx.x * 4U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -11143,10 +11307,12 @@ __hoisted_g_gemm_f32_128x64x64_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11202,7 +11368,7 @@ __hoisted_g_gemm_bf16_128x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -11217,10 +11383,10 @@ __hoisted_g_gemm_bf16_128x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 64U + n * row + col));
+                local, gB + (n * (__anf01 * 64U) + mcol * 64U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 64U + col + k1] = local[k1];
+                sarB[row * 64U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -11235,10 +11401,12 @@ __hoisted_g_gemm_bf16_128x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 4U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + 16U * (threadIdx.x % 4U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11292,7 +11460,7 @@ __hoisted_g_gemm_f32_128x128x32_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -11304,11 +11472,11 @@ __hoisted_g_gemm_f32_128x128x32_8x8_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -11319,10 +11487,12 @@ __hoisted_g_gemm_f32_128x128x32_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11378,7 +11548,7 @@ __hoisted_g_gemm_bf16_128x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -11392,11 +11562,11 @@ __hoisted_g_gemm_bf16_128x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -11411,10 +11581,12 @@ __hoisted_g_gemm_bf16_128x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11468,7 +11640,7 @@ __hoisted_g_gemm_f32_128x128x32_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -11480,11 +11652,11 @@ __hoisted_g_gemm_f32_128x128x32_8x16_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -11495,10 +11667,12 @@ __hoisted_g_gemm_f32_128x128x32_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11554,7 +11728,7 @@ __hoisted_g_gemm_bf16_128x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -11568,11 +11742,11 @@ __hoisted_g_gemm_bf16_128x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -11587,10 +11761,12 @@ __hoisted_g_gemm_bf16_128x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11644,7 +11820,7 @@ __hoisted_g_gemm_f32_128x128x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -11656,11 +11832,11 @@ __hoisted_g_gemm_f32_128x128x32_16x8_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -11672,10 +11848,11 @@ __hoisted_g_gemm_f32_128x128x32_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
                 rAcol[j0] =
-                    sarA[dotIdx * 128U + 16U * (threadIdx.x / 16U) + j0];
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11731,7 +11908,7 @@ __hoisted_g_gemm_bf16_128x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -11745,11 +11922,11 @@ __hoisted_g_gemm_bf16_128x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -11765,10 +11942,11 @@ __hoisted_g_gemm_bf16_128x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
                 rAcol[j0] =
-                    sarA[dotIdx * 128U + 16U * (threadIdx.x / 16U) + j0];
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11822,7 +12000,7 @@ __hoisted_g_gemm_f32_128x128x32_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 32U;
             uint32_t col = (i + threadIdx.x * 4U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -11834,11 +12012,11 @@ __hoisted_g_gemm_f32_128x128x32_16x16_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -11849,10 +12027,12 @@ __hoisted_g_gemm_f32_128x128x32_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11908,7 +12088,7 @@ __hoisted_g_gemm_bf16_128x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 32U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 32U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -11922,11 +12102,11 @@ __hoisted_g_gemm_bf16_128x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 32U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 32U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -11941,10 +12121,12 @@ __hoisted_g_gemm_bf16_128x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -11998,7 +12180,7 @@ __hoisted_g_gemm_f32_128x128x64_8x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -12010,11 +12192,11 @@ __hoisted_g_gemm_f32_128x128x64_8x8_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -12025,10 +12207,12 @@ __hoisted_g_gemm_f32_128x128x64_8x8_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12084,7 +12268,7 @@ __hoisted_g_gemm_bf16_128x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -12098,11 +12282,11 @@ __hoisted_g_gemm_bf16_128x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -12117,10 +12301,12 @@ __hoisted_g_gemm_bf16_128x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 16U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12174,7 +12360,7 @@ __hoisted_g_gemm_f32_128x128x64_8x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -12186,11 +12372,11 @@ __hoisted_g_gemm_f32_128x128x64_8x16_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -12201,10 +12387,12 @@ __hoisted_g_gemm_f32_128x128x64_8x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12260,7 +12448,7 @@ __hoisted_g_gemm_bf16_128x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -12274,11 +12462,11 @@ __hoisted_g_gemm_bf16_128x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -12293,10 +12481,12 @@ __hoisted_g_gemm_bf16_128x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 8U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12350,7 +12540,7 @@ __hoisted_g_gemm_f32_128x128x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -12362,11 +12552,11 @@ __hoisted_g_gemm_f32_128x128x64_16x8_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -12378,10 +12568,11 @@ __hoisted_g_gemm_f32_128x128x64_16x8_0(float *gA, float *gB, uint32_t k,
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
                 rAcol[j0] =
-                    sarA[dotIdx * 128U + 16U * (threadIdx.x / 16U) + j0];
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12437,7 +12628,7 @@ __hoisted_g_gemm_bf16_128x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -12451,11 +12642,11 @@ __hoisted_g_gemm_bf16_128x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -12471,10 +12662,11 @@ __hoisted_g_gemm_bf16_128x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
                 rAcol[j0] =
-                    sarA[dotIdx * 128U + 16U * (threadIdx.x / 16U) + j0];
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 16U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 8U * (threadIdx.x % 16U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12528,7 +12720,7 @@ __hoisted_g_gemm_f32_128x128x64_16x16_0(float *gA, float *gB, uint32_t k,
             uint32_t row = (i + threadIdx.x * 4U) / 64U;
             uint32_t col = (i + threadIdx.x * 4U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -12540,11 +12732,11 @@ __hoisted_g_gemm_f32_128x128x64_16x16_0(float *gA, float *gB, uint32_t k,
             memset(local, 0U, 4U * sizeof(float));
             uint32_t row = (i1 + threadIdx.x * 4U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 4U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -12555,10 +12747,12 @@ __hoisted_g_gemm_f32_128x128x64_16x16_0(float *gA, float *gB, uint32_t k,
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -12614,7 +12808,7 @@ __hoisted_g_gemm_bf16_128x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
             vec_memcpy(
-                local, gA + (k * mrow * 128U + __anf0 * 64U + k * row + col));
+                local, gA + (k * (mrow * 128U) + __anf0 * 64U + k * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
                 sarA[(col + k1) * 128U + row] = local[k1];
@@ -12628,11 +12822,11 @@ __hoisted_g_gemm_bf16_128x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
-            vec_memcpy(
-                local, gB + (n * __anf01 * 64U + mcol * 128U + n * row + col));
+            vec_memcpy(local,
+                gB + (n * (__anf01 * 64U) + mcol * 128U + n * row + col));
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++)
-                sarB[row * 128U + col + k1] = local[k1];
+                sarB[row * 128U + (col + k1)] = local[k1];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -12647,10 +12841,12 @@ __hoisted_g_gemm_bf16_128x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
             for (; j0 < 16U; j0++)
-                rAcol[j0] = sarA[dotIdx * 128U + 16U * (threadIdx.x / 8U) + j0];
+                rAcol[j0] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
             uint32_t j1 = 0U;
             for (; j1 < 16U; j1++)
-                rBrow[j1] = sarB[dotIdx * 128U + 16U * (threadIdx.x % 8U) + j1];
+                rBrow[j1] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;

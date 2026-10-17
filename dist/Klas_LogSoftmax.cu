@@ -18,7 +18,7 @@ __hoisted_log_softmax_gpu_n_f16_0(
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < nth; n++) {
+    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
@@ -28,7 +28,7 @@ __hoisted_log_softmax_gpu_n_f16_0(
                 gsa[threadIdx.x] = __hadd(gsa[threadIdx.x], gsa[nextid]);
     }
     if (threadIdx.x == 0U)
-        out[blockIdx.x] = *gsa;
+        out[blockIdx.x] = gsa[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -61,7 +61,7 @@ __hoisted_log_softmax_gpu_n_f32_0(
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < nth; n++) {
+    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
@@ -71,7 +71,7 @@ __hoisted_log_softmax_gpu_n_f32_0(
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
-        out[blockIdx.x] = *gsa;
+        out[blockIdx.x] = gsa[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -104,7 +104,7 @@ __hoisted_log_softmax_gpu_n_f64_0(
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < nth; n++) {
+    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
@@ -114,7 +114,7 @@ __hoisted_log_softmax_gpu_n_f64_0(
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
-        out[blockIdx.x] = *gsa;
+        out[blockIdx.x] = gsa[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -146,7 +146,7 @@ __hoisted_log_softmax_gpu_f16_0(uint32_t lena, half *x_, half *out)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < 1024U; n++) {
+    for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
@@ -156,7 +156,7 @@ __hoisted_log_softmax_gpu_f16_0(uint32_t lena, half *x_, half *out)
                 gsa[threadIdx.x] = __hadd(gsa[threadIdx.x], gsa[nextid]);
     }
     if (threadIdx.x == 0U)
-        out[blockIdx.x] = *gsa;
+        out[blockIdx.x] = gsa[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -188,7 +188,7 @@ __hoisted_log_softmax_gpu_f32_0(uint32_t lena, float *x_, float *out)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < 1024U; n++) {
+    for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
@@ -198,7 +198,7 @@ __hoisted_log_softmax_gpu_f32_0(uint32_t lena, float *x_, float *out)
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
-        out[blockIdx.x] = *gsa;
+        out[blockIdx.x] = gsa[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -230,7 +230,7 @@ __hoisted_log_softmax_gpu_f64_0(uint32_t lena, double *x_, double *out)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < 1024U; n++) {
+    for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
@@ -240,7 +240,7 @@ __hoisted_log_softmax_gpu_f64_0(uint32_t lena, double *x_, double *out)
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
-        out[blockIdx.x] = *gsa;
+        out[blockIdx.x] = gsa[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -272,7 +272,7 @@ __hoisted_log_softmax_n_f16_0(uint32_t lena, half *x_, uint32_t nth, half *out)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < nth; n++) {
+    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
@@ -282,7 +282,7 @@ __hoisted_log_softmax_n_f16_0(uint32_t lena, half *x_, uint32_t nth, half *out)
                 gsa[threadIdx.x] = __hadd(gsa[threadIdx.x], gsa[nextid]);
     }
     if (threadIdx.x == 0U)
-        out[blockIdx.x] = *gsa;
+        out[blockIdx.x] = gsa[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -315,7 +315,7 @@ __hoisted_log_softmax_n_f32_0(
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < nth; n++) {
+    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
@@ -325,7 +325,7 @@ __hoisted_log_softmax_n_f32_0(
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
-        out[blockIdx.x] = *gsa;
+        out[blockIdx.x] = gsa[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -358,7 +358,7 @@ __hoisted_log_softmax_n_f64_0(
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < nth; n++) {
+    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
@@ -368,7 +368,7 @@ __hoisted_log_softmax_n_f64_0(
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
-        out[blockIdx.x] = *gsa;
+        out[blockIdx.x] = gsa[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -400,7 +400,7 @@ __hoisted_log_softmax_f16_0(uint32_t lena, half *x_, half *out)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < 1024U; n++) {
+    for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
@@ -410,7 +410,7 @@ __hoisted_log_softmax_f16_0(uint32_t lena, half *x_, half *out)
                 gsa[threadIdx.x] = __hadd(gsa[threadIdx.x], gsa[nextid]);
     }
     if (threadIdx.x == 0U)
-        out[blockIdx.x] = *gsa;
+        out[blockIdx.x] = gsa[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -442,7 +442,7 @@ __hoisted_log_softmax_f32_0(uint32_t lena, float *x_, float *out)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < 1024U; n++) {
+    for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
@@ -452,7 +452,7 @@ __hoisted_log_softmax_f32_0(uint32_t lena, float *x_, float *out)
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
-        out[blockIdx.x] = *gsa;
+        out[blockIdx.x] = gsa[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -484,7 +484,7 @@ __hoisted_log_softmax_f64_0(uint32_t lena, double *x_, double *out)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; 1U << (uint32_t) n < 1024U; n++) {
+    for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
         uint32_t __anf0 = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
@@ -494,7 +494,7 @@ __hoisted_log_softmax_f64_0(uint32_t lena, double *x_, double *out)
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
-        out[blockIdx.x] = *gsa;
+        out[blockIdx.x] = gsa[0U];
 }
 
 __global__ __launch_bounds__(1024)
@@ -525,10 +525,10 @@ void Klas_LogSoftmax_log_softmax_gpu_n_f16(uint32_t nth, uint32_t lena, half *a)
     MUST(cudaStreamDestroy(s));
     half *local_out = (half *) KRML_HOST_MALLOC(sizeof(half));
     if (local_out != NULL)
-        *local_out = __float2half_rn(0.0f);
+        local_out[0U] = __float2half_rn(0.0f);
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(half), cudaMemcpyDeviceToHost));
-    half res = *local_out;
+    half res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
     cudaStream_t s1 = KPR_FRESH_STREAM();
@@ -555,10 +555,10 @@ void Klas_LogSoftmax_log_softmax_gpu_n_f32(
     MUST(cudaStreamDestroy(s));
     float *local_out = (float *) KRML_HOST_MALLOC(sizeof(float));
     if (local_out != NULL)
-        *local_out = 0.0f;
+        local_out[0U] = 0.0f;
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
-    float res = *local_out;
+    float res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
     cudaStream_t s1 = KPR_FRESH_STREAM();
@@ -585,10 +585,10 @@ void Klas_LogSoftmax_log_softmax_gpu_n_f64(
     MUST(cudaStreamDestroy(s));
     double *local_out = (double *) KRML_HOST_MALLOC(sizeof(double));
     if (local_out != NULL)
-        *local_out = 0.0;
+        local_out[0U] = 0.0;
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(double), cudaMemcpyDeviceToHost));
-    double res = *local_out;
+    double res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
     cudaStream_t s1 = KPR_FRESH_STREAM();
@@ -614,10 +614,10 @@ void Klas_LogSoftmax_log_softmax_gpu_f16(uint32_t lena, half *a)
     MUST(cudaStreamDestroy(s));
     half *local_out = (half *) KRML_HOST_MALLOC(sizeof(half));
     if (local_out != NULL)
-        *local_out = __float2half_rn(0.0f);
+        local_out[0U] = __float2half_rn(0.0f);
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(half), cudaMemcpyDeviceToHost));
-    half res = *local_out;
+    half res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
     cudaStream_t s1 = KPR_FRESH_STREAM();
@@ -643,10 +643,10 @@ void Klas_LogSoftmax_log_softmax_gpu_f32(uint32_t lena, float *a)
     MUST(cudaStreamDestroy(s));
     float *local_out = (float *) KRML_HOST_MALLOC(sizeof(float));
     if (local_out != NULL)
-        *local_out = 0.0f;
+        local_out[0U] = 0.0f;
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
-    float res = *local_out;
+    float res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
     cudaStream_t s1 = KPR_FRESH_STREAM();
@@ -672,10 +672,10 @@ void Klas_LogSoftmax_log_softmax_gpu_f64(uint32_t lena, double *a)
     MUST(cudaStreamDestroy(s));
     double *local_out = (double *) KRML_HOST_MALLOC(sizeof(double));
     if (local_out != NULL)
-        *local_out = 0.0;
+        local_out[0U] = 0.0;
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(double), cudaMemcpyDeviceToHost));
-    double res = *local_out;
+    double res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
     cudaStream_t s1 = KPR_FRESH_STREAM();
@@ -704,10 +704,10 @@ void Klas_LogSoftmax_log_softmax_n_f16(uint32_t nth, uint32_t lena, half *a)
     MUST(cudaStreamDestroy(s));
     half *local_out = (half *) KRML_HOST_MALLOC(sizeof(half));
     if (local_out != NULL)
-        *local_out = __float2half_rn(0.0f);
+        local_out[0U] = __float2half_rn(0.0f);
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(half), cudaMemcpyDeviceToHost));
-    half res = *local_out;
+    half res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
     cudaStream_t s1 = KPR_FRESH_STREAM();
@@ -739,10 +739,10 @@ void Klas_LogSoftmax_log_softmax_n_f32(uint32_t nth, uint32_t lena, float *a)
     MUST(cudaStreamDestroy(s));
     float *local_out = (float *) KRML_HOST_MALLOC(sizeof(float));
     if (local_out != NULL)
-        *local_out = 0.0f;
+        local_out[0U] = 0.0f;
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
-    float res = *local_out;
+    float res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
     cudaStream_t s1 = KPR_FRESH_STREAM();
@@ -774,10 +774,10 @@ void Klas_LogSoftmax_log_softmax_n_f64(uint32_t nth, uint32_t lena, double *a)
     MUST(cudaStreamDestroy(s));
     double *local_out = (double *) KRML_HOST_MALLOC(sizeof(double));
     if (local_out != NULL)
-        *local_out = 0.0;
+        local_out[0U] = 0.0;
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(double), cudaMemcpyDeviceToHost));
-    double res = *local_out;
+    double res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
     cudaStream_t s1 = KPR_FRESH_STREAM();
@@ -809,10 +809,10 @@ void Klas_LogSoftmax_log_softmax_f16(uint32_t lena, half *a)
     MUST(cudaStreamDestroy(s));
     half *local_out = (half *) KRML_HOST_MALLOC(sizeof(half));
     if (local_out != NULL)
-        *local_out = __float2half_rn(0.0f);
+        local_out[0U] = __float2half_rn(0.0f);
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(half), cudaMemcpyDeviceToHost));
-    half res = *local_out;
+    half res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
     cudaStream_t s1 = KPR_FRESH_STREAM();
@@ -844,10 +844,10 @@ void Klas_LogSoftmax_log_softmax_f32(uint32_t lena, float *a)
     MUST(cudaStreamDestroy(s));
     float *local_out = (float *) KRML_HOST_MALLOC(sizeof(float));
     if (local_out != NULL)
-        *local_out = 0.0f;
+        local_out[0U] = 0.0f;
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
-    float res = *local_out;
+    float res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
     cudaStream_t s1 = KPR_FRESH_STREAM();
@@ -879,10 +879,10 @@ void Klas_LogSoftmax_log_softmax_f64(uint32_t lena, double *a)
     MUST(cudaStreamDestroy(s));
     double *local_out = (double *) KRML_HOST_MALLOC(sizeof(double));
     if (local_out != NULL)
-        *local_out = 0.0;
+        local_out[0U] = 0.0;
     MUST(cudaMemcpy(
         local_out, out0, (uint32_t) sizeof(double), cudaMemcpyDeviceToHost));
-    double res = *local_out;
+    double res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
     cudaStream_t s1 = KPR_FRESH_STREAM();

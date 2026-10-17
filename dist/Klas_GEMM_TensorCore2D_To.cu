@@ -44,11 +44,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 16U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 16U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 1024U) {
@@ -59,10 +59,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -71,15 +71,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U) * 32U +
-                               __anf01 * 16U + 16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U / 2U * 32U) +
+                               __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -96,7 +96,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -160,11 +160,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 16U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 16U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 512U) {
@@ -175,10 +175,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -187,14 +187,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U) * 32U + __anf01 * 16U +
-                               16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                               16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -210,7 +210,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -273,11 +273,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 16U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 16U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 512U) {
@@ -288,10 +288,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -300,15 +300,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U) * 64U +
-                               __anf01 * 16U + 16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U / 2U * 64U) +
+                               __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -325,7 +325,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -389,11 +389,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 16U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 16U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 256U) {
@@ -404,10 +404,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -416,14 +416,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U) * 64U + __anf01 * 16U +
-                               16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                               16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -439,7 +439,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -502,11 +502,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 32U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 32U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
@@ -517,10 +517,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -529,15 +529,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U) * 32U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 2U * 32U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -554,7 +554,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -618,11 +618,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 32U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 32U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
@@ -633,10 +633,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -645,14 +645,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U) * 32U + __anf01 * 16U +
-                               32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                               32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -668,7 +668,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -731,11 +731,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 32U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 32U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
@@ -746,10 +746,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -758,15 +758,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U) * 64U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 2U * 64U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -783,7 +783,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -847,11 +847,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 32U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 32U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
@@ -862,10 +862,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -874,14 +874,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U) * 64U + __anf01 * 16U +
-                               32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                               32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -897,7 +897,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -960,11 +960,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 64U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 64U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
@@ -975,10 +975,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -987,15 +987,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U) * 32U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 2U * 32U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -1012,7 +1012,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1076,11 +1076,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 64U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 64U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
@@ -1091,10 +1091,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1103,14 +1103,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U) * 32U + __anf01 * 16U +
-                               64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                               64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1126,7 +1126,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1189,11 +1189,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 64U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 64U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
@@ -1204,10 +1204,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1216,15 +1216,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U) * 64U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 2U * 64U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -1241,7 +1241,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1305,11 +1305,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 64U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 64U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
@@ -1320,10 +1320,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1332,14 +1332,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U) * 64U + __anf01 * 16U +
-                               64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                               64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1355,7 +1355,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1418,11 +1418,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 16U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 16U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
@@ -1433,10 +1433,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1445,14 +1445,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U) * 32U +
-                               __anf01 * 16U + 16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U / 2U * 32U) +
+                               __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -1470,7 +1470,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1534,11 +1534,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 16U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 16U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
@@ -1549,10 +1549,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1561,14 +1561,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U) * 32U + __anf01 * 16U +
-                               16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                               16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1584,7 +1584,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1647,11 +1647,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 16U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 16U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
@@ -1662,10 +1662,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1674,14 +1674,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 4U) * 64U +
-                               __anf01 * 16U + 16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U / 4U * 64U) +
+                               __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -1699,7 +1699,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1763,11 +1763,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 16U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 16U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
@@ -1778,10 +1778,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1790,14 +1790,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U) * 64U +
-                               __anf01 * 16U + 16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U / 2U * 64U) +
+                               __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -1815,7 +1815,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1879,11 +1879,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 16U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 16U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
@@ -1894,10 +1894,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1906,14 +1906,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U) * 64U + __anf01 * 16U +
-                               16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                               16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1929,7 +1929,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1992,11 +1992,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 32U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 32U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 2048U) {
@@ -2007,10 +2007,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2019,14 +2019,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 4U) * 32U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 4U * 32U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -2044,7 +2044,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2108,11 +2108,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 32U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 32U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
@@ -2123,10 +2123,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2135,14 +2135,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U) * 32U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 2U * 32U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -2160,7 +2160,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2224,11 +2224,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 32U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 32U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
@@ -2239,10 +2239,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2251,14 +2251,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U) * 32U + __anf01 * 16U +
-                               32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                               32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2274,7 +2274,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2337,11 +2337,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 32U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 32U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
@@ -2352,10 +2352,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2364,14 +2364,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 4U) * 64U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 4U * 64U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -2389,7 +2389,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2453,11 +2453,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 32U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 32U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
@@ -2468,10 +2468,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2480,14 +2480,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U) * 64U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 2U * 64U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -2505,7 +2505,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2569,11 +2569,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 32U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 32U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
@@ -2584,10 +2584,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2596,14 +2596,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U) * 64U + __anf01 * 16U +
-                               32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                               32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2619,7 +2619,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2682,11 +2682,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 64U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 64U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 2048U) {
@@ -2697,10 +2697,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2709,14 +2709,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 4U) * 32U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 4U * 32U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -2734,7 +2734,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2798,11 +2798,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 64U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 64U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 1024U) {
@@ -2813,10 +2813,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2825,14 +2825,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U) * 32U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 2U * 32U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -2850,7 +2850,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2914,11 +2914,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 64U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 64U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 512U) {
@@ -2929,10 +2929,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2941,14 +2941,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U) * 32U + __anf01 * 16U +
-                               64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                               64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2964,7 +2964,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3027,11 +3027,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 64U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 64U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 1024U) {
@@ -3042,10 +3042,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3054,14 +3054,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 4U) * 64U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 4U * 64U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -3079,7 +3079,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3143,11 +3143,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 64U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 64U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 512U) {
@@ -3158,10 +3158,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3170,14 +3170,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U) * 64U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 2U * 64U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -3195,7 +3195,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3259,11 +3259,11 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local,
-                gA + (shared * mrow * 64U + __anf0 * 64U + shared * row + col));
+            vec_memcpy(local, gA + (shared * (mrow * 64U) + __anf0 * 64U +
+                                       shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 256U) {
@@ -3274,10 +3274,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3286,14 +3286,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U) * 64U + __anf01 * 16U +
-                               64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                               64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3309,7 +3309,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3372,11 +3372,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 16U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 16U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 1024U) {
@@ -3387,10 +3387,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3399,14 +3399,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U) * 32U + __anf01 * 16U +
-                               16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                               16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3422,7 +3422,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3485,11 +3485,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 16U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 16U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 1024U) {
@@ -3500,10 +3500,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3512,15 +3512,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U) * 64U +
-                               __anf01 * 16U + 16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U / 2U * 64U) +
+                               __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -3537,7 +3537,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3601,11 +3601,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 16U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 16U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 512U) {
@@ -3616,10 +3616,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3628,14 +3628,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U) * 64U + __anf01 * 16U +
-                               16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                               16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3651,7 +3651,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3714,11 +3714,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 16U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 16U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 512U) {
@@ -3729,10 +3729,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3741,15 +3741,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U) * 128U +
-                               __anf01 * 16U + 16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U / 2U * 128U) +
+                               __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
@@ -3766,7 +3766,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3830,11 +3830,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 16U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 16U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 256U) {
@@ -3845,10 +3845,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3857,14 +3857,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U) * 128U + __anf01 * 16U +
-                               16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
+                               16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3880,7 +3880,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3943,11 +3943,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 2048U) {
@@ -3958,10 +3958,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3970,15 +3970,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U) * 32U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 2U * 32U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -3995,7 +3995,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4059,11 +4059,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
@@ -4074,10 +4074,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4086,14 +4086,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U) * 32U + __anf01 * 16U +
-                               32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                               32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4109,7 +4109,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4172,11 +4172,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
@@ -4187,10 +4187,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4199,15 +4199,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U) * 64U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 2U * 64U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -4224,7 +4224,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4288,11 +4288,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
@@ -4303,10 +4303,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4315,14 +4315,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U) * 64U + __anf01 * 16U +
-                               32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                               32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4338,7 +4338,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4401,11 +4401,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
@@ -4416,10 +4416,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4428,15 +4428,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U) * 128U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 2U * 128U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
@@ -4453,7 +4453,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4517,11 +4517,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
@@ -4532,10 +4532,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4544,14 +4544,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U) * 128U + __anf01 * 16U +
-                               32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
+                               32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4567,7 +4567,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4630,11 +4630,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 2048U) {
@@ -4645,10 +4645,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4657,15 +4657,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U) * 32U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 2U * 32U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -4682,7 +4682,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4746,11 +4746,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
@@ -4761,10 +4761,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4773,14 +4773,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U) * 32U + __anf01 * 16U +
-                               64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                               64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4796,7 +4796,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4859,11 +4859,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
@@ -4874,10 +4874,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4886,15 +4886,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U) * 64U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 2U * 64U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -4911,7 +4911,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4975,11 +4975,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
@@ -4990,10 +4990,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5002,14 +5002,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U) * 64U + __anf01 * 16U +
-                               64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                               64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5025,7 +5025,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5088,11 +5088,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
@@ -5103,10 +5103,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5115,15 +5115,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U) * 128U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 2U * 128U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * __anf02 * 16U + threadIdx.x / 32U % 2U * 32U +
-                               i11 * 16U),
+                    sarB + (64U * (__anf02 * 16U) +
+                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
@@ -5140,7 +5140,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5204,11 +5204,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
@@ -5219,10 +5219,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 64U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 64U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 64U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + col + k] = local[k];
+                sarB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5231,14 +5231,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U) * 128U + __anf01 * 16U +
-                               64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
+                               64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(
-                    bFrags[i11], sarB + (64U * __anf02 * 16U + i11 * 16U), 64U);
+                wmma::load_matrix_sync(bFrags[i11],
+                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5254,7 +5254,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5317,11 +5317,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 16U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 16U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 2048U) {
@@ -5332,10 +5332,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5344,14 +5344,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U) * 32U +
-                               __anf01 * 16U + 16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U / 2U * 32U) +
+                               __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -5369,7 +5369,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5433,11 +5433,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 16U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 16U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
@@ -5448,10 +5448,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5460,14 +5460,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U) * 32U + __anf01 * 16U +
-                               16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                               16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5483,7 +5483,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5546,11 +5546,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 16U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 16U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 2048U) {
@@ -5561,10 +5561,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5573,14 +5573,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 4U) * 64U +
-                               __anf01 * 16U + 16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U / 4U * 64U) +
+                               __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -5598,7 +5598,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5662,11 +5662,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 16U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 16U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
@@ -5677,10 +5677,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5689,14 +5689,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U) * 64U +
-                               __anf01 * 16U + 16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U / 2U * 64U) +
+                               __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -5714,7 +5714,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5778,11 +5778,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 16U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 16U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
@@ -5793,10 +5793,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5805,14 +5805,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U) * 64U + __anf01 * 16U +
-                               16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                               16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5828,7 +5828,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5891,11 +5891,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 16U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 16U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
@@ -5906,10 +5906,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5918,14 +5918,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 4U) * 128U +
-                               __anf01 * 16U + 16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U / 4U * 128U) +
+                               __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -5943,7 +5943,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6007,11 +6007,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 16U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 16U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
@@ -6022,10 +6022,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6034,14 +6034,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U) * 128U +
-                               __anf01 * 16U + 16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U / 2U * 128U) +
+                               __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -6059,7 +6059,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6123,11 +6123,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 16U;
             uint32_t col = (i + threadIdx.x * 8U) % 16U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 16U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 16U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + col + k] = local[k];
+                sarA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
@@ -6138,10 +6138,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 16U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6150,14 +6150,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U) * 128U + __anf01 * 16U +
-                               16U * i0 * 16U),
+                    sarA + (16U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
+                               16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6173,7 +6173,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0(uint32_t cols,
     for (; idx < 64U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6236,11 +6236,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 4096U) {
@@ -6251,10 +6251,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6263,14 +6263,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 4U) * 32U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 4U * 32U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -6288,7 +6288,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6352,11 +6352,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 2048U) {
@@ -6367,10 +6367,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6379,14 +6379,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U) * 32U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 2U * 32U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -6404,7 +6404,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6468,11 +6468,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
@@ -6483,10 +6483,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6495,14 +6495,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U) * 32U + __anf01 * 16U +
-                               32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                               32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6518,7 +6518,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6581,11 +6581,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 2048U) {
@@ -6596,10 +6596,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6608,14 +6608,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 4U) * 64U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 4U * 64U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -6633,7 +6633,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6697,11 +6697,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
@@ -6712,10 +6712,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6724,14 +6724,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U) * 64U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 2U * 64U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -6749,7 +6749,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6813,11 +6813,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
@@ -6828,10 +6828,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6840,14 +6840,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U) * 64U + __anf01 * 16U +
-                               32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                               32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6863,7 +6863,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6926,11 +6926,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
@@ -6941,10 +6941,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6953,14 +6953,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 4U) * 128U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 4U * 128U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -6978,7 +6978,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7042,11 +7042,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
@@ -7057,10 +7057,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7069,14 +7069,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U) * 128U +
-                               __anf01 * 16U + 32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U / 2U * 128U) +
+                               __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -7094,7 +7094,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7158,11 +7158,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 32U;
             uint32_t col = (i + threadIdx.x * 8U) % 32U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 32U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 32U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + col + k] = local[k];
+                sarA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
@@ -7173,10 +7173,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 32U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7185,14 +7185,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U) * 128U + __anf01 * 16U +
-                               32U * i0 * 16U),
+                    sarA + (32U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
+                               32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7208,7 +7208,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0(uint32_t cols,
     for (; idx < 64U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7271,11 +7271,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 4096U) {
@@ -7286,10 +7286,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7298,14 +7298,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 4U) * 32U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 4U * 32U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -7323,7 +7323,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7387,11 +7387,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 2048U) {
@@ -7402,10 +7402,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7414,14 +7414,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U) * 32U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 2U * 32U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -7439,7 +7439,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7503,11 +7503,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 1024U) {
@@ -7518,10 +7518,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7530,14 +7530,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U) * 32U + __anf01 * 16U +
-                               64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                               64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7553,7 +7553,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7616,11 +7616,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 2048U) {
@@ -7631,10 +7631,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7643,14 +7643,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 4U) * 64U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 4U * 64U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -7668,7 +7668,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7732,11 +7732,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 1024U) {
@@ -7747,10 +7747,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7759,14 +7759,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U) * 64U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 2U * 64U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -7784,7 +7784,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7848,11 +7848,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 512U) {
@@ -7863,10 +7863,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7875,14 +7875,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U) * 64U + __anf01 * 16U +
-                               64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                               64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7898,7 +7898,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7961,11 +7961,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 1024U) {
@@ -7976,10 +7976,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7988,14 +7988,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 4U) * 128U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 4U * 128U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -8013,7 +8013,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -8077,11 +8077,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 512U) {
@@ -8092,10 +8092,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8104,14 +8104,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U) * 128U +
-                               __anf01 * 16U + 64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U / 2U * 128U) +
+                               __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U +
+                    sarB + (128U * (__anf02 * 16U) +
                                threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
@@ -8129,7 +8129,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -8193,11 +8193,11 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0(uint32_t cols,
                 local[_i] = __float2bfloat16(0.0f);
             uint32_t row = (i + threadIdx.x * 8U) / 64U;
             uint32_t col = (i + threadIdx.x * 8U) % 64U;
-            vec_memcpy(local, gA + (shared * mrow * 128U + __anf0 * 64U +
+            vec_memcpy(local, gA + (shared * (mrow * 128U) + __anf0 * 64U +
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + col + k] = local[k];
+                sarA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 256U) {
@@ -8208,10 +8208,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0(uint32_t cols,
             uint32_t row = (i1 + threadIdx.x * 8U) / 128U;
             uint32_t col = (i1 + threadIdx.x * 8U) % 128U;
             vec_memcpy(local,
-                gB + (cols * __anf0 * 64U + mcol * 128U + cols * row + col));
+                gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + col + k] = local[k];
+                sarB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8220,14 +8220,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U) * 128U + __anf01 * 16U +
-                               64U * i0 * 16U),
+                    sarA + (64U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
+                               64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * __anf02 * 16U + i11 * 16U), 128U);
+                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8243,7 +8243,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0(uint32_t cols,
     for (; idx < 64U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U) * 16U,
+        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;

@@ -22,12 +22,12 @@ __hoisted_g_matmul_f32_rrr_0(uint32_t nn, uint32_t tile, uint32_t kk, float *gA,
         float sum1 = 0.0f;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += gA[(mrow * tile + brow) * k + __anf0 * tile + vk] *
-                    gB[(__anf01 * tile + vk) * n + mcol * tile + bcol];
+            sum1 += gA[(mrow * tile + brow) * k + (__anf0 * tile + vk)] *
+                    gB[(__anf01 * tile + vk) * n + (mcol * tile + bcol)];
         }
         sum += sum1;
     }
-    gC[(mrow * tile + brow) * n + mcol * tile + bcol] = sum;
+    gC[(mrow * tile + brow) * n + (mcol * tile + bcol)] = sum;
 }
 
 __global__
@@ -51,12 +51,12 @@ __hoisted_g_matmul_f64_rrr_0(uint32_t nn, uint32_t tile, uint32_t kk,
         double sum1 = 0.0;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += gA[(mrow * tile + brow) * k + __anf0 * tile + vk] *
-                    gB[(__anf01 * tile + vk) * n + mcol * tile + bcol];
+            sum1 += gA[(mrow * tile + brow) * k + (__anf0 * tile + vk)] *
+                    gB[(__anf01 * tile + vk) * n + (mcol * tile + bcol)];
         }
         sum += sum1;
     }
-    gC[(mrow * tile + brow) * n + mcol * tile + bcol] = sum;
+    gC[(mrow * tile + brow) * n + (mcol * tile + bcol)] = sum;
 }
 
 __global__
@@ -80,12 +80,12 @@ __hoisted_g_matmul_u32_rrr_0(uint32_t nn, uint32_t tile, uint32_t kk,
         uint32_t sum1 = 0U;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += gA[(mrow * tile + brow) * k + __anf0 * tile + vk] *
-                    gB[(__anf01 * tile + vk) * n + mcol * tile + bcol];
+            sum1 += gA[(mrow * tile + brow) * k + (__anf0 * tile + vk)] *
+                    gB[(__anf01 * tile + vk) * n + (mcol * tile + bcol)];
         }
         sum += sum1;
     }
-    gC[(mrow * tile + brow) * n + mcol * tile + bcol] = sum;
+    gC[(mrow * tile + brow) * n + (mcol * tile + bcol)] = sum;
 }
 
 __global__
@@ -109,12 +109,12 @@ __hoisted_g_matmul_u64_rrr_0(uint32_t nn, uint32_t tile, uint32_t kk,
         uint64_t sum1 = 0ULL;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += gA[(mrow * tile + brow) * k + __anf0 * tile + vk] *
-                    gB[(__anf01 * tile + vk) * n + mcol * tile + bcol];
+            sum1 += gA[(mrow * tile + brow) * k + (__anf0 * tile + vk)] *
+                    gB[(__anf01 * tile + vk) * n + (mcol * tile + bcol)];
         }
         sum += sum1;
     }
-    gC[(mrow * tile + brow) * n + mcol * tile + bcol] = sum;
+    gC[(mrow * tile + brow) * n + (mcol * tile + bcol)] = sum;
 }
 
 __global__ __launch_bounds__(1024)
@@ -137,13 +137,13 @@ __hoisted_g_matmul_f32_tile32_rrr_0(uint32_t nn, uint32_t kk, float *gA,
         for (; k1 < 32U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 32U + threadIdx.x / 32U) * k + __anf0 * 32U + vk] *
-                gB[(__anf01 * 32U + vk) * n + mcol * 32U + threadIdx.x % 32U];
+                gA[(mrow * 32U + threadIdx.x / 32U) * k + (__anf0 * 32U + vk)] *
+                gB[(__anf01 * 32U + vk) * n + (mcol * 32U + threadIdx.x % 32U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U + threadIdx.x % 32U] =
-        sum;
+    gC[(mrow * 32U + threadIdx.x / 32U) * n +
+        (mcol * 32U + threadIdx.x % 32U)] = sum;
 }
 
 __global__ __launch_bounds__(1024)
@@ -166,13 +166,13 @@ __hoisted_g_matmul_f64_tile32_rrr_0(uint32_t nn, uint32_t kk, double *gA,
         for (; k1 < 32U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 32U + threadIdx.x / 32U) * k + __anf0 * 32U + vk] *
-                gB[(__anf01 * 32U + vk) * n + mcol * 32U + threadIdx.x % 32U];
+                gA[(mrow * 32U + threadIdx.x / 32U) * k + (__anf0 * 32U + vk)] *
+                gB[(__anf01 * 32U + vk) * n + (mcol * 32U + threadIdx.x % 32U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U + threadIdx.x % 32U] =
-        sum;
+    gC[(mrow * 32U + threadIdx.x / 32U) * n +
+        (mcol * 32U + threadIdx.x % 32U)] = sum;
 }
 
 __global__ __launch_bounds__(1024)
@@ -195,13 +195,13 @@ __hoisted_g_matmul_u32_tile32_rrr_0(uint32_t nn, uint32_t kk, uint32_t *gA,
         for (; k1 < 32U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 32U + threadIdx.x / 32U) * k + __anf0 * 32U + vk] *
-                gB[(__anf01 * 32U + vk) * n + mcol * 32U + threadIdx.x % 32U];
+                gA[(mrow * 32U + threadIdx.x / 32U) * k + (__anf0 * 32U + vk)] *
+                gB[(__anf01 * 32U + vk) * n + (mcol * 32U + threadIdx.x % 32U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U + threadIdx.x % 32U] =
-        sum;
+    gC[(mrow * 32U + threadIdx.x / 32U) * n +
+        (mcol * 32U + threadIdx.x % 32U)] = sum;
 }
 
 __global__ __launch_bounds__(1024)
@@ -224,13 +224,13 @@ __hoisted_g_matmul_u64_tile32_rrr_0(uint32_t nn, uint32_t kk, uint64_t *gA,
         for (; k1 < 32U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 32U + threadIdx.x / 32U) * k + __anf0 * 32U + vk] *
-                gB[(__anf01 * 32U + vk) * n + mcol * 32U + threadIdx.x % 32U];
+                gA[(mrow * 32U + threadIdx.x / 32U) * k + (__anf0 * 32U + vk)] *
+                gB[(__anf01 * 32U + vk) * n + (mcol * 32U + threadIdx.x % 32U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U + threadIdx.x % 32U] =
-        sum;
+    gC[(mrow * 32U + threadIdx.x / 32U) * n +
+        (mcol * 32U + threadIdx.x % 32U)] = sum;
 }
 
 __global__ __launch_bounds__(256)
@@ -253,13 +253,13 @@ __hoisted_g_matmul_f32_tile16_rrr_0(uint32_t nn, uint32_t kk, float *gA,
         for (; k1 < 16U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 16U + threadIdx.x / 16U) * k + __anf0 * 16U + vk] *
-                gB[(__anf01 * 16U + vk) * n + mcol * 16U + threadIdx.x % 16U];
+                gA[(mrow * 16U + threadIdx.x / 16U) * k + (__anf0 * 16U + vk)] *
+                gB[(__anf01 * 16U + vk) * n + (mcol * 16U + threadIdx.x % 16U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U + threadIdx.x % 16U] =
-        sum;
+    gC[(mrow * 16U + threadIdx.x / 16U) * n +
+        (mcol * 16U + threadIdx.x % 16U)] = sum;
 }
 
 __global__ __launch_bounds__(256)
@@ -282,13 +282,13 @@ __hoisted_g_matmul_f64_tile16_rrr_0(uint32_t nn, uint32_t kk, double *gA,
         for (; k1 < 16U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 16U + threadIdx.x / 16U) * k + __anf0 * 16U + vk] *
-                gB[(__anf01 * 16U + vk) * n + mcol * 16U + threadIdx.x % 16U];
+                gA[(mrow * 16U + threadIdx.x / 16U) * k + (__anf0 * 16U + vk)] *
+                gB[(__anf01 * 16U + vk) * n + (mcol * 16U + threadIdx.x % 16U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U + threadIdx.x % 16U] =
-        sum;
+    gC[(mrow * 16U + threadIdx.x / 16U) * n +
+        (mcol * 16U + threadIdx.x % 16U)] = sum;
 }
 
 __global__ __launch_bounds__(256)
@@ -311,13 +311,13 @@ __hoisted_g_matmul_u32_tile16_rrr_0(uint32_t nn, uint32_t kk, uint32_t *gA,
         for (; k1 < 16U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 16U + threadIdx.x / 16U) * k + __anf0 * 16U + vk] *
-                gB[(__anf01 * 16U + vk) * n + mcol * 16U + threadIdx.x % 16U];
+                gA[(mrow * 16U + threadIdx.x / 16U) * k + (__anf0 * 16U + vk)] *
+                gB[(__anf01 * 16U + vk) * n + (mcol * 16U + threadIdx.x % 16U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U + threadIdx.x % 16U] =
-        sum;
+    gC[(mrow * 16U + threadIdx.x / 16U) * n +
+        (mcol * 16U + threadIdx.x % 16U)] = sum;
 }
 
 __global__ __launch_bounds__(256)
@@ -340,13 +340,13 @@ __hoisted_g_matmul_u64_tile16_rrr_0(uint32_t nn, uint32_t kk, uint64_t *gA,
         for (; k1 < 16U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 16U + threadIdx.x / 16U) * k + __anf0 * 16U + vk] *
-                gB[(__anf01 * 16U + vk) * n + mcol * 16U + threadIdx.x % 16U];
+                gA[(mrow * 16U + threadIdx.x / 16U) * k + (__anf0 * 16U + vk)] *
+                gB[(__anf01 * 16U + vk) * n + (mcol * 16U + threadIdx.x % 16U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U + threadIdx.x % 16U] =
-        sum;
+    gC[(mrow * 16U + threadIdx.x / 16U) * n +
+        (mcol * 16U + threadIdx.x % 16U)] = sum;
 }
 
 __global__
@@ -370,13 +370,14 @@ __hoisted_g_gemm_f32_rrr_0(uint32_t nn, uint32_t tile, uint32_t kk, float *gA,
         float sum1 = 0.0f;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += gA[(mrow * tile + brow) * k + __anf0 * tile + vk] *
-                    gB[(__anf01 * tile + vk) * n + mcol * tile + bcol];
+            sum1 += gA[(mrow * tile + brow) * k + (__anf0 * tile + vk)] *
+                    gB[(__anf01 * tile + vk) * n + (mcol * tile + bcol)];
         }
         sum += sum1;
     }
-    gC[(mrow * tile + brow) * n + mcol * tile + bcol] =
-        beta * gC[(mrow * tile + brow) * n + mcol * tile + bcol] + alpha * sum;
+    gC[(mrow * tile + brow) * n + (mcol * tile + bcol)] =
+        beta * gC[(mrow * tile + brow) * n + (mcol * tile + bcol)] +
+        alpha * sum;
 }
 
 __global__
@@ -400,13 +401,14 @@ __hoisted_g_gemm_f64_rrr_0(uint32_t nn, uint32_t tile, uint32_t kk, double *gA,
         double sum1 = 0.0;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += gA[(mrow * tile + brow) * k + __anf0 * tile + vk] *
-                    gB[(__anf01 * tile + vk) * n + mcol * tile + bcol];
+            sum1 += gA[(mrow * tile + brow) * k + (__anf0 * tile + vk)] *
+                    gB[(__anf01 * tile + vk) * n + (mcol * tile + bcol)];
         }
         sum += sum1;
     }
-    gC[(mrow * tile + brow) * n + mcol * tile + bcol] =
-        beta * gC[(mrow * tile + brow) * n + mcol * tile + bcol] + alpha * sum;
+    gC[(mrow * tile + brow) * n + (mcol * tile + bcol)] =
+        beta * gC[(mrow * tile + brow) * n + (mcol * tile + bcol)] +
+        alpha * sum;
 }
 
 __global__
@@ -431,13 +433,14 @@ __hoisted_g_gemm_u32_rrr_0(uint32_t nn, uint32_t tile, uint32_t kk,
         uint32_t sum1 = 0U;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += gA[(mrow * tile + brow) * k + __anf0 * tile + vk] *
-                    gB[(__anf01 * tile + vk) * n + mcol * tile + bcol];
+            sum1 += gA[(mrow * tile + brow) * k + (__anf0 * tile + vk)] *
+                    gB[(__anf01 * tile + vk) * n + (mcol * tile + bcol)];
         }
         sum += sum1;
     }
-    gC[(mrow * tile + brow) * n + mcol * tile + bcol] =
-        beta * gC[(mrow * tile + brow) * n + mcol * tile + bcol] + alpha * sum;
+    gC[(mrow * tile + brow) * n + (mcol * tile + bcol)] =
+        beta * gC[(mrow * tile + brow) * n + (mcol * tile + bcol)] +
+        alpha * sum;
 }
 
 __global__
@@ -462,13 +465,14 @@ __hoisted_g_gemm_u64_rrr_0(uint32_t nn, uint32_t tile, uint32_t kk,
         uint64_t sum1 = 0ULL;
         for (; k1 < tile; k1++) {
             uint32_t vk = k1;
-            sum1 += gA[(mrow * tile + brow) * k + __anf0 * tile + vk] *
-                    gB[(__anf01 * tile + vk) * n + mcol * tile + bcol];
+            sum1 += gA[(mrow * tile + brow) * k + (__anf0 * tile + vk)] *
+                    gB[(__anf01 * tile + vk) * n + (mcol * tile + bcol)];
         }
         sum += sum1;
     }
-    gC[(mrow * tile + brow) * n + mcol * tile + bcol] =
-        beta * gC[(mrow * tile + brow) * n + mcol * tile + bcol] + alpha * sum;
+    gC[(mrow * tile + brow) * n + (mcol * tile + bcol)] =
+        beta * gC[(mrow * tile + brow) * n + (mcol * tile + bcol)] +
+        alpha * sum;
 }
 
 __global__ __launch_bounds__(1024)
@@ -491,14 +495,15 @@ __hoisted_g_gemm_f32_tile32_rrr_0(uint32_t nn, uint32_t kk, float *gA,
         for (; k1 < 32U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 32U + threadIdx.x / 32U) * k + __anf0 * 32U + vk] *
-                gB[(__anf01 * 32U + vk) * n + mcol * 32U + threadIdx.x % 32U];
+                gA[(mrow * 32U + threadIdx.x / 32U) * k + (__anf0 * 32U + vk)] *
+                gB[(__anf01 * 32U + vk) * n + (mcol * 32U + threadIdx.x % 32U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U + threadIdx.x % 32U] =
-        beta * gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U +
-                   threadIdx.x % 32U] +
+    gC[(mrow * 32U + threadIdx.x / 32U) * n +
+        (mcol * 32U + threadIdx.x % 32U)] =
+        beta * gC[(mrow * 32U + threadIdx.x / 32U) * n +
+                   (mcol * 32U + threadIdx.x % 32U)] +
         alpha * sum;
 }
 
@@ -522,14 +527,15 @@ __hoisted_g_gemm_f64_tile32_rrr_0(uint32_t nn, uint32_t kk, double *gA,
         for (; k1 < 32U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 32U + threadIdx.x / 32U) * k + __anf0 * 32U + vk] *
-                gB[(__anf01 * 32U + vk) * n + mcol * 32U + threadIdx.x % 32U];
+                gA[(mrow * 32U + threadIdx.x / 32U) * k + (__anf0 * 32U + vk)] *
+                gB[(__anf01 * 32U + vk) * n + (mcol * 32U + threadIdx.x % 32U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U + threadIdx.x % 32U] =
-        beta * gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U +
-                   threadIdx.x % 32U] +
+    gC[(mrow * 32U + threadIdx.x / 32U) * n +
+        (mcol * 32U + threadIdx.x % 32U)] =
+        beta * gC[(mrow * 32U + threadIdx.x / 32U) * n +
+                   (mcol * 32U + threadIdx.x % 32U)] +
         alpha * sum;
 }
 
@@ -554,14 +560,15 @@ __hoisted_g_gemm_u32_tile32_rrr_0(uint32_t nn, uint32_t kk, uint32_t *gA,
         for (; k1 < 32U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 32U + threadIdx.x / 32U) * k + __anf0 * 32U + vk] *
-                gB[(__anf01 * 32U + vk) * n + mcol * 32U + threadIdx.x % 32U];
+                gA[(mrow * 32U + threadIdx.x / 32U) * k + (__anf0 * 32U + vk)] *
+                gB[(__anf01 * 32U + vk) * n + (mcol * 32U + threadIdx.x % 32U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U + threadIdx.x % 32U] =
-        beta * gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U +
-                   threadIdx.x % 32U] +
+    gC[(mrow * 32U + threadIdx.x / 32U) * n +
+        (mcol * 32U + threadIdx.x % 32U)] =
+        beta * gC[(mrow * 32U + threadIdx.x / 32U) * n +
+                   (mcol * 32U + threadIdx.x % 32U)] +
         alpha * sum;
 }
 
@@ -586,14 +593,15 @@ __hoisted_g_gemm_u64_tile32_rrr_0(uint32_t nn, uint32_t kk, uint64_t *gA,
         for (; k1 < 32U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 32U + threadIdx.x / 32U) * k + __anf0 * 32U + vk] *
-                gB[(__anf01 * 32U + vk) * n + mcol * 32U + threadIdx.x % 32U];
+                gA[(mrow * 32U + threadIdx.x / 32U) * k + (__anf0 * 32U + vk)] *
+                gB[(__anf01 * 32U + vk) * n + (mcol * 32U + threadIdx.x % 32U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U + threadIdx.x % 32U] =
-        beta * gC[(mrow * 32U + threadIdx.x / 32U) * n + mcol * 32U +
-                   threadIdx.x % 32U] +
+    gC[(mrow * 32U + threadIdx.x / 32U) * n +
+        (mcol * 32U + threadIdx.x % 32U)] =
+        beta * gC[(mrow * 32U + threadIdx.x / 32U) * n +
+                   (mcol * 32U + threadIdx.x % 32U)] +
         alpha * sum;
 }
 
@@ -617,14 +625,15 @@ __hoisted_g_gemm_f32_tile16_rrr_0(uint32_t nn, uint32_t kk, float *gA,
         for (; k1 < 16U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 16U + threadIdx.x / 16U) * k + __anf0 * 16U + vk] *
-                gB[(__anf01 * 16U + vk) * n + mcol * 16U + threadIdx.x % 16U];
+                gA[(mrow * 16U + threadIdx.x / 16U) * k + (__anf0 * 16U + vk)] *
+                gB[(__anf01 * 16U + vk) * n + (mcol * 16U + threadIdx.x % 16U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U + threadIdx.x % 16U] =
-        beta * gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U +
-                   threadIdx.x % 16U] +
+    gC[(mrow * 16U + threadIdx.x / 16U) * n +
+        (mcol * 16U + threadIdx.x % 16U)] =
+        beta * gC[(mrow * 16U + threadIdx.x / 16U) * n +
+                   (mcol * 16U + threadIdx.x % 16U)] +
         alpha * sum;
 }
 
@@ -648,14 +657,15 @@ __hoisted_g_gemm_f64_tile16_rrr_0(uint32_t nn, uint32_t kk, double *gA,
         for (; k1 < 16U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 16U + threadIdx.x / 16U) * k + __anf0 * 16U + vk] *
-                gB[(__anf01 * 16U + vk) * n + mcol * 16U + threadIdx.x % 16U];
+                gA[(mrow * 16U + threadIdx.x / 16U) * k + (__anf0 * 16U + vk)] *
+                gB[(__anf01 * 16U + vk) * n + (mcol * 16U + threadIdx.x % 16U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U + threadIdx.x % 16U] =
-        beta * gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U +
-                   threadIdx.x % 16U] +
+    gC[(mrow * 16U + threadIdx.x / 16U) * n +
+        (mcol * 16U + threadIdx.x % 16U)] =
+        beta * gC[(mrow * 16U + threadIdx.x / 16U) * n +
+                   (mcol * 16U + threadIdx.x % 16U)] +
         alpha * sum;
 }
 
@@ -680,14 +690,15 @@ __hoisted_g_gemm_u32_tile16_rrr_0(uint32_t nn, uint32_t kk, uint32_t *gA,
         for (; k1 < 16U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 16U + threadIdx.x / 16U) * k + __anf0 * 16U + vk] *
-                gB[(__anf01 * 16U + vk) * n + mcol * 16U + threadIdx.x % 16U];
+                gA[(mrow * 16U + threadIdx.x / 16U) * k + (__anf0 * 16U + vk)] *
+                gB[(__anf01 * 16U + vk) * n + (mcol * 16U + threadIdx.x % 16U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U + threadIdx.x % 16U] =
-        beta * gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U +
-                   threadIdx.x % 16U] +
+    gC[(mrow * 16U + threadIdx.x / 16U) * n +
+        (mcol * 16U + threadIdx.x % 16U)] =
+        beta * gC[(mrow * 16U + threadIdx.x / 16U) * n +
+                   (mcol * 16U + threadIdx.x % 16U)] +
         alpha * sum;
 }
 
@@ -712,14 +723,15 @@ __hoisted_g_gemm_u64_tile16_rrr_0(uint32_t nn, uint32_t kk, uint64_t *gA,
         for (; k1 < 16U; k1++) {
             uint32_t vk = k1;
             sum1 +=
-                gA[(mrow * 16U + threadIdx.x / 16U) * k + __anf0 * 16U + vk] *
-                gB[(__anf01 * 16U + vk) * n + mcol * 16U + threadIdx.x % 16U];
+                gA[(mrow * 16U + threadIdx.x / 16U) * k + (__anf0 * 16U + vk)] *
+                gB[(__anf01 * 16U + vk) * n + (mcol * 16U + threadIdx.x % 16U)];
         }
         sum += sum1;
     }
-    gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U + threadIdx.x % 16U] =
-        beta * gC[(mrow * 16U + threadIdx.x / 16U) * n + mcol * 16U +
-                   threadIdx.x % 16U] +
+    gC[(mrow * 16U + threadIdx.x / 16U) * n +
+        (mcol * 16U + threadIdx.x % 16U)] =
+        beta * gC[(mrow * 16U + threadIdx.x / 16U) * n +
+                   (mcol * 16U + threadIdx.x % 16U)] +
         alpha * sum;
 }
 
