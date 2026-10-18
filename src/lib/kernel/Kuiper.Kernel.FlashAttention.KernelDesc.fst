@@ -132,6 +132,15 @@ fn mrestore_row
   Pulse.Lib.Trade.elim_trade _ _;
 }
 
+(* Bound for the indices built in [cimap] below (cf. [stride_cell_bound]). *)
+private
+let stride_idx_bound (n : nat) (t : pos {t /? n}) (k : nat {k < n / t}) (j : nat {j < t})
+  : Lemma (j + k * t < n)
+  = Kuiper.Divides.lemma_divides_mod t n;
+    FStar.Math.Lemmas.lemma_mult_le_left t (k + 1) (n / t);
+    FStar.Math.Lemmas.distributivity_add_right t k 1;
+    FStar.Math.Lemmas.lemma_div_exact n t
+
 inline_for_extraction noextract
 instance c_stride_subtile_layout
   (#rows #cols : erased nat)
@@ -148,6 +157,8 @@ instance c_stride_subtile_layout
     all_fit = ();
     cimap = (fun (x : conc ((rows/srows) @| (cols/scols) @| INil)) ->
                 match x with | (i, (j, ())) ->
+                stride_idx_bound rows srows (SZ.v i) tr;
+                stride_idx_bound cols scols (SZ.v j) tc;
                 let x' =
                   (concr tr +^ i *^ concr srows,
                    (concr tc +^ j *^ concr scols,
@@ -194,6 +205,8 @@ let array2_stride_subtile_base
     [SMTPat (core (array2_stride_subtile gm srows scols tr tc))]
   = ()
 
+(* Kuiper.Divides.lemma_divides_product causes a matching loop in this VC. *)
+#push-options "--using_facts_from '* -Kuiper.Divides.lemma_divides_product'"
 let stride_cell_convert_eq
   (#et : _)
   (#rows #cols : erased nat)
@@ -215,6 +228,7 @@ let stride_cell_convert_eq
   = tensor_pts_to_cell_eq gm (idx2 ((i * srows + tr) <: natlt rows) ((j * scols + tc) <: natlt cols)) f v;
     tensor_pts_to_cell_eq (array2_stride_subtile gm srows scols tr tc) (idx2 i j) f v;
     ()
+#pop-options
 
 (* ── EMatrix-level lemmas for the stride decomposition ─────────────────── *)
 
