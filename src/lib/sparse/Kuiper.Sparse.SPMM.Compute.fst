@@ -1080,6 +1080,14 @@ let seq_load_vmprod_row_cell_prop_equiv
   (ensures  seq_load_vmprod_row_cell_prop  y0 x row j step k y i)
 = ()
 
+(* Step arithmetic for the recursive lemmas below, kept out of their VCs. *)
+private
+let vmprod_row_step_arith (c : pos) (n1 : nat { c /? n1 }) (k : pos { k <= n1 / c })
+  : Lemma ((k - 1) * c + c == k * c /\ k * c <= n1)
+  = FStar.Math.Lemmas.distributivity_sub_left k 1 c;
+    FStar.Math.Lemmas.lemma_mult_le_right c k (n1 / c);
+    Kuiper.Divides.lemma_divides_exact c n1
+
 noextract
 let rec seq_load_vmprod_row_cell_lemma0
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -1098,6 +1106,7 @@ let rec seq_load_vmprod_row_cell_lemma0
 =
   if k = 0 then ()
   else (
+    vmprod_row_step_arith (chunk et) n1 k;
     lineal_divides (chunk et) j (chunk et) ((k - 1) * step);
     seq_load_vmprod_row_cell_lemma0 y0 x row j step (k - 1) i;
     seq_fma_lemma0' (chunk et) x row
