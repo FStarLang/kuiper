@@ -88,6 +88,15 @@ let cancel_left (k x y : nat)
 
 #pop-options
 
+(* Bound on the warp column index [warpCol = wid % (bn/tn)], proved with an
+   empty ambient context. *)
+let warp_col_bound (wid : nat) (bn tn : pos)
+  : Lemma (requires tn /?+ bn) (ensures wid % (bn / tn) < bn / tn)
+  = Kuiper.Divides.lemma_nat_divides_pos_divides tn bn;
+    Kuiper.Divides.lemma_divides_le tn bn;
+    FStar.Math.Lemmas.lemma_div_le tn bn tn;
+    FStar.Math.Lemmas.lemma_mod_lt wid (bn / tn)
+
 (* Iteration-index arithmetic for the main loop of [kf], stated in an empty
    context and called explicitly. *)
 let even_step_facts (k : nat)
@@ -521,7 +530,8 @@ fn kf
 
   let wid = tid /^ warp_size;
   let warpRow = wid /^ (bn/^tn);
-  let warpCol = wid %^ (bn/^tn);
+  warp_col_bound (SZ.v wid) (SZ.v bn) (SZ.v tn);
+  let warpCol : szlt (SZ.v bn / SZ.v tn) = wid %^ (bn/^tn);
 
   (* tensor core fragments *)
   let aFrag = __alloc_fragment et_ab FragA tm tn tk FragLRM;
