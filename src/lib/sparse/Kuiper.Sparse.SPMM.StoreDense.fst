@@ -120,6 +120,9 @@ fn gpu_matrix_store_tile_vec_underspec
       assert pure (k * chunk et <= n);
       assert pure (k * chunk et * nthr <= n * nthr);
       assert pure (j + k * chunk et * nthr <= j + n * nthr);
+      FStar.Math.Lemmas.paren_mul_right k (chunk et) nthr;
+      FStar.Math.Lemmas.swap_mul (chunk et) nthr;
+      FStar.Math.Lemmas.paren_mul_right k nthr (chunk et);
       assert pure (offset_chunk et j k nthr <= j + n * nthr);
       FStar.SizeT.fits_lte (offset_chunk et j k nthr) (j + n * nthr);
       rewrite each offset_chunk et j k nthr
