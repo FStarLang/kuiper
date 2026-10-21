@@ -31,7 +31,7 @@ let prod_divides_pat (a b c : pos)
 unfold
 let block_pre
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et {size_req p})
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -65,7 +65,7 @@ let block_pre
 unfold
 let block_post
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -122,7 +122,7 @@ let spmm_idx_succ_fits
 unfold
 let kpre
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -163,7 +163,7 @@ let kpre
 unfold
 let kpost
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -245,7 +245,7 @@ let barrier_step_lemma (i : nat)
 
 let block_count_commuted
   (#et : Type0) {| sized et, has_vec_cpy et |}
-  (p : parameters et {size_req p})
+  (p : parameters et)
   : Lemma (SZ.v (nblocks p) == divup (SZ.v p.cols) (SZ.v p.blockItemsX) * SZ.v p.rows)
   = ()
 
@@ -266,7 +266,7 @@ let output_tile_bound
 ghost
 fn setup
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et {size_req p})
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -387,7 +387,7 @@ fn setup
 ghost
 fn block_setup
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -443,7 +443,6 @@ fn block_setup
   thread_share_chunks sh_e p.blockWidth;
   thread_share_chunks sh_i p.blockWidth;
 
-  // TODO de donde sacamos esto?
   assume pure ( aligned 16 sh_e /\ aligned 16 sh_i);
 
   forevery_intro_pure #(natlt p.blockWidth)
@@ -477,7 +476,7 @@ fn block_setup
 ghost
 fn block_teardown
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -598,7 +597,7 @@ let block_index_bound #et {| sized et, has_vec_cpy et |} (p : parameters et)
 ghost
 fn teardown
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -723,7 +722,7 @@ fn teardown
 inline_for_extraction noextract
 fn sparse_load_main
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
@@ -824,7 +823,7 @@ fn sparse_load_main
 inline_for_extraction noextract
 fn sparse_load_residue
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
@@ -909,7 +908,7 @@ fn sparse_load_residue
 noextract
 let barrier_count
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : nat)
   (col_ind : lseq sz nnz)
@@ -1078,7 +1077,7 @@ let cast_pos_slice
 (* tcol y la fila de un thread caen bien debajo de 2^32 por size_req. *)
 let tcol_fits
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (bid : natlt (nblocks_ p))
   (tid : natlt p.blockWidth)
 : Lemma (fits (tcol p bid tid + p.blockItemsX / p.blockWidth * p.blockWidth))
@@ -1088,11 +1087,11 @@ let tcol_fits
   assert (p.blockWidth * chunk et <= p.blockItemsX)
 
 // TODO refactorizar? Dividir en dos partes?
-#push-options "--z3rlimit 40"
+#push-options "--z3rlimit 60"
 inline_for_extraction noextract
 fn kf_head
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (#lB : layout2 p.shared p.cols) {| ctlB : ctlayout lB, srmB : strided_row_major lB |}
@@ -1265,7 +1264,7 @@ let spmm_idx_succ_bound
 inline_for_extraction noextract
 fn kf_main
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
   (#lB : layout2 p.shared p.cols) {| ctlB : ctlayout lB, srmB : strided_row_major lB |}
@@ -1580,7 +1579,7 @@ fn kf_main
 inline_for_extraction noextract
 fn kf_residue
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols) {| ctlayout lB, srm : strided_row_major lB |}
   (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
@@ -1739,7 +1738,7 @@ fn kf_residue
 inline_for_extraction noextract
 fn kf
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (blockChunks : sz{
     SZ.v blockChunks == SZ.v p.blockItemsX / SZ.v p.blockWidth
@@ -1931,7 +1930,7 @@ fn kf
 inline_for_extraction noextract
 let kdesc
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et {size_req p})
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (blockChunks : sz{
     SZ.v blockChunks == SZ.v p.blockItemsX / SZ.v p.blockWidth
@@ -1973,14 +1972,17 @@ let kdesc
     )
 = {
   nblk = nblocks p;
-  // nthr = nthreads p;
   nthr = p.blockWidth;
 
   barrier_contract = (fun bid ptrs ->
     barrier_contract p row_perm elems col_ind row_off
       (fst ptrs) (fst (snd ptrs)) bid);
   barrier_count = (fun bid -> barrier_count p row_perm col_ind row_off bid);
-  barrier_ok = (fun bid ptrs -> magic());
+  barrier_ok = (fun bid ptrs ->
+    barrier_p_to_q_transform p
+      row_perm
+      elems col_ind row_off
+      (fst ptrs) (fst (snd ptrs)) bid);
 
   shmems_desc = shmems_desc p;
 
@@ -2091,20 +2093,17 @@ fn spmm_on
   // matrices densas
   (#eB : chest2 et shared cols)
   (#eC : chest2 et rows cols)
-  //(#_ : size_req rows shared cols)
   (s : stream_t)
   (#e : epoch_t)
   norewrite
   preserves cpu ** stream_live s
   requires
     epoch_live s e **
-    pure (blockItemsX /? cols) **
     on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB) **
     on gpu_loc (live gC) **
-    pure (rows * (cols `divup` blockItemsX) <= max_blocks) **
-    pure (blockWidth <= max_threads)
+    pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
   ensures
     epoch_live s (epoch_next e) **
     pledge0 (epoch_done s (epoch_next e)) (on gpu_loc (
@@ -2114,24 +2113,13 @@ fn spmm_on
       gC |-> MS.matmul eA eB
     ))
 {
-  dguard (rows <^ 10000sz);
-  dguard (shared <^ 10000sz);
-  dguard (cols <^ 10000sz);
-  dguard (blockItemsK <^ 10000sz);
-  dguard (blockItemsX <^ 10000sz);
-  // ^ FIXME: propagate preconditions instead of dynamically aborting
-  assert pure (rows * (cols `divup` blockItemsX) <= max_blocks);
-  assert pure (size_req #et ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth }));
-  assert pure ((chunk et * blockWidth) /? blockItemsK);
-  assert pure ((chunk sz * blockWidth) /? blockItemsK);
-
-  assume pure (chunk et /? blockChunks);
+  Math.prod_cancel_divides blockItemsX (chunk et) blockWidth;
   lemma_aligned_strided_row_major_l2_row_major
     #(SZ.v blockItemsK) #(SZ.v blockChunks) (chunk et);
 
   launch (
     kdesc #et #_
-      ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth })
+      ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth; sz_req = () })
       row_perm blockChunks #lB #_ #_ #lC
       gA row_indices gB gC elems col_ind row_off eA
       #eB #fA #fri #fB
@@ -2176,19 +2164,15 @@ fn spmm
   // matrices densas
   (#eB : chest2 et shared cols)
   (#eC : chest2 et rows cols)
-  //(#_ : size_req rows shared cols)
   norewrite
   preserves
     cpu **
-    //on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
-    pure (blockItemsX /? cols) **
     on gpu_loc (live gC) **
-    pure (rows * (cols `divup` blockItemsX) <= max_blocks) **
-    pure (blockWidth <= max_threads)
+    pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)
 {
   let s = fresh_stream ();

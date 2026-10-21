@@ -170,6 +170,25 @@ let is_ematrix_tile_at
   seq_chunk s (k * chunk et) ==
   ematrix_row_chunk em i (offset_chunk et j k nthr)
 
+let is_ematrix_tile_at_intro
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat { chunk et /? cols })
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (j : nat { chunk et /? j })
+  (#row_tile : nat { chunk et /? row_tile })
+  (s : lseq et row_tile)
+  (nthr : nat)
+  (k : natlt (row_tile / chunk et))
+: Lemma
+  (requires
+    offset_chunk et j k nthr < cols /\
+    seq_chunk s (k * chunk et) ==
+      ematrix_row_chunk em i (offset_chunk et j k nthr))
+  (ensures is_ematrix_tile_at em i j s nthr k)
+=
+  ()
+
 let is_ematrix_tile
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
@@ -184,6 +203,44 @@ let is_ematrix_tile
   forall (k : natlt (row_tile / chunk et)).
     offset_chunk et j k nthr < cols ==>
       is_ematrix_tile_at em i j s nthr k
+
+let is_ematrix_tile_at_eq
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat { chunk et /? cols })
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (j : nat { chunk et /? j })
+  (#row_tile : nat { chunk et /? row_tile })
+  (s : lseq et row_tile)
+  (nthr : nat)
+  (k : natlt (row_tile / chunk et))
+: Lemma
+  (requires
+    offset_chunk et j k nthr < cols /\
+    is_ematrix_tile em i j s nthr)
+  (ensures
+    seq_chunk s (k * chunk et) ==
+    ematrix_row_chunk em i (offset_chunk et j k nthr))
+=
+  ()
+
+let is_ematrix_tile_intro
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat { chunk et /? cols })
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (j : nat { chunk et /? j })
+  (#row_tile : nat { chunk et /? row_tile })
+  (s : lseq et row_tile)
+  (nthr : nat)
+: Lemma
+  (requires
+    forall (k : natlt (row_tile / chunk et)).
+      offset_chunk et j k nthr < cols ==>
+        is_ematrix_tile_at em i j s nthr k)
+  (ensures is_ematrix_tile em i j s nthr)
+=
+  ()
 
 (* Propiedades sobre las posiciones de un arreglo ralo *)
 
