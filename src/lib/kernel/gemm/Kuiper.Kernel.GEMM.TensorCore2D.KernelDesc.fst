@@ -189,6 +189,17 @@ private let div_lt_mul (a p : nat) (q:pos)
       Math.Lemmas.lemma_mult_le_right q p (a / q);
       Math.Lemmas.euclidean_division_definition a q
     end
+
+(* Compose a block offset and a subtile offset without asking SMT to discover
+   distributivity and exact division in the full matrix context. *)
+private let subtile_offset (block subtile : nat) (size tile : pos)
+  : Lemma
+      (requires size % tile == 0)
+      (ensures (block * (size / tile) + subtile) * tile
+                 == block * size + subtile * tile)
+  = Math.Lemmas.euclidean_division_definition size tile;
+    Math.Lemmas.distributivity_add_left (block * (size / tile)) subtile tile;
+    Math.Lemmas.paren_mul_right block (size / tile) tile
 #pop-options
 
 private let kd_tile_index_bound (a x : nat) (q : pos) (n : nat)
@@ -246,17 +257,8 @@ let c_subtile_approx_lemma
   let wrj = warp_tile_idx_cols (SZ.v bm) (SZ.v bn) (wm*tm) (wn*tn) wid in
   let wti = warp_tile_i bm bn bk tm tn tk wm wn nthr bid wid in
   let wtj = warp_tile_j bm bn bk tm tn tk wm wn nthr bid wid in
-  (* Exact divisibility: (bm/(wm*tm))*(wm*tm) == bm, idem for n. *)
-  Math.Lemmas.euclidean_division_definition bm (wm*tm);
-  Math.Lemmas.euclidean_division_definition bn (wn*tn);
-  assert (wti == bi * (bm/(wm*tm)) + wri);
-  assert (wtj == bj * (bn/(wn*tn)) + wrj);
-  Math.Lemmas.distributivity_add_left (bi * (bm/(wm*tm))) wri (wm*tm);
-  Math.Lemmas.paren_mul_right bi (bm/(wm*tm)) (wm*tm);
-  Math.Lemmas.lemma_div_exact bm (wm*tm);
-  Math.Lemmas.distributivity_add_left (bj * (bn/(wn*tn))) wrj (wn*tn);
-  Math.Lemmas.paren_mul_right bj (bn/(wn*tn)) (wn*tn);
-  Math.Lemmas.lemma_div_exact bn (wn*tn);
+  subtile_offset bi wri (SZ.v bm) (wm*tm);
+  subtile_offset bj wrj (SZ.v bn) (wn*tn);
   assert (wti * (wm*tm) == bi * bm + wri * (wm*tm));
   assert (wtj * (wn*tn) == bj * bn + wrj * (wn*tn));
   let aux (i : natlt (wm*tm)) (j : natlt (wn*tn))

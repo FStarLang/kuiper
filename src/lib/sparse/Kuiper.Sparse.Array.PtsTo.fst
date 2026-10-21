@@ -3,176 +3,16 @@ module Kuiper.Sparse.Array.PtsTo
 #lang-pulse
 
 open Kuiper
+open Kuiper.Sparse.Common
+open Kuiper.Sparse.Math { divup }
 open FStar.Tactics.V2 { exact }
 open Kuiper.Array.Vectorized
-open Kuiper.Sparse.Common
-
 
 let chunk_cell_offset (k nthr tid ch i : nat)
   : Lemma (k * (nthr * ch) + (tid * ch + i) ==
       (k * nthr + tid) * ch + i /\
       i + (k * nthr + tid) * ch == (k * nthr + tid) * ch + i)
   = ()
-
-
-let chunk_slice_bound (n : nat) (nthr ch : pos) (k : natlt (n / (nthr * ch))) (tid : natlt nthr)
-  : Lemma ((k * nthr + tid) * ch + ch <= n)
-  = let m = nthr * ch in
-    FStar.Math.Lemmas.lemma_div_mod n m;
-    FStar.Math.Lemmas.lemma_mult_le_right m (k + 1) (n / m);
-    FStar.Math.Lemmas.lemma_mult_le_right ch (tid + 1) nthr;
-    FStar.Math.Lemmas.distributivity_add_left (k * nthr) (tid + 1) ch;
-    FStar.Math.Lemmas.paren_mul_right k nthr ch;
-    FStar.Math.Lemmas.distributivity_add_left k 1 m
-
-let chunk_k_bound (n : nat) (m : pos) (k : natlt (n / m))
-  : Lemma (k * m + m <= n)
-  = FStar.Math.Lemmas.lemma_div_mod n m;
-    FStar.Math.Lemmas.lemma_mult_le_right m (k + 1) (n / m)
-
-let chunk_tid_cell_bound (nthr ch : pos) (tid : natlt nthr) (i : natlt ch)
-  : Lemma (tid * ch + i < nthr * ch)
-  = FStar.Math.Lemmas.lemma_mult_le_right ch (tid + 1) nthr
-
-(* Scoped (non-global) version of the bound above: called inside
-   thread_share_chunks so the pattern does not leak to client modules. *)
-let chunk_tid_cells_bound (nthr ch : pos)
-  : Lemma (forall (tid : natlt nthr) (i : natlt ch). {:pattern (tid * ch + i)}
-             tid * ch + i < nthr * ch)
-  = introduce forall (tid : natlt nthr) (i : natlt ch). tid * ch + i < nthr * ch
-    with chunk_tid_cell_bound nthr ch tid i
-
-(* Live *)
-
-let slice_live
-  (#et : Type0)
-  (#l : nat)
-  (a : larray et l)
-  (#[full_default ()] f : perm)
-  (i j : nat)
-  : slprop
-  = exists* s. pts_to_slice a #f i j s
-
-let array_live_cell
-  (#et : Type0)
-  (#l : nat)
-  (a : larray et l)
-  (#[full_default ()] f : perm)
-  (i : natlt l)
-  : slprop
-  // esto es medio choto
-  // = exists* v. Cell (a <: array et) (i <: nat) |-> Frac f (v <: et)
-  = exists* v. pts_to_cell a #f i v
-
-
-(* Vector *)
-
-unfold
-let pts_to_vec
-  (#a:Type u#0) {| sized a, has_vec_cpy a |}
-  (#sz:nat)
-  ([@@@mkey] x:larray a sz)
-  (#[full_default ()] f : perm)
-  ([@@@mkey] i : nat)
-  (v : seq a)
-: slprop
-=
-  pts_to_slice x #f i (i + chunk a) v
-
-unfold
-let pts_to_vec'
-  (#a:Type) {| sized a, has_vec_cpy a |}
-  (#sz:nat)
-  ([@@@mkey] x:larray a sz)
-  (#[full_default ()] f : perm)
-  ([@@@mkey] i : nat)
-  (v : seq a)
-  (k : natle (len v - chunk a))
-: slprop
-= pts_to_vec x #f i (Seq.slice v k (k + chunk a))
-
-let live_vec
-  (#a:Type) {| sized a, has_vec_cpy a |}
-  (#l : nat)
-  (x :larray a l)
-  (#[full_default ()] f : perm)
-  (i : nat)
-: slprop
-= exists* v. pts_to_vec x #f i v
-
-
-(* Thread sharing *)
-
-let thread_slice_pts_to
-  (#et : Type0)
-  (#n : nat)
-  (a : larray et n)
-  (i j : natle n { i <= j })
-  (#m : nat)
-  (s : lseq et m)
-  (k : natle (m - (j - i)))
-  (nthr : nat) (tid : natlt nthr)
-: slprop
-=
-  forall+ (x : natlt ((j - i - tid) `divup` nthr)).
-    pts_to_cell a (i + x * nthr + tid <: nat) (s @! k + x * nthr + tid)
-
-let thread_slice_pts_to_value
-  (#et : Type0)
-  (#n : nat)
-  (a : larray et n)
-  (i j : natle n { i <= j })
-  (v : et)
-  (nthr : nat) (tid : natlt nthr)
-: slprop
-=
-  forall+ (x : natlt ((j - i - tid) `divup` nthr)).
-    pts_to_cell a (i + x * nthr + tid) v
-
-let thread_slice_live
-  (#et : Type0)
-  (#n : nat)
-  (a : larray et n)
-  (i j : natle n {i <= j})
-  (nthr : nat) (tid : natlt nthr)
-: slprop
-=
-  forall+ (k : natlt ((j - i - tid) `divup` nthr)).
-    array_live_cell a (i + k * nthr + tid)
-
-
-(* Vector thread sharing *)
-
-let thread_pts_to_chunks
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#n : nat)
-  ([@@@mkey] x : larray et n)
-  (#m : nat)
-  (s : lseq et m)
-  (i nthr : nat)
-  (tid : natlt nthr)
-: Pure slprop
-  (requires (nthr * chunk et) /? n /\ i + n <= m)
-  (ensures fun _ -> true)
-=
-  forall+ (k : natlt (n / (nthr * chunk et))).
-    pts_to_vec' x ((k * nthr + tid) * chunk et)
-      s (i + (k * nthr + tid) * chunk et)
-
-let thread_live_chunks
-  (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#n : nat)
-  ([@@@mkey] x : larray et n)
-  (nthr : nat)
-  (tid : natlt nthr)
-: Pure slprop
-  (requires (nthr * chunk et) /? n)
-  (ensures fun _ -> true)
-=
-  forall+ (k : natlt (n / (nthr * chunk et))).
-    live_vec x ((k * nthr + tid) * chunk et)
-
-
 
 (* Helpers *)
 
@@ -480,14 +320,13 @@ let chunk_vec_bound_all (n m i nthr ch : nat)
 ghost
 fn thread_gather_chunks
   (#et : Type0) {| sized et, has_vec_cpy et |}
-  (#n : nat)
+  (#n : pos)
   (x : larray et n)
   (#m : nat)
   (s : lseq et m)
   (i : natle (m - n))
   (nthr : pos)
   (#_: squash ((nthr * chunk et) /? n))
-  requires array_exists x
   requires
     (forall+ (tid : natlt nthr). thread_pts_to_chunks x s i nthr tid)
   ensures x |-> Seq.slice s i (i + n)
@@ -570,6 +409,66 @@ fn thread_gather_chunks
     (fun (k : natlt n) ->
       pts_to_cell x k (Seq.slice s i (i + n) @! k)
     );
-  array_unslice_1_with_exists x;
+  let _ = nonempty_intro (0 <: natlt n);
+  array_unslice_1 x;
 }
 #pop-options
+
+
+(* Join contiguous vector slices without imposing values on unwritten cells. *)
+ghost
+fn rec gather_live_vecs
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#n : pos)
+  (x : larray et n)
+  (count : pos { count * chunk et <= n })
+  requires forall+ (k : natlt count). live_vec x (k * chunk et)
+  ensures slice_live x 0 (count * chunk et)
+  decreases count
+{
+  if (count = 1) {
+    forevery_singleton_elim' (fun (k : natlt count) -> live_vec x (k * chunk et)) 0;
+    rewrite each (0 * chunk et) as 0;
+    unfold live_vec x 0;
+    fold slice_live x 0 (count * chunk et);
+  } else {
+    forevery_natlt_pop count (fun k -> live_vec x (k * chunk et));
+    gather_live_vecs x (count - 1);
+    unfold slice_live x 0 ((count - 1) * chunk et);
+    unfold live_vec x ((count - 1) * chunk et);
+    slice_concat x 0 ((count - 1) * chunk et) (count * chunk et);
+    fold slice_live x 0 (count * chunk et);
+  }
+}
+
+ghost
+fn thread_gather_live_chunks
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#n : pos)
+  (x : larray et n)
+  (nthr : pos)
+  (#_: squash ((nthr * chunk et) /? n))
+  requires forall+ (tid : natlt nthr). thread_live_chunks x nthr tid
+  ensures live x
+{
+  let ch = v (chunk et);
+  let count = n / (nthr * ch);
+  assert pure (count * (nthr * ch) == n);
+  assert pure (count > 0);
+  forevery_map
+    (fun tid -> thread_live_chunks x nthr tid)
+    (fun tid -> forall+ (k : natlt count). live_vec x ((k * nthr + tid) * ch))
+    fn tid {
+      unfold thread_live_chunks x nthr tid;
+      rewrite each (v (chunk et)) as ch;
+      forevery_rw_size (n / (nthr * ch)) count;
+    };
+  forevery_commute _;
+  forevery_unfactor (count * nthr) count nthr (fun k -> live_vec x (k * ch));
+  rewrite each ch as (v (chunk et));
+  gather_live_vecs x (count * nthr);
+  rewrite each ((count * nthr) * chunk et) as n;
+  unfold slice_live x 0 n;
+  slice_to_array_full x;
+  fold live x;
+}

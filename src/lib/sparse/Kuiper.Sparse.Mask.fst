@@ -1,4 +1,4 @@
-module Kuiper.Sparse.SPMM.Mask
+module Kuiper.Sparse.Mask
 
 #lang-pulse
 
@@ -24,10 +24,6 @@ fn mask_cell
   with s. assert pts_to_slice x i (i + 1) s;
   assert pure (Seq.equal s seq![z]);
 }
-
-// TODO podria generalizar y tomar from y to, aunque cuando
-// repartimos por threads es medio raro
-// Quizas cambiar la def de thread_pts_to
 
 inline_for_extraction noextract
 fn mask_array
