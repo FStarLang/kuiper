@@ -12,6 +12,15 @@ open Kuiper.Array.Vectorized
 
 module Math = Kuiper.Sparse.Math
 
+let size_req rows shared cols blockWidth blockItemsK blockItemsX =
+  rows * (cols `divup` blockItemsX) <= max_blocks /\
+  blockWidth <= max_threads /\
+  rows < 10000 /\
+  shared < 10000 /\
+  cols < 10000 /\
+  blockItemsK < 10000 /\
+  blockItemsX < 10000
+
 inline_for_extraction
 type parameters (et : Type0) {| sized et, has_vec_cpy et |} = {
   rows : szp;
@@ -24,6 +33,7 @@ type parameters (et : Type0) {| sized et, has_vec_cpy et |} = {
     (k * chunk sz) /? blockItemsK /\
     (k * chunk et) /? blockItemsX
   });
+  sz_req : squash (size_req rows shared cols blockWidth blockItemsK blockItemsX);
 }
 
 let nblocks_
@@ -45,23 +55,10 @@ let allthreads_
 = nblocks_ p * nthreads_ p
 
 inline_for_extraction noextract
-let size_req
-  #et {| sized et, has_vec_cpy et |}
-  (p : parameters et) =
-    nblocks_ p <= max_blocks /\
-    p.blockWidth <= max_threads /\
-    p.rows < 10000 /\
-    p.shared < 10000 /\
-    p.cols < 10000 /\
-    p.blockItemsK < 10000 /\
-    p.blockItemsX < 10000
-
-inline_for_extraction noextract
 let nblocks
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et)
 : Pure (szle max_blocks)
-  (requires size_req p)
   (ensures fun r -> SZ.v r == nblocks_ p)
 = p.rows *^ (p.cols `divup_` p.blockItemsX)
 
@@ -70,7 +67,6 @@ let nthreads
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et)
 : Pure (szle max_threads)
-  (requires size_req p)
   (ensures fun r -> SZ.v r == nthreads_ p)
 = p.blockWidth
 
@@ -80,7 +76,6 @@ let allthreads
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et)
 : Pure sz
-  (requires size_req p)
   (ensures fun r -> SZ.v r == allthreads_ p)
 = assert fits (max_blocks * max_threads); nblocks p *^ nthreads p
 #pop-options
@@ -99,16 +94,18 @@ let brow_
 : Tot (m : sz {SZ.v m == brow p bid})
 = bid %^ p.rows
 
+#push-options "--z3rlimit 10"
 let bcol
   #et {| sized et, has_vec_cpy et |}
   (p : parameters et) (bid : natlt (nblocks_ p))
 : GTot (natlt p.cols)
 = (bid / p.rows) * p.blockItemsX
+#pop-options
 
 inline_for_extraction noextract
 let bcol_
   #et {| sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p }) (bid : szlt (nblocks_ p))
+  (p : parameters et) (bid : szlt (nblocks_ p))
 : Tot (n : sz {SZ.v n == bcol p bid})
 = FStar.SizeT.fits_at_least_16 (bcol p bid);
   let q : (q : sz { SZ.v q == SZ.v bid / SZ.v p.rows }) = bid /^ p.rows in
@@ -137,7 +134,7 @@ let tcol
 inline_for_extraction noextract
 let tcol_
   (#et : Type0) {| sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (bid : szlt (nblocks_ p))
   (tid : szlt p.blockWidth)
 : Pure sz (requires true) (ensures fun c -> SZ.v c == tcol p bid tid)

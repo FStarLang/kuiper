@@ -3,6 +3,7 @@ module Klas.SPMM.Inst
 open Kuiper
 open Kuiper.Sparse
 open Kuiper.Sparse.SPMM
+open Kuiper.Sparse.SPMM.Defs { size_req }
 module Math = Kuiper.Sparse.Math
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor
@@ -60,8 +61,7 @@ fn inst_on
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB) **
     on gpu_loc (live gC) **
-    pure (rows * (cols `divup` blockItemsX) <= max_blocks) **
-    pure (blockWidth <= max_threads)
+    pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
   ensures
     epoch_live s (epoch_next e) **
     pledge0 (epoch_done s (epoch_next e)) (on gpu_loc (
@@ -133,8 +133,7 @@ fn inst
   requires
     pure (blockItemsX /? cols) **
     on gpu_loc (live gC) **
-    pure (rows * (cols `divup` blockItemsX) <= max_blocks) **
-    pure (blockWidth <= max_threads)
+    pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)
 {
   tensor_pts_to_ref_located gB;

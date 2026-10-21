@@ -95,11 +95,15 @@ fn spmm_f32_dispatch
     pure (4 /? cols) **
     on gpu_loc (live gC) **
     pure (
+      rows * (cols \`divup\` 2) <= max_blocks /\\
       rows * (cols \`divup\` 4) <= max_blocks /\\
       rows * (cols \`divup\` 8) <= max_blocks /\\
       rows * (cols \`divup\` 16) <= max_blocks /\\
       rows * (cols \`divup\` 32) <= max_blocks /\\
-      rows * (cols \`divup\` 64) <= max_blocks
+      rows * (cols \`divup\` 64) <= max_blocks /\\
+      rows < 10000 /\\
+      shared < 10000 /\\
+      cols < 10000
     ) **
     pure (8 <= max_threads)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)

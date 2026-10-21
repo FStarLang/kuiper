@@ -196,10 +196,9 @@ fn fold_thread_pts_to_vec
   requires pure (is_ematrix_tile em i j s nthr)
   ensures thread_pts_to_vec gm i j em nthr k
 {
-  admit();
   if (offset_chunk et j k nthr < cols)
   {
-    assert pure (is_ematrix_tile_at em i j s nthr k);
+    is_ematrix_tile_at_eq em i j s nthr k;
     matrix_pts_to_vec_in_bounds_equiv gm
     i (offset_chunk et j k nthr)
       (seq_chunk s (k * chunk et))
@@ -488,7 +487,6 @@ fn gahter_pts_to_tile_in_matrix
     pts_to_tile_in_matrix gm r (b * row_tile) em row_tile
   ensures gm |-> em
 {
-  admit();
   forevery_map #(natlt rows)
     (fun r ->
       forall+ (b : natlt (cols `divup` row_tile)).

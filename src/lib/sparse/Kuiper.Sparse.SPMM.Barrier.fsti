@@ -41,7 +41,7 @@ let row_prefix_bound
 
 let barrier_in
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -119,7 +119,7 @@ let barrier_in
 
 let barrier_out
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -207,7 +207,7 @@ let barrier_out
 
 let barrier_contract
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -232,7 +232,7 @@ let barrier_contract
 ghost
 fn barrier_in_fold_mask_pre
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -258,7 +258,7 @@ fn barrier_in_fold_mask_pre
 ghost
 fn barrier_in_fold_mask_post
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -286,7 +286,7 @@ fn barrier_in_fold_mask_post
 ghost
 fn barrier_out_unfold_mask_pre
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -315,7 +315,7 @@ fn barrier_out_unfold_mask_pre
 ghost
 fn barrier_out_unfold_mask_post
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -343,7 +343,7 @@ fn barrier_out_unfold_mask_post
 ghost
 fn barrier_in_fold_main_pre
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -369,7 +369,7 @@ fn barrier_in_fold_main_pre
 ghost
 fn barrier_in_fold_main_post
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -395,7 +395,7 @@ fn barrier_in_fold_main_post
 ghost
 fn barrier_out_unfold_main_pre
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -421,7 +421,7 @@ fn barrier_out_unfold_main_pre
 ghost
 fn barrier_out_unfold_main_post
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -453,7 +453,7 @@ fn barrier_out_unfold_main_post
 ghost
 fn barrier_in_fold_residue0_pre
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -478,7 +478,7 @@ fn barrier_in_fold_residue0_pre
 ghost
 fn barrier_in_fold_residue_pre
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -533,7 +533,7 @@ let residue_pred
 ghost
 fn barrier_in_fold_residue_post
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -563,7 +563,7 @@ fn barrier_in_fold_residue_post
 ghost
 fn barrier_out_unfold_residue_pre
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -591,7 +591,7 @@ fn barrier_out_unfold_residue_pre
 ghost
 fn barrier_out_unfold_residue_post
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
@@ -627,7 +627,7 @@ fn barrier_out_unfold_residue_post
 ghost
 fn barrier_p_to_q_transform
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
-  (p : parameters et { size_req p })
+  (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#nnz : sz)
   (elems : lseq et nnz)
