@@ -162,6 +162,14 @@ let lemma_seq_fold_left_slice' (#a #b:Type) (e:b) (f: b -> a -> b)
                      seq_fold_left f e (Seq.slice s i (j + 1)) == seq_fold_left f e (Seq.slice s i j) `f` (s @! j))
   = ()
 
+(* The permission [1 /. lenab] in [kpre]/[kpost] is re-checked (real <: perm)
+   inside the loop body, whose context is full of nonlinear real facts; give
+   its positivity as a triggered fact so it does not depend on Z3's nonlinear
+   arithmetic there. *)
+private let inv_of_pos_pat (n : pos)
+  : Lemma (FStar.Real.(1.0R /. of_int n >. 0.0R)) [SMTPat (FStar.Real.(1.0R /. of_int n))]
+  = ()
+
 inline_for_extraction noextract
 fn kfonline_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -265,7 +273,14 @@ fn kfonline_softmax
     };
   };
   let x = tensor_read a ((tid <: szlt lenab), ());
+  let gx = ras @! tid;
+  assert pure (x %~ gx);
+  assert pure (reveal !gsum >. 0.0R);
+  assert pure ((x `sub` !max) %~ (gx -. reveal !gmax));
+  assert pure (fexp (x `sub` !max) %~ exp (gx -. reveal !gmax));
   let y = (fexp (x `sub` !max) `div` !sum);
+  assert pure (y %~ (exp (gx -. reveal !gmax) /. reveal !gsum));
+  assert pure ((online_softmax_real (reveal ras)) @! tid == exp (gx -. reveal !gmax) /. reveal !gsum);
   assert pure (y %~ ((online_softmax_real (reveal ras)) @! tid));
   online_softmax_is_softmax (reveal ras);
   lem_softmax_real_to_seq ra;

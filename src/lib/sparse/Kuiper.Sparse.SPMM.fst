@@ -262,32 +262,6 @@ let output_tile_bound
   : Lemma (b * SZ.v p.blockItemsX < SZ.v p.cols)
   = ()
 
-(* Grid order used by [setup]: column tiles outermost. *)
-let nblocks_comm
-  (#et : Type0) {| sized et, has_vec_cpy et |} (p : parameters et)
-: Lemma (nblocks_ p == divup p.cols p.blockItemsX * p.rows)
-= FStar.Math.Lemmas.swap_mul p.rows (divup p.cols p.blockItemsX)
-
-(* Reassociate the column index under [when__], in a small proof context *)
-ghost
-fn forevery_when_reassoc
-  (#n1 #n2 : nat)
-  (base w cols : nat)
-  (q : natlt cols -> slprop)
-  requires
-    forall+ (tid : natlt n1) (k : natlt n2).
-      when__ (base + (k * w + tid) < cols) (fun _ -> q (base + (k * w + tid)))
-  ensures
-    forall+ (tid : natlt n1) (k : natlt n2).
-      when__ (base + k * w + tid < cols) (fun _ -> q (base + k * w + tid))
-{
-  forevery_ext_2 #(natlt n1) #(natlt n2)
-    (fun tid k ->
-      when__ (base + (k * w + tid) < cols) (fun _ -> q (base + (k * w + tid))))
-    (fun tid k ->
-      when__ (base + k * w + tid < cols) (fun _ -> q (base + k * w + tid)));
-}
-
 #push-options "--z3rlimit 30"
 ghost
 fn setup
@@ -746,14 +720,6 @@ fn teardown
 }
 
 
-(* Offsets [ri + idx * blockItemsK] are natural: nonlinear sign fact,
-   supplied as a triggered lemma on the product. *)
-let sz_times_blockItemsK_nonneg
-  (#et : Type0) {| sized et, has_vec_cpy et |} (p : parameters et) (a : sz)
-  : Lemma (SZ.v a * SZ.v p.blockItemsK >= 0)
-          [SMTPat (SZ.v a * SZ.v p.blockItemsK)]
-  = FStar.Math.Lemmas.nat_times_nat_is_nat (SZ.v a) (SZ.v p.blockItemsK)
-
 inline_for_extraction noextract
 fn sparse_load_main
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -940,15 +906,6 @@ fn sparse_load_residue
     elems_tile col_ind_tile bid ri ri' re tid idx residue;
 }
 
-(* [round2 k ri <= re] when [ri <= re], so the barrier count is a nat;
-   explicit Euclidean division steps *)
-let round2_le_of_le (k : pos) (kk : pos) (ri re : nat)
-  : Lemma (requires ri <= re)
-          (ensures round2 k ri <= re /\ ((re - round2 k ri) / kk + 1) * 2 >= 0)
-  = FStar.Math.Lemmas.euclidean_division_definition ri k;
-    FStar.Math.Lemmas.lemma_mod_lt ri k;
-    FStar.Math.Lemmas.nat_over_pos_is_nat (re - round2 k ri) kk
-
 noextract
 let barrier_count
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -1076,20 +1033,6 @@ let seq_mask_lslice_prefix
   = seq_mask_prefix k s m;
     ()
 
-let seq_mask_row_lslice_prefix
-  (#et : Type0) {| scalar et |}
-  (ri' ri re : nat { ri' <= ri /\ ri <= re })
-  (s : lseq et (re - ri))
-  (masked : lseq et (re - ri') {masked == seq_mask_row ri' ri re s})
-  (m : nat {m <= re - ri})
-  (stop : nat {stop <= re - ri'})
-  (_ : squash (stop == (ri - ri') + m))
-  : Lemma
-      (Seq.equal
-        (lslice masked 0 stop)
-        (Seq.create (ri - ri') zero @+ lslice s 0 m))
-  = seq_mask_prefix (ri - ri') s m
-
 let seq_mask_slice
   (#et : Type0) {| scalar et |}
   (k : nat)
@@ -1152,10 +1095,7 @@ let tcol_fits
 =
   FStar.Math.Lemmas.lemma_mult_lt_right (chunk et) tid p.blockWidth;
   assert (bcol p bid < p.cols);
-  Kuiper.Divides.lemma_divides_le (p.blockWidth * chunk et) p.blockItemsX;
-  assert (p.blockWidth * chunk et <= p.blockItemsX);
-  assert (tcol p bid tid == bcol p bid + tid * chunk et);
-  tcol_fits_aux (bcol p bid) (tid * chunk et) p.blockItemsX p.blockWidth
+  assert (p.blockWidth * chunk et <= p.blockItemsX)
 
 (* The masked first tile: zero-padding followed by the in-row prefix is the
    [k]-prefix of the padded row. *)
@@ -1432,8 +1372,8 @@ fn kf_main
   if (!nnz >=^ p.blockItemsK)
   {
     let row_elems_ : erased (lseq et (re - ri)) = hide (Seq.slice elems ri re);
-    let row_elems : erased (lseq et (re - ri')) = seq_mask (ri - ri') row_elems_;
-    assert rewrites_to row_elems (seq_mask (ri - ri') row_elems_);
+    let row_elems : erased (lseq et (re - ri')) = seq_mask_row ri' ri re row_elems_;
+    assert rewrites_to row_elems (seq_mask_row ri' ri re row_elems_);
 
     // let row_ind : erased (lseq nat (re - ri')) = hide (Seq.slice (cast_pos col_ind) ri' re);
     let row_ind_ : erased (lseq sz (re - ri')) = hide (Seq.slice col_ind ri' re);
@@ -1451,8 +1391,9 @@ fn kf_main
     idx := 1sz;
     nnz := !nnz -^ p.blockItemsK;
 
-    seq_mask_row_lslice_prefix ri' ri re row_elems_ row_elems
-      (ri' + p.blockItemsK - ri) p.blockItemsK ();
+    seq_mask_prefix
+      (ri - ri') row_elems_
+      (ri' + p.blockItemsK - ri);
     Seq.slice_slice elems ri re 0 (ri' + p.blockItemsK - ri);
 
     assert pure (
@@ -1463,7 +1404,7 @@ fn kf_main
     assert pure (
       Seq.equal
         (lslice (cast_pos col_ind) ri' p.blockItemsK)
-        (lslice (cast_pos row_ind_) 0 (!idx * p.blockItemsK))
+        (Seq.slice (cast_pos row_ind_) 0 (!idx * p.blockItemsK))
     );
 
     with v_out. assert out |-> v_out;
@@ -1527,7 +1468,7 @@ fn kf_main
               (ri' + !idx * p.blockItemsK + p.blockItemsK))
       );
 
-      assert pure (row_elems == seq_mask (ri - ri') row_elems_);
+      assert pure (row_elems == seq_mask_row ri' ri re row_elems_);
       seq_mask_source_slice elems ri' ri re row_elems_ row_elems
         (!idx * p.blockItemsK)
         (!idx * p.blockItemsK + p.blockItemsK);
@@ -1623,10 +1564,16 @@ fn kf_main
     barrier_in_fold_residue_pre p row_perm elems col_ind row_off
       elems_tile col_ind_tile bid ri' re tid;
 
+    // Loop exit: re - ri' == idx * blockItemsK + nnz with nnz < blockItemsK, so
+    // idx is exactly the quotient. Spelled out as Euclidean division because
+    // the solver no longer gets there unaided.
+    FStar.Math.Lemmas.small_division_lemma_1 (SZ.v !nnz) (SZ.v p.blockItemsK);
+    FStar.Math.Lemmas.lemma_div_plus (SZ.v !nnz) (SZ.v !idx) (SZ.v p.blockItemsK);
+    assert pure (SZ.v !idx == (re - ri') / p.blockItemsK);
     rewrite barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile
       bid ((re - ri') / p.blockItemsK * 2) tid
     as barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile
-      bid (vi * 2) tid;
+      bid (!idx * 2) tid;
 
     #set-options "--z3refresh" { () };
     ();
@@ -1691,10 +1638,7 @@ fn kf_residue
   (re : sz{re == row_off @! (brow p bid |~> row_perm) + 1})
   (tid : szlt p.blockWidth)
   (n_idx : sz {SZ.v n_idx == tcol p bid tid })
-  (idx residue : sz {residue_pred p.blockItemsK ri ri' re idx residue /\ residue <= re - ri})
-  (#_ : squash (
-    in_bounds 0 p.shared (lslice' (cast_pos col_ind) ri (re - residue)) /\
-    in_bounds 0 p.shared (lslice' (cast_pos col_ind) ri re)))
+  (idx residue : sz {residue_pred p.blockItemsK ri ri' re idx residue})
   norewrite
   preserves gpu
   preserves smatrix_pts_to' gA #fA elems col_ind row_off eA
@@ -1742,13 +1686,21 @@ fn kf_residue
         eB n_idx p.blockWidth vout
     )
 {
-  residue_le p ri re ri' idx residue;
-  kf_residue_seqs elems col_ind ri re residue;
-  kf_residue_post_wf p.blockWidth idx;
   let out0 : erased (lseq et (threadItemsX p)) =
     Seq.create (p.blockItemsX / p.blockWidth) zero;
   let row_elems : erased (lseq et (re - ri)) = hide (Seq.slice elems ri re);
   let row_ind : erased (lseq sz (re - ri)) = hide (Seq.slice col_ind ri re);
+
+  assert pure (
+    Seq.equal
+      (Seq.slice elems ri (re - residue))
+      (lslice' row_elems 0 ((re - ri) - residue))
+  );
+  assert pure (
+    Seq.equal
+      (lslice' (cast_pos col_ind) ri (re - residue))
+      (lslice' (cast_pos row_ind) 0 ((re - ri) - residue))
+  );
 
   with vout. assert out |-> vout;
   assert pure (
@@ -1787,8 +1739,29 @@ fn kf_residue
     gB n_idx p.blockWidth
     ((re - ri) - residue) (re - ri) residue;
 
-  kf_residue_restore_tile elems_tile residue;
-  kf_residue_restore_tile col_ind_tile residue;
+  assert pure (
+    Seq.equal
+      (Seq.slice row_elems 0 (re - ri))
+      (Seq.slice elems ri re)
+  );
+  assert pure (
+    Seq.equal
+      (Seq.slice (cast_pos row_ind) 0 (re - ri))
+      (lslice' (cast_pos col_ind) ri re)
+  );
+
+  unfold slice_live elems_tile #(1.0R /. p.blockWidth) residue p.blockItemsK;
+  slice_concat elems_tile #(1.0R /. p.blockWidth)
+    0 residue p.blockItemsK;
+
+  unfold slice_live col_ind_tile #(1.0R /. p.blockWidth) residue p.blockItemsK;
+  slice_concat col_ind_tile #(1.0R /. p.blockWidth)
+    0 residue p.blockItemsK;
+
+  add_full_slice elems_tile 0 p.blockItemsK p.blockItemsK;
+  slice_to_array elems_tile;
+  add_full_slice col_ind_tile 0 p.blockItemsK p.blockItemsK;
+  slice_to_array col_ind_tile;
   ();
 }
 #pop-options
@@ -1931,7 +1904,7 @@ fn kf
     gA gB eA
     out
     elems_tile col_ind_tile
-    bid ri ri' re tid n_idx vidx vnnz;
+    bid ri ri' re tid n_idx !idx !nnz;
 
   //------------------dense store-----------------------------------------
 
@@ -2112,15 +2085,6 @@ let kdesc
   kpost_sendable=magic();
 }
 
-(* [blockItemsX / blockWidth > 0]: [blockWidth * c] divides the (positive)
-   [blockItemsX], hence [blockWidth <= blockItemsX]. *)
-let block_chunks_pos (x w c : pos)
-  : Lemma (requires (w * c) /? x) (ensures x / w > 0)
-  = Kuiper.Divides.lemma_divides_le (w * c) x;
-    FStar.Math.Lemmas.lemma_mult_le_left w 1 c;
-    FStar.Math.Lemmas.lemma_div_le w x w;
-    FStar.Math.Lemmas.cancel_mul_div 1 w
-
 inline_for_extraction noextract
 fn spmm_on
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -2193,7 +2157,6 @@ fn spmm_on
   assert pure ((chunk sz * blockWidth) /? blockItemsK);
 
   assume pure (chunk et /? blockChunks);
-  block_chunks_pos blockItemsX blockWidth (chunk et);
   lemma_aligned_strided_row_major_l2_row_major
     #(SZ.v blockItemsK) #(SZ.v blockChunks) (chunk et);
 

@@ -155,6 +155,11 @@ let tcol
   bcol p bid + tid * chunk et
 
 #push-options "--z3rlimit 15"
+let chunk_le_16 (c s : nat)
+  : Lemma (requires c * s == 16) (ensures c <= 16)
+  = if s = 0 then FStar.Math.Lemmas.mul_zero_right_is_zero c
+    else FStar.Math.Lemmas.lemma_mult_le_left c 1 s
+
 inline_for_extraction noextract
 let tcol_
   (#et : Type0) {| sized et, has_vec_cpy et |}
