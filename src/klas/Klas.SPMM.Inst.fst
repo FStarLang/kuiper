@@ -39,9 +39,6 @@ fn inst_on
   (gC : array2 et (rm rows cols) { is_global gC})
   (#_ : squash (aligned 16 (core gC)))
   // matriz sparse gA
-  (elems : erased (lseq et gA.nnz))
-  (col_ind : erased (lseq sz gA.nnz))
-  (row_off : erased (lseq sz (rows + 1)))
   (#eA : chest2 et rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
@@ -56,7 +53,7 @@ fn inst_on
   requires
     epoch_live s e **
     pure (blockItemsX /? cols) **
-    on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
+    on gpu_loc (smatrix_pts_to gA #fA eA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB) **
     on gpu_loc (live gC) **
@@ -65,7 +62,7 @@ fn inst_on
   ensures
     epoch_live s (epoch_next e) **
     pledge0 (epoch_done s (epoch_next e)) (on gpu_loc (
-      smatrix_pts_to' gA #fA elems col_ind row_off eA **
+      smatrix_pts_to gA #fA eA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
       gC |-> MS.matmul eA eB
@@ -85,8 +82,7 @@ fn inst_on
     blockItemsK blockItemsX blockWidth
     (blockItemsX /^ blockWidth)
     gA row_indices fri gB gC
-    elems col_ind row_off
-    #eA
+    #_ #_ #eA
     row_perm
     #eB #eC
     s
@@ -113,9 +109,6 @@ fn inst
   (gC : array2 et (rm rows cols) { is_global gC})
   (#_ : squash (aligned 16 (core gC)))
   // matriz sparse gA
-  (elems : erased (lseq et gA.nnz))
-  (col_ind : erased (lseq sz gA.nnz))
-  (row_off : erased (lseq sz (rows + 1)))
   (#eA : chest2 et rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
@@ -127,7 +120,7 @@ fn inst
   preserves
     cpu **
     //on gpu_loc (gA |-> Frac fA eA) **
-    on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
+    on gpu_loc (smatrix_pts_to gA #fA eA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
@@ -151,8 +144,7 @@ fn inst
     blockItemsK blockItemsX blockWidth
     (blockItemsX /^ blockWidth)
     gA row_indices fri gB gC
-    elems col_ind row_off
-    #eA
+    #_ #_ #eA
     row_perm
     #eB #eC
 }
