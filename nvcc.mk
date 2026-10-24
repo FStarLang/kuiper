@@ -74,7 +74,7 @@ EXTRACT += $(wildcard src/examples/*.fst)
 # Extract everything in src/klas , they are the C api for the library
 EXTRACT += $(wildcard src/klas/*.fst)
 EXTRACT += src/lib/graph/Kuiper.GraphDist.fst
-NOEXTRACT :=
+NOEXTRACT := src/examples/Kuiper.Example.ArraySubviewResidency.fst
 
 # The Inst.fst modules just contain an instantiation function, not to be extracted.
 INST_MODULES := $(foreach f,$(EXTRACT),$(if $(findstring Inst.fst,$(f)),$(f)))
