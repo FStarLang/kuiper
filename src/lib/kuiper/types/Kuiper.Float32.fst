@@ -52,6 +52,11 @@ let lt_ordered (x y : t) = Kuiper.Float32.Base.lt_ordered x y
 let lt_transitive (x y z : t) = Kuiper.Float32.Base.lt_transitive x y z
 
 inline_for_extraction noextract
+let native_neg = Kuiper.Float32.Base.native_neg
+
+let native_neg_kind (x : t) = Kuiper.Float32.Base.native_neg_kind x
+
+inline_for_extraction noextract
 let fexpm1 = Kuiper.Float32.Base.fexpm1
 
 inline_for_extraction noextract
