@@ -23,11 +23,18 @@ inline_for_extraction let bit_eq = F.bit_eq
 inline_for_extraction let ieee_eq = F.ieee_eq
 inline_for_extraction let eq = ieee_eq
 
+(* Native unary minus, not subtraction from positive zero. *)
+val native_neg : t -> t
+
 val of_int_zero : squash (of_int 0L == zero)
 val of_int_one : squash (of_int 1L == one)
 
 val kind : t -> fkind
 val is_zero : t -> GTot bool
+
+val native_neg_kind (x : t)
+  : Lemma (kind (native_neg x) == kind x)
+          [SMTPat (native_neg x)]
 
 val largest : t
 val infinity : t
