@@ -1,21 +1,6 @@
 
 #include "Kuiper_Example_Async1.h"
 
-uint64_t *Kuiper_Example_Async1_galloc(uint64_t x)
-{
-    uint64_t r = x;
-    uint64_t *gr = (uint64_t *) KPR_GPU_ALLOC(sizeof(uint64_t), 1U);
-    MUST(cudaMemcpy(gr, &r, sizeof(uint64_t), cudaMemcpyHostToDevice));
-    return gr;
-}
-
-uint64_t Kuiper_Example_Async1_gread(uint64_t *gr)
-{
-    uint64_t r = 0ULL;
-    MUST(cudaMemcpy(&r, gr, sizeof(uint64_t), cudaMemcpyDeviceToHost));
-    return r;
-}
-
 __global__ __launch_bounds__(1)
 /**
   hoisted when extracting main
@@ -74,6 +59,23 @@ static void
 __hoisted_main_5(uint64_t *r6)
 {
     (*r6)++;
+}
+
+uint64_t *Kuiper_Example_Async1_galloc(uint64_t x)
+{
+    uint64_t r = x;
+    uint64_t *gr = (uint64_t *) KPR_GPU_ALLOC((uint32_t) sizeof(uint64_t), 1U);
+    MUST(cudaMemcpy(
+        gr, &r, (uint32_t) sizeof(uint64_t), cudaMemcpyHostToDevice));
+    return gr;
+}
+
+uint64_t Kuiper_Example_Async1_gread(uint64_t *gr)
+{
+    uint64_t r = 0ULL;
+    MUST(cudaMemcpy(
+        &r, gr, (uint32_t) sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    return r;
 }
 
 uint64_t Kuiper_Example_Async1_main(void)

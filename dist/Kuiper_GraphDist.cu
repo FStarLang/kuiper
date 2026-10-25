@@ -1,13 +1,7 @@
 
 #include "Kuiper_GraphDist.h"
 
-bool Kuiper_GraphDist_uu___is_D(uint16_t projectee)
-{
-    KRML_MAYBE_UNUSED_VAR(projectee);
-    return true;
-}
-
-__device__ static uint16_t add_(uint16_t x, uint16_t y)
+__device__ uint16_t Kuiper_GraphDist_add_(uint16_t x, uint16_t y)
 {
     if (x == 0U || y != 0U && y < x)
         return y;
@@ -15,7 +9,7 @@ __device__ static uint16_t add_(uint16_t x, uint16_t y)
         return x;
 }
 
-__device__ static uint16_t mult(uint16_t x, uint16_t y)
+__device__ uint16_t Kuiper_GraphDist_mult(uint16_t x, uint16_t y)
 {
     if (x == 0U || y == 0U)
         return 0U;
@@ -38,10 +32,12 @@ __hoisted_matmul_dist_gpu_0(uint32_t size, uint16_t *a, uint16_t *b)
         for (; k < size; k++) {
             uint32_t vk = k;
             uint16_t __anf2 = sum;
-            sum = add_(__anf2, mult(a[trow * size + vk], a[vk * size + tcol]));
+            sum = Kuiper_GraphDist_add_(
+                __anf2, Kuiper_GraphDist_mult(
+                            a[trow * size + vk], a[vk * size + tcol]));
         }
-        uint16_t s1 = sum;
-        b[trow * size + tcol] = add_(b[trow * size + tcol], s1);
+        b[trow * size + tcol] =
+            Kuiper_GraphDist_add_(b[trow * size + tcol], sum);
     }
 }
 
