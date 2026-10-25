@@ -1323,8 +1323,6 @@ fn kf_main
     out |-> (vout <: seq et) **
     pure (
       Compute.tile_mm_result #_ #_ #_ #hvc
-        // #(re - residue - ri)
-        // #(threadItemsX p)
         (Seq.create (threadItemsX p) d.zero <: lseq et (threadItemsX p))
         (Seq.slice elems ri (re - residue))
         (lslice' (cast_pos col_ind) ri (re - residue))
@@ -2084,9 +2082,6 @@ fn spmm_on
   (#_ : squash (aligned 16 (core gC)))
   (#_ : squash (aligned_strided_row_major (chunk et) srmC))
   // matriz sparse gA
-  (elems : erased (lseq et gA.nnz))
-  (col_ind : erased (lseq sz gA.nnz))
-  (row_off : erased (lseq sz (rows + 1)))
   (#eA : chest2 et rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
@@ -2099,7 +2094,7 @@ fn spmm_on
   preserves cpu ** stream_live s
   requires
     epoch_live s e **
-    on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
+    on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB) **
     on gpu_loc (live gC) **
@@ -2107,7 +2102,7 @@ fn spmm_on
   ensures
     epoch_live s (epoch_next e) **
     pledge0 (epoch_done s (epoch_next e)) (on gpu_loc (
-      smatrix_pts_to' gA #fA elems col_ind row_off eA **
+      gA |-> Frac fA eA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
       gC |-> MS.matmul eA eB
@@ -2117,6 +2112,16 @@ fn spmm_on
   lemma_aligned_strided_row_major_l2_row_major
     #(SZ.v blockItemsK) #(SZ.v blockChunks) (chunk et);
 
+  map_loc gpu_loc
+    #(gA |-> Frac fA eA)
+    #(exists* elems col_ind row_off. smatrix_pts_to' gA #fA elems col_ind row_off eA)
+    fn _ {
+      unfold smatrix_pts_to gA #fA eA;
+    };
+  with elems. assert on gpu_loc (gA.elems |-> Frac fA elems);
+  with col_ind. assert on gpu_loc (gA.col_ind |-> Frac fA col_ind);
+  with row_off. assert on gpu_loc (gA.row_off |-> Frac fA row_off);
+
   launch (
     kdesc #et #_
       ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth; sz_req = () })
@@ -2124,6 +2129,29 @@ fn spmm_on
       gA row_indices gB gC elems col_ind row_off eA
       #eB #fA #fri #fB
   ) s;
+
+  rewrite_pledge #emp_inames #(epoch_done s (epoch_next e))
+    (on gpu_loc (
+      smatrix_pts_to' gA #fA elems col_ind row_off eA **
+      row_indices |-> Frac fri (ordering row_perm) **
+      gB |-> Frac fB eB **
+      gC |-> MS.matmul eA eB
+    ))
+    (on gpu_loc (
+      gA |-> Frac fA eA **
+      row_indices |-> Frac fri (ordering row_perm) **
+      gB |-> Frac fB eB **
+      gC |-> MS.matmul eA eB
+    ))
+    #emp_inames
+    fn _ {
+      map_loc gpu_loc
+        #(smatrix_pts_to' gA #fA elems col_ind row_off eA)
+        #(gA |-> Frac fA eA)
+        fn _ {
+          fold smatrix_pts_to gA #fA eA;
+        };
+    };
 }
 
 (* Same structure as Kuiper.Kernel.launch_kernel_full_sync, one level up. *)
@@ -2155,9 +2183,6 @@ fn spmm
   (#_ : squash (aligned 16 (core gC)))
   (#_ : squash (aligned_strided_row_major (chunk et) srmC))
   // matriz sparse gA
-  (elems : erased (lseq et gA.nnz))
-  (col_ind : erased (lseq sz gA.nnz))
-  (row_off : erased (lseq sz (rows + 1)))
   (#eA : chest2 et rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
@@ -2167,7 +2192,7 @@ fn spmm
   norewrite
   preserves
     cpu **
-    on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
+    on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
@@ -2182,12 +2207,11 @@ fn spmm
     blockItemsK blockItemsX blockWidth
     blockChunks
     gA row_indices fri gB gC
-    elems col_ind row_off
-    #eA row_perm #eB #eC
+    #_ #_ #eA row_perm #eB #eC
     s;
   sync_stream s;
   redeem_pledge emp_inames (epoch_done s _) (on gpu_loc (
-      smatrix_pts_to' gA #fA elems col_ind row_off eA **
+      gA |-> Frac fA eA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
       gC |-> MS.matmul eA eB

@@ -78,9 +78,6 @@ fn spmm_f32_dispatch
   (#fB : perm)
   (gC : array2 f32 (rm rows cols) { is_global gC})
   (#_ : squash (aligned 16 (core gC)))
-  (elems : erased (lseq f32 gA.nnz))
-  (col_ind : erased (lseq sz gA.nnz))
-  (row_off : erased (lseq sz (rows + 1)))
   (#eA : chest2 f32 rows shared)
   (row_perm : permutation (natlt rows))
   (#eB : chest2 f32 shared cols)
@@ -88,7 +85,7 @@ fn spmm_f32_dispatch
   norewrite
   preserves
     cpu **
-    on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
+    on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
@@ -111,22 +108,22 @@ fn spmm_f32_dispatch
   if (cols %^ 64sz = 0sz) {
     lemma_divides_mod 64 (SZ.v cols);
     g_spmm_f32_32x64x8 rows shared cols gA row_indices fri gB gC
-      elems col_ind row_off #eA row_perm #eB #eC;
+      #_ #eA row_perm #eB #eC;
   } else if (cols %^ 32sz = 0sz) {
     lemma_divides_mod 32 (SZ.v cols);
     g_spmm_f32_32x32x8 rows shared cols gA row_indices fri gB gC
-      elems col_ind row_off #eA row_perm #eB #eC;
+      #_ #eA row_perm #eB #eC;
   } else if (cols %^ 16sz = 0sz) {
     lemma_divides_mod 16 (SZ.v cols);
     g_spmm_f32_32x16x4 rows shared cols gA row_indices fri gB gC
-      elems col_ind row_off #eA row_perm #eB #eC;
+      #_ #eA row_perm #eB #eC;
   } else if (cols %^ 8sz = 0sz) {
     lemma_divides_mod 8 (SZ.v cols);
     g_spmm_f32_32x8x2 rows shared cols gA row_indices fri gB gC
-      elems col_ind row_off #eA row_perm #eB #eC;
+      #_ #eA row_perm #eB #eC;
   } else {
     g_spmm_f32_32x4x1 rows shared cols gA row_indices fri gB gC
-      elems col_ind row_off #eA row_perm #eB #eC;
+      #_ #eA row_perm #eB #eC;
   }
 }
 EOF
