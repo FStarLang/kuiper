@@ -7,12 +7,14 @@ module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor
 open Kuiper.Sparse
+open Kuiper.Sparse.SPMM.Defs { size_req }
 open Kuiper.EMatrix
 open Kuiper.Array.Vectorized
 open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
 
 open Pulse.Lib.Pledge
 open Kuiper.Kernel.Base
+
 
 (* Asynchronous, stream-parametric SpMM.
 
@@ -53,33 +55,27 @@ fn spmm_on
   (#_ : squash (aligned 16 (core gC)))
   (#_ : squash (aligned_strided_row_major (chunk et) srmC))
   // matriz sparse gA
-  (elems : erased (lseq et gA.nnz))
-  (col_ind : erased (lseq sz gA.nnz))
-  (row_off : erased (lseq sz (rows + 1)))
   (#eA : chest2 et rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
   // matrices densas
   (#eB : chest2 et shared cols)
   (#eC : chest2 et rows cols)
-  //(#_ : size_req rows shared cols)
   (s : stream_t)
   (#e : epoch_t)
   norewrite
   preserves cpu ** stream_live s
   requires
     epoch_live s e **
-    pure (blockItemsX /? cols) **
-    on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
+    on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB) **
     on gpu_loc (live gC) **
-    pure (rows * (cols `divup` blockItemsX) <= max_blocks) **
-    pure (blockWidth <= max_threads)
+    pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
   ensures
     epoch_live s (epoch_next e) **
     pledge0 (epoch_done s (epoch_next e)) (on gpu_loc (
-      smatrix_pts_to' gA #fA elems col_ind row_off eA **
+      gA |-> Frac fA eA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
       gC |-> MS.matmul eA eB
@@ -114,9 +110,6 @@ fn spmm
   (#_ : squash (aligned 16 (core gC)))
   (#_ : squash (aligned_strided_row_major (chunk et) srmC))
   // matriz sparse gA
-  (elems : erased (lseq et gA.nnz))
-  (col_ind : erased (lseq sz gA.nnz))
-  (row_off : erased (lseq sz (rows + 1)))
   (#eA : chest2 et rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
@@ -126,13 +119,10 @@ fn spmm
   norewrite
   preserves
     cpu **
-    //on gpu_loc (gA |-> Frac fA eA) **
-    on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
+    on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
-    pure (blockItemsX /? cols) **
     on gpu_loc (live gC) **
-    pure (rows * (cols `divup` blockItemsX) <= max_blocks) **
-    pure (blockWidth <= max_threads)
+    pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)

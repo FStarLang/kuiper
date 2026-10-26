@@ -2,6 +2,7 @@ module Klas.SPMM.Inst
 
 open Kuiper
 open Kuiper.Sparse
+open Kuiper.Sparse.SPMM.Defs { size_req }
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
@@ -36,9 +37,6 @@ fn inst_on
   (gC : array2 et (rm rows cols) { is_global gC})
   (#_ : squash (aligned 16 (core gC)))
   // matriz sparse gA
-  (elems : erased (lseq et gA.nnz))
-  (col_ind : erased (lseq sz gA.nnz))
-  (row_off : erased (lseq sz (rows + 1)))
   (#eA : chest2 et rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
@@ -53,16 +51,15 @@ fn inst_on
   requires
     epoch_live s e **
     pure (blockItemsX /? cols) **
-    on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
+    on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB) **
     on gpu_loc (live gC) **
-    pure (rows * (cols `divup` blockItemsX) <= max_blocks) **
-    pure (blockWidth <= max_threads)
+    pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
   ensures
     epoch_live s (epoch_next e) **
     pledge0 (epoch_done s (epoch_next e)) (on gpu_loc (
-      smatrix_pts_to' gA #fA elems col_ind row_off eA **
+      gA |-> Frac fA eA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
       gC |-> MS.matmul eA eB
@@ -89,9 +86,6 @@ fn inst
   (gC : array2 et (rm rows cols) { is_global gC})
   (#_ : squash (aligned 16 (core gC)))
   // matriz sparse gA
-  (elems : erased (lseq et gA.nnz))
-  (col_ind : erased (lseq sz gA.nnz))
-  (row_off : erased (lseq sz (rows + 1)))
   (#eA : chest2 et rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
@@ -102,13 +96,11 @@ fn inst
   norewrite
   preserves
     cpu **
-    //on gpu_loc (gA |-> Frac fA eA) **
-    on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
+    on gpu_loc (gA |-> Frac fA eA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (blockItemsX /? cols) **
     on gpu_loc (live gC) **
-    pure (rows * (cols `divup` blockItemsX) <= max_blocks) **
-    pure (blockWidth <= max_threads)
+    pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
   ensures on gpu_loc (gC |-> MS.matmul eA eB)

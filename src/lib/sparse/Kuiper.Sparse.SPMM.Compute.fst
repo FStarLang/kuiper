@@ -87,10 +87,8 @@ fn scalar_prod
       pure (
         vix <= n /\
         (forall (i : natlt n { i < vix }).
-          // acc1 vy' i == seq_scalar_prod (chest1_to_seq vy) k (chest1_to_seq vx) @! i) /\
           vy' @! i == seq_scalar_prod vy k (chest1_to_seq vx) @! i) /\
         forall (i : natlt n { i >= vix }).
-          // acc1 vy' i == acc1 vy i
           vy' @! i == vy @! i
       )
       decreases (n - !ix)
@@ -378,7 +376,6 @@ let vmprod_is_tile_
   )
   (ensures is_ematrix_tile_at (matmul em1 em2) i j tile step k)
 =
-  admit();
   let acc0 : lseq et tlen = Seq.create tlen zero in
   let mm = matmul em1 em2 in
   let s = seq_chunk tile (k * chunk et) in
@@ -388,10 +385,14 @@ let vmprod_is_tile_
     let k1 = k * chunk et + x in
     let k2 = j + k1 / chunk et * step * chunk et + k1 % chunk et in
 
-    // TODO
-    assume k2 == offset_chunk et j k step + x;
-    // TODO
-    assume k2 < cols;
+    Kuiper.Math.div_mod_of_mul_add (chunk et) k x;
+    assert k1 / chunk et == k;
+    assert k1 % chunk et == x;
+    assert offset_chunk et j k step == j + k * step * chunk et;
+    assert k2 == offset_chunk et j k step + x;
+    Math.divides_leq (chunk et) cols (offset_chunk et j k step);
+    assert k2 < cols;
+    assert acc2 mm i k2 == acc2 mm i (offset_chunk et j k step + x);
 
     calc (==) {
       s @! x;
@@ -405,11 +406,50 @@ let vmprod_is_tile_
       matmul_single em1 em2 i k2;
       == {}
       acc2 mm i k2;
-      == { assert k2 == offset_chunk et j k step + x }
+      == { ematrix_row_chunk_index mm i (offset_chunk et j k step) x }
       t @! x;
     }
   );
-  assert Seq.equal s t
+  assert Seq.equal s t;
+  is_ematrix_tile_at_intro mm i j tile step k
+
+let tile_mm_result_chunks
+  (#et : Type0) {| scalar et, sized et |} {| hvc : has_vec_cpy et |}
+  (#rows #shared #cols : nat { chunk et /? cols })
+  (eA : chest2 et rows shared)
+  (i : natlt rows)
+  (#nnz : nat)
+  (elems : erased (lseq et nnz))
+  (row_ind : erased (lseq nat nnz))
+  (#_ : squash (in_bounds 0 shared row_ind /\ sorted row_ind))
+  (eB : chest2 et shared cols)
+  (j : nat { chunk et /? j })
+  (step : nat)
+  (#tlen : nat { chunk et /? tlen })
+  (tile : lseq et tlen)
+: Lemma
+  (requires
+    seq_unsparse _ _ elems row_ind == ematrix_row eA i /\
+    tile_mm_result
+      (Seq.create tlen zero)
+      elems row_ind
+      eB
+      j step
+      tile)
+  (ensures
+    forall (k : natlt (tlen / chunk et)).
+      offset_chunk et j k step < cols ==>
+        is_ematrix_tile_at (matmul eA eB) i j tile step k)
+=
+  let mm : chest2 et rows cols = matmul eA eB in
+  introduce forall (k : natlt (tlen / chunk et #_ #hvc)).
+    offset_chunk et j k step < cols ==>
+    is_ematrix_tile_at #et #_ #hvc mm i j tile step k
+  with (
+    if offset_chunk et j k step < cols
+      then vmprod_is_tile_ eA i elems row_ind eB j step tile k #()
+      else ()
+  )
 
 let tile_mm_result_lemma
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
@@ -437,16 +477,9 @@ let tile_mm_result_lemma
   )
   (ensures is_ematrix_tile #_ #_ #solve (matmul eA eB) i j tile step)
 =
-  admit();
   let mm = matmul eA eB in
-  introduce forall (k : natlt (tlen / chunk et)).
-    offset_chunk et j k step < cols ==>
-    is_ematrix_tile_at mm i j tile step k
-  with (
-    if offset_chunk et j k step < cols
-      then vmprod_is_tile_ eA i elems row_ind eB j step tile k #()
-      else ()
-  )
+  tile_mm_result_chunks eA i elems row_ind eB j step tile;
+  is_ematrix_tile_intro mm i j tile step
 
 open Kuiper.Sparse.LoadStore { array_cpy_chunk }
 
@@ -772,11 +805,6 @@ let seq_fma_cell_prop'
   (ix : natlt cnt)
 : prop
 =
-  (* This is a [prop] *definition*, so there is no statement position in which
-     to sequence the lemma call the [Seq] indices need.  Binding it with
-     [let _ = ... in] puts its conclusion in scope for the body -- which works
-     precisely because a [Lemma] is now [Tot (squash _)], so sequencing one
-     introduces a binder whose type is the fact. *)
   k2 < n ==>
     (let _ = __divides_next cnt k2 n in
      y @! k1 + ix == add (y0 @! k1 + ix) (x1 `mul` (x2 @! k2 + ix)))
