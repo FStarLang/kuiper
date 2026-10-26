@@ -67,35 +67,35 @@ module F64 = Kuiper.Float64.Base
 
 [@@expect_failure [19]]
 let reject_signed_zero_f16 () : Lemma
-  (F16.div F16.one (F16.mul (F16.sub F16.zero F16.one) F16.zero)
+  (F16.div F16.one (F16.mul (F16.neg F16.one) F16.zero)
     == F16.div F16.one F16.zero)
   = let _ = F16.kind_one in
     F16.neg_kind F16.one;
-    F16.mul_zero (F16.sub F16.zero F16.one)
+    F16.mul_zero (F16.neg F16.one)
 
 [@@expect_failure [19]]
 let reject_signed_zero_bf16 () : Lemma
-  (BF16.div BF16.one (BF16.mul (BF16.sub BF16.zero BF16.one) BF16.zero)
+  (BF16.div BF16.one (BF16.mul (BF16.neg BF16.one) BF16.zero)
     == BF16.div BF16.one BF16.zero)
   = let _ = BF16.kind_one in
     BF16.neg_kind BF16.one;
-    BF16.mul_zero (BF16.sub BF16.zero BF16.one)
+    BF16.mul_zero (BF16.neg BF16.one)
 
 [@@expect_failure [19]]
 let reject_signed_zero_f32 () : Lemma
-  (F32.div F32.one (F32.mul (F32.sub F32.zero F32.one) F32.zero)
+  (F32.div F32.one (F32.mul (F32.neg F32.one) F32.zero)
     == F32.div F32.one F32.zero)
   = let _ = F32.kind_one in
     F32.neg_kind F32.one;
-    F32.mul_zero (F32.sub F32.zero F32.one)
+    F32.mul_zero (F32.neg F32.one)
 
 [@@expect_failure [19]]
 let reject_signed_zero_f64 () : Lemma
-  (F64.div F64.one (F64.mul (F64.sub F64.zero F64.one) F64.zero)
+  (F64.div F64.one (F64.mul (F64.neg F64.one) F64.zero)
     == F64.div F64.one F64.zero)
   = let _ = F64.kind_one in
     F64.neg_kind F64.one;
-    F64.mul_zero (F64.sub F64.zero F64.one)
+    F64.mul_zero (F64.neg F64.one)
 
 [@@expect_failure [19]]
 let axioms_do_not_prove_false () : Lemma False = ()

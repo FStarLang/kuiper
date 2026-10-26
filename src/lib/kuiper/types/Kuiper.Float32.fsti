@@ -32,17 +32,6 @@ val lt_transitive (x y z : t)
       (requires lt x y /\ lt y z)
       (ensures lt x z)
 
-(* Trusted native unary minus in the existing real-approximation model.
-   This does not identify its bits with subtraction from positive zero,
-   or specify NaN signs/payloads or numerical error bounds. *)
-inline_for_extraction noextract
-val native_neg : t -> t
-assume NativeNegModels : native_neg %~ (fun (r:real) -> 0.0R -. r)
-
-val native_neg_kind (x : t)
-  : Lemma (kind (native_neg x) == kind x)
-          [SMTPat (native_neg x)]
-
 inline_for_extraction noextract
 val fexpm1 : t -> t
 assume Fexpm1Models : fexpm1 %~ r_expm1

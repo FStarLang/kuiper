@@ -19,7 +19,12 @@
 #include <cuda_fp16.h>
 #include <cuda_bf16.h>
 
-static __host__ __device__ __forceinline__ float kpr_f32_native_neg(float x)
+static __host__ __device__ __forceinline__ float kpr_f32_neg(float x)
+{
+    return -x;
+}
+
+static __host__ __device__ __forceinline__ double kpr_f64_neg(double x)
 {
     return -x;
 }

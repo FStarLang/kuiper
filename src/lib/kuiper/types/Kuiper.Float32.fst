@@ -34,7 +34,7 @@ instance _ : scalar t = {
 inline_for_extraction noextract
 instance is_floating : floating t = {
   is_scalar = solve;
-  sub; div; bit_eq;
+  neg; sub; div; bit_eq;
   of_int; of_literal; of_int_zero; of_int_one;
   kind; is_zero;
   largest; infinity;
@@ -52,11 +52,6 @@ instance is_floating_real_like : floating_real_like t = magic()
 
 let lt_ordered (x y : t) = Kuiper.Float32.Base.lt_ordered x y
 let lt_transitive (x y z : t) = Kuiper.Float32.Base.lt_transitive x y z
-
-inline_for_extraction noextract
-let native_neg = Kuiper.Float32.Base.native_neg
-
-let native_neg_kind (x : t) = Kuiper.Float32.Base.native_neg_kind x
 
 inline_for_extraction noextract
 let fexpm1 = Kuiper.Float32.Base.fexpm1

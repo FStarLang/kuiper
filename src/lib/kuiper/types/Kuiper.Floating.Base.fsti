@@ -17,6 +17,8 @@ class floating (t : Type) = {
   [@@@tcinstance]
   is_scalar : scalar t;
 
+  (* Native unary minus, not subtraction from positive zero. *)
+  neg : t -> t;
   sub : t -> t -> t;
   div : t -> t -> t;
 
@@ -88,21 +90,21 @@ class floating (t : Type) = {
 
   #[easy_fill ()]
   neg_kind : (x : t) ->
-    Lemma (ensures kind (zero `sub` x) == kind x)
-          [SMTPat (zero `sub` x)];
+    Lemma (ensures kind (neg x) == kind x)
+          [SMTPat (neg x)];
 
-  (* Negation expressed as zero subtraction preserves numerical values. *)
+  (* Numerical equality does not specify NaN signs/payloads or zero bits. *)
   #[easy_fill ()]
   neg_neg : (x : t) ->
     Lemma (requires ~(NaN? (kind x)))
-          (ensures eq (zero `sub` (zero `sub` x)) x)
-          [SMTPat (zero `sub` (zero `sub` x))];
+          (ensures eq (neg (neg x)) x)
+          [SMTPat (neg (neg x))];
 
   (* x < y <==> -y < -x, using numerical ordering. *)
   #[easy_fill ()]
   lt_neg_flip : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
-          (ensures lt x y <==> lt (zero `sub` y) (zero `sub` x))
+          (ensures lt x y <==> lt (neg y) (neg x))
           [SMTPat (lt x y)];
 
   (* x < y <==> not (y <= x) *)
@@ -150,7 +152,7 @@ class floating (t : Type) = {
   sub_is_add_neg : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
                     ~(NaN? (kind (sub x y))))
-          (ensures eq (sub x y) (add x (zero `sub` y)));
+          (ensures eq (sub x y) (add x (neg y)));
           // [SMTPat (sub x y)]
 
   #[easy_fill ()]
