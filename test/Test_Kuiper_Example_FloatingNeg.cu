@@ -6,6 +6,11 @@
 using float_test::from_bits;
 using float_test::to_bits;
 
+template <typename T, typename Bits, typename Run, typename Host>
+static void check_bits(const char *name, const std::vector<Bits> &patterns,
+    Bits sign, Bits exponent, Bits fraction, Run run, Host host,
+    Run run_zero_sub, Host host_zero_sub);
+
 __global__ void reference(const float *inputs, float *outputs, uint32_t n)
 {
     for (uint32_t i = threadIdx.x + blockIdx.x * blockDim.x; i < n;
@@ -85,6 +90,14 @@ static void check_f32()
     MUST(cudaFree(device_actual));
     MUST(cudaFree(device_expected));
     MUST(cudaFree(device_inputs));
+    std::vector<uint32_t> patterns;
+    for (float value : inputs)
+        patterns.push_back(to_bits(value));
+    check_bits<float>("Float32", patterns, float_test::sign_mask,
+        float_test::exponent_mask, float_test::fraction_mask,
+        Kuiper_Example_FloatingNeg_run_f32, Kuiper_Example_FloatingNeg_host_f32,
+        Kuiper_Example_FloatingNeg_run_zero_sub_f32,
+        Kuiper_Example_FloatingNeg_host_zero_sub_f32);
 }
 
 template <typename T, typename Bits> static T from_raw(Bits bits)
@@ -105,48 +118,92 @@ template <typename Bits, typename T> static Bits raw(T value)
 
 template <typename T, typename Bits, typename Run, typename Host>
 static void check_bits(const char *name, const std::vector<Bits> &patterns,
-    Bits sign, Bits exponent, Bits fraction, Run run, Host host)
+    Bits sign, Bits exponent, Bits fraction, Run run, Host host,
+    Run run_zero_sub, Host host_zero_sub)
 {
     const uint32_t n = patterns.size();
     const Bits guard = Bits{0x1234};
     std::vector<T> inputs(n), actual(n + 2, from_raw<T>(guard)), preserved(n);
+    std::vector<T> subtracted(n + 2, from_raw<T>(guard));
+    std::vector<T> twice(n + 2, from_raw<T>(guard));
     for (uint32_t i = 0; i < n; ++i)
         inputs[i] = from_raw<T>(patterns[i]);
-    T *device_inputs, *device_actual;
+    T *device_inputs, *device_actual, *device_subtracted, *device_twice;
     MUST(cudaMalloc(&device_inputs, inputs.size() * sizeof(T)));
     MUST(cudaMalloc(&device_actual, actual.size() * sizeof(T)));
+    MUST(cudaMalloc(&device_subtracted, subtracted.size() * sizeof(T)));
+    MUST(cudaMalloc(&device_twice, twice.size() * sizeof(T)));
     MUST(cudaMemcpy(device_inputs, inputs.data(), inputs.size() * sizeof(T),
         cudaMemcpyHostToDevice));
     MUST(cudaMemcpy(device_actual, actual.data(), actual.size() * sizeof(T),
         cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(device_subtracted, subtracted.data(),
+        subtracted.size() * sizeof(T), cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(device_twice, twice.data(), twice.size() * sizeof(T),
+        cudaMemcpyHostToDevice));
     run(n, device_inputs, device_actual + 1);
+    run_zero_sub(n, device_inputs, device_subtracted + 1);
+    run_zero_sub(n, device_subtracted + 1, device_twice + 1);
     MUST(cudaGetLastError());
     MUST(cudaMemcpy(actual.data(), device_actual, actual.size() * sizeof(T),
+        cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(subtracted.data(), device_subtracted,
+        subtracted.size() * sizeof(T), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(twice.data(), device_twice, twice.size() * sizeof(T),
         cudaMemcpyDeviceToHost));
     MUST(cudaMemcpy(preserved.data(), device_inputs,
         preserved.size() * sizeof(T), cudaMemcpyDeviceToHost));
     const auto nan = [=](Bits bits) {
         return (bits & exponent) == exponent && (bits & fraction) != 0;
     };
+    const auto numerical_equal = [=](Bits left, Bits right) {
+        return left == right || ((left | right) & ~sign) == 0;
+    };
     for (uint32_t i = 0; i < n; ++i) {
         const Bits got = raw<Bits>(actual[i + 1]);
         const Bits cpu = raw<Bits>(host(inputs[i]));
+        const Bits subtracted_gpu = raw<Bits>(subtracted[i + 1]);
+        const Bits subtracted_cpu = raw<Bits>(host_zero_sub(inputs[i]));
+        const Bits twice_gpu = raw<Bits>(twice[i + 1]);
+        const Bits twice_cpu =
+            raw<Bits>(host_zero_sub(host_zero_sub(inputs[i])));
         const Bits want = patterns[i] ^ sign;
         const bool matches = nan(patterns[i]) ? nan(got) && nan(cpu)
                                               : got == want && cpu == want;
-        if (!matches || raw<Bits>(preserved[i]) != patterns[i]) {
+        const bool relations =
+            nan(patterns[i])
+                ? nan(subtracted_gpu) && nan(subtracted_cpu) &&
+                      nan(twice_gpu) && nan(twice_cpu)
+                : numerical_equal(subtracted_gpu, got) &&
+                      numerical_equal(subtracted_cpu, cpu) &&
+                      numerical_equal(twice_gpu, patterns[i]) &&
+                      numerical_equal(twice_cpu, patterns[i]) &&
+                      ((patterns[i] & ~sign) == 0 ||
+                          (subtracted_gpu == got && subtracted_cpu == cpu));
+        if (!matches || !relations || raw<Bits>(preserved[i]) != patterns[i]) {
             fprintf(stderr,
                 "%s case %u: input %016llx, device %016llx, host %016llx\n",
                 name, i, (unsigned long long) patterns[i],
                 (unsigned long long) got, (unsigned long long) cpu);
+            fprintf(stderr,
+                "zero sub: device %016llx, host %016llx; twice: device "
+                "%016llx, host %016llx\n",
+                (unsigned long long) subtracted_gpu,
+                (unsigned long long) subtracted_cpu,
+                (unsigned long long) twice_gpu, (unsigned long long) twice_cpu);
             exit(1);
         }
     }
     if (raw<Bits>(actual.front()) != guard ||
-        raw<Bits>(actual.back()) != guard) {
+        raw<Bits>(actual.back()) != guard ||
+        raw<Bits>(subtracted.front()) != guard ||
+        raw<Bits>(subtracted.back()) != guard ||
+        raw<Bits>(twice.front()) != guard || raw<Bits>(twice.back()) != guard) {
         fprintf(stderr, "%s output guard failed\n", name);
         exit(1);
     }
+    MUST(cudaFree(device_twice));
+    MUST(cudaFree(device_subtracted));
     MUST(cudaFree(device_actual));
     MUST(cudaFree(device_inputs));
 }
@@ -159,10 +216,14 @@ int main()
         narrow.push_back(bits);
     check_bits<__half>("Float16", narrow, uint16_t{0x8000}, uint16_t{0x7c00},
         uint16_t{0x03ff}, Kuiper_Example_FloatingNeg_run_f16,
-        Kuiper_Example_FloatingNeg_host_f16);
+        Kuiper_Example_FloatingNeg_host_f16,
+        Kuiper_Example_FloatingNeg_run_zero_sub_f16,
+        Kuiper_Example_FloatingNeg_host_zero_sub_f16);
     check_bits<__nv_bfloat16>("BFloat16", narrow, uint16_t{0x8000},
         uint16_t{0x7f80}, uint16_t{0x007f}, Kuiper_Example_FloatingNeg_run_bf16,
-        Kuiper_Example_FloatingNeg_host_bf16);
+        Kuiper_Example_FloatingNeg_host_bf16,
+        Kuiper_Example_FloatingNeg_run_zero_sub_bf16,
+        Kuiper_Example_FloatingNeg_host_zero_sub_bf16);
     std::vector<uint64_t> wide;
     for (uint64_t bits = 0; bits < 65536; ++bits)
         wide.push_back(bits << 48);
@@ -179,7 +240,8 @@ int main()
         wide.push_back(bits);
     check_bits<double>("Float64", wide, uint64_t{0x8000000000000000},
         uint64_t{0x7ff0000000000000}, uint64_t{0x000fffffffffffff},
-        Kuiper_Example_FloatingNeg_run_f64,
-        Kuiper_Example_FloatingNeg_host_f64);
+        Kuiper_Example_FloatingNeg_run_f64, Kuiper_Example_FloatingNeg_host_f64,
+        Kuiper_Example_FloatingNeg_run_zero_sub_f64,
+        Kuiper_Example_FloatingNeg_host_zero_sub_f64);
     puts("Floating negation checks passed.");
 }
