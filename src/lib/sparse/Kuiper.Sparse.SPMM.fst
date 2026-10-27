@@ -1265,6 +1265,30 @@ let spmm_idx_succ_bound
   (ensures  idx + 1 <= (row_end - row_start) / block_items)
 = ()
 
+(* Name the dependent prefix specification so loop-invariant well-formedness
+   does not repeatedly reconstruct its slice and output-length refinements. *)
+let tile_mm_prefix_result
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et)
+  (out0 : lseq et (threadItemsX p))
+  (#n : nat)
+  (elems : lseq et n)
+  (row_ind : lseq sz n)
+  (eB : chest2 et p.shared p.cols)
+  (n_idx : nat { chunk et /? n_idx })
+  (stop : nat)
+  (v_out : seq et)
+  : prop
+  = stop <= n /\
+    in_bounds 0 p.shared (cast_pos row_ind) /\
+    len v_out == threadItemsX p /\
+    Compute.tile_mm_result
+      #et #_ #_ #_ #p.shared #p.cols #(threadItemsX p)
+      out0 #stop
+      (Seq.slice elems 0 stop)
+      (Seq.slice (cast_pos row_ind) 0 stop)
+      eB n_idx p.blockWidth v_out
+
 inline_for_extraction noextract
 fn kf_main
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
@@ -1403,16 +1427,8 @@ fn kf_main
           pure (
             !idx > 0 /\ !idx <= (re - ri') / p.blockItemsK /\
             SZ.v !nnz == re - ri' - !idx * p.blockItemsK /\
-            len v_out == threadItemsX p /\
-            Compute.tile_mm_result
-              #et #_ #_ #_
-              #p.shared #p.cols
-              #(threadItemsX p)
-              out0
-              #(!idx * p.blockItemsK)
-              (lslice row_elems 0 (!idx * p.blockItemsK))
-              (Seq.slice (cast_pos row_ind_) 0 (!idx * p.blockItemsK))
-              eB n_idx p.blockWidth v_out
+            tile_mm_prefix_result p out0 row_elems row_ind_
+              eB n_idx (!idx * p.blockItemsK) v_out
           )
         )
       decreases SZ.v !nnz
