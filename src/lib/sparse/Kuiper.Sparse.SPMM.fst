@@ -1472,6 +1472,9 @@ fn kf_main
       FStar.Math.Lemmas.distributivity_add_left
         (SZ.v !idx) 1 (SZ.v p.blockItemsK);
 
+      // Reuse this source bound when checking tile_mm's loaded-slice frame.
+      assert pure (ri' + !idx * p.blockItemsK + p.blockItemsK <= gA.nnz);
+
       #set-options "--z3rlimit 60" {
         Compute.tile_mm
           out
