@@ -13,6 +13,8 @@ open Kuiper.Approximates.Base
 open Kuiper.Real
 open Kuiper.Float.Realops
 module Sqrt = FStar.Math.Sqrt
+module Pow = FStar.Math.Pow
+module Trig = Kuiper.Real.Trigonometry
 
 open Kuiper.Float32.Base
 
@@ -129,5 +131,30 @@ fn rsqrt_approx_ftz (x : t)
 {
   admit()
 }
+
+let pow_approx
+  (x y : t)
+  (xr : Pow.rpos)
+  (yr : real)
+  : Lemma
+      (requires v_approximates x xr /\ v_approximates y yr)
+      (ensures v_approximates (pow x y) (Pow.pow xr yr))
+= admit()
+
+let sin_approx
+  (x : t)
+  (xr : real)
+  : Lemma
+      (requires v_approximates x xr)
+      (ensures v_approximates (sin x) (Trig.sin xr))
+= admit()
+
+let cos_approx
+  (x : t)
+  (xr : real)
+  : Lemma
+      (requires v_approximates x xr)
+      (ensures v_approximates (cos x) (Trig.cos xr))
+= admit()
 
 let lem_sizeof () = ()
