@@ -133,10 +133,8 @@ void Klas_SPMM_spmm_u32(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__uint32_t gA, uint32_t *row_indices,
     uint32_t *gB, uint32_t *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_spmm_u32_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 1024U, s,
@@ -288,10 +286,8 @@ void Klas_SPMM_spmm_f32(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__float gA, uint32_t *row_indices, float *gB,
     float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_spmm_f32_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 4096U, s,
@@ -433,10 +429,8 @@ void Klas_SPMM_g_spmm_f32_32x4x1(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__float gA, uint32_t *row_indices, float *gB,
     float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x4x1_0,
         rows * (cols / 4U + (uint32_t) (cols % 4U != 0U)), 1U, 256U, s, rows,
@@ -581,10 +575,8 @@ void Klas_SPMM_g_spmm_f32_32x8x2(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__float gA, uint32_t *row_indices, float *gB,
     float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x8x2_0,
         rows * (cols / 8U + (uint32_t) (cols % 8U != 0U)), 2U, 256U, s, rows,
@@ -729,10 +721,8 @@ void Klas_SPMM_g_spmm_f32_32x16x4(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__float gA, uint32_t *row_indices, float *gB,
     float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x16x4_0,
         rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)), 4U, 256U, s, rows,
@@ -877,10 +867,8 @@ void Klas_SPMM_g_spmm_f32_32x32x8(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__float gA, uint32_t *row_indices, float *gB,
     float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x32x8_0,
         rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)), 8U, 256U, s, rows,
@@ -1032,10 +1020,8 @@ void Klas_SPMM_g_spmm_f32_32x64x8(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__float gA, uint32_t *row_indices, float *gB,
     float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x64x8_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 8U, 256U, s, rows,
@@ -1177,9 +1163,7 @@ void Klas_SPMM_g_spmm_f32_32x4x1_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x4x1_on_0,
         rows * (cols / 4U + (uint32_t) (cols % 4U != 0U)), 1U, 256U, s, rows,
@@ -1322,9 +1306,7 @@ void Klas_SPMM_g_spmm_f32_32x8x2_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x8x2_on_0,
         rows * (cols / 8U + (uint32_t) (cols % 8U != 0U)), 2U, 256U, s, rows,
@@ -1467,9 +1449,7 @@ void Klas_SPMM_g_spmm_f32_32x16x4_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x16x4_on_0,
         rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)), 4U, 256U, s, rows,
@@ -1612,9 +1592,7 @@ void Klas_SPMM_g_spmm_f32_32x32x8_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x32x8_on_0,
         rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)), 8U, 256U, s, rows,
@@ -1764,9 +1742,7 @@ void Klas_SPMM_g_spmm_f32_32x64x8_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x64x8_on_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 8U, 256U, s, rows,
@@ -1909,10 +1885,8 @@ void Klas_SPMM_g_spmm_f32_64x64x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x64x16_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 512U, s, rows,
@@ -2057,9 +2031,7 @@ void Klas_SPMM_g_spmm_f32_64x64x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x64x16_on_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 512U, s, rows,
@@ -2209,10 +2181,8 @@ void Klas_SPMM_g_spmm_f32_64x128x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x128x16_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 512U, s,
@@ -2364,9 +2334,7 @@ void Klas_SPMM_g_spmm_f32_64x128x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x128x16_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 512U, s,
@@ -2516,10 +2484,8 @@ void Klas_SPMM_g_spmm_f32_64x256x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x256x16_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 512U, s,
@@ -2671,9 +2637,7 @@ void Klas_SPMM_g_spmm_f32_64x256x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x256x16_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 512U, s,
@@ -2823,10 +2787,8 @@ void Klas_SPMM_g_spmm_f32_64x512x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x512x16_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 512U, s,
@@ -2978,9 +2940,7 @@ void Klas_SPMM_g_spmm_f32_64x512x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x512x16_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 512U, s,
@@ -3123,10 +3083,8 @@ void Klas_SPMM_g_spmm_f32_128x64x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x64x16_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 1024U, s,
@@ -3271,9 +3229,7 @@ void Klas_SPMM_g_spmm_f32_128x64x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x64x16_on_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 1024U, s,
@@ -3423,10 +3379,8 @@ void Klas_SPMM_g_spmm_f32_128x128x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x16_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 1024U, s,
@@ -3578,9 +3532,7 @@ void Klas_SPMM_g_spmm_f32_128x128x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x16_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 1024U, s,
@@ -3723,10 +3675,8 @@ void Klas_SPMM_g_spmm_f32_128x128x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x32_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 1024U, s,
@@ -3871,9 +3821,7 @@ void Klas_SPMM_g_spmm_f32_128x128x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x32_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 1024U, s,
@@ -4023,10 +3971,8 @@ void Klas_SPMM_g_spmm_f32_128x256x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x16_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 1024U, s,
@@ -4178,9 +4124,7 @@ void Klas_SPMM_g_spmm_f32_128x256x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x16_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 1024U, s,
@@ -4330,10 +4274,8 @@ void Klas_SPMM_g_spmm_f32_128x256x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x32_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 1024U, s,
@@ -4485,9 +4427,7 @@ void Klas_SPMM_g_spmm_f32_128x256x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x32_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 1024U, s,
@@ -4637,10 +4577,8 @@ void Klas_SPMM_g_spmm_f32_128x512x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x16_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 1024U, s,
@@ -4792,9 +4730,7 @@ void Klas_SPMM_g_spmm_f32_128x512x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x16_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 1024U, s,
@@ -4944,10 +4880,8 @@ void Klas_SPMM_g_spmm_f32_128x512x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x32_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 1024U, s,
@@ -5099,9 +5033,7 @@ void Klas_SPMM_g_spmm_f32_128x512x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x32_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 1024U, s,
@@ -5244,10 +5176,8 @@ void Klas_SPMM_g_spmm_f32_256x64x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x64x16_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 2048U, s,
@@ -5392,9 +5322,7 @@ void Klas_SPMM_g_spmm_f32_256x64x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x64x16_on_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 2048U, s,
@@ -5544,10 +5472,8 @@ void Klas_SPMM_g_spmm_f32_256x128x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x16_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 2048U, s,
@@ -5699,9 +5625,7 @@ void Klas_SPMM_g_spmm_f32_256x128x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x16_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 2048U, s,
@@ -5844,10 +5768,8 @@ void Klas_SPMM_g_spmm_f32_256x128x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x32_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 2048U, s,
@@ -5992,9 +5914,7 @@ void Klas_SPMM_g_spmm_f32_256x128x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x32_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 2048U, s,
@@ -6144,10 +6064,8 @@ void Klas_SPMM_g_spmm_f32_256x256x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x16_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 2048U, s,
@@ -6299,9 +6217,7 @@ void Klas_SPMM_g_spmm_f32_256x256x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x16_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 2048U, s,
@@ -6451,10 +6367,8 @@ void Klas_SPMM_g_spmm_f32_256x256x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x32_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 2048U, s,
@@ -6606,9 +6520,7 @@ void Klas_SPMM_g_spmm_f32_256x256x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x32_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 2048U, s,
@@ -6751,10 +6663,8 @@ void Klas_SPMM_g_spmm_f32_256x256x64(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x64_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U, 2048U, s,
@@ -6899,9 +6809,7 @@ void Klas_SPMM_g_spmm_f32_256x256x64_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x64_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U, 2048U, s,
@@ -7051,10 +6959,8 @@ void Klas_SPMM_g_spmm_f32_256x512x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x16_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 2048U, s,
@@ -7206,9 +7112,7 @@ void Klas_SPMM_g_spmm_f32_256x512x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x16_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 2048U, s,
@@ -7358,10 +7262,8 @@ void Klas_SPMM_g_spmm_f32_256x512x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x32_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 2048U, s,
@@ -7513,9 +7415,7 @@ void Klas_SPMM_g_spmm_f32_256x512x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x32_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 2048U, s,
@@ -7665,10 +7565,8 @@ void Klas_SPMM_g_spmm_f32_256x512x64(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x64_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 2048U, s,
@@ -7820,9 +7718,7 @@ void Klas_SPMM_g_spmm_f32_256x512x64_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x64_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 2048U, s,
@@ -7965,10 +7861,8 @@ void Klas_SPMM_g_spmm_f32_512x64x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x64x16_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 4096U, s,
@@ -8113,9 +8007,7 @@ void Klas_SPMM_g_spmm_f32_512x64x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x64x16_on_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 4096U, s,
@@ -8265,10 +8157,8 @@ void Klas_SPMM_g_spmm_f32_512x128x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x16_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 4096U, s,
@@ -8420,9 +8310,7 @@ void Klas_SPMM_g_spmm_f32_512x128x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x16_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 4096U, s,
@@ -8565,10 +8453,8 @@ void Klas_SPMM_g_spmm_f32_512x128x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x32_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 4096U, s,
@@ -8713,9 +8599,7 @@ void Klas_SPMM_g_spmm_f32_512x128x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x32_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 4096U, s,
@@ -8865,10 +8749,8 @@ void Klas_SPMM_g_spmm_f32_512x256x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x16_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 4096U, s,
@@ -9020,9 +8902,7 @@ void Klas_SPMM_g_spmm_f32_512x256x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x16_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 4096U, s,
@@ -9172,10 +9052,8 @@ void Klas_SPMM_g_spmm_f32_512x256x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x32_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 4096U, s,
@@ -9327,9 +9205,7 @@ void Klas_SPMM_g_spmm_f32_512x256x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x32_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 4096U, s,
@@ -9472,10 +9348,8 @@ void Klas_SPMM_g_spmm_f32_512x256x64(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x64_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U, 4096U, s,
@@ -9620,9 +9494,7 @@ void Klas_SPMM_g_spmm_f32_512x256x64_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x64_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U, 4096U, s,
@@ -9772,10 +9644,8 @@ void Klas_SPMM_g_spmm_f32_512x512x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x16_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 4096U, s,
@@ -9927,9 +9797,7 @@ void Klas_SPMM_g_spmm_f32_512x512x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x16_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 4096U, s,
@@ -10079,10 +9947,8 @@ void Klas_SPMM_g_spmm_f32_512x512x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x32_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 4096U, s,
@@ -10234,9 +10100,7 @@ void Klas_SPMM_g_spmm_f32_512x512x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x32_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 4096U, s,
@@ -10386,10 +10250,8 @@ void Klas_SPMM_g_spmm_f32_512x512x64(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x64_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 4096U, s,
@@ -10541,9 +10403,7 @@ void Klas_SPMM_g_spmm_f32_512x512x64_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x64_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 4096U, s,
@@ -10686,10 +10546,8 @@ void Klas_SPMM_g_spmm_f32_512x512x128(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x128_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 128U, 4096U, s,
@@ -10834,9 +10692,7 @@ void Klas_SPMM_g_spmm_f32_512x512x128_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x128_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 128U, 4096U, s,
