@@ -1086,8 +1086,10 @@ let tcol_fits
   assert (bcol p bid < p.cols);
   assert (p.blockWidth * chunk et <= p.blockItemsX)
 
-// TODO refactorizar? Dividir en dos partes?
-#push-options "--z3rlimit 60"
+(* Loading and masking the first tile needs bounds, but not column sortedness.
+   Expanding sorted_slice here causes costly quantifier instantiations even
+   for sequence-length and slice-bound queries. *)
+#push-options "--z3rlimit 60 --using_facts_from '* -Kuiper.Sparse.Common.sorted_slice'"
 inline_for_extraction noextract
 fn kf_head
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
@@ -1251,7 +1253,9 @@ fn kf_head
 
   ();
 }
+#pop-options
 
+#push-options "--z3rlimit 60"
 let spmm_idx_succ_bound
   (idx : nat)
   (block_items : pos)
