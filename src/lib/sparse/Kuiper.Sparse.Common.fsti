@@ -30,40 +30,6 @@ let ordering (#n : nat{ fits n }) (p : permutation (natlt n))
 : GTot (seq sz)
 = Seq.init_ghost n (fun i -> uint_to_t (i |~> p))
 
-(* Propiedades sobre escalares *)
-
-val zero_is_absorbing_l
-  (#et:_) {| scalar et |}
-  (k : et)
-  : Lemma
-    (requires true)
-    (ensures k `mul` zero == zero)
-    [SMTPat (k `mul` zero)]
-
-val zero_is_absorbing_r
-  (#et:_) {| scalar et |}
-  (k : et)
-  : Lemma
-    (requires true)
-    (ensures zero `mul` k == zero)
-    [SMTPat (zero `mul` k )]
-
-val zero_is_id_l
-  (#et:_) {| scalar et |}
-  (k : et)
-  : Lemma
-    (requires true)
-    (ensures k `add` zero == k)
-    [SMTPat (k `add` zero)]
-
-val  zero_is_id_r
-  (#et:_) {| scalar et |}
-  (k : et)
-  : Lemma
-    (requires true)
-    (ensures zero `add` k == k)
-    [SMTPat (zero `add` k)]
-
 (* Secuencias *)
 
 let map_seq_len (#a #b:Type) (f:a -> Tot b) (s:Seq.seq a)

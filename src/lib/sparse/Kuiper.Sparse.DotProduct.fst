@@ -3,16 +3,14 @@ module Kuiper.Sparse.DotProduct
 #lang-pulse
 open Kuiper
 open Kuiper.Sparse.Common
-open Kuiper
 module SZ = FStar.SizeT
 module KSeq = Kuiper.Seq.Common
 
 let rec _dprod_acc_lemma0
-  (#et:_) {| scalar et |}
   (#n1 #n2 : nat)
-  (acc : et)
-  (s1 t1 : lseq et n1)
-  (s2 t2 : lseq et n2)
+  (acc : real)
+  (s1 t1 : lseq real n1)
+  (s2 t2 : lseq real n2)
   (to : natle n1)
 : Lemma
   (requires true)
@@ -26,11 +24,10 @@ let rec _dprod_acc_lemma0
     else _dprod_acc_lemma0 acc s1 t1 s2 t2 (to - 1)
 
 let rec _dprod_acc_lemma
-  (#et:_) {| scalar et |}
   (#n1 #n2 : nat)
-  (acc : et)
-  (s1 t1 : lseq et n1)
-  (s2 t2 : lseq et n2)
+  (acc : real)
+  (s1 t1 : lseq real n1)
+  (s2 t2 : lseq real n2)
   (to : natle n2)
 : Lemma
   (requires true)
@@ -44,12 +41,11 @@ let rec _dprod_acc_lemma
     else _dprod_acc_lemma acc s1 t1 s2 t2 (to - 1)
 
 let dprod_acc_lemma
-  (#et:_) {| scalar et |}
-  (acc : et)
+  (acc : real)
   (#n1 : nat)
-  (s1 t1 : lseq et n1)
+  (s1 t1 : lseq real n1)
   (#n2 : nat)
-  (s2 t2 : lseq et n2)
+  (s2 t2 : lseq real n2)
 : Lemma
   (requires true)
   (ensures
@@ -60,10 +56,9 @@ let dprod_acc_lemma
   _dprod_acc_lemma acc s1 t1 s2 t2 n2
 
 let rec dprod_acc_all_zeros
-  (#et:Type) {| scalar et |}
-  (acc : et)
+  (acc : real)
   (#n : nat)
-  (s t : lseq et n)
+  (s t : lseq real n)
   (from to : nat{from <= to /\ to <= n})
   : Lemma
     (requires forall i. from <= i /\ i < to ==> s @! i == zero)
@@ -75,12 +70,11 @@ let rec dprod_acc_all_zeros
 
 open Kuiper.Seq.Common { (@+) }
 let rec _dprod_acc_mask_lemma
-  (#et:_) {| scalar et |}
-  (acc : et)
+  (acc : real)
   (#n : nat)
   (k : natle n)
-  (s : lseq et (n - k))
-  (t : lseq et n)
+  (s : lseq real (n - k))
+  (t : lseq real n)
   (to : natle n { k <= to })
 : Lemma
   (requires true)
@@ -94,12 +88,11 @@ let rec _dprod_acc_mask_lemma
     else _dprod_acc_mask_lemma acc k s t (to - 1)
 
 let rec _sparse_dprod_acc_lemma
-  (#et : Type0) {| scalar et |}
-  (acc : et)
+  (acc : real)
   (#n #nnz : nat)
-  (elems : lseq et nnz)
+  (elems : lseq real nnz)
   (pos : lseq nat nnz)
-  (t : lseq et n)
+  (t : lseq real n)
   (to : natlt nnz)
   : Lemma
     (requires valid_pos n pos)
@@ -119,12 +112,11 @@ let rec _sparse_dprod_acc_lemma
   )
 
 let sparse_dprod_acc_lemma
-  (#et : Type0) {| scalar et |}
-  (acc : et)
+  (acc : real)
   (#n #nnz : nat)
-  (elems : lseq et nnz)
+  (elems : lseq real nnz)
   (pos : lseq nat nnz)
-  (t : lseq et n)
+  (t : lseq real n)
   : Lemma
     (requires valid_pos n pos)
     (ensures
@@ -141,11 +133,10 @@ let sparse_dprod_acc_lemma
     )
 
 let sparse_dprod_lemma
-  (#et : Type0) {| scalar et |}
   (#n #nnz : nat)
-  (elems : lseq et nnz)
+  (elems : lseq real nnz)
   (pos : lseq nat nnz)
-  (t : lseq et n)
+  (t : lseq real n)
   : Lemma
     (requires valid_pos n pos)
     (ensures
@@ -156,12 +147,11 @@ let sparse_dprod_lemma
   sparse_dprod_acc_lemma zero elems pos t
 
 let rec sparse_dprod_slice_lemma
-  (#et : Type0) {| scalar et |}
-  (acc : et)
+  (acc : real)
   (#n #nnz : nat)
-  (elems : lseq et nnz)
+  (elems : lseq real nnz)
   (pos : lseq nat nnz)
-  (t : lseq et n)
+  (t : lseq real n)
   (to : natle nnz)
   (to_ : natle to)
   : Lemma
@@ -169,7 +159,7 @@ let rec sparse_dprod_slice_lemma
     (ensures
       _sparse_dprod_acc acc elems pos t to_ ==
       _sparse_dprod_acc acc
-        (Seq.slice elems 0 to <: lseq et to)
+        (Seq.slice elems 0 to <: lseq real to)
         (Seq.slice pos 0 to)
         t to_
     )
@@ -180,13 +170,12 @@ let rec sparse_dprod_slice_lemma
 
 
 let sparse_dprod_accum
-  (#et : Type0) {| scalar et |}
-  (acc : et)
+  (acc : real)
   (#nnz : nat)
-  (elems : lseq et nnz)
+  (elems : lseq real nnz)
   (pos : lseq nat nnz)
   (#n : nat)
-  (t : lseq et n)
+  (t : lseq real n)
   (from to : natle nnz { from <= to })
   : Lemma
     (requires in_bounds 0 n pos)
@@ -194,20 +183,20 @@ let sparse_dprod_accum
       sparse_dprod_acc
         (sparse_dprod_acc
           acc
-          (Seq.slice elems 0 from <: lseq et from)
+          (Seq.slice elems 0 from <: lseq real from)
           (Seq.slice pos 0 from)
           t)
-        (Seq.slice elems from to <: lseq et (to - from))
+        (Seq.slice elems from to <: lseq real (to - from))
         (Seq.slice pos from to) t ==
       sparse_dprod_acc acc
-        (Seq.slice elems 0 to <: lseq et to)
+        (Seq.slice elems 0 to <: lseq real to)
         (Seq.slice pos 0 to)
         t
     )
 =
-  let elems1 : lseq et from = Seq.slice elems 0 from in
-  let elems2 : lseq et (to - from) = Seq.slice elems from to in
-  let elems12 : lseq et to = Seq.slice elems 0 to in
+  let elems1 : lseq real from = Seq.slice elems 0 from in
+  let elems2 : lseq real (to - from) = Seq.slice elems from to in
+  let elems12 : lseq real to = Seq.slice elems 0 to in
   assert Seq.equal elems12 (elems1 @+ elems2);
 
   let pos1 : lseq nat from = Seq.slice pos 0 from in
@@ -215,9 +204,9 @@ let sparse_dprod_accum
   let pos12 : lseq nat to = Seq.slice pos 0 to in
   assert Seq.equal pos12 (pos1 @+ pos2);
 
-  let t1 : lseq et from = seq_make_sparse pos1 t in
-  let t2 : lseq et (to - from) = seq_make_sparse pos2 t in
-  let t12 : lseq et to = seq_make_sparse pos12 t in
+  let t1 : lseq real from = seq_make_sparse pos1 t in
+  let t2 : lseq real (to - from) = seq_make_sparse pos2 t in
+  let t12 : lseq real to = seq_make_sparse pos12 t in
   assert Seq.equal t12 (t1 @+ t2);
 
 
@@ -228,10 +217,9 @@ open Kuiper.EMatrix
 open Kuiper.Spec.GEMM
 
 let rec __dprod_is_matmul_single
-  (#et : Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m1 : chest2 et rows shared)
-  (m2 : chest2 et shared columns)
+  (m1 : chest2 real rows shared)
+  (m2 : chest2 real shared columns)
   (row : natlt rows)
   (col : natlt columns)
   (to : natle shared)
@@ -250,10 +238,9 @@ let rec __dprod_is_matmul_single
     )
 
 let dprod_is_matmul_single
-  (#et : Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m1 : chest2 et rows shared)
-  (m2 : chest2 et shared columns)
+  (m1 : chest2 real rows shared)
+  (m2 : chest2 real shared columns)
   (row : natlt rows)
   (col : natlt columns)
 : Lemma
