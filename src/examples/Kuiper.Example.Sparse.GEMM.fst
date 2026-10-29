@@ -41,6 +41,22 @@ let sparse_matmul_single
 =
   _sparse_matmul_single elems col_ind eB ri re j re
 
+(* Expose one real accumulation step before proving its approximation. *)
+let sparse_matmul_single_step
+  (#nnz #shared #cols : nat)
+  (elems : lseq real nnz)
+  (col_ind : lseq nat nnz{in_bounds 0 shared col_ind})
+  (eB : chest2 real shared cols)
+  (ri re : nat{ri <= re /\ re <= nnz /\ sorted_slice col_ind ri re})
+  (j : natlt cols)
+  (k : nat{ri <= k /\ k < re})
+  : Lemma
+    (ensures
+      _sparse_matmul_single elems col_ind eB ri re j (k + 1) ==
+      add (_sparse_matmul_single elems col_ind eB ri re j k)
+        (mul (elems @! k) (acc2 eB (col_ind @! k) j)))
+  = ()
+
 
 let rec matmul_all_zeros_lemma
   (#rows #shared #columns : nat)
@@ -143,6 +159,15 @@ fn matmul_dotprod
     let c = Pulse.Lib.Array.(gA.col_ind.(!k));
 
     let y = tensor_read gB ((c <: szlt _), ((j <: szlt _), ()));
+
+    with v_k. assert k |-> v_k;
+    with v_dp. assert dp |-> v_dp;
+    sparse_matmul_single_step relems (cast_pos v_ind) rB ri re j v_k;
+    Kuiper.Approximates.Scalar.a_mul x y
+      (relems @! v_k) (acc2 rB c j);
+    Kuiper.Approximates.Scalar.a_add v_dp (x `mul` y)
+      (_sparse_matmul_single relems (cast_pos v_ind) rB ri re j v_k)
+      (mul (relems @! v_k) (acc2 rB c j));
 
     dp := !dp `add` (x `mul` y);
 

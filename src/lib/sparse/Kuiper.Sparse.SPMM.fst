@@ -32,6 +32,19 @@ open Kuiper.Seq.Common { (@+) }
 
 open Kuiper.Sparse.SPMM.Main
 
+(* Prove slice bounds once, outside the kernel's ownership context. *)
+let in_bounds_lslice
+  (#n : nat) (lo hi : nat)
+  (s : lseq nat n)
+  (first last : nat{first <= last /\ last <= n})
+  : Lemma
+    (requires in_bounds lo hi s)
+    (ensures in_bounds lo hi (lslice' s first last))
+  = introduce forall (i : natlt (last - first)).
+      lo <= (lslice' s first last) @! i /\
+      (lslice' s first last) @! i < hi
+    with (Seq.lemma_index_slice s first last i)
+
 #push-options "--z3rlimit 60 --using_facts_from '* -Kuiper.Sparse.Common.sorted_slice'"
 inline_for_extraction noextract
 fn kf_residue
@@ -120,6 +133,8 @@ fn kf_residue
   assert pure (1.0R /. p.blockWidth >. 0.0R);
   assert pure (fB /. allthreads p >. 0.0R);
   assert pure (ri' <= ri /\ ri <= re /\ re <= gA.nnz);
+  in_bounds_lslice 0 p.shared (cast_pos col_ind) ri re;
+  in_bounds_lslice 0 p.shared (cast_pos col_ind) ri (re - residue);
   FStar.Math.Lemmas.lemma_mod_lt (SZ.v re - SZ.v ri') (SZ.v p.blockItemsK);
   assert pure (residue < p.blockItemsK);
   let out0 : erased (lseq et (threadItemsX p)) =
