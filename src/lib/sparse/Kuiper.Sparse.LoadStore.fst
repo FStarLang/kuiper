@@ -477,3 +477,31 @@ fn array_cpy_chunk
   assert pure (ss' `equal` seq_to_chest1 ss);
 }
 #pop-options
+
+inline_for_extraction noextract
+fn matrix_store_tile_vec_approx
+  (#et:Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
+  (#rows #cols : szp { fits (rows * cols) /\ chunk et /? cols })
+  (#l : layout2 rows cols) {| ctlayout l, strided : strided_row_major l |}
+  (gm : array2 et l)
+  (i : szlt rows)
+  (j : sz { chunk et /? j })
+  (em : chest2 real rows cols)
+  (n : sz { chunk et /? n })
+  (arr : larray et n)
+  (#f : perm)
+  (#s : erased (lseq et n))
+  (nthr : sz)
+  preserves gpu
+  preserves arr |-> Frac f s
+  requires  pure (aligned 16 arr)
+  requires  pure (Kuiper.Sparse.Approx.tile_approximates em i j s nthr)
+  requires  thread_live_tile_vec gm i j n nthr
+  requires  pure (aligned 16 (core gm))
+  requires  pure (aligned_strided_row_major (chunk et) strided)
+  requires  pure (fits (j + n * nthr))
+  ensures   Kuiper.Sparse.Approx.thread_tile_approx gm i j em n nthr
+{
+  matrix_store_tile_vec_underspec gm i j arr nthr;
+  Kuiper.Sparse.Approx.fold_thread_tile_approx gm i j s em nthr;
+}

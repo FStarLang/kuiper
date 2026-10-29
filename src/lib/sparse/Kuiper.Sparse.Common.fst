@@ -20,47 +20,6 @@ module Chest = Kuiper.Chest
 inline_for_extraction noextract
 instance has_vec_cpy_sz : has_vec_cpy sz = { _chunk = 4sz; _pf = ez }
 
-(* Propiedades sobre escalares *)
-
-// no sé como usar assume y tambien incluirla en la interfaz
-let zero_is_absorbing_l
-  (#et:_) {| scalar et |}
-  (k : et)
-  : Lemma
-    (requires true)
-    (ensures k `mul` zero == zero)
-    [SMTPat (k `mul` zero)]
-    // FIXME: ^ this pattern does not kick in
-    // if we use `d.mul` instead of `mul`. Why?
-= admit()
-
-let zero_is_absorbing_r
-  (#et:_) {| scalar et |}
-  (k : et)
-  : Lemma
-    (requires true)
-    (ensures zero `mul` k == zero)
-    [SMTPat (zero `mul` k )]
-= admit()
-
-let zero_is_id_l
-  (#et:_) {| scalar et |}
-  (k : et)
-  : Lemma
-    (requires true)
-    (ensures k `add` zero == k)
-    [SMTPat (k `add` zero)]
-= admit()
-
-let zero_is_id_r
-  (#et:_) {| scalar et |}
-  (k : et)
-  : Lemma
-    (requires true)
-    (ensures zero `add` k == k)
-    [SMTPat (zero `add` k)]
-= admit()
-
 (* Secuencias *)
 
 let rec mem_slice

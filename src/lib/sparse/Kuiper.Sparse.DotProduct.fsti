@@ -1,9 +1,11 @@
 module Kuiper.Sparse.DotProduct
 
 #lang-pulse
+
+(* Sparse algebra is stated over real numbers. In particular, skipping
+   implicit or masked zeros is not an equality on computed floats. *)
 open Kuiper
 open Kuiper.Sparse.Common
-open Kuiper
 open Kuiper.Seq.Common { (@+) }
 open Kuiper.EMatrix
 open Kuiper.Spec.GEMM
@@ -12,47 +14,42 @@ module KSeq = Kuiper.Seq.Common
 
 
 let rec _dprod_acc
-  (#et:_) {| scalar et |}
-  (acc : et)
+  (acc : real)
   (#n : nat)
-  (s t : lseq et n)
+  (s t : lseq real n)
   (to : natle n)
-  : et
+  : real
 = if to = 0
     then acc
     else add (_dprod_acc acc s t (to - 1))
              ((s @! to - 1) `mul` (t @! to - 1))
 
 let dprod_acc
-  (#et:_) {| scalar et |}
-  (acc : et)
+  (acc : real)
   (#n : nat)
-  (s t : lseq et n)
-  : et
+  (s t : lseq real n)
+  : real
 = _dprod_acc acc s t n
 
 let _dprod
-  (#et:_) {| scalar et |}
   (#n : nat)
-  (s t : lseq et n)
+  (s t : lseq real n)
   (to : natle n)
-  : et
+  : real
 = _dprod_acc zero s t to
 
 let dprod
-  (#et:_) {| scalar et |}
   (#n : nat)
-  (s t : lseq et n)
-  : et
+  (s t : lseq real n)
+  : real
 = _dprod s t n
 
 val _dprod_acc_mask_lemma
-  (#et:_) {| scalar et |}
-  (acc : et)
+  (acc : real)
   (#n : nat)
   (k : natle n)
-  (s : lseq et (n - k))
-  (t : lseq et n)
+  (s : lseq real (n - k))
+  (t : lseq real n)
   (to : natle n { k <= to })
 : Lemma
   (requires true)
@@ -63,53 +60,48 @@ val _dprod_acc_mask_lemma
 
 noextract
 let _sparse_dprod_acc
-  (#et : Type0) {| scalar et |}
   (#nnz #n : nat)
-  (acc : et)
-  (elems : lseq et nnz)
+  (acc : real)
+  (elems : lseq real nnz)
   (pos : lseq nat nnz{in_bounds 0 n pos})
-  (t : lseq et n)
+  (t : lseq real n)
   (to : natle nnz)
-  : et
+  : real
 = _dprod_acc acc elems (seq_make_sparse pos t) to
 
 noextract
 let sparse_dprod_acc
-  (#et : Type0) {| scalar et |}
   (#n : nat )
-  (acc : et)
+  (acc : real)
   (#nnz : nat)
-  (elems : lseq et nnz)
+  (elems : lseq real nnz)
   (pos : lseq nat nnz{in_bounds 0 n pos})
-  (t : lseq et n)
-  : et
+  (t : lseq real n)
+  : real
 = _sparse_dprod_acc acc elems pos t nnz
 
 let _sparse_dprod
-  (#et : Type0) {| scalar et |}
   (#nnz #n : nat )
-  (elems : lseq et nnz)
+  (elems : lseq real nnz)
   (pos : lseq nat nnz{valid_pos n pos})
-  (t : lseq et n)
+  (t : lseq real n)
   (to : natle nnz)
-  : et
+  : real
 = _sparse_dprod_acc zero elems pos t to
 
 let sparse_dprod
-  (#et : Type0) {| scalar et |}
   (#nnz #n : nat )
-  (elems : lseq et nnz)
+  (elems : lseq real nnz)
   (pos : lseq nat nnz{valid_pos n pos})
-  (t : lseq et n)
-  : et
+  (t : lseq real n)
+  : real
 = _sparse_dprod elems pos t nnz
 
 val sparse_dprod_lemma
-  (#et : Type0) {| scalar et |}
   (#n #nnz : nat)
-  (elems : lseq et nnz)
+  (elems : lseq real nnz)
   (pos : lseq nat nnz)
-  (t : lseq et n)
+  (t : lseq real n)
   : Lemma
     (requires valid_pos n pos)
     (ensures
@@ -118,12 +110,11 @@ val sparse_dprod_lemma
     )
 
 val sparse_dprod_slice_lemma
-  (#et : Type0) {| scalar et |}
-  (acc : et)
+  (acc : real)
   (#n #nnz : nat)
-  (elems : lseq et nnz)
+  (elems : lseq real nnz)
   (pos : lseq nat nnz)
-  (t : lseq et n)
+  (t : lseq real n)
   (to : natle nnz)
   (to_ : natle to)
   : Lemma
@@ -131,19 +122,18 @@ val sparse_dprod_slice_lemma
     (ensures
       _sparse_dprod_acc acc elems pos t to_ ==
       _sparse_dprod_acc acc
-        (Seq.slice elems 0 to <: lseq et to)
+        (Seq.slice elems 0 to <: lseq real to)
         (Seq.slice pos 0 to)
         t to_
     )
 
 val sparse_dprod_accum
-  (#et : Type0) {| scalar et |}
-  (acc : et)
+  (acc : real)
   (#nnz : nat)
-  (elems : lseq et nnz)
+  (elems : lseq real nnz)
   (pos : lseq nat nnz)
   (#n : nat)
-  (t : lseq et n)
+  (t : lseq real n)
   (from to : natle nnz { from <= to })
   : Lemma
     (requires in_bounds 0 n pos)
@@ -151,22 +141,21 @@ val sparse_dprod_accum
       sparse_dprod_acc
         (sparse_dprod_acc
           acc
-          (Seq.slice elems 0 from <: lseq et from)
+          (Seq.slice elems 0 from <: lseq real from)
           (Seq.slice pos 0 from)
           t)
-        (Seq.slice elems from to <: lseq et (to - from))
+        (Seq.slice elems from to <: lseq real (to - from))
         (Seq.slice pos from to) t ==
       sparse_dprod_acc acc
-        (Seq.slice elems 0 to <: lseq et to)
+        (Seq.slice elems 0 to <: lseq real to)
         (Seq.slice pos 0 to)
         t
     )
 
 val dprod_is_matmul_single
-  (#et : Type) {| scalar et |}
   (#rows #shared #columns : nat)
-  (m1 : chest2 et rows shared)
-  (m2 : chest2 et shared columns)
+  (m1 : chest2 real rows shared)
+  (m2 : chest2 real shared columns)
   (row : natlt rows)
   (col : natlt columns)
 : Lemma

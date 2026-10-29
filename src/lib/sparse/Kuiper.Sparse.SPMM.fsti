@@ -7,6 +7,7 @@ module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor
 open Kuiper.Sparse
+open Kuiper.Sparse.Approx
 open Kuiper.Sparse.SPMM.Defs { size_req }
 open Kuiper.EMatrix
 open Kuiper.Array.Vectorized
@@ -15,6 +16,12 @@ open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
 open Pulse.Lib.Pledge
 open Kuiper.Kernel.Base
 
+
+(* [eA] and [eB] describe the actual inputs; [rA] and [rB] are explicit real
+   models. The CSR model additionally requires that every unstored position
+   in [rA] is exactly real zero (see [smatrix_approx]). Both entry points
+   preserve the input descriptions and guarantee only approximation of the
+   real matrix product, without specifying exact computed floats. *)
 
 (* Asynchronous, stream-parametric SpMM.
 
@@ -29,7 +36,7 @@ again under the pledge: the GPU borrows them for the duration of the launch, so
 they are not available to the caller until the epoch is done. *)
 inline_for_extraction noextract
 fn spmm_on
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
   (rows shared cols : szp { chunk et /? cols })
   (blockItemsK blockItemsX : szp)
   (blockWidth : (k : szp {
@@ -56,10 +63,12 @@ fn spmm_on
   (#_ : squash (aligned_strided_row_major (chunk et) srmC))
   // matriz sparse gA
   (#eA : chest2 et rows shared)
+  (#rA : chest2 real rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
   // matrices densas
   (#eB : chest2 et shared cols)
+  (#rB : chest2 real shared cols)
   (#eC : chest2 et rows cols)
   (s : stream_t)
   (#e : epoch_t)
@@ -67,24 +76,25 @@ fn spmm_on
   preserves cpu ** stream_live s
   requires
     epoch_live s e **
-    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (smatrix_approx gA #fA eA rA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB) **
     on gpu_loc (live gC) **
+    pure (eB %~ rB) **
     pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
   ensures
     epoch_live s (epoch_next e) **
     pledge0 (epoch_done s (epoch_next e)) (on gpu_loc (
-      gA |-> Frac fA eA **
+      smatrix_approx gA #fA eA rA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
-      gC |-> MS.matmul eA eB
+      matrix_approx gC (MS.matmul rA rB)
     ))
 
 (* Synchronous SpMM: [spmm_on] on a private stream, waited on before returning. *)
 inline_for_extraction noextract
 fn spmm
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
   (rows shared cols : szp { chunk et /? cols })
   (blockItemsK blockItemsX : szp)
   (blockWidth : (k : szp {
@@ -111,18 +121,21 @@ fn spmm
   (#_ : squash (aligned_strided_row_major (chunk et) srmC))
   // matriz sparse gA
   (#eA : chest2 et rows shared)
+  (#rA : chest2 real rows shared)
   // permutacion de filas
   (row_perm : permutation (natlt rows))
   // matrices densas
   (#eB : chest2 et shared cols)
+  (#rB : chest2 real shared cols)
   (#eC : chest2 et rows cols)
   norewrite
   preserves
     cpu **
-    on gpu_loc (gA |-> Frac fA eA) **
+    on gpu_loc (smatrix_approx gA #fA eA rA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
     on gpu_loc (live gC) **
+    pure (eB %~ rB) **
     pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
-  ensures on gpu_loc (gC |-> MS.matmul eA eB)
+  ensures on gpu_loc (matrix_approx gC (MS.matmul rA rB))
