@@ -13,6 +13,23 @@ open Kuiper.Array2.Strided
 module T = Kuiper.Tensor
 module SZ = Kuiper.SizeT
 
+(* The k-th chunk of thread [tid] ends at or before [n]. *)
+let load_array_vec_chunk_end
+  (n : nat) (nthr ch : pos) (tid : natlt nthr) (k : natlt (n / nthr / ch))
+  : Lemma (requires nthr * ch /? n)
+          (ensures (k * nthr + tid) * ch + ch <= n)
+  = let q = n / (nthr * ch) in
+    FStar.Math.Lemmas.division_multiplication_lemma n nthr ch;
+    Kuiper.Divides.lemma_divides_exact (nthr * ch) n;
+    FStar.Math.Lemmas.lemma_div_exact n (nthr * ch);
+    assert (n == q * (nthr * ch));
+    // k * nthr + tid + 1 <= q * nthr
+    FStar.Math.Lemmas.lemma_mult_le_right nthr (k + 1) q;
+    FStar.Math.Lemmas.lemma_mult_le_right ch (k * nthr + tid + 1) (q * nthr);
+    FStar.Math.Lemmas.paren_mul_right q nthr ch;
+    FStar.Math.Lemmas.distributivity_add_left (k * nthr + tid) 1 ch
+
+(* Every chunk of thread [tid] lies within [y], from offset [i]. *)
 let load_array_vec_bounds
   (n m i : nat)
   (nthr ch : pos)
@@ -23,7 +40,19 @@ let load_array_vec_bounds
         i + (k * nthr + tid) * ch <= m - ch)
   = introduce forall (k : natlt (n / nthr / ch)).
       i + (k * nthr + tid) * ch <= m - ch
-    with ()
+    with load_array_vec_chunk_end n nthr ch tid k
+
+(* Moving an aligned offset by a whole number of chunks keeps it aligned. *)
+let load_array_vec_aligned
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (x : array et) (o j : nat)
+  : Lemma (requires aligned' 16 x o)
+          (ensures aligned' 16 x (o + j * chunk et))
+  = let c : pos = SZ.v (chunk et) in
+    assert (c * size #et == 16);
+    FStar.Math.Lemmas.distributivity_add_left o (j * c) (size #et);
+    FStar.Math.Lemmas.paren_mul_right j c (size #et);
+    FStar.Math.Lemmas.lemma_mod_plus (base_address x + o * size #et) j 16
 
 inline_for_extraction noextract
 fn array_vec_cpy_device
@@ -97,8 +126,12 @@ fn load_array_vec
     // tid < nthr give (k * nthr + tid) * chunk et < n, and nthr * chunk et
     // divides n closes the gap to the end of the chunk. Spelled out because as
     // a single query the nonlinear chain times out.
+    load_array_vec_chunk_end n nthr (chunk et) tid k;
     assert pure ((k * nthr + tid) * chunk et < n);
     assert pure ((k * nthr + tid) * chunk et + chunk et <= n);
+    assert pure (aligned' 16 x 0);
+    load_array_vec_aligned x 0 (k * nthr + tid);
+    load_array_vec_aligned y i (k * nthr + tid);
     array_vec_cpy_device
       x ((k *^ nthr +^ tid) *^ chunk et)
       y (i +^ ((k *^ nthr +^ tid) *^ chunk et));
@@ -338,7 +371,7 @@ fn matrix_vec_write_in_bounds
     unfold_matrix_live_vec_in_bounds gm i j;
 
     aligned_cell_strided_row_major gm i j;
-    // lemma_divides_leq (chunk et) cols j;
+    Kuiper.Sparse.Math.divides_leq (chunk et) cols j;
     matrix_vec_store gm i j arr k;
 
     fold_matrix_pts_to_vec_slice_in_bounds gm i j s k;
@@ -462,6 +495,7 @@ fn array_cpy_chunk
   src_cl.pf src_off;
 
   aligned_cont_offset src_arr (SZ.v src_off);
+  Kuiper.Sparse.Math.divides_leq (chunk et) src_sz src_off;
 
   Pulse.Lib.Array.PtsTo.pts_to_len dst_arr;
   array_vec_cpy

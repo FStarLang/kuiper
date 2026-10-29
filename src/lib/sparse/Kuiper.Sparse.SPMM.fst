@@ -1291,6 +1291,25 @@ let spmm_idx_succ_bound
   (ensures  idx + 1 <= (row_end - row_start) / block_items)
 = ()
 
+(* The exit state of the main loop of [kf_main] is the Euclidean division of
+   the aligned row length by [block_items]. *)
+let spmm_loop_exit
+  (block_items : pos)
+  (row_start row_end idx nnz : nat)
+: Lemma
+  (requires
+    idx > 0 /\ nnz < block_items /\
+    nnz == row_end - row_start - idx * block_items)
+  (ensures
+    row_end - row_start >= block_items /\
+    idx == (row_end - row_start) / block_items /\
+    nnz == (row_end - row_start) % block_items)
+= FStar.Math.Lemmas.small_division_lemma_1 nnz block_items;
+  FStar.Math.Lemmas.lemma_div_plus nnz idx block_items;
+  FStar.Math.Lemmas.small_mod nnz block_items;
+  FStar.Math.Lemmas.lemma_mod_plus nnz idx block_items;
+  FStar.Math.Lemmas.lemma_mult_le_right block_items 1 idx
+
 (* Name the dependent prefix specification so loop-invariant well-formedness
    does not repeatedly reconstruct its slice and output-length refinements. *)
 let tile_mm_prefix_result
@@ -1314,6 +1333,34 @@ let tile_mm_prefix_result
       (Seq.slice elems 0 stop)
       (Seq.slice (cast_pos row_ind) 0 stop)
       eB n_idx p.blockWidth v_out
+
+(* The loop invariant of [kf_main] on the masked row, restated with the mask
+   split off as [Compute.tile_mm_mask_lemma] expects it; proved in a small
+   context. *)
+let tile_mm_prefix_result_mask
+  (#et : Type0) {| scalar et, sized et, has_vec_cpy et |}
+  (p : parameters et)
+  (out0 : lseq et (threadItemsX p))
+  (k : nat)
+  (#n : nat)
+  (s : lseq et n)
+  (masked : lseq et (k + n) {masked == seq_mask k s})
+  (row_ind : lseq sz (k + n))
+  (eB : chest2 et p.shared p.cols)
+  (n_idx : nat { chunk et /? n_idx })
+  (m : nat {m <= n})
+  (stop : nat {stop == k + m})
+  (v_out : seq et)
+  : Lemma
+    (requires tile_mm_prefix_result p out0 masked row_ind eB n_idx stop v_out)
+    (ensures
+      Compute.tile_mm_result
+        #et #_ #_ #_ #p.shared #p.cols #(threadItemsX p)
+        out0 #stop
+        (Seq.create k zero @+ lslice s 0 m)
+        (Seq.slice (cast_pos row_ind) 0 stop)
+        eB n_idx p.blockWidth v_out)
+  = seq_mask_lslice_prefix k s masked m stop ()
 
 inline_for_extraction noextract
 fn kf_main
@@ -1481,7 +1528,8 @@ fn kf_main
       );
 
       assert pure (row_elems == seq_mask (ri - ri') row_elems_);
-      seq_mask_source_slice elems ri' ri re row_elems_ row_elems
+      seq_mask_source_slice elems ri' ri re
+        (Seq.slice elems ri re) (seq_mask (ri - ri') #(re - ri) (Seq.slice elems ri re))
         (!idx * p.blockItemsK)
         (!idx * p.blockItemsK + p.blockItemsK);
       // TODO
@@ -1541,6 +1589,10 @@ fn kf_main
       (ri - ri') row_elems_ row_elems
       (ri' + !idx * p.blockItemsK - ri)
       (!idx * p.blockItemsK) ();
+    tile_mm_prefix_result_mask p out0
+      (ri - ri') row_elems_ row_elems row_ind_ eB n_idx
+      (ri' + !idx * p.blockItemsK - ri)
+      (!idx * p.blockItemsK) v_out;
 
     Compute.tile_mm_mask_lemma
       #et #_ #_ #_
@@ -1582,9 +1634,10 @@ fn kf_main
     // Loop exit: re - ri' == idx * blockItemsK + nnz with nnz < blockItemsK, so
     // idx is exactly the quotient. Spelled out as Euclidean division because
     // the solver no longer gets there unaided.
-    FStar.Math.Lemmas.small_division_lemma_1 (SZ.v !nnz) (SZ.v p.blockItemsK);
-    FStar.Math.Lemmas.lemma_div_plus (SZ.v !nnz) (SZ.v !idx) (SZ.v p.blockItemsK);
+    spmm_loop_exit (SZ.v p.blockItemsK) (SZ.v ri') (SZ.v re)
+      (SZ.v !idx) (SZ.v !nnz);
     assert pure (SZ.v !idx == (re - ri') / p.blockItemsK);
+    assert pure (residue_pred p.blockItemsK ri ri' re !idx !nnz);
     rewrite barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile
       bid ((re - ri') / p.blockItemsK * 2) tid
     as barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile
