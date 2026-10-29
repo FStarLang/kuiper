@@ -601,6 +601,8 @@ fn barrier_out_unfold_residue_post
 {
   residue_phase_bounds p.blockItemsK ri ri' re idx residue;
   Kuiper.Math.div_mod_of_mul_add 2 idx 1;
+  assert pure (ri' + (idx * 2 + 1) / 2 * p.blockItemsK <= re);
+  assert pure (~(ri' + (idx * 2 + 1) / 2 * p.blockItemsK + p.blockItemsK <= re));
   rewrite (barrier_out p row_perm elems col_ind row_off
     elems_tile col_ind_tile bid (idx * 2 + 1) tid)
     as (pts_to_slice elems_tile #(1.0R /. p.blockWidth) 0 residue
