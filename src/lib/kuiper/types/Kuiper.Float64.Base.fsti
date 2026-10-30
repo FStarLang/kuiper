@@ -65,6 +65,10 @@ val neg_kind : (x : t) ->
     Lemma (ensures kind (neg x) == kind x)
           [SMTPat (neg x)]
 
+val neg_is_zero : (x : t) ->
+    Lemma (ensures is_zero (neg x) == is_zero x)
+          [SMTPat (is_zero (neg x))]
+
 val zero_sub_kind : (x : t) ->
     Lemma (ensures kind (zero `sub` x) == kind x)
           [SMTPat (zero `sub` x)]
@@ -161,10 +165,8 @@ val fexp : t -> t
 (* Trusted CUDA exp special values, separate from real approximation. *)
 val exp_special_values (x : t)
   : Lemma (ensures
-      (fexp zero == one /\
-       fexp (sub zero zero) == one /\
-       (is_zero x ==> fexp x == one) /\
-       (x == sub zero infinity ==> fexp x == zero) /\
+      ((is_zero x ==> fexp x == one) /\
+       (x == neg infinity ==> fexp x == zero) /\
        (x == infinity ==> fexp x == infinity) /\
        (NaN? (kind x) ==> NaN? (kind (fexp x)))))
       [SMTPat (fexp x)]

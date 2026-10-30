@@ -10,15 +10,18 @@ module SZ = Kuiper.SizeT
 let ordinary_zero_exponentials #t {| floating t |} (x : t{is_zero x})
   : Lemma
       (fexp (F.zero #t) == F.one /\
-       fexp (neg (F.zero #t)) == F.one /\
+       fexp (F.neg (F.zero #t)) == F.one /\
        fexp x == F.one)
-  = F.exp_special_values x
+  = F.exp_special_values (F.zero #t);
+    F.neg_is_zero (F.zero #t);
+    F.exp_special_values (F.neg (F.zero #t));
+    F.exp_special_values x
 
 let ordinary_infinite_exponentials #t {| floating t |} ()
   : Lemma
-      (fexp (F.sub F.zero F.infinity) == (F.zero #t) /\
+      (fexp (F.neg F.infinity) == (F.zero #t) /\
        fexp (F.infinity #t) == F.infinity)
-  = F.exp_special_values (F.sub (F.zero #t) F.infinity);
+  = F.exp_special_values (F.neg (F.infinity #t));
     F.exp_special_values (F.infinity #t)
 
 let ordinary_nan_exponential #t {| floating t |} (x : t{NaN? (kind x)})
@@ -29,7 +32,7 @@ let infinite_subtractions
   (x : f32{Infinite? (kind x)}) (y : f32{Finite? (kind y)})
   : Lemma
       (Fast.pure_sub_rn x y == x /\
-       Fast.pure_sub_rn y x == F.sub F.zero x /\
+       Fast.pure_sub_rn y x == F.neg x /\
        NaN? (kind (Fast.pure_sub_rn x x)))
   = ()
 
@@ -84,11 +87,11 @@ fn padding_exp (maximum : f32)
   ensures pure (
     (Finite? (kind maximum) \/ maximum == F.infinity ==>
       result == F.zero /\ v_approximates result 0.0R) /\
-    (maximum == F.sub F.zero F.infinity \/ NaN? (kind maximum) ==>
+    (maximum == F.neg F.infinity \/ NaN? (kind maximum) ==>
       NaN? (kind result)))
 {
   ordinary_infinite_exponentials #f32 ();
-  let shifted = Fast.sub_rn (F.sub F.zero F.infinity) maximum;
+  let shifted = Fast.sub_rn (F.neg F.infinity) maximum;
   F.exp_special_values shifted;
   fexp shifted
 }
@@ -118,7 +121,7 @@ fn negative_infinite_maximum ()
   returns result : f32
   ensures pure (NaN? (kind result))
 {
-  padding_exp (F.sub F.zero F.infinity)
+  padding_exp (F.neg F.infinity)
 }
 
 inline_for_extraction noextract
@@ -146,7 +149,7 @@ fn negative_infinite_padding_is_not_zero ()
   returns result : f32
   ensures pure (result == F.zero)
 {
-  padding_exp (F.sub F.zero F.infinity)
+  padding_exp (F.neg F.infinity)
 }
 
 [@@expect_failure [19]]
@@ -181,7 +184,7 @@ fn kernel
   {
     let j = !i;
     let x = inputs.(j);
-    let shifted = Fast.sub_rn (F.sub F.zero F.infinity) x;
+    let shifted = Fast.sub_rn (F.neg F.infinity) x;
     let padded = padding_exp x;
     let difference = Fast.sub_rn x F.one;
     pts_to_len outputs;
