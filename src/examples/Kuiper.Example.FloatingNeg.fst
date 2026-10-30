@@ -31,6 +31,11 @@ let host_bf16 (x:bf16) : bf16 = neg x
 let host_f32 (x:f32) : f32 = neg x
 let host_f64 (x:f64) : f64 = neg x
 
+let host_double_neg_f16 (x:f16) : f16 = neg (neg x)
+let host_double_neg_bf16 (x:bf16) : bf16 = neg (neg x)
+let host_double_neg_f32 (x:f32) : f32 = neg (neg x)
+let host_double_neg_f64 (x:f64) : f64 = neg (neg x)
+
 let host_zero_sub_f16 (x:f16) : f16 = sub zero x
 let host_zero_sub_bf16 (x:bf16) : bf16 = sub zero x
 let host_zero_sub_f32 (x:f32) : f32 = sub zero x
@@ -90,6 +95,11 @@ let run_f16 = run #f16 (neg #f16)
 let run_bf16 = run #bf16 (neg #bf16)
 let run_f32 = run #f32 (neg #f32)
 let run_f64 = run #f64 (neg #f64)
+
+let run_double_neg_f16 = run #f16 (fun x -> neg (neg x))
+let run_double_neg_bf16 = run #bf16 (fun x -> neg (neg x))
+let run_double_neg_f32 = run #f32 (fun x -> neg (neg x))
+let run_double_neg_f64 = run #f64 (fun x -> neg (neg x))
 
 let run_zero_sub_f16 = run #f16 (fun x -> sub zero x)
 let run_zero_sub_bf16 = run #bf16 (fun x -> sub zero x)

@@ -9,7 +9,8 @@ using float_test::to_bits;
 template <typename T, typename Bits, typename Run, typename Host>
 static void check_bits(const char *name, const std::vector<Bits> &patterns,
     Bits sign, Bits exponent, Bits fraction, Run run, Host host,
-    Run run_zero_sub, Host host_zero_sub);
+    Run run_double_neg, Host host_double_neg, Run run_zero_sub,
+    Host host_zero_sub);
 
 __global__ void reference(const float *inputs, float *outputs, uint32_t n)
 {
@@ -96,6 +97,8 @@ static void check_f32()
     check_bits<float>("Float32", patterns, float_test::sign_mask,
         float_test::exponent_mask, float_test::fraction_mask,
         Kuiper_Example_FloatingNeg_run_f32, Kuiper_Example_FloatingNeg_host_f32,
+        Kuiper_Example_FloatingNeg_run_double_neg_f32,
+        Kuiper_Example_FloatingNeg_host_double_neg_f32,
         Kuiper_Example_FloatingNeg_run_zero_sub_f32,
         Kuiper_Example_FloatingNeg_host_zero_sub_f32);
 }
@@ -119,13 +122,15 @@ template <typename Bits, typename T> static Bits raw(T value)
 template <typename T, typename Bits, typename Run, typename Host>
 static void check_bits(const char *name, const std::vector<Bits> &patterns,
     Bits sign, Bits exponent, Bits fraction, Run run, Host host,
-    Run run_zero_sub, Host host_zero_sub)
+    Run run_double_neg, Host host_double_neg, Run run_zero_sub,
+    Host host_zero_sub)
 {
     const uint32_t n = patterns.size();
     const Bits guard = Bits{0x1234};
     std::vector<T> inputs(n), actual(n + 2, from_raw<T>(guard)), preserved(n);
     std::vector<T> subtracted(n + 2, from_raw<T>(guard));
     std::vector<T> twice(n + 2, from_raw<T>(guard));
+    std::vector<T> negated_twice(n + 2, from_raw<T>(guard));
     for (uint32_t i = 0; i < n; ++i)
         inputs[i] = from_raw<T>(patterns[i]);
     T *device_inputs, *device_actual, *device_subtracted, *device_twice;
@@ -151,6 +156,10 @@ static void check_bits(const char *name, const std::vector<Bits> &patterns,
         subtracted.size() * sizeof(T), cudaMemcpyDeviceToHost));
     MUST(cudaMemcpy(twice.data(), device_twice, twice.size() * sizeof(T),
         cudaMemcpyDeviceToHost));
+    run_double_neg(n, device_inputs, device_twice + 1);
+    MUST(cudaGetLastError());
+    MUST(cudaMemcpy(negated_twice.data(), device_twice,
+        negated_twice.size() * sizeof(T), cudaMemcpyDeviceToHost));
     MUST(cudaMemcpy(preserved.data(), device_inputs,
         preserved.size() * sizeof(T), cudaMemcpyDeviceToHost));
     const auto nan = [=](Bits bits) {
@@ -167,9 +176,15 @@ static void check_bits(const char *name, const std::vector<Bits> &patterns,
         const Bits twice_gpu = raw<Bits>(twice[i + 1]);
         const Bits twice_cpu =
             raw<Bits>(host_zero_sub(host_zero_sub(inputs[i])));
+        const Bits negated_twice_gpu = raw<Bits>(negated_twice[i + 1]);
+        const Bits negated_twice_cpu = raw<Bits>(host_double_neg(inputs[i]));
         const Bits want = patterns[i] ^ sign;
         const bool matches = nan(patterns[i]) ? nan(got) && nan(cpu)
                                               : got == want && cpu == want;
+        const bool double_neg_matches =
+            nan(patterns[i]) ? nan(negated_twice_gpu) && nan(negated_twice_cpu)
+                             : negated_twice_gpu == patterns[i] &&
+                                   negated_twice_cpu == patterns[i];
         const bool relations =
             nan(patterns[i])
                 ? nan(subtracted_gpu) && nan(subtracted_cpu) &&
@@ -180,7 +195,8 @@ static void check_bits(const char *name, const std::vector<Bits> &patterns,
                       numerical_equal(twice_cpu, patterns[i]) &&
                       ((patterns[i] & ~sign) == 0 ||
                           (subtracted_gpu == got && subtracted_cpu == cpu));
-        if (!matches || !relations || raw<Bits>(preserved[i]) != patterns[i]) {
+        if (!matches || !double_neg_matches || !relations ||
+            raw<Bits>(preserved[i]) != patterns[i]) {
             fprintf(stderr,
                 "%s case %u: input %016llx, device %016llx, host %016llx\n",
                 name, i, (unsigned long long) patterns[i],
@@ -191,6 +207,9 @@ static void check_bits(const char *name, const std::vector<Bits> &patterns,
                 (unsigned long long) subtracted_gpu,
                 (unsigned long long) subtracted_cpu,
                 (unsigned long long) twice_gpu, (unsigned long long) twice_cpu);
+            fprintf(stderr, "double neg: device %016llx, host %016llx\n",
+                (unsigned long long) negated_twice_gpu,
+                (unsigned long long) negated_twice_cpu);
             exit(1);
         }
     }
@@ -198,7 +217,9 @@ static void check_bits(const char *name, const std::vector<Bits> &patterns,
         raw<Bits>(actual.back()) != guard ||
         raw<Bits>(subtracted.front()) != guard ||
         raw<Bits>(subtracted.back()) != guard ||
-        raw<Bits>(twice.front()) != guard || raw<Bits>(twice.back()) != guard) {
+        raw<Bits>(twice.front()) != guard || raw<Bits>(twice.back()) != guard ||
+        raw<Bits>(negated_twice.front()) != guard ||
+        raw<Bits>(negated_twice.back()) != guard) {
         fprintf(stderr, "%s output guard failed\n", name);
         exit(1);
     }
@@ -217,11 +238,15 @@ int main()
     check_bits<__half>("Float16", narrow, uint16_t{0x8000}, uint16_t{0x7c00},
         uint16_t{0x03ff}, Kuiper_Example_FloatingNeg_run_f16,
         Kuiper_Example_FloatingNeg_host_f16,
+        Kuiper_Example_FloatingNeg_run_double_neg_f16,
+        Kuiper_Example_FloatingNeg_host_double_neg_f16,
         Kuiper_Example_FloatingNeg_run_zero_sub_f16,
         Kuiper_Example_FloatingNeg_host_zero_sub_f16);
     check_bits<__nv_bfloat16>("BFloat16", narrow, uint16_t{0x8000},
         uint16_t{0x7f80}, uint16_t{0x007f}, Kuiper_Example_FloatingNeg_run_bf16,
         Kuiper_Example_FloatingNeg_host_bf16,
+        Kuiper_Example_FloatingNeg_run_double_neg_bf16,
+        Kuiper_Example_FloatingNeg_host_double_neg_bf16,
         Kuiper_Example_FloatingNeg_run_zero_sub_bf16,
         Kuiper_Example_FloatingNeg_host_zero_sub_bf16);
     std::vector<uint64_t> wide;
@@ -241,6 +266,8 @@ int main()
     check_bits<double>("Float64", wide, uint64_t{0x8000000000000000},
         uint64_t{0x7ff0000000000000}, uint64_t{0x000fffffffffffff},
         Kuiper_Example_FloatingNeg_run_f64, Kuiper_Example_FloatingNeg_host_f64,
+        Kuiper_Example_FloatingNeg_run_double_neg_f64,
+        Kuiper_Example_FloatingNeg_host_double_neg_f64,
         Kuiper_Example_FloatingNeg_run_zero_sub_f64,
         Kuiper_Example_FloatingNeg_host_zero_sub_f64);
     puts("Floating negation checks passed.");
