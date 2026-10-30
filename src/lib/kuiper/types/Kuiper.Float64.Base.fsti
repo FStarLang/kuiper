@@ -157,6 +157,18 @@ val fmax_spec : (x : t) -> (y : t) ->
           [SMTPat (fmax x y)]
 
 val fexp : t -> t
+
+(* Trusted CUDA exp special values, separate from real approximation. *)
+val exp_special_values (x : t)
+  : Lemma (ensures
+      (fexp zero == one /\
+       fexp (sub zero zero) == one /\
+       (is_zero x ==> fexp x == one) /\
+       (x == sub zero infinity ==> fexp x == zero) /\
+       (x == infinity ==> fexp x == infinity) /\
+       (NaN? (kind x) ==> NaN? (kind (fexp x)))))
+      [SMTPat (fexp x)]
+
 val flog : t -> t
 val fexpm1 : t -> t
 val flog1p : t -> t

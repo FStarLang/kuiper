@@ -1,1 +1,1 @@
-Float32 special-value and conditional-padding checks passed.
+All-format exponential, deterministic Float32 subtraction, and conditional-padding checks passed.
