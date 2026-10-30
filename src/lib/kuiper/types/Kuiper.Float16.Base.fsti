@@ -19,6 +19,7 @@ val eq : t -> t -> bool
 inline_for_extraction let ieee_eq = eq
 val bit_eq : t -> t -> bool
 
+val neg : t -> t
 val sub : t -> t -> t
 val div : t -> t -> t
 
@@ -64,17 +65,37 @@ val lte_is_lt_or_eq : (x : t) -> (y : t) ->
           [SMTPat (lte x y)]
 
 val neg_kind : (x : t) ->
+    Lemma (ensures kind (neg x) == kind x)
+          [SMTPat (neg x)]
+
+val zero_sub_kind : (x : t) ->
     Lemma (ensures kind (zero `sub` x) == kind x)
           [SMTPat (zero `sub` x)]
 
-val neg_neg : (x : t) ->
+val zero_sub_involutive : (x : t) ->
     Lemma (requires ~(NaN? (kind x)))
           (ensures eq (zero `sub` (zero `sub` x)) x)
           [SMTPat (zero `sub` (zero `sub` x))]
 
-val lt_neg_flip : (x : t) -> (y : t) ->
+val lt_zero_sub_flip : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
           (ensures lt x y <==> lt (zero `sub` y) (zero `sub` x))
+          [SMTPat (lt (zero `sub` y) (zero `sub` x))]
+
+val zero_sub_is_neg : (x : t) ->
+    Lemma (requires ~(NaN? (kind x)))
+          (ensures eq (zero `sub` x) (neg x) /\
+                   (~(is_zero x) ==> zero `sub` x == neg x))
+          [SMTPat (zero `sub` x)]
+
+val neg_neg : (x : t) ->
+    Lemma (requires ~(NaN? (kind x)))
+          (ensures eq (neg (neg x)) x)
+          [SMTPat (neg (neg x))]
+
+val lt_neg_flip : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+          (ensures lt x y <==> lt (neg y) (neg x))
           [SMTPat (lt x y)]
 
 val negate_lt_is_lte : (x : t) -> (y : t) ->
@@ -110,6 +131,12 @@ val  mul_one : (x : t) ->
           [SMTPat (mul x one)]
 
 val sub_is_add_neg : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+                    ~(NaN? (kind (sub x y))))
+          (ensures eq (sub x y) (add x (neg y)))
+          [SMTPat (sub x y)]
+
+val sub_is_add_zero_sub : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
                     ~(NaN? (kind (sub x y))))
           (ensures eq (sub x y) (add x (zero `sub` y)))

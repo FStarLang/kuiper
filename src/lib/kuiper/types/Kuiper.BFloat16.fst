@@ -28,7 +28,7 @@ instance _ : scalar t = {
 inline_for_extraction noextract
 instance is_floating : floating t = {
   is_scalar = solve;
-  sub; div; bit_eq;
+  neg; sub; div; bit_eq;
   of_int; of_literal; of_int_zero; of_int_one;
   kind; is_zero;
   largest; infinity;

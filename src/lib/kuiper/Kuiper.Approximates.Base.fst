@@ -17,6 +17,7 @@ class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
 
   approx_of_int : squash ((of_int #a) %~ r_of_int);
   approx_fmax : squash ((fmax #a) %~ r_fmax);
+  approx_neg : squash ((neg #a) %~ r_neg);
   approx_sub : squash ((sub #a) %~ r_sub);
   approx_fexp : squash ((fexp #a) %~ r_exp);
   approx_div : squash ((div #a) %~ r_div);
@@ -49,6 +50,12 @@ let fmax_models_pat (a:Type)
   : Lemma (ensures (fmax #a) %~ r_fmax)
       [SMTPat (fmax #a); SMTPat (has_type rr (floating_real_like a))]
   = approx_fmax #a
+
+let neg_models_pat (a:Type)
+  {| scalar a, floating a, real_like a, rr : floating_real_like a |}
+  : Lemma (ensures (neg #a) %~ r_neg)
+      [SMTPat (neg #a); SMTPat (has_type rr (floating_real_like a))]
+  = approx_neg #a
 
 let sub_models_pat (a:Type)
   {| scalar a, floating a, real_like a, rr : floating_real_like a |}
