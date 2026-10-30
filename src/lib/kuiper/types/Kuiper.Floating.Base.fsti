@@ -93,6 +93,11 @@ class floating (t : Type) = {
     Lemma (ensures kind (neg x) == kind x)
           [SMTPat (neg x)];
 
+  #[easy_fill ()]
+  neg_is_zero : (x : t) ->
+    Lemma (ensures is_zero (neg x) == is_zero x)
+          [SMTPat (is_zero (neg x))];
+
   (* Zero subtraction keeps its own laws: signed zeros prevent exact replacement. *)
   #[easy_fill ()]
   zero_sub_kind : (x : t) ->
@@ -215,10 +220,8 @@ class floating (t : Type) = {
   #[easy_fill ()]
   exp_special_values : (x : t) ->
     Lemma (ensures
-      (fexp zero == one /\
-       fexp (sub zero zero) == one /\
-       (is_zero x ==> fexp x == one) /\
-       (x == sub zero infinity ==> fexp x == zero) /\
+      ((is_zero x ==> fexp x == one) /\
+       (x == neg infinity ==> fexp x == zero) /\
        (x == infinity ==> fexp x == infinity) /\
        (NaN? (kind x) ==> NaN? (kind (fexp x)))));
 

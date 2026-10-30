@@ -99,7 +99,7 @@ val pure_sub_rn (x y : t) : GTot (result : t{
     (match kind x, kind y with
      | NaN, _ | _, NaN -> NaN? (kind result)
      | Infinite, Finite -> result == x
-     | Finite, Infinite -> result == F.sub F.zero y
+     | Finite, Infinite -> result == F.neg y
      | Infinite, Infinite ->
          (x == y ==> NaN? (kind result)) /\
          (x =!= y ==> result == x)
