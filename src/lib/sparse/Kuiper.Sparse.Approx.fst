@@ -254,6 +254,21 @@ fn smatrix_gather_approx_n'
 }
 
 
+let divides_mul_div (d : pos) (a : nat) (b : nat)
+  : Lemma (requires d /? a) (ensures a * b / d == a / d * b)
+  = Kuiper.Divides.lemma_divides_exact d a;
+    FStar.Math.Lemmas.paren_mul_right d (a / d) b;
+    FStar.Math.Lemmas.swap_mul d (a / d * b);
+    FStar.Math.Lemmas.cancel_mul_div (a / d * b) d
+
+let thread_offset_chunk
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (j : nat { chunk et /? j }) (nthr : pos) (x : nat)
+  : Lemma (offset_chunk et (thread_offset et j (x % nthr)) (x / nthr) nthr ==
+           j + x * chunk et)
+  = FStar.Math.Lemmas.distributivity_add_left (x % nthr) (x / nthr * nthr) (chunk et);
+    FStar.Math.Lemmas.euclidean_division_definition x nthr
+
 #push-options "--z3rlimit 25"
 ghost
 fn thread_tile_approx_gather
@@ -271,6 +286,7 @@ fn thread_tile_approx_gather
   ensures tile_approx gm i j em (trow_tile * nthr)
 {
   forevery_commute _;
+  divides_mul_div (chunk et) trow_tile nthr;
   forevery_unfactor' (trow_tile * nthr / chunk et)
     (trow_tile / chunk et) nthr
     (fun k tid -> thread_vec_approx gm i (thread_offset et j tid) em nthr k);
@@ -287,15 +303,7 @@ fn thread_tile_approx_gather
       let lem : squash (
         offset_chunk et (thread_offset et j (x % nthr)) (x / nthr) nthr ==
         j + x * chunk et
-      ) = calc (==) {
-        offset_chunk et (thread_offset et j (x % nthr)) (x / nthr) nthr;
-        == {}
-        j + (x % nthr) * chunk et + x / nthr * nthr * chunk et;
-        == {}
-        j + (x % nthr + x / nthr * nthr) * chunk et;
-        == { FStar.Math.Lib.lemma_div_def x nthr }
-        j + x * chunk et;
-      };
+      ) = thread_offset_chunk #et j nthr x;
       rewrite each offset_chunk et (thread_offset et j (x % nthr)) (x / nthr) nthr
       as (j + x * chunk et);
 
