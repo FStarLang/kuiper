@@ -45,6 +45,16 @@ let in_bounds_lslice
       (lslice' s first last) @! i < hi
     with (Seq.lemma_index_slice s first last i)
 
+(* The last [residue] elements of a row, as a slice of the row. *)
+let slice_suffix_slice
+  (#a : Type) (s : Seq.seq a) (ri re residue : nat)
+: Lemma
+  (requires ri + residue <= re /\ re <= Seq.length s)
+  (ensures
+    Seq.slice s (re - residue) re ==
+    Seq.slice (Seq.slice s ri re) (re - ri - residue) (re - ri))
+= Seq.slice_slice s ri re (re - ri - residue) (re - ri)
+
 #push-options "--z3rlimit 60 --using_facts_from '* -Kuiper.Sparse.Common.sorted_slice'"
 inline_for_extraction noextract
 fn kf_residue
@@ -196,6 +206,7 @@ fn kf_residue
       (Seq.slice relems (re - residue) re)
       (Seq.slice row_relems ((re - ri) - residue) (re - ri))
   );
+  slice_suffix_slice #sz col_ind ri re residue;
   assert pure (
     Seq.equal
       (Seq.slice col_ind (re - residue) re)
