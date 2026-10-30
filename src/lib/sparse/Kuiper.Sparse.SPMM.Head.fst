@@ -72,6 +72,7 @@ fn sparse_load_main
       (Seq.slice col_ind
         (ri + idx * p.blockItemsK) (ri + idx * p.blockItemsK + p.blockItemsK))
 {
+  assert pure (1.0R /. p.blockWidth >. 0.0R);
   let off : (o:sz{SZ.v o == SZ.v ri + SZ.v idx * SZ.v p.blockItemsK})
     = ri +^ idx *^ p.blockItemsK;
 
