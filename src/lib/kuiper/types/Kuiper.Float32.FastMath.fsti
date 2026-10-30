@@ -88,20 +88,27 @@ fn fma_rn (x y z : t)
       v_approximates x xr /\ v_approximates y yr /\ v_approximates z zr ==>
       v_approximates result (r_fma xr yr zr))
 
-(* Additional trusted __fsub_rn laws for negative-infinity padding and NaNs:
+(* Ghost-only model of the deterministic GPU __fsub_rn intrinsic:
    https://docs.nvidia.com/cuda/archive/13.0.0/cuda-math-api/cuda_math_api/group__CUDA__MATH__INTRINSIC__SINGLE.html#_CPPv49__fsub_rnff
-   In particular, -infinity - -infinity is NaN, not -infinity.
-   These clauses do not constrain NaN signs or payloads. *)
+   Repeated identical inputs give identical results, but no particular NaN
+   sign or payload is specified. This does not add a host implementation. *)
+val pure_sub_rn (x y : t) : GTot (result : t{
+    (forall (xr yr : real).
+      v_approximates x xr /\ v_approximates y yr ==>
+      v_approximates result (r_sub xr yr)) /\
+    (match kind x, kind y with
+     | NaN, _ | _, NaN -> NaN? (kind result)
+     | Infinite, Finite -> result == x
+     | Finite, Infinite -> result == F.sub F.zero y
+     | Infinite, Infinite ->
+         (x == y ==> NaN? (kind result)) /\
+         (x =!= y ==> result == x)
+     | Finite, Finite ->
+         (x == y ==> result == F.zero) /\
+         (is_zero x /\ is_zero y /\ x =!= y ==> result == x))})
+
 noextract
 fn sub_rn (x y : t)
   preserves gpu
   returns result : t
-  ensures pure (
-    (forall (xr yr : real).
-      v_approximates x xr /\ v_approximates y yr ==>
-      v_approximates result (r_sub xr yr)) /\
-    (x == F.sub F.zero F.infinity /\ (Finite? (kind y) \/ y == F.infinity) ==>
-      result == F.sub F.zero F.infinity) /\
-    (x == F.sub F.zero F.infinity /\ y == F.sub F.zero F.infinity ==>
-      NaN? (kind result)) /\
-    (NaN? (kind x) \/ NaN? (kind y) ==> NaN? (kind result)))
+  ensures pure (result == pure_sub_rn x y)

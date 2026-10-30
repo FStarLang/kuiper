@@ -209,6 +209,19 @@ class floating (t : Type) = {
           [SMTPat (fmax x y)];
 
   fexp : t -> t;
+
+  (* Ordinary exponential, not an explicit fast-math intrinsic. is_zero
+     includes both zero signs; NaN signs and payloads remain unspecified. *)
+  #[easy_fill ()]
+  exp_special_values : (x : t) ->
+    Lemma (ensures
+      (fexp zero == one /\
+       fexp (sub zero zero) == one /\
+       (is_zero x ==> fexp x == one) /\
+       (x == sub zero infinity ==> fexp x == zero) /\
+       (x == infinity ==> fexp x == infinity) /\
+       (NaN? (kind x) ==> NaN? (kind (fexp x)))));
+
   flog : t -> t;
   sqrt : t -> t;
   rsqrt : t -> t;
