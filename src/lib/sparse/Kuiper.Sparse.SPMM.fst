@@ -1293,6 +1293,39 @@ let spmm_idx_succ_bound
   (ensures  idx + 1 <= (row_end - row_start) / block_items)
 = ()
 
+(* Exit of kf_main's loop: re - ri' == idx * blockItemsK + nnz with
+   nnz < blockItemsK, so idx and nnz are the quotient and the remainder.
+   Stated in a small context: inside kf_main the solver times out on it. *)
+let spmm_loop_exit_residue
+  (block_items : pos)
+  (ri ri' re : nat)
+  (idx nnz : nat)
+: Lemma
+  (requires
+    re - ri' >= block_items /\
+    nnz < block_items /\
+    nnz == re - ri' - idx * block_items)
+  (ensures
+    idx == (re - ri') / block_items /\
+    nnz == (re - ri') % block_items /\
+    _residue_pred block_items ri ri' re idx nnz)
+= FStar.Math.Lemmas.small_division_lemma_1 nnz block_items;
+  FStar.Math.Lemmas.lemma_div_plus nnz idx block_items;
+  FStar.Math.Lemmas.small_mod nnz block_items;
+  FStar.Math.Lemmas.lemma_mod_plus nnz idx block_items
+
+(* After kf_main's loop the masked prefix [ri' .. ri) of the row lies inside
+   the consumed tiles [ri' .. ri' + idx * blockItemsK). *)
+let spmm_mask_prefix_len
+  (block_items : pos)
+  (ri ri' idx : nat)
+: Lemma
+  (requires ri' <= ri /\ ri - ri' < block_items /\ 1 <= idx)
+  (ensures
+    ri <= ri' + idx * block_items /\
+    (ri - ri') + (ri' + idx * block_items - ri) == idx * block_items)
+= FStar.Math.Lemmas.lemma_mult_le_right block_items 1 idx
+
 inline_for_extraction noextract
 fn kf_main
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
@@ -1365,12 +1398,16 @@ fn kf_main
 
 {
   tcol_fits p bid tid;
+  // The alignment padding [ri - ri'] (a nonlinear rounding) as ground facts.
+  row_prefix_bound p ri;
+  assert pure (SZ.v ri' <= SZ.v ri /\ SZ.v ri - SZ.v ri' < SZ.v p.blockItemsK);
 
   let out0 : erased (lseq et (threadItemsX p)) =
     Seq.create (p.blockItemsX / p.blockWidth) zero;
 
   if (!nnz >=^ p.blockItemsK)
   {
+    assert pure (re - ri' >= p.blockItemsK);
     let row_elems_ : erased (lseq et (re - ri)) = hide (Seq.slice elems ri re);
     let row_elems : erased (lseq et (re - ri')) = seq_mask_row ri' ri re row_elems_;
     assert rewrites_to row_elems (seq_mask_row ri' ri re row_elems_);
@@ -1481,10 +1518,37 @@ fn kf_main
       Seq.lemma_len_slice
         row_ind_ 0 (!idx * p.blockItemsK + p.blockItemsK);
 
+      spmm_idx_succ_fits (SZ.v !idx) (SZ.v p.blockItemsK)
+        (SZ.v ri') (SZ.v re);
       let next_end : erased nat = SZ.v (!idx +^ 1sz) * SZ.v p.blockItemsK;
 
       FStar.Math.Lemmas.distributivity_add_left
         (SZ.v !idx) 1 (SZ.v p.blockItemsK);
+
+      // Spell out tile_mm's precondition in the form it expects (the
+      // invariant uses [lslice], the loaded tiles use source offsets), so the
+      // call does not have to rediscover these equalities.
+      assert pure (next_end == !idx * p.blockItemsK + p.blockItemsK);
+      assert pure (
+        Seq.slice row_elems (!idx * p.blockItemsK) next_end
+          == Seq.slice elems
+              (ri' + !idx * p.blockItemsK)
+              (ri' + !idx * p.blockItemsK + p.blockItemsK)
+      );
+      assert pure (
+        Seq.slice row_ind_ (!idx * p.blockItemsK) next_end
+          == Seq.slice col_ind
+              (ri' + !idx * p.blockItemsK)
+              (ri' + !idx * p.blockItemsK + p.blockItemsK)
+      );
+      assert pure (
+        lslice row_elems 0 (!idx * p.blockItemsK)
+          == Seq.slice row_elems 0 (!idx * p.blockItemsK)
+      );
+      assert pure (
+        lslice (cast_pos row_ind_) 0 (!idx * p.blockItemsK)
+          == Seq.slice (cast_pos row_ind_) 0 (!idx * p.blockItemsK)
+      );
 
       #set-options "--z3rlimit 60" {
         Compute.tile_mm
@@ -1503,8 +1567,6 @@ fn kf_main
         SZ.v (!nnz -^ p.blockItemsK) == re - ri' - next_end
       );
 
-      spmm_idx_succ_fits (SZ.v !idx) (SZ.v p.blockItemsK)
-        (SZ.v ri') (SZ.v re);
       spmm_idx_succ_bound (SZ.v !idx) (SZ.v p.blockItemsK)
         (SZ.v ri') (SZ.v re);
       idx := !idx +^ 1sz;
@@ -1518,10 +1580,7 @@ fn kf_main
 
     with v_out. assert out |-> v_out;
 
-    assert pure (
-      (ri - ri') + (ri' + !idx * p.blockItemsK - ri)
-        == !idx * p.blockItemsK
-    );
+    spmm_mask_prefix_len (SZ.v p.blockItemsK) (SZ.v ri) (SZ.v ri') (SZ.v !idx);
     seq_mask_lslice_prefix
       (ri - ri') row_elems_ row_elems
       (ri' + !idx * p.blockItemsK - ri)
@@ -1564,12 +1623,10 @@ fn kf_main
     barrier_in_fold_residue_pre p row_perm elems col_ind row_off
       elems_tile col_ind_tile bid ri' re tid;
 
-    // Loop exit: re - ri' == idx * blockItemsK + nnz with nnz < blockItemsK, so
-    // idx is exactly the quotient. Spelled out as Euclidean division because
-    // the solver no longer gets there unaided.
-    FStar.Math.Lemmas.small_division_lemma_1 (SZ.v !nnz) (SZ.v p.blockItemsK);
-    FStar.Math.Lemmas.lemma_div_plus (SZ.v !nnz) (SZ.v !idx) (SZ.v p.blockItemsK);
-    assert pure (SZ.v !idx == (re - ri') / p.blockItemsK);
+    // Loop exit: idx is exactly the quotient and nnz the remainder of
+    // (re - ri') by blockItemsK; see [spmm_loop_exit_residue].
+    spmm_loop_exit_residue (SZ.v p.blockItemsK) (SZ.v ri) (SZ.v ri') (SZ.v re)
+      (SZ.v !idx) (SZ.v !nnz);
     rewrite barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile
       bid ((re - ri') / p.blockItemsK * 2) tid
     as barrier_in p row_perm elems col_ind row_off elems_tile col_ind_tile
