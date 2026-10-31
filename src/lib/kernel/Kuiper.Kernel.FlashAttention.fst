@@ -830,6 +830,7 @@ fn flashattention_kf_smem
 
   // Euclidean facts.
   assert pure (SZ.v (n /^ nthr) == SZ.v n / SZ.v nthr);
+  FStar.Math.Lemmas.cancel_mul_div (SZ.v d) 1;
   assert pure (SZ.v d / 1 == SZ.v d);
   FStar.Math.Lemmas.lemma_div_mod (SZ.v n) (SZ.v nthr);
   assert pure (SZ.v n % SZ.v nthr == 0);
