@@ -108,6 +108,9 @@ fn log_softmax
     };
   log_softmax_gpu nth ga (seq_to_chest1 ra);
   with res. assert on gpu_loc (ga |-> res);
+  (* Transfer the tensor approximation to the sequence copied back to the host. *)
+  Kuiper.Chest1.Helpers.chest1_to_seq_approx res (log_softmax_real (seq_to_chest1 ra));
+  assert pure (Seq.equal (to_seq (l1_forward lena) res) (chest1_to_seq res));
   map_loc gpu_loc #(ga |-> res) #(core ga |-> to_seq (l1_forward lena) res)
     fn _ { tensor_concr ga; };
   memcpy_device_to_host a (core ga) lena;
