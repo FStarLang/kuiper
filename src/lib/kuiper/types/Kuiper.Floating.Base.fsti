@@ -93,6 +93,11 @@ class floating (t : Type) = {
     Lemma (ensures kind (neg x) == kind x)
           [SMTPat (neg x)];
 
+  #[easy_fill ()]
+  neg_is_zero : (x : t) ->
+    Lemma (ensures is_zero (neg x) == is_zero x)
+          [SMTPat (is_zero (neg x))];
+
   (* Zero subtraction keeps its own laws: signed zeros prevent exact replacement. *)
   #[easy_fill ()]
   zero_sub_kind : (x : t) ->
@@ -209,6 +214,17 @@ class floating (t : Type) = {
           [SMTPat (fmax x y)];
 
   fexp : t -> t;
+
+  (* Ordinary exponential, not an explicit fast-math intrinsic. is_zero
+     includes both zero signs; NaN signs and payloads remain unspecified. *)
+  #[easy_fill ()]
+  exp_special_values : (x : t) ->
+    Lemma (ensures
+      ((is_zero x ==> fexp x == one) /\
+       (x == neg infinity ==> fexp x == zero) /\
+       (x == infinity ==> fexp x == infinity) /\
+       (NaN? (kind x) ==> NaN? (kind (fexp x)))));
+
   flog : t -> t;
   sqrt : t -> t;
   rsqrt : t -> t;
