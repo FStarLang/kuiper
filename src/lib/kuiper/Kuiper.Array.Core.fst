@@ -1145,7 +1145,7 @@ let ref_of_cell
   = magic()
 
 (* Axiom, extracted natively. *)
-fn get_ref_of_array_cell
+fn get_ref_of_cell
   (#et : Type0)
   (a : array et)
   (i : sz)

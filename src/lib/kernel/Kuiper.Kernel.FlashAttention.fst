@@ -193,13 +193,13 @@ let ref_of_cell
   = ref_of_cell a (idx1 i)
 
 inline_for_extraction noextract
-fn get_ref_of_array_cell
+fn get_ref_of_cell
   (#et : Type0) (#len : erased nat) (#l : layout1 len) {| ctlayout l |}
   (a : array1 et l) (i : szlt len)
   returns r : ref et
   ensures pure (r == ref_of_cell a i)
 {
-  get_ref_of_tensor_cell a (cidx1 i)
+  get_ref_of_cell a (cidx1 i)
 }
 
 ghost
@@ -389,12 +389,12 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
 
       extract_cell1 glt ii #1.0R #vlt;
       array1_cell_to_ref glt ii;
-      let glit = get_ref_of_array_cell glt ii;
+      let glit = get_ref_of_cell glt ii;
       assert rewrites_to glit (ref_of_cell glt ii);
 
       extract_cell1 gmt ii #1.0R #vmt;
       array1_cell_to_ref gmt ii;
-      let gmit = get_ref_of_array_cell gmt ii;
+      let gmit = get_ref_of_cell gmt ii;
       assert rewrites_to gmit (ref_of_cell gmt ii);
 
       flashattention_tile bc br d
@@ -739,13 +739,13 @@ fn flashattention_inner_smem
     with vlt. assert glt |-> vlt;
     extract_cell1 glt ii #1.0R #vlt;
     array1_cell_to_ref glt ii;
-    let glit = get_ref_of_array_cell glt ii;
+    let glit = get_ref_of_cell glt ii;
     assert rewrites_to glit (ref_of_cell glt ii);
 
     with vmt. assert gmt |-> vmt;
     extract_cell1 gmt ii #1.0R #vmt;
     array1_cell_to_ref gmt ii;
-    let gmit = get_ref_of_array_cell gmt ii;
+    let gmit = get_ref_of_cell gmt ii;
     assert rewrites_to gmit (ref_of_cell gmt ii);
 
     with x. assert (sK |-> Frac (1.0R /. (SZ.v nthr)) (x <: chest2 et (SZ.v nthr) (SZ.v d)));

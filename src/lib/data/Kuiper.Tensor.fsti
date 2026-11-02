@@ -588,7 +588,7 @@ val ref_of_cell
   : GTot (ref et)
 
 inline_for_extraction noextract
-fn get_ref_of_tensor_cell
+fn get_ref_of_cell
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
   (a : tensor et l) {| ctlayout l |}

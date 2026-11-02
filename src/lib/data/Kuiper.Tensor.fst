@@ -765,7 +765,7 @@ let ref_of_cell
   = Array.Core.ref_of_cell (core a) (l.imap.f i)
 
 inline_for_extraction noextract
-fn get_ref_of_tensor_cell
+fn get_ref_of_cell
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
   (a : tensor et l) {| c : ctlayout l |}
@@ -775,7 +775,7 @@ fn get_ref_of_tensor_cell
   ensures
     pure (r == ref_of_cell a (up i))
 {
-  Array.Core.get_ref_of_array_cell (core a) (c.cimap i)
+  Array.Core.get_ref_of_cell (core a) (c.cimap i)
 }
 
 ghost

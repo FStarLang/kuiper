@@ -22,7 +22,7 @@ fn cell_get
     pure (r == reveal v)
 {
   tensor_cell_to_ref a ((SZ.v i <: natlt 16), ());
-  let p = get_ref_of_tensor_cell a ((i <: szlt 16), ());
+  let p = get_ref_of_cell a ((i <: szlt 16), ());
   let x = !p;
   tensor_cell_from_ref a ((SZ.v i <: natlt 16), ());
   x
@@ -40,7 +40,7 @@ fn cell_set
     pts_to_cell a ((i <: natlt 16), ()) w
 {
   tensor_cell_to_ref a ((SZ.v i <: natlt 16), ());
-  let p = get_ref_of_tensor_cell a ((i <: szlt 16), ());
+  let p = get_ref_of_cell a ((i <: szlt 16), ());
   p := w;
   tensor_cell_from_ref a ((SZ.v i <: natlt 16), ());
 }
