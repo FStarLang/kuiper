@@ -73,6 +73,32 @@ let spmm_mask_prefix_len
     (ri - ri') + (ri' + idx * block_items - ri) == idx * block_items)
 = FStar.Math.Lemmas.lemma_mult_le_right block_items 1 idx
 
+(* After kf_main's loop: the consumed column indices of the row, without
+   the masked prefix, are col_ind[ri .. re - nnz). Stated in a small
+   context: inside kf_main even its arithmetic step can exhaust the rlimit. *)
+let spmm_exit_col_ind_slice
+  (#n : nat)
+  (col_ind : lseq sz n)
+  (ri ri' : nat)
+  (re : nat { ri' <= re })
+  (row_ind : lseq sz (re - ri'))
+  (block_items : pos)
+  (idx nnz : nat)
+: Lemma
+  (requires
+    ri' <= ri /\ ri <= re /\ re <= n /\
+    row_ind == Seq.slice col_ind ri' re /\
+    nnz == re - ri' - idx * block_items /\
+    ri <= ri' + idx * block_items /\
+    ri' + idx * block_items <= re)
+  (ensures
+    Seq.equal
+      (Seq.slice
+        (lslice (cast_pos row_ind) 0 (idx * block_items))
+        (ri - ri') (idx * block_items))
+      (lslice' (cast_pos col_ind) ri (re - nnz)))
+= cast_pos_slice col_ind ri' re
+
 (* Name the dependent prefix specification so loop-invariant well-formedness
    does not repeatedly reconstruct its slice and output-length refinements. *)
 let tile_mm_prefix_result
@@ -317,22 +343,32 @@ fn kf_main
       // Reuse this source bound when checking tile_mm's loaded-slice frame.
       assert pure (ri' + !idx * p.blockItemsK + p.blockItemsK <= gA.nnz);
 
-      // Spell out tile_mm's slice preconditions in the form it expects (the
-      // loaded tiles use source offsets), so the call does not have to
-      // rediscover these equalities.
-      assert pure (next_end == !idx * p.blockItemsK + p.blockItemsK);
+      // tile_mm's frame: the loaded tiles hold the source slices at
+      // [ri' + idx * blockItemsK ..), which are the [idx]-th tiles of the
+      // padded row. State these as equalities (not just Seq.equal) on the
+      // exact terms of the call, so matching the frame does not have to
+      // rediscover them.
+      assert pure (next_end == v_idx * p.blockItemsK + p.blockItemsK);
+      Seq.lemma_eq_elim
+        (Seq.slice elems
+          (ri' + v_idx * p.blockItemsK)
+          (ri' + v_idx * p.blockItemsK + p.blockItemsK))
+        (Seq.slice row_elems (v_idx * p.blockItemsK) (v_idx * p.blockItemsK + p.blockItemsK));
+      Seq.lemma_eq_elim
+        (Seq.slice row_ind_ (v_idx * p.blockItemsK) (v_idx * p.blockItemsK + p.blockItemsK))
+        (Seq.slice col_ind
+          (ri' + v_idx * p.blockItemsK)
+          (ri' + v_idx * p.blockItemsK + p.blockItemsK));
       assert pure (
-        Seq.slice row_elems (!idx * p.blockItemsK) next_end
+        Seq.slice row_elems (v_idx * p.blockItemsK) next_end
           == Seq.slice elems
-              (ri' + !idx * p.blockItemsK)
-              (ri' + !idx * p.blockItemsK + p.blockItemsK)
-      );
+              (ri' + v_idx * p.blockItemsK)
+              (ri' + v_idx * p.blockItemsK + p.blockItemsK));
       assert pure (
-        Seq.slice row_ind_ (!idx * p.blockItemsK) next_end
+        Seq.slice row_ind_ (v_idx * p.blockItemsK) next_end
           == Seq.slice col_ind
-              (ri' + !idx * p.blockItemsK)
-              (ri' + !idx * p.blockItemsK + p.blockItemsK)
-      );
+              (ri' + v_idx * p.blockItemsK)
+              (ri' + v_idx * p.blockItemsK + p.blockItemsK));
 
       #set-options "--z3rlimit 60" {
         Compute.tile_mm
@@ -347,6 +383,15 @@ fn kf_main
           p.blockItemsK;
       };
 
+      // The new prefix result, in the invariant's form (stated on next_end,
+      // so that re-establishing the invariant only has to relate next_end
+      // to the incremented idx).
+      with v_out'. assert out |-> v_out';
+      assert pure (
+        tile_mm_prefix_result p rout0 row_relems row_ind_
+          rB n_idx next_end v_out'
+      );
+
       assert pure (
         SZ.v (!nnz -^ p.blockItemsK) == re - ri' - next_end
       );
@@ -357,6 +402,8 @@ fn kf_main
       nnz := !nnz -^ p.blockItemsK;
 
       assert pure (!idx <= (re - ri') / p.blockItemsK);
+      assert pure (SZ.v !idx * SZ.v p.blockItemsK == reveal next_end);
+      assert pure (SZ.v !nnz == re - ri' - !idx * p.blockItemsK);
       #set-options "--z3rlimit 120" { () };
     };
     };
@@ -409,6 +456,9 @@ fn kf_main
       (cast_pos col_ind)
       ri' re
       (ri - ri') (v_idx * p.blockItemsK);
+    // The consumed column indices; see [spmm_exit_col_ind_slice].
+    spmm_exit_col_ind_slice col_ind (SZ.v ri) (SZ.v ri') (SZ.v re) row_ind_
+      (SZ.v p.blockItemsK) (SZ.v v_idx) (SZ.v v_nnz);
     assert pure (
       Seq.equal
         (Seq.slice
