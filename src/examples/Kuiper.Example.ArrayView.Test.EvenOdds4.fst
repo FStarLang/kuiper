@@ -176,7 +176,7 @@ fn foo_odd'
 }
 
 let split_view (vw : aview 'et 'len (lseq 'et 'len) { vw.iview.ait == (raw_aiview_schema 'len).ait }) =
-  sum_aview (even_view vw) (odd_view vw)
+  sum_view (even_view vw) (odd_view vw)
 
 inline_for_extraction noextract // view polymorphic
 fn test'

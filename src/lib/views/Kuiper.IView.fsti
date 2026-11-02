@@ -181,7 +181,7 @@ let ai_to_ci
   = let open Kuiper.Bijection in
     i |~> cw.sch.bij
 
-let sum_aiview
+let sum_view
   (vw1 vw2 : aiview) // { vw1.len == vw2.len })
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
   : aiview = {

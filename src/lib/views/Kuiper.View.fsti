@@ -203,14 +203,14 @@ val to_seq_upd (#a #st : Type)
   : Lemma (ensures to_seq vw (vw.ctn.upd v i x) == Seq.upd (to_seq vw v) (it_to_nat vw i) x)
           [SMTPat (to_seq vw (vw.ctn.upd v i x))]
 
-let sum_aview
+let sum_view
   (#et : Type) (#st1 #st2 : Type)
   (vw1 : aview et st1)
   (vw2 : aview et st2)
   (#_ : squash (no_overlap vw1.iview.step.imap.f vw2.iview.step.imap.f))
   : aview et (st1 & st2) =
 {
-  iview = sum_aiview vw1.iview vw2.iview;
+  iview = sum_view vw1.iview vw2.iview;
   ctn   = solve;
 }
 

@@ -321,7 +321,7 @@ fn iarray_split2_
   (#et:Type0)
   (vw1 vw2 : aiview { len vw1 == len vw2 }) // needed?
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
-  (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
+  (a : iarray et (sum_view vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)
   (#v : either vw1.ait vw2.ait -> GTot et)
   requires
@@ -335,7 +335,7 @@ fn iarray_split2
   (#et:Type0)
   (vw1 vw2 : aiview { len vw1 == len vw2 }) // needed?
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
-  (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
+  (a : iarray et (sum_view vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)
   (#v : either vw1.ait vw2.ait -> GTot et)
   requires

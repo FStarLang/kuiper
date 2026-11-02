@@ -220,7 +220,7 @@ let unfold_raw_view () : T.Tac unit =
                       `%raw_view; `%it_to_nat; `%Kuiper.Injection.op_Bar_Tilde_Greater;
                       `%inj_id; `%Kuiper.Injection.cinj_id; `%Kuiper.Injection.mk_cinj;
                       `%Kuiper.Common.natlt; `%FStar.Pervasives.id;
-                      `%Kuiper.Len.len; `%has_len_aiview; `%sum_aiview];
+                      `%Kuiper.Len.len; `%has_len_aiview; `%sum_view];
           iota; primops];
   slprop_equiv_norm ()
 
@@ -429,7 +429,7 @@ fn iarray_split2_
   (#et:Type0)
   (vw1 vw2 : aiview { len vw1 == len vw2 }) // needed?
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
-  (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
+  (a : iarray et (sum_view vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)
   (#v : either vw1.ait vw2.ait -> GTot et)
   requires
@@ -439,9 +439,9 @@ fn iarray_split2_
     (from_array vw2 (core a) |-> Frac f (v `oo` Inr))
 {
   unfold iarray_pts_to a #f v;
-  (* [(sum_aiview vw1 vw2).ait] is definitionally [either vw1.ait vw2.ait];
+  (* [(sum_view vw1 vw2).ait] is definitionally [either vw1.ait vw2.ait];
      the solver no longer sees through the projection, so normalize. *)
-  rewrite (forall+ (i: (sum_aiview vw1 vw2 #()).ait). pts_to_cell a #f i (v i))
+  rewrite (forall+ (i: (sum_view vw1 vw2 #()).ait). pts_to_cell a #f i (v i))
        as (forall+ (i: either vw1.ait vw2.ait). pts_to_cell a #f i (v i))
        by unfold_raw_view ();
   forevery_split_either #vw1.ait #vw2.ait _;
@@ -461,7 +461,7 @@ fn iarray_split2
   (#et:Type0)
   (vw1 vw2 : aiview { len vw1 == len vw2 }) // needed?
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
-  (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
+  (a : iarray et (sum_view vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)
   (#v : either vw1.ait vw2.ait -> GTot et)
   requires

@@ -458,7 +458,7 @@ fn varray_split2_
   (vw1 : aview et st1)
   (vw2 : aview et st2 { len vw1 = len vw2 })
   (#_ : squash (no_overlap vw1.iview.step.imap.f vw2.iview.step.imap.f))
-  (a : varray (sum_aview vw1 vw2))
+  (a : varray (sum_view vw1 vw2))
   (#f : perm)
   (#v : st1 & st2)
   requires
@@ -473,7 +473,7 @@ fn varray_split2
   (vw1 : aview et st1)
   (vw2 : aview et st2 { len vw1 = len vw2 })
   (#_ : squash (no_overlap vw1.iview.step.imap.f vw2.iview.step.imap.f))
-  (a : varray (sum_aview vw1 vw2))
+  (a : varray (sum_view vw1 vw2))
   (#f : perm)
   (#v : erased (st1 & st2))
   requires
@@ -518,7 +518,7 @@ fn varray_join2_
     ar |-> Frac f v2
   ensures
     (* ARGH AGAIN *)
-    from_array (sum_aview vw1 vw2 #()) (core al) |-> Frac f (v1, v2)
+    from_array (sum_view vw1 vw2 #()) (core al) |-> Frac f (v1, v2)
 
 inline_for_extraction noextract
 fn varray_join2
@@ -536,7 +536,7 @@ fn varray_join2
     al |-> Frac f v1 **
     ar |-> Frac f v2
   returns
-    a : varray (sum_aview vw1 vw2)
+    a : varray (sum_view vw1 vw2)
   ensures
     (a |-> Frac f (reveal v1, reveal v2)) **
     pure (core a == core al)
