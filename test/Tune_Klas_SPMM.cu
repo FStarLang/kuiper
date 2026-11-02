@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 
     /* Generate sparse A and dense B on host */
     float *AD = mk_dense_matrix_f32(rows, shared, density_pct);
-    smatrix_f32_t A = sparsify_f32(AD, rows, shared);
+    csr_matrix_f32_t A = sparsify_f32(AD, rows, shared);
     uint32_t *row_indices = mk_row_indices(rows, A);
     float *B = mk_dense_matrix_f32(shared, cols, 50);
 
@@ -54,7 +54,7 @@ int main(int argc, char **argv)
         100.0 * A.nnz / ((double) rows * shared));
 
     /* Upload to device */
-    smatrix_f32_t dA;
+    csr_matrix_f32_t dA;
     uint32_t *drow_indices;
     float *dB, *dC;
     upload_spmm_f32(

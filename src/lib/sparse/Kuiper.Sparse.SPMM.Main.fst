@@ -20,7 +20,6 @@ open Kuiper.Tensor.Layout.Alg
 open Kuiper.Array2.Strided
 
 module Math = Kuiper.Sparse.Math
-module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 module Compute = Kuiper.Sparse.SPMM.Compute
@@ -69,7 +68,7 @@ fn kf_main
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et, real_like et |}
   (p : parameters et)
   (row_perm : permutation (natlt p.rows))
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (#lB : layout2 p.shared p.cols) {| ctlB : ctlayout lB, srmB : strided_row_major lB |}
   (gB : array2 et lB)
   // matriz sparse ga
@@ -100,7 +99,7 @@ fn kf_main
   (nnz idx : ref sz) // realmente no necesito una referencia a idx
   norewrite
   preserves gpu
-  preserves smatrix_approx' gA #fA elems col_ind row_off relems rA
+  preserves csr_matrix_approx' gA #fA elems col_ind row_off relems rA
   requires  pure (aligned 16 gA.elems)
   requires  pure (aligned 16 gA.col_ind)
   preserves gB |-> Frac (fB /. allthreads p) eB

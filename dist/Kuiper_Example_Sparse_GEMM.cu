@@ -7,7 +7,7 @@ __global__ __launch_bounds__(1024)
 */
 static void
 __hoisted__mm_u32_rr_0(uint32_t rows, uint32_t cols,
-    Kuiper_Sparse_Matrix_smatrix__uint32_t gA, uint32_t *gB, uint32_t *gC)
+    Kuiper_Sparse_Matrix_csr_matrix__uint32_t gA, uint32_t *gB, uint32_t *gC)
 {
     if (1024U * blockIdx.x + threadIdx.x < rows * cols) {
         uint32_t trow = (1024U * blockIdx.x + threadIdx.x) / cols;
@@ -22,7 +22,7 @@ __hoisted__mm_u32_rr_0(uint32_t rows, uint32_t cols,
 }
 
 void Kuiper_Example_Sparse_GEMM__mm_u32_rr(uint32_t rows, uint32_t shared,
-    uint32_t cols, Kuiper_Sparse_Matrix_smatrix__uint32_t gA, uint32_t *gB,
+    uint32_t cols, Kuiper_Sparse_Matrix_csr_matrix__uint32_t gA, uint32_t *gB,
     uint32_t *gC)
 {
     KRML_MAYBE_UNUSED_VAR(shared);

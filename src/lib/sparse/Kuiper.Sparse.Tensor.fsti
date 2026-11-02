@@ -13,8 +13,6 @@ open Kuiper.Seq.Common { (@!) }
 open Kuiper.Tensor.Layout.Slice
 open Kuiper.Array2.Strided { cell_of_pos }
 
-module SZ = FStar.SizeT
-module Chest = Kuiper.Chest
 
 val aligned_cell_strided_row_major
   (#et:Type0) {| sized et, has_vec_cpy et |}

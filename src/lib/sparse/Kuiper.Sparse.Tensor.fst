@@ -13,8 +13,6 @@ open Kuiper.Tensor.Layout.Slice
 open Kuiper.Array2.Strided { cell_of_pos }
 
 module Math = Kuiper.Sparse.Math
-module SZ = FStar.SizeT
-module Chest = Kuiper.Chest
 
 #push-options "--z3rlimit 20"
 

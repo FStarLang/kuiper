@@ -52,7 +52,7 @@ fn kf_residue
   (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols) {| ctlayout lB, srm : strided_row_major lB |}
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (gB : array2 et lB)
   // matriz sparse ga
   (#elems : erased (lseq et gA.nnz))
@@ -84,7 +84,7 @@ fn kf_residue
   })
   norewrite
   preserves gpu
-  preserves smatrix_approx' gA #fA elems col_ind row_off relems rA
+  preserves csr_matrix_approx' gA #fA elems col_ind row_off relems rA
   requires  pure (aligned 16 gA.elems)
   requires  pure (aligned 16 gA.col_ind)
   preserves gB |-> Frac (fB /. allthreads p) eB
@@ -256,7 +256,7 @@ fn kf
   }) // Ver nota abajo
   (#lB : layout2 p.shared p.cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 p.rows p.cols)   {| ctlayout lC, srmC : strided_row_major lC |}
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   // TODO esto tiene que estar acá? podria estar en block_pre?
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (row_indices : larray sz p.rows)
@@ -456,7 +456,7 @@ let kdesc
   }) // Ver nota abajo
   (#lB : layout2 p.shared p.cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 p.rows p.cols)   {| ctlayout lC, srmC : strided_row_major lC |}
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared){is_global_smatrix gA})
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared){is_global_csr_matrix gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (row_indices : larray sz p.rows)
   (gB : array2 et lB {is_global gB})
@@ -480,13 +480,13 @@ let kdesc
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
   : kernel_desc
     (
-      smatrix_approx' gA #fA elems col_ind row_off relems rA **
+      csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
       live gC
     )
     (
-      smatrix_approx' gA #fA elems col_ind row_off relems rA **
+      csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
       matrix_approx gC (MS.matmul rA rB)
@@ -579,16 +579,16 @@ let kdesc
 
 (* Keep model unpacking behind a named predicate: Pulse's assertion elaborator
    cannot purify a located model while its existential witnesses are unsolved. *)
-let located_smatrix_model
+let located_csr_matrix_model
   (#et : Type0) {| scalar et, real_like et |}
   (#rows #shared : nat)
-  (gA : smatrix et rows shared) (#fA : perm)
+  (gA : csr_matrix et rows shared) (#fA : perm)
   (elems : lseq et gA.nnz) (col_ind : lseq sz gA.nnz)
   (row_off : lseq sz (rows + 1)) (relems : lseq real gA.nnz)
   (eA : chest2 et rows shared)
   (rA : chest2 real rows shared)
   : slprop
-  = on gpu_loc (smatrix_model gA #fA elems col_ind row_off relems eA rA)
+  = on gpu_loc (csr_matrix_model gA #fA elems col_ind row_off relems eA rA)
 
 inline_for_extraction noextract
 fn spmm_on
@@ -605,7 +605,7 @@ fn spmm_on
   }) // Ver nota abajo
   (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global_csr_matrix gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : larray sz rows)
@@ -632,7 +632,7 @@ fn spmm_on
   preserves cpu ** stream_live s
   requires
     epoch_live s e **
-    on gpu_loc (smatrix_approx gA #fA eA rA) **
+    on gpu_loc (csr_matrix_approx gA #fA eA rA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB) **
     on gpu_loc (live gC) **
@@ -641,7 +641,7 @@ fn spmm_on
   ensures
     epoch_live s (epoch_next e) **
     pledge0 (epoch_done s (epoch_next e)) (on gpu_loc (
-      smatrix_approx gA #fA eA rA **
+      csr_matrix_approx gA #fA eA rA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
       matrix_approx gC (MS.matmul rA rB)
@@ -652,20 +652,20 @@ fn spmm_on
     #(SZ.v blockItemsK) #(SZ.v blockChunks) (chunk et);
 
   map_loc gpu_loc
-    #(smatrix_approx gA #fA eA rA)
-    #(exists* elems col_ind row_off relems. smatrix_model gA #fA elems col_ind row_off relems eA rA)
+    #(csr_matrix_approx gA #fA eA rA)
+    #(exists* elems col_ind row_off relems. csr_matrix_model gA #fA elems col_ind row_off relems eA rA)
     fn _ {
-      unfold smatrix_approx gA #fA eA rA;
+      unfold csr_matrix_approx gA #fA eA rA;
     };
   with elems col_ind row_off relems.
-    fold located_smatrix_model gA #fA elems col_ind row_off relems eA rA;
-  unfold located_smatrix_model gA #fA elems col_ind row_off relems eA rA;
+    fold located_csr_matrix_model gA #fA elems col_ind row_off relems eA rA;
+  unfold located_csr_matrix_model gA #fA elems col_ind row_off relems eA rA;
   map_loc gpu_loc
-    #(smatrix_model gA #fA elems col_ind row_off relems eA rA)
-    #(smatrix_approx' gA #fA elems col_ind row_off relems rA **
-      pure (valid_smatrix rows shared (cast_pos col_ind) (cast_pos row_off) /\
+    #(csr_matrix_model gA #fA elems col_ind row_off relems eA rA)
+    #(csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
+      pure (valid_csr_matrix rows shared (cast_pos col_ind) (cast_pos row_off) /\
         eA == matrix_unsparse rows shared elems (cast_pos col_ind) (cast_pos row_off)))
-    fn _ { unfold smatrix_model gA #fA elems col_ind row_off relems eA rA; };
+    fn _ { unfold csr_matrix_model gA #fA elems col_ind row_off relems eA rA; };
 
   launch (
     kdesc #et #_
@@ -677,13 +677,13 @@ fn spmm_on
 
   rewrite_pledge #emp_inames #(epoch_done s (epoch_next e))
     (on gpu_loc (
-      smatrix_approx' gA #fA elems col_ind row_off relems rA **
+      csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
       matrix_approx gC (MS.matmul rA rB)
     ))
     (on gpu_loc (
-      smatrix_approx gA #fA eA rA **
+      csr_matrix_approx gA #fA eA rA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
       matrix_approx gC (MS.matmul rA rB)
@@ -691,11 +691,11 @@ fn spmm_on
     #emp_inames
     fn _ {
       map_loc gpu_loc
-        #(smatrix_approx' gA #fA elems col_ind row_off relems rA)
-        #(smatrix_approx gA #fA eA rA)
+        #(csr_matrix_approx' gA #fA elems col_ind row_off relems rA)
+        #(csr_matrix_approx gA #fA eA rA)
         fn _ {
-          fold smatrix_model gA #fA elems col_ind row_off relems eA rA;
-          fold smatrix_approx gA #fA eA rA;
+          fold csr_matrix_model gA #fA elems col_ind row_off relems eA rA;
+          fold csr_matrix_approx gA #fA eA rA;
         };
     };
 }
@@ -716,7 +716,7 @@ fn spmm
   }) // Ver nota abajo
   (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global_csr_matrix gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : larray sz rows)
@@ -740,7 +740,7 @@ fn spmm
   norewrite
   preserves
     cpu **
-    on gpu_loc (smatrix_approx gA #fA eA rA) **
+    on gpu_loc (csr_matrix_approx gA #fA eA rA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
@@ -760,7 +760,7 @@ fn spmm
     s;
   sync_stream s;
   redeem_pledge emp_inames (epoch_done s _) (on gpu_loc (
-      smatrix_approx gA #fA eA rA **
+      csr_matrix_approx gA #fA eA rA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
       matrix_approx gC (MS.matmul rA rB)
