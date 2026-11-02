@@ -395,7 +395,7 @@ fn varray_iabs
     a |-> Frac f v
 
 inline_for_extraction noextract
-fn varray_alloc0
+fn alloc0
   (#et : Type0) {| sized et |} (len : sz { len > 0 }) (#st : Type0)
   (vw : aview et st { is_full vw /\ Len.len vw == len})
   preserves

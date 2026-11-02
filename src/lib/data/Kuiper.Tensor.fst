@@ -111,7 +111,7 @@ fn alloc0
     pure (is_global p) **
     pure (is_full_array (core p))
 {
-  let t = A.varray_alloc0 #et s (tensor_aview et l);
+  let t = A.alloc0 #et s (tensor_aview et l);
   with em. assert on gpu_loc (A.varray_pts_to t #1.0R em);
   rewrite on gpu_loc (A.varray_pts_to t #1.0R em)
        as on gpu_loc (tensor_pts_to t #1.0R em);
