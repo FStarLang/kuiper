@@ -421,7 +421,7 @@ val tensor_slice_cell_eq
    cells with.  The pure/layout-level slicing below ([sliceof], [vtlayout_slice],
    [ctlayout_slice], [tensor_slice_cell_eq], ...) is sound and retained; the ownership
    transfer is intentionally omitted, mirroring the removal of the injective-only
-   [ref_of_tensor_cell] family. *)
+   [ref_of_cell] family. *)
 
 let vtlayout_bij
   (#r1 : nat) (#d1 : shape r1)

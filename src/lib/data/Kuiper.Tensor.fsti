@@ -580,7 +580,7 @@ instance tensor_pts_to_shareable
   _gather_n = (fun (n: pos) (#fr : perm) -> tensor_gather_n t n #fr);
 }
 
-val ref_of_tensor_cell
+val ref_of_cell
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
   (a : tensor et l)
@@ -596,7 +596,7 @@ fn get_ref_of_tensor_cell
   returns
     r : ref et
   ensures
-    rewrites_to r (ref_of_tensor_cell a (up i))
+    rewrites_to r (ref_of_cell a (up i))
 
 ghost
 fn tensor_cell_to_ref
@@ -609,7 +609,7 @@ fn tensor_cell_to_ref
   requires
     Cell a i |-> Frac f v
   ensures
-    ref_of_tensor_cell a i |-> Frac f v
+    ref_of_cell a i |-> Frac f v
 
 ghost
 fn tensor_cell_from_ref
@@ -620,6 +620,6 @@ fn tensor_cell_from_ref
   (#f : perm)
   (#v : erased et)
   requires
-    ref_of_tensor_cell a i |-> Frac f v
+    ref_of_cell a i |-> Frac f v
   ensures
     Cell a i |-> Frac f v

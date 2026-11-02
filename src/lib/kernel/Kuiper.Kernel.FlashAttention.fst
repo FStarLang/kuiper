@@ -42,7 +42,7 @@ let unfold_fa_contract () : FStar.Tactics.V2.Tac unit =
    These helpers reproduce its 1-D single-cell extract/restore and cell/ref API
    directly on [array1 = tensor], with chest-valued contents (matching the
    tensor [|->] instance).  Ported from the old wrapper's
-   [{explode,implode,extract_cell,restore_cell,ref_of_array_cell,...}],
+   [{explode,implode,extract_cell,restore_cell,ref_of_cell,...}],
    substituting [Seq.index -> acc1], [Seq.upd -> upd1],
    [Cell a i -> Cell a (idx1 i)], [ait len -> natlt len].                       *)
 
@@ -186,18 +186,18 @@ fn restore_cell1
   Trade.elim_trade _ _;
 }
 
-let ref_of_array_cell
+let ref_of_cell
   (#et : Type0) (#len : nat) (#l : layout1 len)
   (a : array1 et l) (i : natlt len)
   : GTot (ref et)
-  = ref_of_tensor_cell a (idx1 i)
+  = ref_of_cell a (idx1 i)
 
 inline_for_extraction noextract
 fn get_ref_of_array_cell
   (#et : Type0) (#len : erased nat) (#l : layout1 len) {| ctlayout l |}
   (a : array1 et l) (i : szlt len)
   returns r : ref et
-  ensures pure (r == ref_of_array_cell a i)
+  ensures pure (r == ref_of_cell a i)
 {
   get_ref_of_tensor_cell a (cidx1 i)
 }
@@ -208,7 +208,7 @@ fn array1_cell_to_ref
   (a : array1 et l) (i : natlt len)
   (#f : perm) (#v : erased et)
   requires Cell a (idx1 i) |-> Frac f v
-  ensures ref_of_array_cell a i |-> Frac f v
+  ensures ref_of_cell a i |-> Frac f v
 {
   tensor_cell_to_ref a (idx1 i);
 }
@@ -218,7 +218,7 @@ fn array1_cell_from_ref
   (#et : Type0) (#len : nat) (#l : layout1 len)
   (a : array1 et l) (i : natlt len)
   (#f : perm) (#v : erased et)
-  requires ref_of_array_cell a i |-> Frac f v
+  requires ref_of_cell a i |-> Frac f v
   ensures Cell a (idx1 i) |-> Frac f v
 {
   tensor_cell_from_ref a (idx1 i);
@@ -390,12 +390,12 @@ fn flashattention_kf_no_smem (#et : Type0) {| scalar et, floating et |}
       extract_cell1 glt ii #1.0R #vlt;
       array1_cell_to_ref glt ii;
       let glit = get_ref_of_array_cell glt ii;
-      assert rewrites_to glit (ref_of_array_cell glt ii);
+      assert rewrites_to glit (ref_of_cell glt ii);
 
       extract_cell1 gmt ii #1.0R #vmt;
       array1_cell_to_ref gmt ii;
       let gmit = get_ref_of_array_cell gmt ii;
-      assert rewrites_to gmit (ref_of_array_cell gmt ii);
+      assert rewrites_to gmit (ref_of_cell gmt ii);
 
       flashattention_tile bc br d
         #_ #_ #_ #_ #_
@@ -740,13 +740,13 @@ fn flashattention_inner_smem
     extract_cell1 glt ii #1.0R #vlt;
     array1_cell_to_ref glt ii;
     let glit = get_ref_of_array_cell glt ii;
-    assert rewrites_to glit (ref_of_array_cell glt ii);
+    assert rewrites_to glit (ref_of_cell glt ii);
 
     with vmt. assert gmt |-> vmt;
     extract_cell1 gmt ii #1.0R #vmt;
     array1_cell_to_ref gmt ii;
     let gmit = get_ref_of_array_cell gmt ii;
-    assert rewrites_to gmit (ref_of_array_cell gmt ii);
+    assert rewrites_to gmit (ref_of_cell gmt ii);
 
     with x. assert (sK |-> Frac (1.0R /. (SZ.v nthr)) (x <: chest2 et (SZ.v nthr) (SZ.v d)));
     with y. assert (sV |-> Frac (1.0R /. (SZ.v nthr)) (y <: chest2 et (SZ.v nthr) (SZ.v d)));

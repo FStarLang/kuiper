@@ -603,7 +603,7 @@ fn array_gather_underspec
 //   ensures
 //     arr |-> Frac 'f ('s1 @+ 's2)
 
-val ref_of_array_cell
+val ref_of_cell
   (#et : Type0)
   (a : array et)
   (i : nat)
@@ -616,7 +616,7 @@ fn get_ref_of_array_cell
   returns
     r : ref et
   ensures
-    pure (r == ref_of_array_cell a i)
+    pure (r == ref_of_cell a i)
 
 ghost
 fn array_cell_to_ref
@@ -628,7 +628,7 @@ fn array_cell_to_ref
   requires
     Cell a i |-> Frac f v
   ensures
-    ref_of_array_cell a i |-> Frac f v
+    ref_of_cell a i |-> Frac f v
 
 ghost
 fn array_cell_from_ref
@@ -638,6 +638,6 @@ fn array_cell_from_ref
   (#f : perm)
   (#v : erased et)
   requires
-    ref_of_array_cell a i |-> Frac f v
+    ref_of_cell a i |-> Frac f v
   ensures
     Cell a i |-> Frac f v

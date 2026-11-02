@@ -756,13 +756,13 @@ fn tensor_iraise2
   tensor_implode2 a;
 }
 
-let ref_of_tensor_cell
+let ref_of_cell
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
   (a : tensor et l)
   (i : abs s)
   : GTot (ref et)
-  = Array.Core.ref_of_array_cell (core a) (l.imap.f i)
+  = Array.Core.ref_of_cell (core a) (l.imap.f i)
 
 inline_for_extraction noextract
 fn get_ref_of_tensor_cell
@@ -773,7 +773,7 @@ fn get_ref_of_tensor_cell
   returns
     r : ref et
   ensures
-    pure (r == ref_of_tensor_cell a (up i))
+    pure (r == ref_of_cell a (up i))
 {
   Array.Core.get_ref_of_array_cell (core a) (c.cimap i)
 }
@@ -789,7 +789,7 @@ fn tensor_cell_to_ref
   requires
     tcell a #f (i) (v)
   ensures
-    ref_of_tensor_cell a i |-> Frac f v
+    ref_of_cell a i |-> Frac f v
 {
   pts_to_cell_eq a i f v;
   rewrite tcell a #f i v
@@ -806,7 +806,7 @@ fn tensor_cell_from_ref
   (#f : perm)
   (#v : erased et)
   requires
-    ref_of_tensor_cell a i |-> Frac f v
+    ref_of_cell a i |-> Frac f v
   ensures
     tcell a #f (i) (v)
 {
