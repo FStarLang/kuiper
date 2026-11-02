@@ -464,7 +464,7 @@ fn iarray_read_cell'
     pure (v == v0)
 
 inline_for_extraction noextract
-fn iarray_read
+fn read
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)

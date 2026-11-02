@@ -848,8 +848,8 @@ fn bkf
     let bTile = array2_extract_tile_ro' gB_p
       (SZ.v tile) (SZ.v tile) (SZ.v !bk) (SZ.v mcol);
 
-    let v1 = tensor_read aTile ((brow <: szlt _), ((bcol <: szlt _), ()));
-    let v2 = tensor_read bTile ((brow <: szlt _), ((bcol <: szlt _), ()));
+    let v1 = read aTile ((brow <: szlt _), ((bcol <: szlt _), ()));
+    let v2 = read bTile ((brow <: szlt _), ((bcol <: szlt _), ()));
 
     ambig_trade_elim ();
     ambig_trade_elim ();

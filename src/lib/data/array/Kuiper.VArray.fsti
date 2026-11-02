@@ -648,7 +648,7 @@ fn varray_read_cell'
     pure (v == v0)
 
 inline_for_extraction noextract
-fn varray_read
+fn read
   (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}

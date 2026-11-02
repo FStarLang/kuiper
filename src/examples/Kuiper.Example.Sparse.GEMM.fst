@@ -158,7 +158,7 @@ fn matmul_dotprod
     let x = Pulse.Lib.Array.(gA.elems.(!k));
     let c = Pulse.Lib.Array.(gA.col_ind.(!k));
 
-    let y = tensor_read gB ((c <: szlt _), ((j <: szlt _), ()));
+    let y = read gB ((c <: szlt _), ((j <: szlt _), ()));
 
     with v_k. assert k |-> v_k;
     with v_dp. assert dp |-> v_dp;

@@ -346,9 +346,9 @@ fn skf
       pure (v == acc eInp (unflatten di (SZ.v i))))
 {
   let ci = cunflatten cdi i;
-  let idx = tensor_read gIdx ci;
+  let idx = read gIdx ci;
   let cphi = conc_set_at2 cdi cdo dim idx ci;
-  let v = tensor_read gInp ci;
+  let v = read gInp ci;
   rewrite
     (Cell gOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))) |->
        acc eOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))))

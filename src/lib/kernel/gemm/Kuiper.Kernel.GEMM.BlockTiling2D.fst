@@ -371,7 +371,7 @@ fn subproducts2d
       pts_to_len rAcol;
       let vj0r = !j0;
       let vdir = !dotIdx;
-      let va = tensor_read gA ((tm *^ arow +^ vj0r <: szlt _), ((vdir <: szlt _), ()));
+      let va = read gA ((tm *^ arow +^ vj0r <: szlt _), ((vdir <: szlt _), ()));
       rAcol.(!j0) <- va;
       j0 := !j0 +^ 1sz;
     };
@@ -392,7 +392,7 @@ fn subproducts2d
       pts_to_len rBrow;
       let vdir2 = !dotIdx;
       let vj1r = !j1;
-      let vb = tensor_read gB ((vdir2 <: szlt _), ((tn *^ bcol +^ vj1r <: szlt _), ()));
+      let vb = read gB ((vdir2 <: szlt _), ((tn *^ bcol +^ vj1r <: szlt _), ()));
       rBrow.(!j1) <- vb;
       j1 := !j1 +^ 1sz;
     };
@@ -848,7 +848,7 @@ fn epilogue
       overwrite the the cell in gC *)
       let vrm = !resIdxM;
       let vrn = !resIdxN;
-      let v0 = tensor_read t_tile ((vrm <: szlt _), ((vrn <: szlt _), ()));
+      let v0 = read t_tile ((vrm <: szlt _), ((vrn <: szlt _), ()));
       idx2d_bound (SZ.v vrm) (SZ.v vrn) (SZ.v tm) (SZ.v tn);
       let v1 = rchProd.(!resIdxM *^ tn +^ !resIdxN);
       let v' = comb v0 v1;

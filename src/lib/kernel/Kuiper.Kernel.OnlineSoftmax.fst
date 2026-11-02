@@ -204,7 +204,7 @@ fn kfonline_softmax
     decreases (lenab - !i) {
 
     let vk = !i;
-    let x = tensor_read a ((vk <: szlt lenab), ());
+    let x = read a ((vk <: szlt lenab), ());
     let gx = ras @! vk;
     assert pure (x %~ gx);
 
@@ -264,7 +264,7 @@ fn kfonline_softmax
       assert pure (hide (reveal gmax', reveal gsum') == seq_fold_left online_softmax_real_iter (hide (Seq.index ras 0, 1.0R)) (Seq.slice (reveal ras) 1 (!i)));
     };
   };
-  let x = tensor_read a ((tid <: szlt lenab), ());
+  let x = read a ((tid <: szlt lenab), ());
   let y = (fexp (x `sub` !max) `div` !sum);
   assert pure (y %~ ((online_softmax_real (reveal ras)) @! tid));
   online_softmax_is_softmax (reveal ras);

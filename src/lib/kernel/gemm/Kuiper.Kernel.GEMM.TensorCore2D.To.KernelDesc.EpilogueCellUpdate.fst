@@ -252,8 +252,8 @@ fn epilogue_cell_update
     mcol *^ bn +^ warpCol *^ (wn *^ cols)
       +^ (idx %^ wn) *^ cols +^ col;
 
-  let cv = tensor_read c (globalRow, (globalCol, ()));
-  let av = tensor_read acc (row, (col, ()));
+  let cv = read c (globalRow, (globalCol, ()));
+  let av = read acc (row, (col, ()));
   let dv = comb cv av;
 
   output_cell_to_global d bm bn rows cols wm wn

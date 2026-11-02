@@ -611,7 +611,7 @@ fn read_at
   ensures
     pure (res == acc2 sx row col)
 {
-  tensor_read x (row, (col, ()))
+  Kuiper.Tensor.read x (row, (col, ()))
 }
 
 (* Drop a per-element [pure] clause from a [forevery] predicate. The

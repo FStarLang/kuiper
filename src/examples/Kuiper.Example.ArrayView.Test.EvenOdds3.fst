@@ -84,7 +84,7 @@ fn foo_even (a : varray (even_view u32 100))
   returns u32
   ensures  a |-> v0
 {
-  varray_read #_ #_ #_ #_cview_even a (coerce_eq #_ #_ () (10sz <: szlt 50));
+  read #_ #_ #_ #_cview_even a (coerce_eq #_ #_ () (10sz <: szlt 50));
 }
 
 fn foo_odd (a : varray (odd_view u32 100))
@@ -94,7 +94,7 @@ fn foo_odd (a : varray (odd_view u32 100))
   returns u32
   ensures  a |-> v0
 {
-  varray_read #_ #_ #_ #_cview_odd a (coerce_eq #_ #_ () (10sz <: szlt 50));
+  read #_ #_ #_ #_cview_odd a (coerce_eq #_ #_ () (10sz <: szlt 50));
 }
 
 let vw = sum_aview (even_view u32 100) (odd_view u32 100)

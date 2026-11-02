@@ -116,7 +116,7 @@ let tensor_pts_to
       pure (s == ro_chest l v)
 
 (* The raw indexing view over the [ulen] backing cells is concretizable
-   whenever the layout is; this lets us reuse [IArray.iarray_read]. *)
+   whenever the layout is; this lets us reuse [IArray.read]. *)
 inline_for_extraction noextract
 let raw_cview (len : erased nat) (pf : squash (SZ.fits len))
   : IV.ciview (IV.raw_view #len)
@@ -300,7 +300,7 @@ fn tensor_gather_n_underspec
 }
 
 inline_for_extraction noextract
-fn tensor_read
+fn read
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : vtlayout d) {| cv : cvtlayout l |}
   (a : rotensor et l)
@@ -316,7 +316,7 @@ fn tensor_read
 {
   unfold tensor_pts_to a #f s;
   let cm : szlt l.ulen = cv.cimap i;
-  let res = IA.iarray_read #et #(uview l) #(cvtlayout_ciview cv) a cm;
+  let res = IA.read #et #(uview l) #(cvtlayout_ciview cv) a cm;
   (* [(uview l).ait] is definitionally [natlt l.ulen], but the solver no longer
      sees through the projection; state the type equality and coerce. *)
   uview_ait l ();

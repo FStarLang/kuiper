@@ -120,7 +120,7 @@ fn gdotprod
     decreases (len - !k)
   {
     let vk = !k;
-    sum := !sum `add` mul (mapA (tensor_read a (((vk <: szlt len), ())))) (mapB (tensor_read b (((vk <: szlt len), ()))));
+    sum := !sum `add` mul (mapA (read a (((vk <: szlt len), ())))) (mapB (read b (((vk <: szlt len), ()))));
     k   := !k +^ 1sz;
   };
   !sum

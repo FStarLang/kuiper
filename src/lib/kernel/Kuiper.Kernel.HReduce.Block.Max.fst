@@ -58,7 +58,7 @@ let min_tid_pow2_step (tid nth k : nat)
           (ensures min (tid + pow2 k) nth == tid + 1)
   = ()
 
-(* Wrapper around [tensor_read] that takes the row/col already refined as
+(* Wrapper around [read] that takes the row/col already refined as
    [szlt rows]/[szlt cols], so the [conc] index is well-typed from the
    parameter types. *)
 inline_for_extraction noextract
@@ -78,7 +78,7 @@ fn read_at
   ensures
     pure (res == acc2 sx (SZ.v row) (SZ.v col))
 {
-  tensor_read x (cidx2 row col)
+  read x (cidx2 row col)
 }
 
 (* Drop a per-element [pure] clause from a [forevery] predicate. *)

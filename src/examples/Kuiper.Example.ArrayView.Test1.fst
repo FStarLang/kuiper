@@ -108,7 +108,7 @@ fn test (a : varray (normal_view u32 50))
   requires a |-> N 's
   returns  u32
   ensures  a |-> N 's
-{ varray_read #_ #_ #_ #solve_debug a (coerce_eq #_ #_ () (0sz <: SZ.szlt 50)); }
+{ read #_ #_ #_ #solve_debug a (coerce_eq #_ #_ () (0sz <: SZ.szlt 50)); }
 
 inline_for_extraction noextract
 instance _ : concrete_sz 50 = { x = 50sz; }
@@ -118,7 +118,7 @@ fn test2 (a : varray (reverse_view u32 50sz))
   requires a |-> R 's
   returns  u32
   ensures  a |-> R 's
-{ varray_read #_ #_ #_ #(creverse_view _ _ #_) a (coerce_eq #_ #_ () (0sz <: SZ.szlt 50)); }
+{ read #_ #_ #_ #(creverse_view _ _ #_) a (coerce_eq #_ #_ () (0sz <: SZ.szlt 50)); }
 
 fn write1 (a : varray (normal_view u32 50sz))
   preserves gpu

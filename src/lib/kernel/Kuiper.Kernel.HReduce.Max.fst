@@ -774,7 +774,7 @@ fn max_stride_map
      so the running max is over a non-empty prefix.  seq_take 1 of the bucket
      is the singleton [w @! off]. *)
   let off_s : sz = off;
-  let v0 = tensor_read a ((off_s <: szlt lena), ());
+  let v0 = read a ((off_s <: szlt lena), ());
   let acc0 = pre_map v0;
   (**)assert (pure (v0 == acc1 va (SZ.v off)));
   (**)assert (pure (acc0 %~ (seq_map pre_map_r (chest1_to_seq vr) @! SZ.v off)));
@@ -806,7 +806,7 @@ fn max_stride_map
 
     (* Read from input array (fractional permission) *)
     let vidx = !idx;
-    let v = tensor_read a ((vidx <: szlt lena), ());
+    let v = read a ((vidx <: szlt lena), ());
     let v' = pre_map v;
     (**)assert (pure (v == acc1 va (SZ.v !idx)));
     (**)assert (pure (v %~ (chest1_to_seq vr @! SZ.v !idx)));

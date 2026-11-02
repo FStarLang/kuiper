@@ -225,7 +225,7 @@ fn tensor_gather_n_underspec
 // }
 
 inline_for_extraction noextract
-fn tensor_read
+fn read
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : vtlayout d) {| cvtlayout l |}
   (a : rotensor et l)
@@ -261,7 +261,7 @@ unfold let ( .() )
   (i : conc d)
   (#f : perm)
   (#s : chest d et)
-  = tensor_read #et #r #d #l a i #f #s
+  = read #et #r #d #l a i #f #s
 
 (* Syntax *)
 // inline_for_extraction noextract
@@ -591,7 +591,7 @@ val lem_vtlayout_of_tlayout_ulen (#r : nat) (#d : shape r) (l : tlayout d)
           [SMTPat (vtlayout_ulen (vtlayout_of_tlayout l))]
 
 (* A concrete writable layout is concrete read-only: reuse its runtime index
-   map.  This lets callers [tensor_read] a borrowed read-only view. *)
+   map.  This lets callers [read] a borrowed read-only view. *)
 inline_for_extraction noextract
 instance val cvtlayout_of_ctlayout
   (#r : erased nat) (#d : shape r)

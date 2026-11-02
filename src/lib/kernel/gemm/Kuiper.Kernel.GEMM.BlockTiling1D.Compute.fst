@@ -151,7 +151,7 @@ fn bring_2cols
         (fun ii -> column_cell sa1 vA tid (ii < ci) ii);
       unfold column_cell sa1 vA tid (ci < ci) ci;
       let tileM = array2_extract_tile_ro' gA (SZ.v tile) (SZ.v tile) (SZ.v mm) (SZ.v kk);
-      let v1 = tensor_read tileM ((ci <: szlt _), ((tid <: szlt _), ()));
+      let v1 = read tileM ((ci <: szlt _), ((tid <: szlt _), ()));
       tensor_write_cell sa1 ((ci <: szlt _), ((tid <: szlt _), ())) (mapA v1);
       ambig_trade_elim ();
       fold column_cell sa1 vA tid true ci;
@@ -166,7 +166,7 @@ fn bring_2cols
         (fun ii -> column_cell sa2 vB tid (ii < ci) ii);
       unfold column_cell sa2 vB tid (ci < ci) ci;
       let tileM = array2_extract_tile_ro' gB (SZ.v tile) (SZ.v tile) (SZ.v kk) (SZ.v nn);
-      let v2 = tensor_read tileM ((ci <: szlt _), ((tid <: szlt _), ()));
+      let v2 = read tileM ((ci <: szlt _), ((tid <: szlt _), ()));
       tensor_write_cell sa2 ((ci <: szlt _), ((tid <: szlt _), ())) (mapB v2);
       ambig_trade_elim ();
       fold column_cell sa2 vB tid true ci;
@@ -253,7 +253,7 @@ fn subproduct_cols
        important for performance. NVCC may realize this is invariant
        across iterations and hoist it out, but don't rely on it. *)
     let csk = !sk;
-    let v2 = tensor_read m2 ((csk <: szlt _), ((j <: szlt _), ()));
+    let v2 = read m2 ((csk <: szlt _), ((j <: szlt _), ()));
     while (!i <^ tile)
       invariant live i ** pure (!i <= tile)
       invariant exists* (s : lseq et tile). acc |-> s **
@@ -265,7 +265,7 @@ fn subproduct_cols
     {
       let ci = !i;
       let csk2 = !sk;
-      let v1 = tensor_read m1 ((ci <: szlt _), ((csk2 <: szlt _), ()));
+      let v1 = read m1 ((ci <: szlt _), ((csk2 <: szlt _), ()));
 
       open Pulse.Lib.Array;
       pts_to_len acc;

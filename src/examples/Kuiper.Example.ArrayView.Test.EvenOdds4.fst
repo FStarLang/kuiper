@@ -135,7 +135,7 @@ fn foo_even
   preserves gpu
   preserves a |-> v0
   returns   u32
-{ varray_read a 10sz; }
+{ read a 10sz; }
 
 fn foo_odd
   (a : varray (odd_view (raw_view #u32 #100)))
@@ -143,7 +143,7 @@ fn foo_odd
   preserves gpu
   preserves a |-> v0
   returns   u32
-{ varray_read a 10sz; }
+{ read a 10sz; }
 
 inline_for_extraction noextract // view polymorphic
 fn foo_even'
@@ -157,7 +157,7 @@ fn foo_even'
   preserves a |-> v0
   returns   u32
 {
-  varray_read a 10sz;
+  read a 10sz;
 }
 
 inline_for_extraction noextract // view polymorphic
@@ -172,7 +172,7 @@ fn foo_odd'
   preserves a |-> v0
   returns   u32
 {
-  varray_read a 10sz;
+  read a 10sz;
 }
 
 let split_view (vw : aview 'et 'len (lseq 'et 'len) { vw.iview.ait == (raw_aiview_schema 'len).ait }) =

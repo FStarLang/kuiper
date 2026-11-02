@@ -21,7 +21,7 @@ fn test1 (m : tensor u32 (l2_row_major 10 20))
   preserves m |-> 's
   returns u32
 {
-  let v = tensor_read m ((1sz <: szlt 10), ((2sz <: szlt 20), ()));
+  let v = read m ((1sz <: szlt 10), ((2sz <: szlt 20), ()));
   v
 }
 

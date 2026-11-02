@@ -324,7 +324,7 @@ fn tensor_gather_n_underspec
 }
 
 inline_for_extraction noextract
-fn tensor_read
+fn read
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
@@ -339,7 +339,7 @@ fn tensor_read
     pure (v == acc s (up i))
 {
   unfold tensor_pts_to a #f s;
-  let v = A.varray_read a i;
+  let v = A.read a i;
   fold tensor_pts_to a #f s;
   v
 }

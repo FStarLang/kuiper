@@ -268,7 +268,7 @@ fn flashattention_tile
       assert pure (!x <^ d);
       let vx = !x; let vy = !y;
       let vq: et = gQit.(cidx1 (vx <: szlt d));
-      let vk: et = tensor_read gKj ((vy <: szlt bc), ((vx <: szlt d), ()));
+      let vk: et = read gKj ((vy <: szlt bc), ((vx <: szlt d), ()));
       sum := !sum `add` (vq `mul` vk);
       x := !x +^ 1sz;
     };
@@ -312,7 +312,7 @@ fn flashattention_tile
     {
       let vx = !x; let vy = !y;
       let vs: et = gSt.(cidx1 (vy <: szlt bc));
-      let vv: et = tensor_read gVj ((vy <: szlt bc), ((vx <: szlt d), ()));
+      let vv: et = read gVj ((vy <: szlt bc), ((vx <: szlt d), ()));
       pv := !pv `add` (vs `mul` vv);
 
       y := !y +^ 1sz;
@@ -729,7 +729,7 @@ fn flashattention_inner_smem
       decreases (SZ.v d - SZ.v !cq)
     {
       let vcq = !cq;
-      let vq = tensor_read gQ ((qi <: szlt n), ((vcq <: szlt d), ()));
+      let vq = read gQ ((qi <: szlt n), ((vcq <: szlt d), ()));
       (sQrow.(cidx1 (vcq <: szlt d)) <- vq);
       cq := !cq +^ 1sz;
     };
@@ -892,9 +892,9 @@ fn flashattention_kf_smem
       decreases (SZ.v d - SZ.v !c)
     {
       let vc = !c;
-      let vk = tensor_read gK ((kr <: szlt n), ((vc <: szlt d), ()));
+      let vk = read gK ((kr <: szlt n), ((vc <: szlt d), ()));
       tensor_write (array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0) ((0sz <: szlt 1), ((vc <: szlt d), ())) vk;
-      let vv = tensor_read gV ((kr <: szlt n), ((vc <: szlt d), ()));
+      let vv = read gV ((kr <: szlt n), ((vc <: szlt d), ()));
       tensor_write (array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0) ((0sz <: szlt 1), ((vc <: szlt d), ())) vv;
       c := !c +^ 1sz;
     };

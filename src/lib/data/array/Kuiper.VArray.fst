@@ -1151,7 +1151,7 @@ fn varray_read_cell'
 }
 
 inline_for_extraction noextract
-fn varray_read
+fn read
   (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
@@ -1167,7 +1167,7 @@ fn varray_read
     pure (e == vw.ctn.acc v (ci_to_ai vw ci))
 {
   unfold varray_pts_to a #f v;
-  let res = IArray.iarray_read a ci;
+  let res = IArray.read a ci;
   fold varray_pts_to a #f v;
   res
 }

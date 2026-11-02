@@ -153,7 +153,7 @@ fn kf
 {
   let row : sz = tid /^ n; assert rewrites_to row (tid /^ n);
   let col : sz = tid %^ n; assert rewrites_to col (tid %^ n);
-  let va = tensor_read a ((row <: szlt m), ());
+  let va = read a ((row <: szlt m), ());
   let vb = tensor_read_cell b ((row <: szlt m), ((col <: szlt n), ()));
   tensor_write_cell b ((row <: szlt m), ((col <: szlt n), ())) (f va vb);
   ()

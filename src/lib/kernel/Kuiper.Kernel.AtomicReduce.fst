@@ -318,7 +318,7 @@ fn kf
     block_id (SZ.v nn) bid
 {
   (* Read our value *)
-  let v = tensor_read a (bid, ());
+  let v = read a (bid, ());
 
   (* Atomically add it to result, marking our contribution as done. *)
   with_invariants unit emp_inames (CInv.iname_of c)

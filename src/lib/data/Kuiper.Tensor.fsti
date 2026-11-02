@@ -298,7 +298,7 @@ instance ctensor_ciview
 }
 
 inline_for_extraction noextract
-fn tensor_read
+fn read
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
@@ -334,7 +334,7 @@ unfold let ( .() )
   (i : conc d)
   (#f : perm)
   (#s : chest d et)
-  = tensor_read #et #r #d #l a i #f #s
+  = read #et #r #d #l a i #f #s
 
 (* Syntax *)
 inline_for_extraction noextract
