@@ -703,7 +703,7 @@ fn iarray_write_cell'
 }
 
 inline_for_extraction noextract
-fn iarray_read_cell
+fn read_cell
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
@@ -742,7 +742,7 @@ fn iarray_read_cell
 }
 
 inline_for_extraction noextract
-fn iarray_read_cell'
+fn read_cell'
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
@@ -760,7 +760,7 @@ fn iarray_read_cell'
     pure (v == v0)
 {
   rewrite each ai as ci_to_ai vw i;
-  let res = iarray_read_cell #et a i;
+  let res = read_cell #et a i;
   rewrite each ci_to_ai vw i as ai;
   res
 }
@@ -782,7 +782,7 @@ fn read
 {
   unfold iarray_pts_to a #f v;
   forevery_extract (ci_to_ai vw ci) _;
-  let res = iarray_read_cell a ci #f;
+  let res = read_cell a ci #f;
   Trade.elim_trade _ _;
   fold iarray_pts_to a #f v;
   res

@@ -777,7 +777,7 @@ fn bkf
       |-> Frac (fB /. ((batch * (m * n)) * (tile * tile))) (chest_slice 0 (SZ.v page) eB))
     (gB |-> Frac (fB /. ((batch * (m * n)) * (tile * tile))) eB);
 
-  let v0 = tensor_read_cell gC (page, (mrow, (mcol, (brow, (bcol, ())))));
+  let v0 = read_cell gC (page, (mrow, (mcol, (brow, (bcol, ())))));
   let v1 = comb v0 s;
   tensor_write_cell gC (page, (mrow, (mcol, (brow, (bcol, ())))) ) v1;
 

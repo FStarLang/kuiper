@@ -612,7 +612,7 @@ fn varray_write_cell'
     Cell a (reveal ai) |-> reveal v1
 
 inline_for_extraction noextract
-fn varray_read_cell
+fn read_cell
   (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
@@ -629,7 +629,7 @@ fn varray_read_cell
     pure (v == v0)
 
 inline_for_extraction noextract
-fn varray_read_cell'
+fn read_cell'
   (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}

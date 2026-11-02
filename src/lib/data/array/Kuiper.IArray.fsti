@@ -430,7 +430,7 @@ fn iarray_write_cell'
     Cell a (reveal ai) |-> reveal v1
 
 inline_for_extraction noextract
-fn iarray_read_cell
+fn read_cell
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
@@ -446,7 +446,7 @@ fn iarray_read_cell
     pure (v == v0)
 
 inline_for_extraction noextract
-fn iarray_read_cell'
+fn read_cell'
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)

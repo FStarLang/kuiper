@@ -174,7 +174,7 @@ fn kf
     (sliceof gB 0 (SZ.v page) |-> Frac (fB /. (b * (m * n))) (chest_slice 0 (SZ.v page) eB))
     (gB |-> Frac (fB /. (b * (m * n))) eB);
 
-  let v0 = tensor_read_cell gC (page, (trow, (tcol, ())));
+  let v0 = read_cell gC (page, (trow, (tcol, ())));
   let v1 = comb v0 s;
   tensor_write_cell gC (page, (trow, (tcol, ()))) v1;
 

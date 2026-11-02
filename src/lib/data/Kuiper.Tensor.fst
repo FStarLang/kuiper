@@ -566,7 +566,7 @@ fn tensor_iraise
 }
 
 inline_for_extraction noextract
-fn tensor_read_cell
+fn read_cell
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
@@ -581,7 +581,7 @@ fn tensor_read_cell
     pure (v == s)
 {
   unfold pts_to_cell a #f (up i) s;
-  let v = A.varray_read_cell a i;
+  let v = A.read_cell a i;
   fold pts_to_cell a #f (up i) s;
   v
 }

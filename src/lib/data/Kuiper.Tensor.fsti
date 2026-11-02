@@ -456,7 +456,7 @@ fn tensor_iraise
     tensor_pts_to a #f s
 
 inline_for_extraction noextract
-fn tensor_read_cell
+fn read_cell
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)

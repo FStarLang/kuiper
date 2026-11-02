@@ -123,7 +123,7 @@ fn array1_read_from_slice
 {
   unfold array1_pts_to_slice r i j s;
   forevery_extract #(x:nat{i <= x /\ x < j}) (SZ.v idx) _;
-  let v = tensor_read_cell r ((idx <: szlt len), ());
+  let v = read_cell r ((idx <: szlt len), ());
   Pulse.Lib.Trade.elim_trade _ _;
   fold array1_pts_to_slice r i j s;
   v

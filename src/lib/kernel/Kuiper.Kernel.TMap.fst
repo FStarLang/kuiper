@@ -113,7 +113,7 @@ fn kf
     Cell a (unflatten d i) |-> acc s (unflatten d i)
   as
     Cell a (up (cunflatten cd i)) |-> acc s (unflatten d i);
-  let x = tensor_read_cell a (cunflatten cd i);
+  let x = read_cell a (cunflatten cd i);
   tensor_write_cell a (cunflatten cd i) (f (cunflatten cd i) x);
   with v. assert pts_to_cell a (up (cunflatten cd i)) v;
   rewrite

@@ -2020,7 +2020,7 @@ fn bkf
       rewrite (pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0)) vold)
            as (pts_to_cell gC (up cci) vold);
 
-    let v0 = tensor_read_cell gC (page, (grow_sz, (gcol_sz, ())));
+    let v0 = read_cell gC (page, (grow_sz, (gcol_sz, ())));
     let v1 = rchProd.(ci0);
     let v' = comb v0 v1;
     tensor_write_cell gC (page, (grow_sz, (gcol_sz, ()))) v';

@@ -1101,7 +1101,7 @@ fn varray_write_cell'
 }
 
 inline_for_extraction noextract
-fn varray_read_cell
+fn read_cell
   (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
@@ -1118,13 +1118,13 @@ fn varray_read_cell
     pure (v == v0)
 {
   unfold pts_to_cell a #f (ci_to_ai vw ci) v0;
-  let res = IArray.iarray_read_cell a ci;
+  let res = IArray.read_cell a ci;
   fold pts_to_cell a #f (ci_to_ai vw ci) v0;
   res
 }
 
 inline_for_extraction noextract
-fn varray_read_cell'
+fn read_cell'
   (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
@@ -1144,7 +1144,7 @@ fn varray_read_cell'
 {
   rewrite each reveal ai as (ci_to_ai vw i);
   fold pts_to_cell a #f (ci_to_ai vw i) (reveal v0);
-  let res = varray_read_cell a i;
+  let res = read_cell a i;
   unfold pts_to_cell a #f (ci_to_ai vw i) res;
   rewrite each (ci_to_ai vw i) as (reveal ai);
   res

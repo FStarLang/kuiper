@@ -356,7 +356,7 @@ instance is_send_across_global_tensor_cell
   pf
 
 inline_for_extraction noextract
-fn tensor_read_cell
+fn read_cell
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : vtlayout d) {| cv : cvtlayout l |}
   (a : rotensor et l)

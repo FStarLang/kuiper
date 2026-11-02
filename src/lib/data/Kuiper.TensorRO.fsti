@@ -307,7 +307,7 @@ val is_send_across_global_tensor_cell
   : is_send_across gpu_of (pts_to_cell a #f i v)
 
 inline_for_extraction noextract
-fn tensor_read_cell
+fn read_cell
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : vtlayout d) {| cvtlayout l |}
   (a : rotensor et l)
