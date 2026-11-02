@@ -619,7 +619,7 @@ fn get_ref_of_cell
     pure (r == ref_of_cell a i)
 
 ghost
-fn array_cell_to_ref
+fn cell_to_ref
   (#et : Type0)
   (a : array et)
   (i : nat)

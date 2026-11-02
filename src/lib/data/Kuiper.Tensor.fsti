@@ -599,7 +599,7 @@ fn get_ref_of_cell
     rewrites_to r (ref_of_cell a (up i))
 
 ghost
-fn tensor_cell_to_ref
+fn cell_to_ref
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
   (a : tensor et l)

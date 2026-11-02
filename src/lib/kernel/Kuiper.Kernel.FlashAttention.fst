@@ -210,7 +210,7 @@ fn array1_cell_to_ref
   requires Cell a (idx1 i) |-> Frac f v
   ensures ref_of_cell a i |-> Frac f v
 {
-  tensor_cell_to_ref a (idx1 i);
+  cell_to_ref a (idx1 i);
 }
 
 ghost
