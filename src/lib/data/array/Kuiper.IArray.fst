@@ -789,7 +789,7 @@ fn read
 }
 
 inline_for_extraction noextract
-fn iarray_write
+fn write
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)

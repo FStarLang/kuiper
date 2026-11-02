@@ -345,7 +345,7 @@ fn read
 }
 
 inline_for_extraction noextract
-fn tensor_write
+fn write
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
@@ -358,7 +358,7 @@ fn tensor_write
     tensor_pts_to a (upd s (up i) v)
 {
   unfold tensor_pts_to a s;
-  A.varray_write a i v;
+  A.write a i v;
   fold tensor_pts_to a;
 }
 

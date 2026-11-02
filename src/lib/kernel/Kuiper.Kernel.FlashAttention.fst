@@ -893,9 +893,9 @@ fn flashattention_kf_smem
     {
       let vc = !c;
       let vk = read gK ((kr <: szlt n), ((vc <: szlt d), ()));
-      tensor_write (array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0) ((0sz <: szlt 1), ((vc <: szlt d), ())) vk;
+      write (array2_subtile sK 1 (SZ.v d) (SZ.v tid) 0) ((0sz <: szlt 1), ((vc <: szlt d), ())) vk;
       let vv = read gV ((kr <: szlt n), ((vc <: szlt d), ()));
-      tensor_write (array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0) ((0sz <: szlt 1), ((vc <: szlt d), ())) vv;
+      write (array2_subtile sV 1 (SZ.v d) (SZ.v tid) 0) ((0sz <: szlt 1), ((vc <: szlt d), ())) vv;
       c := !c +^ 1sz;
     };
 

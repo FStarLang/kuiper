@@ -664,7 +664,7 @@ fn read
     pure (e == vw.ctn.acc v (ci_to_ai vw ci))
 
 inline_for_extraction noextract
-fn varray_write
+fn write
   (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}

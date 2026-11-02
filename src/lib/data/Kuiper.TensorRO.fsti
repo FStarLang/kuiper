@@ -240,7 +240,7 @@ fn read
     pure (v == acc s (up i))
 
 // inline_for_extraction noextract
-// fn tensor_write
+// fn write
 //   (#et : Type0) (#r : erased nat) (#d : shape r)
 //   (#l : vtlayout d) {| ctlayout l |}
 //   (a : rotensor et l)
@@ -272,7 +272,7 @@ unfold let ( .() )
 //   (i : conc d)
 //   (v : et)
 //   (#s : chest d et)
-//   = tensor_write #et #r #d #l a i v #s
+//   = write #et #r #d #l a i v #s
 
 val pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)

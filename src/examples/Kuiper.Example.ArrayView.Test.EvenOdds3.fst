@@ -236,8 +236,8 @@ fn test_write (a : larray u32 100)
     ;
   // Note: that doesn't happen if we use split2_, the ghost version
 
-  varray_write #_ #_ #_ #_cview_even vl (coerce_eq #_ #_ () (10sz <: szlt 50)) 42ul;
-  varray_write #_ #_ #_ #_cview_odd  vr (coerce_eq #_ #_ () (20sz <: szlt 50)) 43ul;
+  write #_ #_ #_ #_cview_even vl (coerce_eq #_ #_ () (10sz <: szlt 50)) 42ul;
+  write #_ #_ #_ #_cview_odd  vr (coerce_eq #_ #_ () (20sz <: szlt 50)) 43ul;
 
   let va = varray_join2 vl vr;
 

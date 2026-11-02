@@ -1174,7 +1174,7 @@ fn read
 
 
 inline_for_extraction noextract
-fn varray_write
+fn write
   (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
@@ -1188,7 +1188,7 @@ fn varray_write
     a |-> vw.ctn.upd v0 (ci_to_ai vw ci) e
 {
   unfold varray_pts_to a v0;
-  IArray.iarray_write a ci e;
+  IArray.write a ci e;
   Container.oplus_lemma (reveal v0) (ci_to_ai vw ci) e;
   IArray.iarray_ext a
     _

@@ -107,7 +107,7 @@ fn write_even (a : varray (even_view u32 100))
   requires a |-> v0
   ensures  a |-> (Seq.upd v0 10 42ul <: lseq u32 50)
 {
-  varray_write #_ #_ #_ #_cview_even a (coerce_eq #_ #_ () (10sz <: szlt 50)) 42ul;
+  write #_ #_ #_ #_cview_even a (coerce_eq #_ #_ () (10sz <: szlt 50)) 42ul;
 }
 
 let vw = sum_aview (even_view u32 100) (odd_view u32 100)
@@ -240,8 +240,8 @@ fn test_write (a : larray u32 100)
 
   let vl, vr = varray_split2 (even_view u32 100) (odd_view u32 100) (from_array vw a);
 
-  varray_write #_ #_ #_ #_cview_even vl (coerce_eq #_ #_ () (10sz <: szlt 50)) 42ul;
-  varray_write #_ #_ #_ #_cview_odd  vr (coerce_eq #_ #_ () (20sz <: szlt 50)) 43ul;
+  write #_ #_ #_ #_cview_even vl (coerce_eq #_ #_ () (10sz <: szlt 50)) 42ul;
+  write #_ #_ #_ #_cview_odd  vr (coerce_eq #_ #_ () (20sz <: szlt 50)) 43ul;
 
   let va = varray_join2 vl vr;
 

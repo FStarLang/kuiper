@@ -125,7 +125,7 @@ fn write1 (a : varray (normal_view u32 50sz))
   requires  a |-> N 's
   ensures   a |-> N (Seq.upd 's 0 123ul)
 {
-  varray_write a (coerce_eq #_ #_ () (0sz <: SZ.szlt 50)) 123ul;
+  write a (coerce_eq #_ #_ () (0sz <: SZ.szlt 50)) 123ul;
 }
 
 fn write2 (a : varray (reverse_view u32 50sz))
@@ -134,8 +134,8 @@ fn write2 (a : varray (reverse_view u32 50sz))
   requires a |-> R s
   ensures  a |-> R (Seq.upd s 0 123ul)
 {
-  varray_write a (coerce_eq #_ #_ () (0sz <: SZ.szlt 50)) 123ul;
-  // varray_write #_ #_ #_ #_ #(creverse_view _ _) a 0sz 123ul;
+  write a (coerce_eq #_ #_ () (0sz <: SZ.szlt 50)) 123ul;
+  // write #_ #_ #_ #_ #(creverse_view _ _) a 0sz 123ul;
   // assert (pure (Seq.equal
   //                (R?._0 ((reverse_view u32 50).ctn.upd (R s) (ci_to_ai (reverse_view u32 50) #(creverse_view u32 50sz) 0sz) 123ul))
   //                (Seq.upd s 0 123ul)));

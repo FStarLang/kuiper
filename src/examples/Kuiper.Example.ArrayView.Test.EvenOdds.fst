@@ -98,5 +98,5 @@ fn foo_odd_modify (a : varray (odd_view u32 100))
   ensures  a |-> (Seq.upd v0 10 42ul <: lseq u32 50)
 {
   // Actually writes into index 21 (see generated code)
-  varray_write #_ #_ #_ #(_cview_odd #_ _) a (coerce_eq #_ #_ () (10sz <: szlt 50)) 42ul;
+  write #_ #_ #_ #(_cview_odd #_ _) a (coerce_eq #_ #_ () (10sz <: szlt 50)) 42ul;
 }

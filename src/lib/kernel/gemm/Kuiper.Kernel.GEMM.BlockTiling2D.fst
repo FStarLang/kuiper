@@ -852,7 +852,7 @@ fn epilogue
       idx2d_bound (SZ.v vrm) (SZ.v vrn) (SZ.v tm) (SZ.v tn);
       let v1 = rchProd.(!resIdxM *^ tn +^ !resIdxN);
       let v' = comb v0 v1;
-      tensor_write t_tile ((vrm <: szlt _), ((vrn <: szlt _), ())) v';
+      write t_tile ((vrm <: szlt _), ((vrn <: szlt _), ())) v';
 
       (* Key arithmetic fact for the invariant step: for (i,j) in bounds,
          i*tn+j == resIdxM*tn+resIdxN iff i==resIdxM /\ j==resIdxN.
