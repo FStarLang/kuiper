@@ -254,6 +254,40 @@ fn smatrix_gather_approx_n'
 }
 
 
+(* [c] divides [t], so dividing [t * n] by [c] commutes with the product.
+   Nonlinear; stated separately for the [forevery_unfactor'] call below. *)
+let divides_mul_div_comm (c : pos) (t : nat { c /? t }) (n : nat)
+  : Lemma (t * n / c == t / c * n)
+  = Kuiper.Divides.lemma_divides_exact c t;
+    FStar.Math.Lemmas.paren_mul_right c (t / c) n;
+    FStar.Math.Lemmas.swap_mul c (t / c * n);
+    FStar.Math.Lemmas.cancel_mul_div (t / c * n) c
+
+(* The [x / nthr]-th chunk of thread [x % nthr] is the [x]-th chunk of the
+   tile. Nonlinear (Euclidean division and distributivity). *)
+let offset_chunk_thread_offset
+  (et : Type0) {| sized et, has_vec_cpy et |}
+  (j : nat { chunk et /? j }) (nthr : pos) (x : nat)
+  : Lemma (offset_chunk et (thread_offset et j (x % nthr)) (x / nthr) nthr ==
+           j + x * chunk et)
+  = let c : pos = FStar.SizeT.v (chunk et) in
+    FStar.Math.Lemmas.distributivity_add_left (x % nthr) (x / nthr * nthr) c;
+    FStar.Math.Lemmas.euclidean_division_definition x nthr
+
+(* Reassociate a cell's column offset, in a small context: inside
+   [thread_tile_approx_gather] this linear equality costs ~20 rlimit units. *)
+ghost
+fn cell_approx_in_bounds_reassoc
+  (#et : Type0) {| scalar et, real_like et |}
+  (#rows #cols : nat) (#l : layout2 rows cols)
+  (m : array2 et l) (row : natlt rows) (a b lane : nat)
+  (rM : chest2 real rows cols)
+  requires cell_approx_in_bounds m row ((a + b) + lane) rM
+  ensures  cell_approx_in_bounds m row (a + (b + lane)) rM
+{
+  rewrite each ((a + b) + lane) as (a + (b + lane));
+}
+
 #push-options "--z3rlimit 25"
 ghost
 fn thread_tile_approx_gather
@@ -271,6 +305,7 @@ fn thread_tile_approx_gather
   ensures tile_approx gm i j em (trow_tile * nthr)
 {
   forevery_commute _;
+  divides_mul_div_comm (chunk et) trow_tile nthr;
   forevery_unfactor' (trow_tile * nthr / chunk et)
     (trow_tile / chunk et) nthr
     (fun k tid -> thread_vec_approx gm i (thread_offset et j tid) em nthr k);
@@ -284,18 +319,7 @@ fn thread_tile_approx_gather
         cell_approx_in_bounds gm i (j + (x * chunk et + y)) em
     )
     fn x {
-      let lem : squash (
-        offset_chunk et (thread_offset et j (x % nthr)) (x / nthr) nthr ==
-        j + x * chunk et
-      ) = calc (==) {
-        offset_chunk et (thread_offset et j (x % nthr)) (x / nthr) nthr;
-        == {}
-        j + (x % nthr) * chunk et + x / nthr * nthr * chunk et;
-        == {}
-        j + (x % nthr + x / nthr * nthr) * chunk et;
-        == { FStar.Math.Lib.lemma_div_def x nthr }
-        j + x * chunk et;
-      };
+      offset_chunk_thread_offset et j nthr x;
       rewrite each offset_chunk et (thread_offset et j (x % nthr)) (x / nthr) nthr
       as (j + x * chunk et);
 
@@ -305,7 +329,7 @@ fn thread_tile_approx_gather
         (fun lane -> cell_approx_in_bounds gm i ((j + x * chunk et) + lane) em)
         (fun lane -> cell_approx_in_bounds gm i (j + (x * chunk et + lane)) em)
         fn lane {
-          rewrite each ((j + x * chunk et) + lane) as (j + (x * chunk et + lane));
+          cell_approx_in_bounds_reassoc gm i j (x * chunk et) lane em;
         };
     };
 
