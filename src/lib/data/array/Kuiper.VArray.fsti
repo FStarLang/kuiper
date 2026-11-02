@@ -411,7 +411,7 @@ fn alloc0
     pure (is_full_array (core a))
 
 inline_for_extraction noextract
-fn varray_free
+fn free
   (#et #st : Type0)
   (#vw : aview et st { is_full vw })
   (a : varray vw)

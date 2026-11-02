@@ -134,7 +134,7 @@ fn free
 {
   rewrite on gpu_loc (tensor_pts_to p #1.0R em)
        as on gpu_loc (A.varray_pts_to p #1.0R em);
-  A.varray_free p;
+  A.free p;
 }
 
 ghost
