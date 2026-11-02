@@ -85,7 +85,7 @@ let matmul_dotprod_lemma
   (i : natlt rows)
   (j : natlt cols)
   : Lemma
-    (requires valid_smatrix rows shared col_ind row_off)
+    (requires valid_csr_matrix rows shared col_ind row_off)
     (ensures
       sparse_matmul_single elems col_ind eB (row_off @! i) (row_off @! (i + 1)) j ==
       MS.matmul_single (matrix_unsparse rows shared elems col_ind row_off) eB i j
@@ -114,7 +114,7 @@ fn matmul_dotprod
   (#rows #shared #cols : SZ.t)
   (#lB : layout2 shared cols)
   {| ctlayout lB |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared))
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared))
   (gB : array2 et lB)
   (#eA : chest2 et rows shared)
   (#rA : chest2 real rows shared)
@@ -125,15 +125,15 @@ fn matmul_dotprod
   (#fA #fB : perm)
   preserves
     gpu **
-    smatrix_approx gA #fA eA rA **
+    csr_matrix_approx gA #fA eA rA **
     gB |-> Frac fB eB
   returns
     res : et
   ensures pure (res %~ MS.matmul_single rA rB i j)
 {
-  unfold smatrix_approx gA #fA eA rA;
+  unfold csr_matrix_approx gA #fA eA rA;
   with v_elems v_ind v_row_off relems.
-    unfold smatrix_model gA #fA v_elems v_ind v_row_off relems eA rA;
+    unfold csr_matrix_model gA #fA v_elems v_ind v_row_off relems eA rA;
 
   assert pure (forall k. v_ind @! k < shared);
 
@@ -174,8 +174,8 @@ fn matmul_dotprod
     k := !k +^ 1sz;
   };
 
-  fold smatrix_model gA #fA v_elems v_ind v_row_off relems eA rA;
-  fold smatrix_approx gA #fA eA rA;
+  fold csr_matrix_model gA #fA v_elems v_ind v_row_off relems eA rA;
+  fold csr_matrix_approx gA #fA eA rA;
 
   matmul_dotprod_lemma relems (cast_pos v_ind) (cast_pos v_row_off) rB i j;
 
@@ -190,7 +190,7 @@ let kpre
   (#rows #shared #cols : nat)
   (#lB : layout2 shared cols)
   (#lC : layout2 rows cols)
-  (gA : smatrix et rows shared)
+  (gA : csr_matrix et rows shared)
   (gB : array2 et lB)
   (gC : array2 et lC)
   (eA : chest2 et rows shared)
@@ -203,7 +203,7 @@ let kpre
   (gid : natlt (rows * cols))
   : slprop
   =
-  smatrix_approx gA #(fA /. (rows * cols)) eA rA **
+  csr_matrix_approx gA #(fA /. (rows * cols)) eA rA **
   gB |-> Frac (fB /. (rows * cols)) eB **
   tensor_pts_to_cell gC (idx2 (gid / cols) (gid % cols))
     (acc2 eC (gid / cols) (gid % cols))
@@ -216,7 +216,7 @@ let kpost
   (#rows #shared #cols : nat)
   (#lB : layout2 shared cols)
   (#lC : layout2 rows cols)
-  (gA : smatrix et rows shared)
+  (gA : csr_matrix et rows shared)
   (gB : array2 et lB)
   (gC : array2 et lC)
   (eA : chest2 et rows shared)
@@ -229,7 +229,7 @@ let kpost
   (gid : natlt (rows * cols))
   : slprop
   =
-  smatrix_approx gA #(fA /. (rows * cols)) eA rA **
+  csr_matrix_approx gA #(fA /. (rows * cols)) eA rA **
   gB |-> Frac (fB /. (rows * cols)) eB **
   cell_approx gC (gid / cols) (gid % cols)
     (MS.gemm_single comb_r rA rB rC (gid / cols) (gid % cols))
@@ -243,7 +243,7 @@ fn kf
   (#lB : layout2 shared cols)
   (#lC : layout2 rows cols)
   {| ctlayout lB, ctlayout lC |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared))
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared))
   (gB : array2 et lB)
   (gC : array2 et lC)
   (#eA : chest2 et rows shared)
@@ -284,7 +284,7 @@ fn setup
   (#lB : layout2 shared cols)
   (#lC : layout2 rows cols)
   {| ctlayout lB, ctlayout lC |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared))
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared))
   (#fA : perm)
   (gB : array2 et lB)
   (#fB : perm)
@@ -298,7 +298,7 @@ fn setup
   ()
   norewrite
   requires
-    smatrix_approx gA #fA eA rA **
+    csr_matrix_approx gA #fA eA rA **
     gB |-> Frac fB eB **
     gC |-> eC
   ensures
@@ -307,7 +307,7 @@ fn setup
     emp (* frame *)
 {
   // Sharing the input matrices (splitting permissions)
-  smatrix_share_approx_n gA (rows * cols);
+  csr_matrix_share_approx_n gA (rows * cols);
   tensor_share_n gB (rows * cols);
 
   // Sharing the output matrix (splitting each cell)
@@ -321,13 +321,13 @@ fn setup
     (fun _ -> gB |-> Frac (fB /. (rows * cols)) eB)
     (fun i -> tensor_pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i/cols) (i%cols)));
   forevery_zip #(natlt (rows * cols))
-    (fun _ -> smatrix_approx gA #(fA /. (rows * cols)) eA rA)
+    (fun _ -> csr_matrix_approx gA #(fA /. (rows * cols)) eA rA)
     _;
 
   (* We're done actually, but the encoding will not match the lambdas. *)
   forevery_ext #(natlt (rows * cols))
     (fun i ->
-      (smatrix_approx gA #(fA /. (rows * cols)) eA rA) **
+      (csr_matrix_approx gA #(fA /. (rows * cols)) eA rA) **
       (gB |-> Frac (fB /. (rows * cols)) eB) **
       tensor_pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i / cols) (i % cols)))
     (fun i ->
@@ -345,7 +345,7 @@ fn teardown
   (#lB : layout2 shared cols)
   (#lC : layout2 rows cols)
   {| ctlayout lB, ctlayout lC |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared))
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared))
   (#fA : perm)
   (gB : array2 et lB)
   (#fB : perm)
@@ -363,7 +363,7 @@ fn teardown
       kpost comb comb_r gA gB gC eA rA eB rB eC rC fA fB rc) **
     emp (* frame *)
   ensures
-    smatrix_approx gA #fA eA rA **
+    csr_matrix_approx gA #fA eA rA **
     gB |-> Frac fB eB **
     matrix_approx gC (chest_comb comb_r rC (MS.matmul rA rB))
 {
@@ -372,7 +372,7 @@ fn teardown
   forevery_unzip #(natlt (rows * cols)) _ _;
   forevery_unzip #(natlt (rows * cols)) _ _;
 
-  smatrix_gather_approx_n gA (rows * cols) #fA #eA #rA;
+  csr_matrix_gather_approx_n gA (rows * cols) #fA #eA #rA;
   tensor_gather_n gB _;
 
   forevery_factor (rows * cols) rows cols _;
@@ -416,7 +416,7 @@ let kdesc
   (#lB : layout2 shared cols)
   (#lC : layout2 rows cols)
   {| ctlayout lB, ctlayout lC |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared) { is_global_smatrix gA })
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared) { is_global_csr_matrix gA })
   (#fA : perm)
   (gB : array2 et lB { is_global gB })
   (#fB : perm)
@@ -429,9 +429,9 @@ let kdesc
   (#rC : chest2 real rows cols { eC %~ rC })
   (#_ : squash (rows * cols <= max_blocks * max_threads))
   : kernel_desc_n
-    (smatrix_approx gA #fA eA rA ** gB |-> Frac fB eB ** gC |-> eC)
+    (csr_matrix_approx gA #fA eA rA ** gB |-> Frac fB eB ** gC |-> eC)
     (
-      smatrix_approx gA #fA eA rA ** gB |-> Frac fB eB **
+      csr_matrix_approx gA #fA eA rA ** gB |-> Frac fB eB **
       matrix_approx gC (MS.mmcomb comb_r rC rA rB)
     )
 = [@@inline_let] let nthr : (x : szp { SZ.v x == rows * cols }) = rows *^ cols in {
@@ -460,7 +460,7 @@ fn mmcomb_gpu
   (#lB : layout2 shared cols)
   (#lC : layout2 rows cols)
   {| ctlayout lB, ctlayout lC |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared) { is_global_smatrix gA })
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared) { is_global_csr_matrix gA })
   (#fA : perm)
   (gB : array2 et lB { is_global gB })
   (#fB : perm)
@@ -474,7 +474,7 @@ fn mmcomb_gpu
   norewrite
   preserves
     cpu **
-    on gpu_loc (smatrix_approx gA #fA eA rA) **
+    on gpu_loc (csr_matrix_approx gA #fA eA rA) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (rows * cols <= max_blocks * max_threads) ** (* size_req *)

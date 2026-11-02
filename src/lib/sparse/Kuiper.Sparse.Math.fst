@@ -2,7 +2,6 @@ module Kuiper.Sparse.Math
 
 open Kuiper
 open Kuiper.Array.Vectorized
-module SZ = FStar.SizeT
 
 let div2_lemma (a : nat)
 : Lemma (requires a % 2 <> 0) (ensures a % 2 == 1)

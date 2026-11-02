@@ -30,7 +30,7 @@ fn inst_on
     (k * chunk et) /? blockItemsX
   }))
   (rows shared cols : szp)
-  (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global_csr_matrix gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : larray sz rows)
@@ -58,7 +58,7 @@ fn inst_on
     pure (eB %~ rB) **
     pure (chunk et /? cols) **
     epoch_live s e **
-    on gpu_loc (smatrix_approx gA #fA eA rA) **
+    on gpu_loc (csr_matrix_approx gA #fA eA rA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB) **
     on gpu_loc (live gC) **
@@ -66,7 +66,7 @@ fn inst_on
   ensures
     epoch_live s (epoch_next e) **
     pledge0 (epoch_done s (epoch_next e)) (on gpu_loc (
-      smatrix_approx gA #fA eA rA **
+      csr_matrix_approx gA #fA eA rA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
       matrix_approx gC (MS.matmul rA rB)
@@ -99,7 +99,7 @@ fn inst
     (k * chunk et) /? blockItemsX
   }))
   (rows shared cols : szp)
-  (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global_csr_matrix gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : larray sz rows)
@@ -122,7 +122,7 @@ fn inst
   norewrite
   preserves
     cpu **
-    on gpu_loc (smatrix_approx gA #fA eA rA) **
+    on gpu_loc (csr_matrix_approx gA #fA eA rA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB)
   requires

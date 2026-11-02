@@ -73,7 +73,7 @@ let chunk_f32_is_four () : Lemma (Kuiper.Array.Vectorized.chunk f32 == 4sz) =
 // Direct instantiations also support partial tiles when 4 divides cols.
 fn spmm_f32_dispatch
   (rows shared cols : szp)
-  (gA : smatrix f32 (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (gA : csr_matrix f32 (SZ.v rows) (SZ.v shared){is_global_csr_matrix gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : larray sz rows)
@@ -92,7 +92,7 @@ fn spmm_f32_dispatch
   norewrite
   preserves
     cpu **
-    on gpu_loc (smatrix_approx gA #fA eA rA) **
+    on gpu_loc (csr_matrix_approx gA #fA eA rA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB)
   requires

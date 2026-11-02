@@ -19,7 +19,7 @@ open Kuiper.Kernel.Base
 
 (* [eA] and [eB] describe the actual inputs; [rA] and [rB] are explicit real
    models. The CSR model additionally requires that every unstored position
-   in [rA] is exactly real zero (see [smatrix_approx]). Both entry points
+   in [rA] is exactly real zero (see [csr_matrix_approx]). Both entry points
    preserve the input descriptions and guarantee only approximation of the
    real matrix product, without specifying exact computed floats. *)
 
@@ -49,7 +49,7 @@ fn spmm_on
   }) // Ver nota abajo
   (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global_csr_matrix gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : larray sz rows)
@@ -76,7 +76,7 @@ fn spmm_on
   preserves cpu ** stream_live s
   requires
     epoch_live s e **
-    on gpu_loc (smatrix_approx gA #fA eA rA) **
+    on gpu_loc (csr_matrix_approx gA #fA eA rA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB) **
     on gpu_loc (live gC) **
@@ -85,7 +85,7 @@ fn spmm_on
   ensures
     epoch_live s (epoch_next e) **
     pledge0 (epoch_done s (epoch_next e)) (on gpu_loc (
-      smatrix_approx gA #fA eA rA **
+      csr_matrix_approx gA #fA eA rA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
       matrix_approx gC (MS.matmul rA rB)
@@ -107,7 +107,7 @@ fn spmm
   }) // Ver nota abajo
   (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
-  (gA : smatrix et (SZ.v rows) (SZ.v shared){is_global_smatrix gA})
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global_csr_matrix gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : larray sz rows)
@@ -131,7 +131,7 @@ fn spmm
   norewrite
   preserves
     cpu **
-    on gpu_loc (smatrix_approx gA #fA eA rA) **
+    on gpu_loc (csr_matrix_approx gA #fA eA rA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB)
   requires

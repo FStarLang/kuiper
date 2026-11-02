@@ -13,10 +13,10 @@ open Kuiper.Array.Vectorized
 (* CSR models have real-valued stored entries and exact structural zeros.
    The concrete entries only approximate the stored entries of the model. *)
 unfold
-let smatrix_approx'
+let csr_matrix_approx'
   (#et : Type0) {| scalar et, real_like et |}
   (#rows #cols : nat)
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (#[full_default ()] f : perm)
   (elems : lseq et m.nnz)
   (col_ind : lseq sz m.nnz)
@@ -27,51 +27,51 @@ let smatrix_approx'
   = m.elems |-> Frac f elems **
     m.col_ind |-> Frac f col_ind **
     m.row_off |-> Frac f row_off **
-    pure (valid_smatrix rows cols (cast_pos col_ind) (cast_pos row_off) /\
+    pure (valid_csr_matrix rows cols (cast_pos col_ind) (cast_pos row_off) /\
           elems %~ relems /\
           rA == matrix_unsparse rows cols relems (cast_pos col_ind) (cast_pos row_off))
 
 (* Preserve the existential model as a named predicate until it is unpacked.
    Eagerly unfolding its pure relation loses the real-valued witness. *)
-let smatrix_model
+let csr_matrix_model
   (#et : Type0) {| scalar et, real_like et |}
-  (#rows #cols : nat) (m : smatrix et rows cols) (#f : perm)
+  (#rows #cols : nat) (m : csr_matrix et rows cols) (#f : perm)
   (elems : lseq et m.nnz) (col_ind : lseq sz m.nnz)
   (row_off : lseq sz (rows + 1)) (relems : lseq real m.nnz)
   (eA : chest2 et rows cols)
   (rA : chest2 real rows cols) : slprop
-  = smatrix_approx' m #f elems col_ind row_off relems rA **
-    pure (valid_smatrix rows cols (cast_pos col_ind) (cast_pos row_off) /\
+  = csr_matrix_approx' m #f elems col_ind row_off relems rA **
+    pure (valid_csr_matrix rows cols (cast_pos col_ind) (cast_pos row_off) /\
           eA == matrix_unsparse rows cols elems (cast_pos col_ind) (cast_pos row_off))
 
 (* The actual input [eA] and explicit real model [rA] share the same CSR
    structure. In particular, every unstored position is exactly real zero in
    [rA]; stored values may approximate nonzero reals even when they are zero.
    This strengthens the ordinary exact input ownership without changing it. *)
-let smatrix_approx
+let csr_matrix_approx
   (#et : Type0) {| scalar et, real_like et |}
   (#rows #cols : nat)
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (#[full_default ()] f : perm)
   (eA : chest2 et rows cols)
   (rA : chest2 real rows cols)
   : slprop
   = exists* elems col_ind row_off relems.
-      smatrix_model m #f elems col_ind row_off relems eA rA
+      csr_matrix_model m #f elems col_ind row_off relems eA rA
 
 ghost
-fn smatrix_approx_forget
+fn csr_matrix_approx_forget
   (#et : Type0) {| scalar et, real_like et |}
   (#rows #cols : nat)
-  (m : smatrix et rows cols) (#f : perm)
+  (m : csr_matrix et rows cols) (#f : perm)
   (eA : chest2 et rows cols) (rA : chest2 real rows cols)
-  requires smatrix_approx m #f eA rA
+  requires csr_matrix_approx m #f eA rA
   ensures m |-> Frac f eA
 {
-  unfold smatrix_approx m #f eA rA;
+  unfold csr_matrix_approx m #f eA rA;
   with elems col_ind row_off relems.
-    unfold smatrix_model m #f elems col_ind row_off relems eA rA;
-  fold smatrix_pts_to m #f eA;
+    unfold csr_matrix_model m #f elems col_ind row_off relems eA rA;
+  fold csr_matrix_pts_to m #f eA;
 }
 
 (* Explicitly expose the structural-zero side condition of a CSR real model. *)
@@ -83,7 +83,7 @@ let csr_model_zero
   (rA : chest2 real rows cols)
   (i : natlt rows) (j : natlt cols)
   : Lemma
-    (requires valid_smatrix rows cols col_ind row_off /\
+    (requires valid_csr_matrix rows cols col_ind row_off /\
       rA == matrix_unsparse rows cols relems col_ind row_off /\
       not (mem_slice j col_ind (row_off @! i) (row_off @! (i + 1))))
     (ensures acc2 rA i j == 0.0R)
@@ -168,10 +168,10 @@ let matrix_approx
       m |-> actual ** pure (actual %~ rM)
 
 ghost
-fn smatrix_share_approx_n'
+fn csr_matrix_share_approx_n'
   (#et:Type0) {| d : scalar et, real_like et |}
   #rows #cols
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (#[full_default ()] f : perm)
   (v_elems   : lseq et m.nnz)
   (v_col_ind : lseq sz m.nnz)
@@ -179,9 +179,9 @@ fn smatrix_share_approx_n'
   (relems : lseq real m.nnz)
   (em : chest2 real rows cols)
   (k : pos)
-  requires smatrix_approx' m #f v_elems v_col_ind v_row_off relems em
+  requires csr_matrix_approx' m #f v_elems v_col_ind v_row_off relems em
   ensures forall+ (_ : natlt k).
-    smatrix_approx' m #(f /. k) v_elems v_col_ind v_row_off relems em
+    csr_matrix_approx' m #(f /. k) v_elems v_col_ind v_row_off relems em
 {
   Kuiper.Array.Extra.array_share m.elems k;
   Kuiper.Array.Extra.array_share m.col_ind k;
@@ -199,7 +199,7 @@ fn smatrix_share_approx_n'
       pts_to m.col_ind #(f /. k) v_col_ind **
       pts_to m.row_off #(f /. k) v_row_off
     )
-    (fun _ -> smatrix_approx' m #(f /. k) v_elems v_col_ind v_row_off relems em)
+    (fun _ -> csr_matrix_approx' m #(f /. k) v_elems v_col_ind v_row_off relems em)
     fn _ {};
 }
 
@@ -225,10 +225,10 @@ fn forevery_natlt_elim
 }
 
 ghost
-fn smatrix_gather_approx_n'
+fn csr_matrix_gather_approx_n'
   (#et:Type0) {| d : scalar et, real_like et |}
   #rows #cols
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (#[full_default ()] f : perm)
   (v_elems   : lseq et m.nnz)
   (v_col_ind : lseq sz m.nnz)
@@ -237,8 +237,8 @@ fn smatrix_gather_approx_n'
   (em : chest2 real rows cols)
   (k : pos)
   requires forall+ (_ : natlt k).
-    smatrix_approx' m #(f /. k) v_elems v_col_ind v_row_off relems em
-  ensures smatrix_approx' m #f v_elems v_col_ind v_row_off relems em
+    csr_matrix_approx' m #(f /. k) v_elems v_col_ind v_row_off relems em
+  ensures csr_matrix_approx' m #f v_elems v_col_ind v_row_off relems em
 {
   forevery_unzip #(natlt k) _ _;
   forevery_unzip #(natlt k) _ _;
