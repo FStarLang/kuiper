@@ -5,12 +5,11 @@ open Kuiper
 open Kuiper.Sparse.Common
 open Kuiper.Chest
 open Kuiper.EMatrix
-module SZ = Kuiper.SizeT
 
 // CSR
 inline_for_extraction
 noeq
-type smatrix (et : Type0)
+type csr_matrix (et : Type0)
   (rows cols : erased nat) =
 {
   nnz       : sz; // número de no-zeros
@@ -19,16 +18,16 @@ type smatrix (et : Type0)
   row_off   : larray sz (rows + 1); // posición de cada comienzo de fila
 }
 
-let is_global_smatrix
+let is_global_csr_matrix
   (#et:Type0) {| scalar et |}
   (#rows #cols : nat)
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   : prop
   = is_global_array m.elems
     /\ is_global_array m.col_ind
     /\ is_global_array m.row_off
 
-let valid_smatrix
+let valid_csr_matrix
   (#nnz rows cols : nat)
   (col_ind : lseq nat nnz)
   (row_off : lseq nat (rows + 1))
@@ -52,7 +51,7 @@ let matrix_unsparse
   (col_ind : lseq nat nnz)
   (row_off : lseq nat (rows + 1))
   : Ghost (chest2 et rows cols)
-    (requires valid_smatrix rows cols col_ind row_off)
+    (requires valid_csr_matrix rows cols col_ind row_off)
     (ensures fun _ -> true)
 =
   mk2 fun i j ->
@@ -63,10 +62,10 @@ let matrix_unsparse
       else zero
 
 unfold
-let smatrix_pts_to'
+let csr_matrix_pts_to'
   (#et:Type0) {| d : scalar et |}
   #rows #cols
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (#[full_default ()] f : perm)
   (v_elems   : lseq et m.nnz)
   (v_col_ind : lseq sz m.nnz)
@@ -78,14 +77,14 @@ let smatrix_pts_to'
   m.col_ind |-> Frac f v_col_ind **
   m.row_off |-> Frac f v_row_off **
   pure (
-    valid_smatrix rows cols (cast_pos v_col_ind) (cast_pos v_row_off) /\
+    valid_csr_matrix rows cols (cast_pos v_col_ind) (cast_pos v_row_off) /\
     e == matrix_unsparse rows cols v_elems (cast_pos v_col_ind) (cast_pos v_row_off)
   )
 
-let smatrix_pts_to
+let csr_matrix_pts_to
   (#et:Type0) {| d : scalar et |}
   #rows #cols
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (#[full_default ()] f : perm)
   (e : chest2 et rows cols)
   : slprop
@@ -97,65 +96,65 @@ let smatrix_pts_to
     m.col_ind |-> Frac f v_col_ind **
     m.row_off |-> Frac f v_row_off **
     pure (
-      valid_smatrix rows cols (cast_pos v_col_ind) (cast_pos v_row_off) /\
+      valid_csr_matrix rows cols (cast_pos v_col_ind) (cast_pos v_row_off) /\
       e == matrix_unsparse rows cols v_elems (cast_pos v_col_ind) (cast_pos v_row_off)
     )
 
 inline_for_extraction noextract
 unfold
-instance has_pts_to_smatrix
+instance has_pts_to_csr_matrix
   (#et: Type0) (#rows #cols : nat) {| scalar et |}
-  : has_pts_to (smatrix et rows cols) (chest2 et rows cols) =
+  : has_pts_to (csr_matrix et rows cols) (chest2 et rows cols) =
 {
-  pts_to = smatrix_pts_to;
+  pts_to = csr_matrix_pts_to;
 }
 
-instance val is_send_across_smatrix
+instance val is_send_across_csr_matrix
   #et {| scalar et |}
   (#rows #cols : nat)
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (vis : visibility)
   (#_ : squash (visibility_of m.elems == vis))
   (#_ : squash (visibility_of m.col_ind == vis))
   (#_ : squash (visibility_of m.row_off == vis))
   (#f : perm)
   (v : chest2 et rows cols)
-  : is_send_across vis (smatrix_pts_to m #f v)
+  : is_send_across vis (csr_matrix_pts_to m #f v)
 
 ghost
-fn smatrix_share_n'
+fn csr_matrix_share_n'
   (#et:Type0) {| d : scalar et |}
   #rows #cols
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (#[full_default ()] f : perm)
   (v_elems   : lseq et m.nnz)
   (v_col_ind : lseq sz m.nnz)
   (v_row_off : lseq sz (rows + 1))
   (em : chest2 et rows cols)
   (k : pos)
-  requires smatrix_pts_to' m #f v_elems v_col_ind v_row_off em
+  requires csr_matrix_pts_to' m #f v_elems v_col_ind v_row_off em
   ensures forall+ (_ : natlt k).
-    smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off  em
+    csr_matrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off  em
 
 ghost
-fn smatrix_share_n
+fn csr_matrix_share_n
   (#et:Type0) {| scalar et |}
   (#rows #cols : nat)
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (k : pos)
   (#f : perm)
   (#em : chest2 et rows cols)
   requires
-    smatrix_pts_to m #f em
+    csr_matrix_pts_to m #f em
   ensures
     forall+ (_ : natlt k).
-      smatrix_pts_to m #(f /. k) em
+      csr_matrix_pts_to m #(f /. k) em
 
 ghost
-fn smatrix_gather_n'
+fn csr_matrix_gather_n'
   (#et:Type0) {| d : scalar et |}
   #rows #cols
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (#[full_default ()] f : perm)
   (v_elems   : lseq et m.nnz)
   (v_col_ind : lseq sz m.nnz)
@@ -163,21 +162,21 @@ fn smatrix_gather_n'
   (em : chest2 et rows cols)
   (k : pos)
   requires forall+ (_ : natlt k).
-    smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off  em
-  ensures smatrix_pts_to' m #f v_elems v_col_ind v_row_off em
+    csr_matrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off  em
+  ensures csr_matrix_pts_to' m #f v_elems v_col_ind v_row_off em
 
 ghost
-fn smatrix_gather_n
+fn csr_matrix_gather_n
   (#et:Type0) {| scalar et |}
   (#rows #cols : nat)
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (k : pos)
   (#f : perm)
   (#em : chest2 et rows cols)
   requires
-    forall+ (_ : natlt k). smatrix_pts_to m #(f /. k) em
+    forall+ (_ : natlt k). csr_matrix_pts_to m #(f /. k) em
   ensures
-    smatrix_pts_to m #f em
+    csr_matrix_pts_to m #f em
 
 val unsparse_row_lemma
   (#et:Type0) {| scalar et |}
@@ -187,7 +186,7 @@ val unsparse_row_lemma
   (row_off : lseq nat (rows + 1))
   (i : natlt rows)
   : Lemma
-    (requires valid_smatrix rows cols col_ind row_off)
+    (requires valid_csr_matrix rows cols col_ind row_off)
     (ensures
       ematrix_row (matrix_unsparse rows cols elems col_ind row_off) i ==
       seq_unsparse

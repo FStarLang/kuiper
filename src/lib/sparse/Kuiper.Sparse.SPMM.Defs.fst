@@ -166,7 +166,7 @@ let shmems_desc
   SHArray sz p.blockItemsK;
 ]
 
-// TODO just use valid_smatrix, remove this definition
+// TODO just use valid_csr_matrix, remove this definition
 unfold
 let well_formed
   #et {| sized et, has_vec_cpy et |}
@@ -175,7 +175,7 @@ let well_formed
   (col_ind : lseq sz nnz)
   (row_off : lseq sz (p.rows + 1))
 : prop
-= valid_smatrix p.rows p.shared (cast_pos col_ind) (cast_pos row_off)
+= valid_csr_matrix p.rows p.shared (cast_pos col_ind) (cast_pos row_off)
 
 open Kuiper.Chest
 open Kuiper.EMatrix
@@ -189,7 +189,7 @@ let chest2_tile_prop
   (j : nat { chunk et /? j })
   (step : nat)
   (em : chest2 et m1 n1)
-: GTot prop
+: prop
 =
   forall (k1 : natlt n1).
     let k2 = j + k1 / chunk et * step * chunk et + k1 % chunk et in

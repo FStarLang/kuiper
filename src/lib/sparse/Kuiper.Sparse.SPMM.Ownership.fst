@@ -22,7 +22,6 @@ open Kuiper.Array2.Strided
 module Math = Kuiper.Sparse.Math
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
-module B = Kuiper.Barrier
 
 let prod_divides_pat (a b c : pos)
 : Lemma (requires (a * b) /? c) (ensures a /? c /\ b /? c) [SMTPat ((a * b) /? c)]
@@ -35,7 +34,7 @@ let block_pre
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
   (gB : array2 et lB)
   (gC : array2 et lC)
@@ -53,7 +52,7 @@ let block_pre
   (tid : natlt p.blockWidth)
   : slprop
   =
-  smatrix_approx' gA #(fA /. allthreads p)
+  csr_matrix_approx' gA #(fA /. allthreads p)
     elems col_ind row_off relems rA **
   row_indices |-> Frac (fri /. allthreads p) (ordering row_perm) **
   gB |-> Frac (fB /. allthreads p) eB **
@@ -71,7 +70,7 @@ let block_post
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
   (gB : array2 et lB)
   (gC : array2 et lC)
@@ -89,7 +88,7 @@ let block_post
   (tid : natlt p.blockWidth)
   : slprop
   =
-  smatrix_approx' gA #(fA /. allthreads p)
+  csr_matrix_approx' gA #(fA /. allthreads p)
     elems col_ind row_off relems rA **
   row_indices |-> Frac (fri /. allthreads p) (ordering row_perm) **
   gB |-> Frac (fB /. allthreads p) eB **
@@ -130,7 +129,7 @@ let kpre
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
   (gB : array2 et lB)
   (gC : array2 et lC)
@@ -173,7 +172,7 @@ let kpost
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
   (gB : array2 et lB)
   (gC : array2 et lC)
@@ -279,7 +278,7 @@ fn setup
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
   (gB : array2 et lB)
   (gC : array2 et lC)
@@ -296,7 +295,7 @@ fn setup
   ()
   norewrite
   requires
-    smatrix_approx' gA #fA elems col_ind row_off relems rA **
+    csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
     row_indices |-> Frac fri (ordering row_perm) **
     gB |-> Frac fB eB **
     live gC
@@ -383,12 +382,12 @@ fn setup
     (fun _ _ -> gB |-> Frac (fB /. (allthreads p)) eB)
     _;
 
-  smatrix_share_approx_n' gA #fA elems col_ind row_off relems rA (allthreads p);
+  csr_matrix_share_approx_n' gA #fA elems col_ind row_off relems rA (allthreads p);
   forevery_factor (allthreads p) (nblocks p) p.blockWidth _;
 
   forevery_zip_2
     (fun _ _ ->
-      smatrix_approx' gA #(fA /. (allthreads p)) elems col_ind row_off relems rA
+      csr_matrix_approx' gA #(fA /. (allthreads p)) elems col_ind row_off relems rA
     )
     _;
 }
@@ -402,7 +401,7 @@ fn block_setup
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
   (gB : array2 et lB)
   (gC : array2 et lC)
@@ -493,7 +492,7 @@ fn block_teardown
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
   (gB : array2 et lB)
   (gC : array2 et lC)
@@ -617,7 +616,7 @@ fn teardown
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
   (gB : array2 et lB)
   (gC : array2 et lC)
@@ -645,7 +644,7 @@ fn teardown
     ) **
     emp
   ensures
-    smatrix_approx' gA #fA elems col_ind row_off relems rA **
+    csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
     row_indices |-> Frac fri (ordering row_perm) **
     gB |-> Frac fB eB **
     matrix_approx gC (MS.matmul rA rB)
@@ -653,9 +652,9 @@ fn teardown
   forevery_unzip_2 _ _;
   forevery_unfactor' (allthreads p) _ _
     (fun _ _ ->
-      smatrix_approx' gA #(fA /. allthreads p) elems col_ind row_off relems rA
+      csr_matrix_approx' gA #(fA /. allthreads p) elems col_ind row_off relems rA
     );
-  smatrix_gather_approx_n' gA #fA elems col_ind row_off relems rA (allthreads p);
+  csr_matrix_gather_approx_n' gA #fA elems col_ind row_off relems rA (allthreads p);
 
   forevery_unzip_2 _ _;
   forevery_unfactor' (allthreads p) _ _

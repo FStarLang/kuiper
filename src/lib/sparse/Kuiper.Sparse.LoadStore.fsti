@@ -11,7 +11,6 @@ open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l2_row_major }
 open Kuiper.Array2.Strided
 module T = Kuiper.Tensor
-module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
 fn load_array_vec

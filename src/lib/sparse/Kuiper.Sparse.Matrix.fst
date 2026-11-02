@@ -5,7 +5,6 @@ open Kuiper
 open Kuiper.Sparse.Common
 open Kuiper.Chest
 open Kuiper.EMatrix
-module SZ = Kuiper.SizeT
 
 // TODO por que no está definido?
 instance is_send_across_pts_to #a r #p n
@@ -14,17 +13,17 @@ instance is_send_across_pts_to #a r #p n
   let i s = is_send_across_pts_to_mask r p s (fun i -> True) in
   Tactics.Typeclasses.solve
 
-instance is_send_across_smatrix
+instance is_send_across_csr_matrix
   #et {| scalar et |}
   (#rows #cols : nat)
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (vis : visibility)
   (#_ : squash (visibility_of m.elems == vis))
   (#_ : squash (visibility_of m.col_ind == vis))
   (#_ : squash (visibility_of m.row_off == vis))
   (#f : perm)
   (v : chest2 et rows cols)
-  : is_send_across vis (smatrix_pts_to m #f v)
+  : is_send_across vis (csr_matrix_pts_to m #f v)
 =
   let open Pulse.Lib.Array.PtsTo in
   let i_elems elems :
@@ -39,19 +38,19 @@ instance is_send_across_smatrix
   solve
 
 ghost
-fn smatrix_share_n'
+fn csr_matrix_share_n'
   (#et:Type0) {| d : scalar et |}
   #rows #cols
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (#[full_default ()] f : perm)
   (v_elems   : lseq et m.nnz)
   (v_col_ind : lseq sz m.nnz)
   (v_row_off : lseq sz (rows + 1))
   (em : chest2 et rows cols)
   (k : pos)
-  requires smatrix_pts_to' m #f v_elems v_col_ind v_row_off em
+  requires csr_matrix_pts_to' m #f v_elems v_col_ind v_row_off em
   ensures forall+ (_ : natlt k).
-    smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off  em
+    csr_matrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off  em
 {
   Kuiper.Array.Extra.array_share m.elems k;
   Kuiper.Array.Extra.array_share m.col_ind k;
@@ -69,25 +68,25 @@ fn smatrix_share_n'
       pts_to m.col_ind #(f /. k) v_col_ind **
       pts_to m.row_off #(f /. k) v_row_off
     )
-    (fun _ -> smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off em)
+    (fun _ -> csr_matrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off em)
     fn _ {};
 }
 
 ghost
-fn smatrix_share_n
+fn csr_matrix_share_n
   (#et:Type0) {| scalar et |}
   (#rows #cols : nat)
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (k : pos)
   (#f : perm)
   (#em : chest2 et rows cols)
   requires
-    smatrix_pts_to m #f em
+    csr_matrix_pts_to m #f em
   ensures
     forall+ (_ : natlt k).
-      smatrix_pts_to m #(f /. k) em
+      csr_matrix_pts_to m #(f /. k) em
 {
-  unfold smatrix_pts_to m #f em;
+  unfold csr_matrix_pts_to m #f em;
   with v_elems.
     assert pts_to m.elems #f v_elems;
   with v_col_ind.
@@ -95,12 +94,12 @@ fn smatrix_share_n
   with v_row_off.
     assert pts_to m.row_off #f v_row_off;
 
-  smatrix_share_n' m #f _ _ _ em k;
+  csr_matrix_share_n' m #f _ _ _ em k;
 
   forevery_map #(natlt k)
-    (fun _ -> smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off em)
-    (fun _ -> smatrix_pts_to m #(f /. k) em)
-    fn _ { fold smatrix_pts_to m #(f /. k) em; };
+    (fun _ -> csr_matrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off em)
+    (fun _ -> csr_matrix_pts_to m #(f /. k) em)
+    fn _ { fold csr_matrix_pts_to m #(f /. k) em; };
 
 }
 
@@ -126,10 +125,10 @@ fn forevery_natlt_elim
 }
 
 ghost
-fn smatrix_gather_n'
+fn csr_matrix_gather_n'
   (#et:Type0) {| d : scalar et |}
   #rows #cols
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (#[full_default ()] f : perm)
   (v_elems   : lseq et m.nnz)
   (v_col_ind : lseq sz m.nnz)
@@ -137,8 +136,8 @@ fn smatrix_gather_n'
   (em : chest2 et rows cols)
   (k : pos)
   requires forall+ (_ : natlt k).
-    smatrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off  em
-  ensures smatrix_pts_to' m #f v_elems v_col_ind v_row_off em
+    csr_matrix_pts_to' m #(f /. k) v_elems v_col_ind v_row_off  em
+  ensures csr_matrix_pts_to' m #f v_elems v_col_ind v_row_off em
 {
   forevery_unzip #(natlt k) _ _;
   forevery_unzip #(natlt k) _ _;
@@ -153,23 +152,23 @@ fn smatrix_gather_n'
   ();
 }
 
-// Para escribir esto en terminos de smatrix_gather_n'
-// tendriamos que probar smatrix_pts_to_eq'
+// Para escribir esto en terminos de csr_matrix_gather_n'
+// tendriamos que probar csr_matrix_pts_to_eq'
 ghost
-fn smatrix_gather_n
+fn csr_matrix_gather_n
   (#et:Type0) {| scalar et |}
   (#rows #cols : nat)
-  (m : smatrix et rows cols)
+  (m : csr_matrix et rows cols)
   (k : pos)
   (#f : perm)
   (#em : chest2 et rows cols)
   requires
-    forall+ (_ : natlt k). smatrix_pts_to m #(f /. k) em
+    forall+ (_ : natlt k). csr_matrix_pts_to m #(f /. k) em
   ensures
-    smatrix_pts_to m #f em
+    csr_matrix_pts_to m #f em
 {
   forevery_natlt_pop k _;
-  unfold smatrix_pts_to m #(f /. k) em;
+  unfold csr_matrix_pts_to m #(f /. k) em;
   with v_elems.   assert pts_to m.elems   #(f /. k) v_elems;
   with v_col_ind. assert pts_to m.col_ind #(f /. k) v_col_ind;
   with v_row_off. assert pts_to m.row_off #(f /. k) v_row_off;
@@ -182,14 +181,14 @@ fn smatrix_gather_n
       pts_to m.col_ind #(f /. k) v_col_ind **
       pts_to m.row_off #(f /. k) v_row_off
     requires
-      smatrix_pts_to m #(f /. k) em
+      csr_matrix_pts_to m #(f /. k) em
     ensures
       pts_to m.elems   #(f /. k) v_elems **
       pts_to m.col_ind #(f /. k) v_col_ind **
       pts_to m.row_off #(f /. k) v_row_off
   {
     open Pulse.Lib.Array;
-    unfold smatrix_pts_to m #(f /. k) em;
+    unfold csr_matrix_pts_to m #(f /. k) em;
 
     pts_to_injective_eq m.elems;
     pts_to_injective_eq m.col_ind;
@@ -207,7 +206,7 @@ fn smatrix_gather_n
   Kuiper.Array.Extra.array_gather m.col_ind k;
   Kuiper.Array.Extra.array_gather m.row_off k;
 
-  fold smatrix_pts_to m #f em;
+  fold csr_matrix_pts_to m #f em;
 }
 
 let rec mem_slice_lemma
@@ -250,7 +249,7 @@ let unsparse_row_lemma
   (row_off : lseq nat (rows + 1))
   (i : natlt rows)
   : Lemma
-    (requires valid_smatrix rows cols col_ind row_off)
+    (requires valid_csr_matrix rows cols col_ind row_off)
     (ensures
       ematrix_row (matrix_unsparse rows cols elems col_ind row_off) i ==
       seq_unsparse

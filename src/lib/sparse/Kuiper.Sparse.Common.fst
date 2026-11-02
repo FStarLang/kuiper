@@ -12,8 +12,6 @@ open Kuiper.Array.Vectorized
 open Kuiper.Seq.Common { (@!) }
 open Kuiper.Tensor.Layout.Slice
 
-module SZ = FStar.SizeT
-module Chest = Kuiper.Chest
 
 (* Class instances *)
 

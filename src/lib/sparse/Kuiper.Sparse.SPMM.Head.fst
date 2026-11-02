@@ -20,7 +20,6 @@ open Kuiper.Tensor.Layout.Alg
 open Kuiper.Array2.Strided
 
 module Math = Kuiper.Sparse.Math
-module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module B = Kuiper.Barrier
 module Compute = Kuiper.Sparse.SPMM.Compute
@@ -32,7 +31,7 @@ fn sparse_load_main
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
   (p : parameters et)
   (row_perm : permutation (natlt p.rows))
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   // matriz sparse gA
   (#row_off : erased (lseq sz (p.rows + 1)))
@@ -53,7 +52,7 @@ fn sparse_load_main
   norewrite
   preserves
     gpu **
-    smatrix_approx' gA #fA (reveal elems) col_ind row_off relems rA **
+    csr_matrix_approx' gA #fA (reveal elems) col_ind row_off relems rA **
     B.barrier_tok (
       barrier_contract p row_perm elems col_ind row_off
         elems_tile col_ind_tile bid
@@ -134,7 +133,7 @@ fn sparse_load_residue
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
   (p : parameters et)
   (row_perm : permutation (natlt p.rows))
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   // matriz sparse gA
   (#row_off : erased (lseq sz (p.rows + 1)))
@@ -155,7 +154,7 @@ fn sparse_load_residue
   norewrite
   preserves
     gpu **
-    smatrix_approx' gA #fA elems col_ind row_off relems rA **
+    csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
     B.barrier_tok (
       barrier_contract p row_perm elems col_ind row_off
         elems_tile col_ind_tile bid
@@ -226,7 +225,7 @@ let barrier_count
   (bid : natlt (nblocks p))
 : Ghost nat
   (requires
-    valid_smatrix p.rows p.shared (cast_pos col_ind) (cast_pos row_off)
+    valid_csr_matrix p.rows p.shared (cast_pos col_ind) (cast_pos row_off)
   )
   (ensures fun _ -> true)
 =
@@ -438,7 +437,7 @@ fn kf_head
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et, real_like et |}
   (p : parameters et)
   (row_perm : permutation (natlt p.rows))
-  (gA : smatrix et (SZ.v p.rows) (SZ.v p.shared))
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (#lB : layout2 p.shared p.cols) {| ctlB : ctlayout lB, srmB : strided_row_major lB |}
   (gB : array2 et lB)
   // matriz sparse ga
@@ -469,7 +468,7 @@ fn kf_head
   (#_ : squash (ri' + p.blockItemsK <= re))
   norewrite
   preserves gpu
-  preserves smatrix_approx' gA #fA elems col_ind row_off relems rA
+  preserves csr_matrix_approx' gA #fA elems col_ind row_off relems rA
   requires  pure (aligned 16 gA.elems)
   requires  pure (aligned 16 gA.col_ind)
   preserves gB |-> Frac (fB /. allthreads p) eB
