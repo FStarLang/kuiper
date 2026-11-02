@@ -612,7 +612,7 @@ fn cell_to_ref
     ref_of_cell a i |-> Frac f v
 
 ghost
-fn tensor_cell_from_ref
+fn cell_from_ref
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
   (a : tensor et l)

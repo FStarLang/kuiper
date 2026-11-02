@@ -798,7 +798,7 @@ fn cell_to_ref
 }
 
 ghost
-fn tensor_cell_from_ref
+fn cell_from_ref
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
   (a : tensor et l)
@@ -811,7 +811,7 @@ fn tensor_cell_from_ref
     tcell a #f (i) (v)
 {
   pts_to_cell_eq a i f v;
-  Array.Core.array_cell_from_ref (core a) (l.imap.f i);
+  Array.Core.cell_from_ref (core a) (l.imap.f i);
   rewrite pts_to_cell (core a) #f (l.imap.f i) v
        as tcell a #f i v;
 }

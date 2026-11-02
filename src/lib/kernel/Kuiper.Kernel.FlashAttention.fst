@@ -221,7 +221,7 @@ fn array1_cell_from_ref
   requires ref_of_cell a i |-> Frac f v
   ensures Cell a (idx1 i) |-> Frac f v
 {
-  tensor_cell_from_ref a (idx1 i);
+  cell_from_ref a (idx1 i);
 }
 
 inline_for_extraction noextract

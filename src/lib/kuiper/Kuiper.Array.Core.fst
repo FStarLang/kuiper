@@ -1173,7 +1173,7 @@ fn cell_to_ref
 }
 
 ghost
-fn array_cell_from_ref
+fn cell_from_ref
   (#et : Type0)
   (a : array et)
   (i : nat)
