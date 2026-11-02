@@ -158,7 +158,7 @@ fn matmul_dotprod
     let x = Pulse.Lib.Array.(gA.elems.(!k));
     let c = Pulse.Lib.Array.(gA.col_ind.(!k));
 
-    let y = tensor_read gB ((c <: szlt _), ((j <: szlt _), ()));
+    let y = read gB ((c <: szlt _), ((j <: szlt _), ()));
 
     with v_k. assert k |-> v_k;
     with v_dp. assert dp |-> v_dp;
@@ -205,7 +205,7 @@ let kpre
   =
   csr_matrix_approx gA #(fA /. (rows * cols)) eA rA **
   gB |-> Frac (fB /. (rows * cols)) eB **
-  tensor_pts_to_cell gC (idx2 (gid / cols) (gid % cols))
+  pts_to_cell gC (idx2 (gid / cols) (gid % cols))
     (acc2 eC (gid / cols) (gid % cols))
 
 unfold
@@ -267,9 +267,9 @@ fn kf
   let tcol : sz = gid %^ cols; assert (rewrites_to tcol (gid %^ cols));
 
   let s = matmul_dotprod gA gB #eA #rA #eB #rB trow tcol;
-  let v0 = tensor_read_cell gC ((trow <: szlt _), ((tcol <: szlt _), ()));
+  let v0 = read_cell gC ((trow <: szlt _), ((tcol <: szlt _), ()));
   let v1 = comb v0 s;
-  tensor_write_cell gC ((trow <: szlt _), ((tcol <: szlt _), ())) v1;
+  write_cell gC ((trow <: szlt _), ((tcol <: szlt _), ())) v1;
 
   ()
 }
@@ -314,12 +314,12 @@ fn setup
   tensor_ilower2 gC;
 
   forevery_unfactor' (rows * cols) rows cols (fun r c ->
-    tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 eC r c));
+    pts_to_cell gC (idx2 (r) (c)) (acc2 eC r c));
 
   // Join resources into a single bigstar
   forevery_zip #(natlt (rows * cols))
     (fun _ -> gB |-> Frac (fB /. (rows * cols)) eB)
-    (fun i -> tensor_pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i/cols) (i%cols)));
+    (fun i -> pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i/cols) (i%cols)));
   forevery_zip #(natlt (rows * cols))
     (fun _ -> csr_matrix_approx gA #(fA /. (rows * cols)) eA rA)
     _;
@@ -329,7 +329,7 @@ fn setup
     (fun i ->
       (csr_matrix_approx gA #(fA /. (rows * cols)) eA rA) **
       (gB |-> Frac (fB /. (rows * cols)) eB) **
-      tensor_pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i / cols) (i % cols)))
+      pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i / cols) (i % cols)))
     (fun i ->
       kpre comb comb_r gA gB gC eA rA eB rB eC rC fA fB i);
   forevery_rw_size (rows * cols) nthr;
@@ -416,7 +416,7 @@ let kdesc
   (#lB : layout2 shared cols)
   (#lC : layout2 rows cols)
   {| ctlayout lB, ctlayout lC |}
-  (gA : csr_matrix et (SZ.v rows) (SZ.v shared) { is_global_csr_matrix gA })
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared) { is_global gA })
   (#fA : perm)
   (gB : array2 et lB { is_global gB })
   (#fB : perm)
@@ -460,7 +460,7 @@ fn mmcomb_gpu
   (#lB : layout2 shared cols)
   (#lC : layout2 rows cols)
   {| ctlayout lB, ctlayout lC |}
-  (gA : csr_matrix et (SZ.v rows) (SZ.v shared) { is_global_csr_matrix gA })
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared) { is_global gA })
   (#fA : perm)
   (gB : array2 et lB { is_global gB })
   (#fB : perm)

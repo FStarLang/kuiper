@@ -61,7 +61,7 @@ fn ex_broadcast_two_read
   let ro = tensor_to_rotensor t;
   let b1 = rotensor_add_dim_view ro e1;
   let b2 = rotensor_add_dim_view b1 e2;
-  let v = tensor_read #_ #_ #_ #_ #(cvt_bcast2 m e1 e2) b2 (j2, (j1, (i, ())));
+  let v = read #_ #_ #_ #_ #(cvt_bcast2 m e1 e2) b2 (j2, (j1, (i, ())));
   rotensor_remove_dim b1 e2;
   rotensor_remove_dim ro e1;
   rotensor_to_tensor t ro;

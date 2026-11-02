@@ -151,9 +151,9 @@ fn block_teardown
 
 inline_for_extraction noextract
 let kdesc (#et:Type) {| scalar et |}
-    (ga1:larray et size{ is_global_array ga1 })
-    (ga2:larray et size{ is_global_array ga2 })
-    (r : larray et size{ is_global_array r })
+    (ga1:larray et size{ is_global ga1 })
+    (ga2:larray et size{ is_global ga2 })
+    (r : larray et size{ is_global r })
   : kernel_desc
       (live ga1 ** live ga2 ** live r)
       (live ga1 ** live ga2 ** live r)

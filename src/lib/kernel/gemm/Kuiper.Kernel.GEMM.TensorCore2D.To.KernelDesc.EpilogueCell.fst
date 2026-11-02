@@ -38,11 +38,11 @@ let output_fragment_cell_convert_eq
       let fragCol = tiled_cell (wn * tn) tn nj j in
       let blockCellRow = tiled_cell bm (wm * tm) warpRow fragRow in
       let blockCellCol = tiled_cell bn (wn * tn) warpCol fragCol in
-      tensor_pts_to_cell
+      pts_to_cell
         (output_fragment gD bm bn tm tn wm wn bid wid mi nj)
         #f (idx2 i j) v
       ==
-      tensor_pts_to_cell gD #f
+      pts_to_cell gD #f
         (idx2
           (tiled_cell m bm blockRow blockCellRow)
           (tiled_cell n bn blockCol blockCellCol))
@@ -94,20 +94,20 @@ ghost fn output_cell_to_global
   (f : perm)
   (v : et)
   requires
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment gD bm bn tm tn wm wn bid wid mi nj)
       #f (idx2 i j) v
   ensures
-    tensor_pts_to_cell gD #f (idx2 globalRow globalCol) v
+    pts_to_cell gD #f (idx2 globalRow globalCol) v
 {
   output_fragment_cell_convert_eq gD bm bn tm tn wm wn
     bid wid mi nj i j f v;
   rewrite
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment gD bm bn tm tn wm wn bid wid mi nj)
       #f (idx2 i j) v
   as
-    tensor_pts_to_cell gD #f (idx2 globalRow globalCol) v;
+    pts_to_cell gD #f (idx2 globalRow globalCol) v;
 }
 
 noextract
@@ -135,18 +135,18 @@ ghost fn global_cell_to_output
   (f : perm)
   (v : et)
   requires
-    tensor_pts_to_cell gD #f (idx2 globalRow globalCol) v
+    pts_to_cell gD #f (idx2 globalRow globalCol) v
   ensures
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment gD bm bn tm tn wm wn bid wid mi nj)
       #f (idx2 i j) v
 {
   output_fragment_cell_convert_eq gD bm bn tm tn wm wn
     bid wid mi nj i j f v;
   rewrite
-    tensor_pts_to_cell gD #f (idx2 globalRow globalCol) v
+    pts_to_cell gD #f (idx2 globalRow globalCol) v
   as
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment gD bm bn tm tn wm wn bid wid mi nj)
       #f (idx2 i j) v;
 }

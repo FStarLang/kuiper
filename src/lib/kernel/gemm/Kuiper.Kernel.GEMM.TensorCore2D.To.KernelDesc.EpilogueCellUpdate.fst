@@ -189,13 +189,13 @@ fn epilogue_cell_update
     c |-> Frac fC eC **
     acc |-> Frac (1.0R /. warp_size) eAcc
   requires
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 (SZ.v row) (SZ.v col))
       (reveal old)
   ensures
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 (SZ.v row) (SZ.v col))
@@ -252,8 +252,8 @@ fn epilogue_cell_update
     mcol *^ bn +^ warpCol *^ (wn *^ cols)
       +^ (idx %^ wn) *^ cols +^ col;
 
-  let cv = tensor_read c (globalRow, (globalCol, ()));
-  let av = tensor_read acc (row, (col, ()));
+  let cv = read c (globalRow, (globalCol, ()));
+  let av = read acc (row, (col, ()));
   let dv = comb cv av;
 
   output_cell_to_global d bm bn rows cols wm wn
@@ -262,7 +262,7 @@ fn epilogue_cell_update
     (SZ.v row) (SZ.v col)
     (SZ.v globalRow) (SZ.v globalCol)
     1.0R (reveal old);
-  tensor_write_cell d
+  write_cell d
     (globalRow, (globalCol, ()))
     dv;
   global_cell_to_output d bm bn rows cols wm wn

@@ -256,7 +256,7 @@ fn steardown
     (forall+ (i : natlt n).
       scatter_frame di cdi #lInp #lIdx gInp gIdx eInp eIdx fInp fIdx (fr /. n) **
       (exists* (v : et).
-        tensor_pts_to_cell gOut (sphi #et di do dim eIdx (unflatten di i)) v **
+        pts_to_cell gOut (sphi #et di do dim eIdx (unflatten di i)) v **
         pure (v == acc eInp (unflatten di i)))) **
     pure (SZ.fits (tlayout_ulen lOut)) **
     (forall+ (x : abs do { ~(covered #et di do dim eIdx x) }). Cell gOut (x <: abs do) |-> acc eOut x)
@@ -275,17 +275,17 @@ fn steardown
   forevery_elim_pure _;
   forevery_rw_size (SZ.v n) (sizeof di);
   forevery_ext #(natlt (sizeof di))
-    (fun i -> tensor_pts_to_cell gOut (sphi #et di do dim eIdx (unflatten di i)) (accs i))
-    (fun i -> tensor_pts_to_cell gOut (sphi #et di do dim eIdx (unflatten di i)) (accs (flatten di (unflatten di i))));
+    (fun i -> pts_to_cell gOut (sphi #et di do dim eIdx (unflatten di i)) (accs i))
+    (fun i -> pts_to_cell gOut (sphi #et di do dim eIdx (unflatten di i)) (accs (flatten di (unflatten di i))));
   forevery_iso_back (flatten_bij di)
-    (fun (i : abs di) -> tensor_pts_to_cell gOut (sphi #et di do dim eIdx i) (accs (flatten di i)));
+    (fun (i : abs di) -> pts_to_cell gOut (sphi #et di do dim eIdx i) (accs (flatten di i)));
   forevery_map
-    (fun (i : abs di) -> tensor_pts_to_cell gOut (sphi #et di do dim eIdx i) (accs (flatten di i)))
+    (fun (i : abs di) -> pts_to_cell gOut (sphi #et di do dim eIdx i) (accs (flatten di i)))
     (fun (i : abs di) -> Cell gOut (sphi #et di do dim eIdx i) |-> acc eOut' (sphi #et di do dim eIdx i))
     fn i {
        scatter_out_covered di do dim eInp eIdx eOut eIdxInj i;
        rewrite
-         tensor_pts_to_cell gOut (sphi #et di do dim eIdx i) (accs (flatten di i))
+         pts_to_cell gOut (sphi #et di do dim eIdx i) (accs (flatten di i))
        as
          (Cell gOut (sphi #et di do dim eIdx i) |-> acc eOut' (sphi #et di do dim eIdx i));
      };
@@ -342,23 +342,23 @@ fn skf
   ensures
     scatter_frame di cdi #lInp #lIdx gInp gIdx eInp eIdx fInp fIdx pfr **
     (exists* (v : et).
-      tensor_pts_to_cell gOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))) v **
+      pts_to_cell gOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))) v **
       pure (v == acc eInp (unflatten di (SZ.v i))))
 {
   let ci = cunflatten cdi i;
-  let idx = tensor_read gIdx ci;
+  let idx = read gIdx ci;
   let cphi = conc_set_at2 cdi cdo dim idx ci;
-  let v = tensor_read gInp ci;
+  let v = read gInp ci;
   rewrite
     (Cell gOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))) |->
        acc eOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))))
   as
     (Cell gOut (up cphi) |-> acc eOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))));
-  tensor_write_cell gOut cphi v;
+  write_cell gOut cphi v;
   rewrite
     (Cell gOut (up cphi) |-> v)
   as
-    (tensor_pts_to_cell gOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))) v);
+    (pts_to_cell gOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))) v);
 }
 
 inline_for_extraction noextract
@@ -394,7 +394,7 @@ let scatter_kernel
                (Cell gOut (sphi #et di do (SZ.v dim) eIdx (unflatten di i)) |-> acc eOut (sphi #et di do (SZ.v dim) eIdx (unflatten di i))));
     kpost = (fun (i : natlt (sizeof di)) ->
                scatter_frame di cdi #lInp #lIdx gInp gIdx eInp eIdx fInp fIdx (fr /. n) **
-               exists* v. tensor_pts_to_cell gOut (sphi #et di do (SZ.v dim) eIdx (unflatten di i)) v **
+               exists* v. pts_to_cell gOut (sphi #et di do (SZ.v dim) eIdx (unflatten di i)) v **
                           pure (v == acc eInp (unflatten di i)));
     kpost_sendable = magic ();
     kpre_sendable  = magic ();

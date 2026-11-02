@@ -13,7 +13,7 @@ module SZ = Kuiper.SizeT
 
 inline_for_extraction noextract
 let gpu_ref (a:Type u#0) : Type u#0 =
-  x : larray a 1 { is_global_array x /\ is_full_array x }
+  x : larray a 1 { is_global x /\ is_full_array x }
 
 // x |-> v
 inline_for_extraction noextract

@@ -382,7 +382,7 @@ fn gpu_array_alloc
       pure (
         Seq.length s == sz /\
         aligned 128 x /\
-        is_global_array x /\
+        is_global x /\
         A.is_full_array x
       )
 {
@@ -1137,7 +1137,7 @@ fn array_gather_underspec
 //   ensures
 //     arr |-> Frac 'f ('s1 @+ 's2)
 
-let ref_of_array_cell
+let ref_of_cell
   (#et : Type0)
   (a : array et)
   (i : nat)
@@ -1145,20 +1145,20 @@ let ref_of_array_cell
   = magic()
 
 (* Axiom, extracted natively. *)
-fn get_ref_of_array_cell
+fn get_ref_of_cell
   (#et : Type0)
   (a : array et)
   (i : sz)
   returns
     r : ref et
   ensures
-    pure (r == ref_of_array_cell a i)
+    pure (r == ref_of_cell a i)
 {
   admit();
 }
 
 ghost
-fn array_cell_to_ref
+fn cell_to_ref
   (#et : Type0)
   (a : array et)
   (i : nat)
@@ -1167,20 +1167,20 @@ fn array_cell_to_ref
   requires
     Cell a i |-> Frac f v
   ensures
-    ref_of_array_cell a i |-> Frac f v
+    ref_of_cell a i |-> Frac f v
 {
   admit();
 }
 
 ghost
-fn array_cell_from_ref
+fn cell_from_ref
   (#et : Type0)
   (a : array et)
   (i : nat)
   (#f : perm)
   (#v : erased et)
   requires
-    ref_of_array_cell a i |-> Frac f v
+    ref_of_cell a i |-> Frac f v
   ensures
     Cell a i |-> Frac f v
 {

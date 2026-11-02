@@ -27,7 +27,7 @@ open Kuiper.Tensor.Tiling
 open Kuiper.Kernel.GEMM.Copy.Vec2
 open Kuiper.Kernel.GEMM.Tiled.Common.Vec
 open Kuiper.TensorCore
-open Kuiper.VArray { varray, varray_pts_to, varray_pts_to_cell }
+open Kuiper.VArray { varray, varray_pts_to, pts_to_cell }
 open Pulse.Lib.Array
 open Pulse.Lib.Trade
 

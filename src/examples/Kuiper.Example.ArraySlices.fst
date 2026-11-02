@@ -164,7 +164,7 @@ fn cannot_forge_empty_view
   let va = IA.from_array (IV.raw_view #0) arr;
   assert rewrites_to va (IA.from_array (IV.raw_view #0) arr);
   forevery_intro_empty (fun (i : (IV.raw_view #0).ait) ->
-    IA.iarray_pts_to_cell va #1.0R i (v i));
+    IA.pts_to_cell va #1.0R i (v i));
   IA.iarray_implode_with_exists va;
 }
 
@@ -189,7 +189,7 @@ fn empty_partial_view_shared
   slice_to_array arr;
   let va = IA.from_array (empty_view sz) arr;
   assert rewrites_to va (IA.from_array (empty_view sz) arr);
-  forevery_intro_empty (fun (i : (empty_view sz).ait) -> IA.iarray_pts_to_cell va #f i (ev i));
+  forevery_intro_empty (fun (i : (empty_view sz).ait) -> IA.pts_to_cell va #f i (ev i));
   rewrite array_exists arr as array_exists (IA.core va);
   IA.iarray_implode_with_exists va;
   IA.iarray_share_n va 3;
@@ -229,7 +229,7 @@ fn nonempty_view_from_cells
   (#et : Type0) (#vw : IV.aiview) (a : IA.iarray et vw)
   (#f : perm) (#v : vw.ait -> GTot et)
   requires pure (Kuiper.SizeT.fits vw.len /\ nonempty vw.ait)
-  requires forall+ (i : vw.ait). IA.iarray_pts_to_cell a #f i (v i)
+  requires forall+ (i : vw.ait). IA.pts_to_cell a #f i (v i)
   ensures a |-> Frac f v
 {
   IA.iarray_implode a;
@@ -262,6 +262,6 @@ fn cannot_implode_empty_index_type
   let va = IA.from_array (IV.raw_view #0) arr;
   assert rewrites_to va (IA.from_array (IV.raw_view #0) arr);
   forevery_intro_empty (fun (i : (IV.raw_view #0).ait) ->
-    IA.iarray_pts_to_cell va #1.0R i (v i));
+    IA.pts_to_cell va #1.0R i (v i));
   IA.iarray_implode va;
 }

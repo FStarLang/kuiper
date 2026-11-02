@@ -7,7 +7,7 @@ open Kuiper.Kernel.GEMMGPU.Type
 
 open Kuiper
 open Kuiper.Tensor
-open Kuiper.Tensor { tensor_pts_to_cell as pts_to_cell }
+open Kuiper.Tensor { pts_to_cell as pts_to_cell }
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 open Kuiper.Shape
@@ -114,9 +114,9 @@ fn kf
 
   let s = Kuiper.DotProd.matmul_kahan_dotprod gA gB trow tcol rA rB;
 
-  let v0 = tensor_read_cell gC (trow, (tcol, ()));
+  let v0 = read_cell gC (trow, (tcol, ()));
   let v1 = comb v0 s;
-  tensor_write_cell gC (trow, (tcol, ())) v1;
+  write_cell gC (trow, (tcol, ())) v1;
 
   ()
 }

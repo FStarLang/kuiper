@@ -36,7 +36,7 @@ val lem_is_global_iff_core
   (#a : Type0)
   (#vw : aiview)
   (g : iarray a vw)
-  : Lemma (ensures is_global g <==> is_global_array (core g))
+  : Lemma (ensures is_global g <==> is_global (core g))
           [SMTPat (is_global g)]
 
 val lem_from_array_core
@@ -54,7 +54,7 @@ val lem_core_from_array
           [SMTPat (from_array vw p)]
 
 (* Ownership over a single index. *)
-val iarray_pts_to_cell
+val pts_to_cell
   (#et:Type)
   (#vw : aiview)
   ([@@@mkey] a : iarray et vw)
@@ -63,21 +63,21 @@ val iarray_pts_to_cell
   (v : et)
   : slprop
 
-val iarray_pts_to_cell_def
+val pts_to_cell_def
   (#et : Type)
   (#vw : aiview)
   (a : iarray et vw)
   (#f : perm)
   (i : vw.ait)
   (v : et)
-  : Lemma (iarray_pts_to_cell a #f i v ==
+  : Lemma (pts_to_cell a #f i v ==
             pts_to_cell (core a) #f (it_to_nat vw i) v)
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#et : Type) (#vw : aiview)
   : has_pts_to (cell (iarray et vw) vw.ait) et
 = {
-  pts_to = (fun (Cell ar i) #f v -> iarray_pts_to_cell #et #vw ar #f i v);
+  pts_to = (fun (Cell ar i) #f v -> pts_to_cell #et #vw ar #f i v);
 }
 
 val iarray_pts_to
@@ -114,7 +114,7 @@ val is_send_across_global_iarray_cell
   (#f : perm)
   (i : vw.ait)
   (v : et)
-  : is_send_across gpu_of (iarray_pts_to_cell a #f i v)
+  : is_send_across gpu_of (pts_to_cell a #f i v)
 
 unfold
 instance has_pts_to (#et:Type0) (#vw : aiview)
@@ -255,7 +255,7 @@ fn iarray_end
 inline_for_extraction noextract
 fn iarray_end2
   (#et : Type0)
-  (#vw : aiview { is_full_view vw })
+  (#vw : aiview { is_full vw })
   (a : iarray et vw)
   (#f : perm)
   (#v : vw.ait -> GTot et)
@@ -321,7 +321,7 @@ fn iarray_split2_
   (#et:Type0)
   (vw1 vw2 : aiview { len vw1 == len vw2 }) // needed?
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
-  (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
+  (a : iarray et (sum_view vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)
   (#v : either vw1.ait vw2.ait -> GTot et)
   requires
@@ -335,7 +335,7 @@ fn iarray_split2
   (#et:Type0)
   (vw1 vw2 : aiview { len vw1 == len vw2 }) // needed?
   (#_ : squash (no_overlap vw1.step.imap.f vw2.step.imap.f))
-  (a : iarray et (sum_aiview vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
+  (a : iarray et (sum_view vw1 vw2 #())) /// argh!!!! affects typeclass resolution!!!!
   (#f : perm)
   (#v : either vw1.ait vw2.ait -> GTot et)
   requires
@@ -402,7 +402,7 @@ fn iarray_pts_to_eq
     a |-> Frac f2 v2
 
 inline_for_extraction noextract
-fn iarray_write_cell
+fn write_cell
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
@@ -415,7 +415,7 @@ fn iarray_write_cell
     Cell a (ci_to_ai vw ci) |-> v1
 
 inline_for_extraction noextract
-fn iarray_write_cell'
+fn write_cell'
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
@@ -430,7 +430,7 @@ fn iarray_write_cell'
     Cell a (reveal ai) |-> reveal v1
 
 inline_for_extraction noextract
-fn iarray_read_cell
+fn read_cell
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
@@ -438,15 +438,15 @@ fn iarray_read_cell
   (#f : perm)
   (#v0 : erased et)
   requires
-    iarray_pts_to_cell a #f (ci_to_ai vw ci) v0
+    pts_to_cell a #f (ci_to_ai vw ci) v0
   returns
     v : et
   ensures
-    iarray_pts_to_cell a #f (ci_to_ai vw ci) v **
+    pts_to_cell a #f (ci_to_ai vw ci) v **
     pure (v == v0)
 
 inline_for_extraction noextract
-fn iarray_read_cell'
+fn read_cell'
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
@@ -464,7 +464,7 @@ fn iarray_read_cell'
     pure (v == v0)
 
 inline_for_extraction noextract
-fn iarray_read
+fn read
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
@@ -479,7 +479,7 @@ fn iarray_read
     pure (e == v (ci_to_ai vw ci))
 
 inline_for_extraction noextract
-fn iarray_write
+fn write
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)

@@ -27,7 +27,7 @@ let kpre
   =
   gIn |-> Frac (fIn /. (rows * cols)) eIn **
   (exists* vv.
-    tensor_pts_to_cell gOut #1.0R (idx2 (tid / cols) (tid % cols)) vv)
+    pts_to_cell gOut #1.0R (idx2 (tid / cols) (tid % cols)) vv)
 
 unfold
 let kpost
@@ -47,7 +47,7 @@ let kpost
   : slprop
   =
   gIn |-> Frac (fIn /. (rows * cols)) eIn **
-  tensor_pts_to_cell gOut (idx2 (tid / cols) (tid % cols))
+  pts_to_cell gOut (idx2 (tid / cols) (tid % cols))
     (STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn (tid / cols) (tid % cols))
 
 #push-options "--z3rlimit 15"
@@ -89,7 +89,7 @@ fn kf
     (ml `mul` stencil 1 0) `add` (mm `mul` stencil 1 1) `add` (mr `mul` stencil 1 2) `add`
     (bl `mul` stencil 2 0) `add` (bm `mul` stencil 2 1) `add` (br `mul` stencil 2 2);
 
-  tensor_write_cell gOut (cidx2 i j) sv;
+  write_cell gOut (cidx2 i j) sv;
 }
 #pop-options
 
@@ -125,14 +125,14 @@ fn setup
   tensor_ilower2 gOut;
 
   forevery_unfactor' (rows * cols) rows cols (fun r c ->
-    tensor_pts_to_cell gOut (idx2 r c) (acc2 eOut r c));
+    pts_to_cell gOut (idx2 r c) (acc2 eOut r c));
 
   ghost
   fn hide_specific_val_behind_exists (rc: natlt (rows * cols))
     requires
-        tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (acc2 #_ #rows #cols eOut (rc / cols) (rc % cols))
+        pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) (acc2 #_ #rows #cols eOut (rc / cols) (rc % cols))
     ensures
-      (exists* vv. tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv)
+      (exists* vv. pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv)
   {
     ()
   };
@@ -142,12 +142,12 @@ fn setup
   forevery_zip #(natlt (rows * cols))
     _
     (fun rc ->
-      (exists* vv. tensor_pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv));
+      (exists* vv. pts_to_cell gOut (idx2 (rc / cols <: natlt rows) (rc % cols <: natlt cols)) vv));
 
   forevery_ext #(natlt (rows * cols))
     (fun i ->
       (gIn |-> Frac (fIn /. (rows * cols)) eIn) **
-      exists* vv. tensor_pts_to_cell gOut (idx2 (i/cols <: natlt rows) (i%cols <: natlt cols)) vv)
+      exists* vv. pts_to_cell gOut (idx2 (i/cols <: natlt rows) (i%cols <: natlt cols)) vv)
     (fun i ->
       kpre stencil gIn fIn gOut eIn i);
   forevery_rw_size (rows * cols) nblk;
@@ -190,11 +190,11 @@ fn teardown
   assert (pure (forall (r c : nat). c < cols ==> (r * cols + c) % cols == c));
   forevery_ext_2
     (fun (r:natlt rows) (c:natlt cols) ->
-      tensor_pts_to_cell gOut (idx2 ((r * cols + c) / cols <: natlt rows) ((r * cols + c) % cols <: natlt cols))
+      pts_to_cell gOut (idx2 ((r * cols + c) / cols <: natlt rows) ((r * cols + c) % cols <: natlt cols))
          (STS.stencil_result_at_idx #_ #_ #rows #cols stencil eIn
             ((r * cols + c) / cols) ((r * cols + c) % cols)))
     (fun (r:natlt rows) (c:natlt cols) ->
-      tensor_pts_to_cell gOut (idx2 r c)
+      pts_to_cell gOut (idx2 r c)
         (acc2 (STS.stencil_result stencil eIn) r c));
 
   tensor_iraise2 gOut;

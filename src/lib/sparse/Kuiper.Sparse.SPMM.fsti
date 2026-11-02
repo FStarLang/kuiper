@@ -49,7 +49,7 @@ fn spmm_on
   }) // Ver nota abajo
   (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
-  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global_csr_matrix gA})
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : larray sz rows)
@@ -107,7 +107,7 @@ fn spmm
   }) // Ver nota abajo
   (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
   (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
-  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global_csr_matrix gA})
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : larray sz rows)

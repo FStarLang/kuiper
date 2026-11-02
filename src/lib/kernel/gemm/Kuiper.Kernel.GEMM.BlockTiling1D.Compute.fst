@@ -88,7 +88,7 @@ let column_cell
   (m : array2 et l) (em : chest2 et tile tile) (tid : natlt tile)
   (initialized : bool) (ii : natlt tile)
   : slprop =
-  exists* (value : et). tensor_pts_to_cell m (idx2 ii tid) value **
+  exists* (value : et). pts_to_cell m (idx2 ii tid) value **
     pure (initialized ==> value == acc2 em ii tid)
 
 inline_for_extraction noextract
@@ -131,11 +131,11 @@ fn bring_2cols
   unfold own_1_col sa1 tid;
   unfold own_1_col sa2 tid;
   forevery_map
-    (fun (ii : natlt tile) -> exists* (value : tacc). tensor_pts_to_cell sa1 (idx2 ii tid) value)
+    (fun (ii : natlt tile) -> exists* (value : tacc). pts_to_cell sa1 (idx2 ii tid) value)
     (fun (ii : natlt tile) -> column_cell sa1 vA tid (ii < 0) ii)
     fn ii { fold column_cell sa1 vA tid (ii < 0) ii };
   forevery_map
-    (fun (ii : natlt tile) -> exists* (value : tacc). tensor_pts_to_cell sa2 (idx2 ii tid) value)
+    (fun (ii : natlt tile) -> exists* (value : tacc). pts_to_cell sa2 (idx2 ii tid) value)
     (fun (ii : natlt tile) -> column_cell sa2 vB tid (ii < 0) ii)
     fn ii { fold column_cell sa2 vB tid (ii < 0) ii };
   let mut i = 0sz;
@@ -151,8 +151,8 @@ fn bring_2cols
         (fun ii -> column_cell sa1 vA tid (ii < ci) ii);
       unfold column_cell sa1 vA tid (ci < ci) ci;
       let tileM = array2_extract_tile_ro' gA (SZ.v tile) (SZ.v tile) (SZ.v mm) (SZ.v kk);
-      let v1 = tensor_read tileM ((ci <: szlt _), ((tid <: szlt _), ()));
-      tensor_write_cell sa1 ((ci <: szlt _), ((tid <: szlt _), ())) (mapA v1);
+      let v1 = read tileM ((ci <: szlt _), ((tid <: szlt _), ()));
+      write_cell sa1 ((ci <: szlt _), ((tid <: szlt _), ())) (mapA v1);
       ambig_trade_elim ();
       fold column_cell sa1 vA tid true ci;
       Pulse.Lib.Forall.elim_forall (fun ii -> column_cell sa1 vA tid (ii < ci + 1) ii);
@@ -166,8 +166,8 @@ fn bring_2cols
         (fun ii -> column_cell sa2 vB tid (ii < ci) ii);
       unfold column_cell sa2 vB tid (ci < ci) ci;
       let tileM = array2_extract_tile_ro' gB (SZ.v tile) (SZ.v tile) (SZ.v kk) (SZ.v nn);
-      let v2 = tensor_read tileM ((ci <: szlt _), ((tid <: szlt _), ()));
-      tensor_write_cell sa2 ((ci <: szlt _), ((tid <: szlt _), ())) (mapB v2);
+      let v2 = read tileM ((ci <: szlt _), ((tid <: szlt _), ()));
+      write_cell sa2 ((ci <: szlt _), ((tid <: szlt _), ())) (mapB v2);
       ambig_trade_elim ();
       fold column_cell sa2 vB tid true ci;
       Pulse.Lib.Forall.elim_forall (fun ii -> column_cell sa2 vB tid (ii < ci + 1) ii);
@@ -190,12 +190,12 @@ fn bring_2cols
     (fun (ii : natlt tile) -> column_cell sa2 vB tid (ii < tile) ii);
   forevery_map
     (fun (ii : natlt tile) -> column_cell sa1 vA tid (ii < tile) ii)
-    (fun (ii : natlt tile) -> tensor_pts_to_cell sa1 (idx2 ii tid) (acc2 vA ii tid))
+    (fun (ii : natlt tile) -> pts_to_cell sa1 (idx2 ii tid) (acc2 vA ii tid))
     fn ii { unfold column_cell sa1 vA tid (ii < tile) ii };
   fold own_1_col_at sa1 vA tid;
   forevery_map
     (fun (ii : natlt tile) -> column_cell sa2 vB tid (ii < tile) ii)
-    (fun (ii : natlt tile) -> tensor_pts_to_cell sa2 (idx2 ii tid) (acc2 vB ii tid))
+    (fun (ii : natlt tile) -> pts_to_cell sa2 (idx2 ii tid) (acc2 vB ii tid))
     fn ii { unfold column_cell sa2 vB tid (ii < tile) ii };
   fold own_1_col_at sa2 vB tid;
 }
@@ -253,7 +253,7 @@ fn subproduct_cols
        important for performance. NVCC may realize this is invariant
        across iterations and hoist it out, but don't rely on it. *)
     let csk = !sk;
-    let v2 = tensor_read m2 ((csk <: szlt _), ((j <: szlt _), ()));
+    let v2 = read m2 ((csk <: szlt _), ((j <: szlt _), ()));
     while (!i <^ tile)
       invariant live i ** pure (!i <= tile)
       invariant exists* (s : lseq et tile). acc |-> s **
@@ -265,7 +265,7 @@ fn subproduct_cols
     {
       let ci = !i;
       let csk2 = !sk;
-      let v1 = tensor_read m1 ((ci <: szlt _), ((csk2 <: szlt _), ()));
+      let v1 = read m1 ((ci <: szlt _), ((csk2 <: szlt _), ()));
 
       open Pulse.Lib.Array;
       pts_to_len acc;

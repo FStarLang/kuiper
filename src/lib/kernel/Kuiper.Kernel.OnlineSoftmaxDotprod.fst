@@ -498,11 +498,11 @@ fn softmax_dotprod
     decreases (len - !i) {
 
     let vk = !i;
-    let x = tensor_read a ((vk <: szlt len), ());
+    let x = read a ((vk <: szlt len), ());
     let gx = ras @! vk;
     assert pure (x %~ gx);
 
-    let y = tensor_read b ((vk <: szlt len), ());
+    let y = read b ((vk <: szlt len), ());
     let gy = rbs @! vk;
     assert pure (y %~ gy);
 

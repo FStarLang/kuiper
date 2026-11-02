@@ -119,9 +119,9 @@ val cell_convert_eq
   (f : perm)
   (v : et)
   : Lemma (
-    tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) #f (idx2 i j) v
+    pts_to_cell (array2_subtile gm trows tcols tr tc) #f (idx2 i j) v
     ==
-    tensor_pts_to_cell gm #f (idx2 (tr * trows + i) (tc * tcols + j)) v
+    pts_to_cell gm #f (idx2 (tr * trows + i) (tc * tcols + j)) v
   )
 
 ghost
@@ -373,7 +373,7 @@ fn array2_explode_tiled
   ensures
     forall+ (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
             (i : natlt trows) (j : natlt tcols).
-      tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
+      pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
         (acc2 em (tr * trows + i) (tc * tcols + j))
 
 (* Implode a tiled per-cell ownership back to full matrix.
@@ -397,7 +397,7 @@ fn array2_implode_tiled
   requires
     forall+ (tr : natlt (rows / trows)) (tc : natlt (cols / tcols))
             (i : natlt trows) (j : natlt tcols).
-      tensor_pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
+      pts_to_cell (array2_subtile gm trows tcols tr tc) (idx2 i j)
         (val_fn tr tc i j)
   ensures
     gm |-> mk2 (fun (row : natlt rows) (col : natlt cols) ->

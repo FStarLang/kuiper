@@ -74,7 +74,7 @@ fn ff_to
   returns r : ot
   ensures pure (r == f (acc si (up i)))
 {
-  let y = tensor_read input i;
+  let y = read input i;
   f y;
 }
 
@@ -169,7 +169,7 @@ fn ff2
   returns r : et
   ensures pure (r == f x (acc sb (up i)))
 {
-  let y = tensor_read b i;
+  let y = read b i;
   f x y;
 }
 
@@ -262,8 +262,8 @@ fn ff2_to
   returns r : ot
   ensures pure (r == f (acc sa (up i)) (acc sb (up i)))
 {
-  let x = tensor_read a i;
-  let y = tensor_read b i;
+  let x = read a i;
+  let y = read b i;
   f x y;
 }
 
@@ -311,8 +311,8 @@ fn ff3
   returns r : et
   ensures pure (r == f x (acc sb (up i)) (acc sc (up i)))
 {
-  let y = tensor_read b i;
-  let z = tensor_read c i;
+  let y = read b i;
+  let z = read c i;
   f x y z;
 }
 
@@ -359,9 +359,9 @@ fn ff3_to
   returns r : ot
   ensures pure (r == f (acc sa (up i)) (acc sb (up i)) (acc sc (up i)))
 {
-  let x = tensor_read a i;
-  let y = tensor_read b i;
-  let z = tensor_read c i;
+  let x = read a i;
+  let y = read b i;
+  let z = read c i;
   f x y z;
 }
 

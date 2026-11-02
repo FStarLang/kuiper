@@ -18,14 +18,14 @@ type csr_matrix (et : Type0)
   row_off   : larray sz (rows + 1); // posición de cada comienzo de fila
 }
 
-let is_global_csr_matrix
+let is_global
   (#et:Type0) {| scalar et |}
   (#rows #cols : nat)
   (m : csr_matrix et rows cols)
   : prop
-  = is_global_array m.elems
-    /\ is_global_array m.col_ind
-    /\ is_global_array m.row_off
+  = is_global m.elems
+    /\ is_global m.col_ind
+    /\ is_global m.row_off
 
 let valid_csr_matrix
   (#nnz rows cols : nat)

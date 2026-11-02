@@ -6,7 +6,7 @@ open Kuiper.Kernel.GEMMGPU.Type
 open Kuiper
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Slice
-open Kuiper.Tensor { tensor_pts_to_cell as pts_to_cell }
+open Kuiper.Tensor { pts_to_cell as pts_to_cell }
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 module C = Kuiper.Matrix.Casts
@@ -169,9 +169,9 @@ fn bkf
     (sliceof gB 0 (SZ.v page) |-> Frac (fB /. (b * (m * n))) (chest_slice 0 (SZ.v page) eB))
     (gB |-> Frac (fB /. (b * (m * n))) eB);
 
-  let v0 = tensor_read_cell gC (page, (trow, (tcol, ())));
+  let v0 = read_cell gC (page, (trow, (tcol, ())));
   let v1 = comb v0 s;
-  tensor_write_cell gC (page, (trow, (tcol, ()))) v1;
+  write_cell gC (page, (trow, (tcol, ()))) v1;
 
   rewrite pts_to_cell gC
     ((SZ.v page <: natlt (SZ.v b)),

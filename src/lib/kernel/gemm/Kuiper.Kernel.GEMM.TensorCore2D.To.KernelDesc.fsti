@@ -34,7 +34,7 @@ let own_lane_cells
   (lane : natlt warp_size)
   : slprop
 = forall+ (ij : (natlt rows & natlt cols){in_lane rows cols lane ij}).
-    tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2)
+    pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2)
 
 let live_lane_cells
   (#et : Type0) {| scalar et |}

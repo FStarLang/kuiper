@@ -303,7 +303,7 @@ inline_for_extraction noextract
 let kdesc
   (#ty:Type0)
   (size:sz { size > 0sz /\ size % 2 == 0 /\ size < max_blocks })
-  (a : larray ty size { is_global_array a })
+  (a : larray ty size { is_global a })
   (#s: erased (FStar.Seq.seq ty) { len s == SZ.v size })
   : kernel_desc_m_1
       (a |-> s)
@@ -324,7 +324,7 @@ inline_for_extraction noextract
 fn reverse
     (#ty:Type0)
     (size:sz { size > 0sz /\ size % 2 == 0 /\ size < max_blocks })
-    (a : larray ty size { is_global_array a })
+    (a : larray ty size { is_global a })
     (#s: erased (seq ty) { len s == SZ.v size })
   preserves
     cpu

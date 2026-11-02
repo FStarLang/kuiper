@@ -135,7 +135,7 @@ fn foo_even
   preserves gpu
   preserves a |-> v0
   returns   u32
-{ varray_read a 10sz; }
+{ read a 10sz; }
 
 fn foo_odd
   (a : varray (odd_view (raw_view #u32 #100)))
@@ -143,12 +143,12 @@ fn foo_odd
   preserves gpu
   preserves a |-> v0
   returns   u32
-{ varray_read a 10sz; }
+{ read a 10sz; }
 
 inline_for_extraction noextract // view polymorphic
 fn foo_even'
   (#vw : aview u32 100 (lseq u32 100))
-  (#_ : squash (is_full_view vw /\ vw.iview.sch == (raw_aiview_schema 100)))
+  (#_ : squash (is_full vw /\ vw.iview.sch == (raw_aiview_schema 100)))
   {| c : cview vw |}
   (#_ : squash (c.sch == raw_ciview_schema 100))
   (a : varray (even_view vw))
@@ -157,13 +157,13 @@ fn foo_even'
   preserves a |-> v0
   returns   u32
 {
-  varray_read a 10sz;
+  read a 10sz;
 }
 
 inline_for_extraction noextract // view polymorphic
 fn foo_odd'
   (#vw : aview u32 100 (lseq u32 100))
-  (#_ : squash (is_full_view vw /\ vw.iview.sch == (raw_aiview_schema 100)))
+  (#_ : squash (is_full vw /\ vw.iview.sch == (raw_aiview_schema 100)))
   {| c : cview vw |}
   (#_ : squash (c.sch == raw_ciview_schema 100))
   (a : varray (odd_view vw))
@@ -172,16 +172,16 @@ fn foo_odd'
   preserves a |-> v0
   returns   u32
 {
-  varray_read a 10sz;
+  read a 10sz;
 }
 
 let split_view (vw : aview 'et 'len (lseq 'et 'len) { vw.iview.ait == (raw_aiview_schema 'len).ait }) =
-  sum_aview (even_view vw) (odd_view vw)
+  sum_view (even_view vw) (odd_view vw)
 
 inline_for_extraction noextract // view polymorphic
 fn test'
   (#vw : aview u32 100 (lseq u32 100))
-  (#_ : squash (is_full_view vw /\ vw.iview.sch == (raw_aiview_schema 100)))
+  (#_ : squash (is_full vw /\ vw.iview.sch == (raw_aiview_schema 100)))
   {| c : cview vw |}
   (#_ : squash (c.sch == raw_ciview_schema 100))
   (a : varray vw)

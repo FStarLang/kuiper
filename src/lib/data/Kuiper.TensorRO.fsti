@@ -107,7 +107,7 @@ val lem_is_global_iff_core
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : vtlayout d)
   (a : rotensor et l)
-  : Lemma (ensures is_global a <==> is_global_array (core a))
+  : Lemma (ensures is_global a <==> is_global (core a))
           [SMTPat (is_global a)]
 
 val tensor_pts_to
@@ -225,7 +225,7 @@ fn tensor_gather_n_underspec
 // }
 
 inline_for_extraction noextract
-fn tensor_read
+fn read
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : vtlayout d) {| cvtlayout l |}
   (a : rotensor et l)
@@ -240,7 +240,7 @@ fn tensor_read
     pure (v == acc s (up i))
 
 // inline_for_extraction noextract
-// fn tensor_write
+// fn write
 //   (#et : Type0) (#r : erased nat) (#d : shape r)
 //   (#l : vtlayout d) {| ctlayout l |}
 //   (a : rotensor et l)
@@ -261,7 +261,7 @@ unfold let ( .() )
   (i : conc d)
   (#f : perm)
   (#s : chest d et)
-  = tensor_read #et #r #d #l a i #f #s
+  = read #et #r #d #l a i #f #s
 
 (* Syntax *)
 // inline_for_extraction noextract
@@ -272,9 +272,9 @@ unfold let ( .() )
 //   (i : conc d)
 //   (v : et)
 //   (#s : chest d et)
-//   = tensor_write #et #r #d #l a i v #s
+//   = write #et #r #d #l a i v #s
 
-val tensor_pts_to_cell
+val pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : vtlayout d)
   ([@@@mkey] a : rotensor et l)
@@ -287,10 +287,10 @@ val tensor_pts_to_cell
 instance cell_pts_to (#et : Type) (#r : nat) (#d : shape r) (#l : vtlayout d)
   : has_pts_to (cell (rotensor et l) (abs d)) et
 = {
-  pts_to = (fun (Cell ar i) #f v -> tensor_pts_to_cell ar #f i v);
+  pts_to = (fun (Cell ar i) #f v -> pts_to_cell ar #f i v);
 }
 
-val tensor_pts_to_cell_eq
+val pts_to_cell_eq
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : vtlayout d)
   (a : rotensor et l) (i : abs d) (f : perm) (v : et)
@@ -304,10 +304,10 @@ val is_send_across_global_tensor_cell
   (#l : vtlayout d)
   (a : rotensor et l { is_global a })
   (#f : perm) (i : abs d) (v : et)
-  : is_send_across gpu_of (tensor_pts_to_cell a #f i v)
+  : is_send_across gpu_of (pts_to_cell a #f i v)
 
 inline_for_extraction noextract
-fn tensor_read_cell
+fn read_cell
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : vtlayout d) {| cvtlayout l |}
   (a : rotensor et l)
@@ -322,7 +322,7 @@ fn tensor_read_cell
     pure (v == s)
 
 // inline_for_extraction noextract
-// fn tensor_write_cell
+// fn write_cell
 //   (#et : Type0) (#r : erased nat) (#d : shape r)
 //   (#l : vtlayout d) {| ctlayout l |}
 //   (a : rotensor et l)
@@ -421,7 +421,7 @@ val tensor_slice_cell_eq
    cells with.  The pure/layout-level slicing below ([sliceof], [vtlayout_slice],
    [ctlayout_slice], [tensor_slice_cell_eq], ...) is sound and retained; the ownership
    transfer is intentionally omitted, mirroring the removal of the injective-only
-   [ref_of_tensor_cell] family. *)
+   [ref_of_cell] family. *)
 
 let vtlayout_bij
   (#r1 : nat) (#d1 : shape r1)
@@ -591,7 +591,7 @@ val lem_vtlayout_of_tlayout_ulen (#r : nat) (#d : shape r) (l : tlayout d)
           [SMTPat (vtlayout_ulen (vtlayout_of_tlayout l))]
 
 (* A concrete writable layout is concrete read-only: reuse its runtime index
-   map.  This lets callers [tensor_read] a borrowed read-only view. *)
+   map.  This lets callers [read] a borrowed read-only view. *)
 inline_for_extraction noextract
 instance val cvtlayout_of_ctlayout
   (#r : erased nat) (#d : shape r)

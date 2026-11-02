@@ -81,8 +81,8 @@ fn mma_sync
   (#va : chest2 bf16 64 16)
   (#vb : chest2 bf16 16 8)
   (#vc : chest2 float 64 8)
-  requires pure (Kuiper.SHMem.is_block_array (core a) /\
-                 Kuiper.SHMem.is_block_array (core b) /\
+  requires pure (Kuiper.SHMem.is_block (core a) /\
+                 Kuiper.SHMem.is_block (core b) /\
                  Kuiper.Array.aligned 16 (core a) /\
                  Kuiper.Array.aligned 16 (core b))
   preserves a |-> Frac fa va

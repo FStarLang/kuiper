@@ -266,7 +266,7 @@ fn matrix_vec_store
       let i' : natlt rows = SZ.v i;
       assert rewrites_to i' (SZ.v i);
 
-      tensor_pts_to_cell_eq gm (idx2 i' j') 1.0R (Seq.index v x);
+      pts_to_cell_eq gm (idx2 i' j') 1.0R (Seq.index v x);
       strided.pf i' j';
 
       rewrite Cell gm (idx2 i' j') |-> Seq.index v x
@@ -291,7 +291,7 @@ fn matrix_vec_store
         (Seq.index (Seq.slice s k (k + chunk et)) x)
     )
     (fun x ->
-      tensor_pts_to_cell gm (idx2 i (j + x)) (Seq.index (seq_chunk s k) x)
+      pts_to_cell gm (idx2 i (j + x)) (Seq.index (seq_chunk s k) x)
     )
     fn x {
       let j' : natlt cols = j + x;
@@ -299,7 +299,7 @@ fn matrix_vec_store
       let i' : natlt rows = SZ.v i;
       assert rewrites_to i' (SZ.v i);
 
-      tensor_pts_to_cell_eq gm (idx2 i' j') 1.0R (Seq.index (Seq.slice s k (k + chunk et)) x);
+      pts_to_cell_eq gm (idx2 i' j') 1.0R (Seq.index (Seq.slice s k (k + chunk et)) x);
       strided.pf i' j';
 
       // assert pure (Seq.slice s k (k + chunk et) @! x == seq_chunk s k @! x);
@@ -308,7 +308,7 @@ fn matrix_vec_store
           (core gm)
           (offset + x)
           (Seq.index (Seq.slice s k (k + chunk et)) x)
-      as tensor_pts_to_cell gm (idx2 i' j') (Seq.index (seq_chunk s k) x);
+      as pts_to_cell gm (idx2 i' j') (Seq.index (seq_chunk s k) x);
     };
   fold matrix_pts_to_vec gm i j (seq_chunk s k);
   fold matrix_pts_to_vec_slice gm i j s k;

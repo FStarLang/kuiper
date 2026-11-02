@@ -15,7 +15,7 @@ open Kuiper.Common
 //for visibility_of, gpu_of
 let is_send_across_block_array
   (#et:Type0)
-  (a : array et { is_block_array a })
+  (a : array et { is_block a })
   (#f:perm) (#s:_)
 : is_send_across block_of (pts_to a #f s)
 = let i : is_send_across (visibility_of a) (pts_to a #f s)

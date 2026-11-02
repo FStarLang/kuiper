@@ -58,7 +58,7 @@ let min_tid_pow2_step (tid nth k : nat)
           (ensures min (tid + pow2 k) nth == tid + 1)
   = ()
 
-(* Wrapper around [tensor_read] that takes the row/col already refined as
+(* Wrapper around [read] that takes the row/col already refined as
    [szlt rows]/[szlt cols], so the [conc] index is well-typed from the
    parameter types. *)
 inline_for_extraction noextract
@@ -78,7 +78,7 @@ fn read_at
   ensures
     pure (res == acc2 sx (SZ.v row) (SZ.v col))
 {
-  tensor_read x (cidx2 row col)
+  read x (cidx2 row col)
 }
 
 (* Drop a per-element [pure] clause from a [forevery] predicate. *)
@@ -237,7 +237,7 @@ let kpre_block
   : slprop
   = x |-> Frac ((1.0R /. SZ.v rows) /. nth) sx **
     if_ (op_Equals #nat tid 0) (Cell output ((bid, ()) <: abs (rows @| INil)) |-> (acc1 sout bid)) **
-    exists* (v : et). tensor_pts_to_cell (from_array (l1_forward nth) shmem._1) (tid, ()) v
+    exists* (v : et). pts_to_cell (from_array (l1_forward nth) shmem._1) (tid, ()) v
 
 unfold
 let kpost_block
@@ -324,7 +324,7 @@ fn kf_block
 
   (* Compute partial max over stride and write to shmem. *)
   let psum : et = max_stride_map_2d pre_map pre_map_r rows cols x bid nth tid vr_row;
-  tensor_write_cell sa (tid, ()) psum;
+  write_cell sa (tid, ()) psum;
 
   (* Set up tree reduction state. *)
   let mut n : szlt 32 = 0sz;
@@ -377,17 +377,17 @@ fn kf_block
     (**)assert (pure (Seq.equal (Seq.slice (reveal vr_s) 0 nth) (reveal vr_s)));
 
     let res = array1_read_from_slice sa 0sz;
-    tensor_write_cell output (bid, ()) res;
+    write_cell output (bid, ()) res;
 
     with ss. assert array1_pts_to_slice sa 0 nth ss;
     unfold array1_pts_to_slice sa;
     let css : chest1 et nth = hide (mk1 #et #nth (fun (k:natlt nth) -> acc1 ss k));
     forevery_refine_ext' #nat #(fun (k:nat) -> 0 <= k /\ k < nth) (fun (k:nat) -> k < nth) _;
     forevery_ext
-      (fun (k:natlt nth) -> tensor_pts_to_cell sa ((k <: natlt nth), ()) (acc1 ss (k - 0)))
-      (fun (k:natlt nth) -> tensor_pts_to_cell sa (abs_bij.gg k) (acc (reveal css) (abs_bij.gg k)));
+      (fun (k:natlt nth) -> pts_to_cell sa ((k <: natlt nth), ()) (acc1 ss (k - 0)))
+      (fun (k:natlt nth) -> pts_to_cell sa (abs_bij.gg k) (acc (reveal css) (abs_bij.gg k)));
     forevery_iso_back (abs_bij #nth)
-      (fun (i : abs (nth @| INil)) -> tensor_pts_to_cell sa i (acc (reveal css) i));
+      (fun (i : abs (nth @| INil)) -> pts_to_cell sa i (acc (reveal css) i));
     tensor_implode sa #1.0R #(reveal css);
     rewrite each sa as from_array (l1_forward nth) shmem._1;
     if_intro_true' (op_Equals #nat tid 0) (

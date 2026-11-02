@@ -202,13 +202,13 @@ fn own_lane_cells_rw
   unfold own_lane_cells m em1 lane;
   forevery_map
     #(ij : (natlt rows & natlt cols){in_lane rows cols lane ij})
-    (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em1 ij._1 ij._2))
-    (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em2 ij._1 ij._2))
+    (fun ij -> pts_to_cell m (idx2 ij._1 ij._2) (acc2 em1 ij._1 ij._2))
+    (fun ij -> pts_to_cell m (idx2 ij._1 ij._2) (acc2 em2 ij._1 ij._2))
     fn ij {
       rewrite
-        tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em1 ij._1 ij._2)
+        pts_to_cell m (idx2 ij._1 ij._2) (acc2 em1 ij._1 ij._2)
       as
-        tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em2 ij._1 ij._2);
+        pts_to_cell m (idx2 ij._1 ij._2) (acc2 em2 ij._1 ij._2);
     };
   fold own_lane_cells m em2 lane;
 }
@@ -229,11 +229,11 @@ fn join_array2_from_lane_cells
     (fun lane -> own_lane_cells m em lane)
     (fun lane ->
       forall+ (ij : (natlt rows & natlt cols){in_lane rows cols lane ij}).
-        tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2))
+        pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2))
     fn lane { unfold own_lane_cells m em lane };
   forevery_join_or_n
     (fun (lane : natlt warp_size) ij -> in_lane rows cols lane ij)
-    (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2));
+    (fun ij -> pts_to_cell m (idx2 ij._1 ij._2) (acc2 em ij._1 ij._2));
   Classical.forall_intro (in_lane_covers_all rows cols);
   Classical.forall_intro_3
     (fun ij lane1 -> Classical.move_requires

@@ -85,8 +85,8 @@ let tensor_slice_cell_eq
            ==
            Cell a ((abs_bring_forward_bij i d).gg (j, k)) |-> Frac f v)
            [SMTPat (Cell (sliceof a i j) k |-> Frac f v)]
-  = tensor_pts_to_cell_eq (sliceof a i j) k f v;
-    tensor_pts_to_cell_eq a ((abs_bring_forward_bij i d).gg (j, k)) f v;
+  = pts_to_cell_eq (sliceof a i j) k f v;
+    pts_to_cell_eq a ((abs_bring_forward_bij i d).gg (j, k)) f v;
     ()
 
 ghost
@@ -129,7 +129,7 @@ fn tensor_extract_slice
       Cell (sliceof a i j) k |-> Frac f (acc (chest_slice i j s) k)
   {
     let jk = (abs_bring_forward_bij i d).gg (j, k);
-    tensor_pts_to_cell_eq a jk f (acc s jk);
+    pts_to_cell_eq a jk f (acc s jk);
     rewrite
       Cell a ((abs_bring_forward_bij i d).gg (j, k)) |-> Frac f (acc s jk)
     as
@@ -233,7 +233,7 @@ fn tensor_extract_slice
           Cell a ((abs_bring_forward_bij i d).gg (j, k)) |-> Frac f (acc new_s ((abs_bring_forward_bij i d).gg (j, k)))
       {
         let jk = (abs_bring_forward_bij i d).gg (j, k);
-        tensor_pts_to_cell_eq a jk f (acc s jk);
+        pts_to_cell_eq a jk f (acc s jk);
         rewrite
           Cell (sliceof a i j) k |-> Frac f (acc s' k)
         as

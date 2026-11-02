@@ -64,9 +64,9 @@ returns
 ensures
   pure (vfgather di do dim eInp eIdx (up i) x r)
 {
-  let idx = tensor_read gIdx i;
+  let idx = read gIdx i;
   let idx' = conc_set_at2 cdi cdo dim idx i;
-  let inp = tensor_read gInp idx';
+  let inp = read gInp idx';
 
   inp
 }

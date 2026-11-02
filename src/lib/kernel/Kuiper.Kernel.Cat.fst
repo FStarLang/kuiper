@@ -139,11 +139,11 @@ ensures
   let b = jc <^ na;
   if b {
     let ia = conc_narrow dimsz cdA cdout () jc () i;
-    let v = tensor_read gA ia;
+    let v = read gA ia;
     v
   } else {
     let ib = conc_narrow dimsz cdB cdout () (jc -^ na) () i;
-    let v = tensor_read gB ib;
+    let v = read gB ib;
     v
   }
 }

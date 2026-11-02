@@ -24,12 +24,12 @@ type shmem_desc =
     len    : SZ.t { len > 0 } ->
     shmem_desc
 
-let is_block_array #ty (g : array ty)
+let is_block #ty (g : array ty)
   = visibility_of g == block_of
 
 val is_send_across_block_array
   (#et:Type0)
-  (a : array et { is_block_array a })
+  (a : array et { is_block a })
   (#f:perm) (#s:_)
 : is_send_across block_of (pts_to a #f s)
 
@@ -37,7 +37,7 @@ inline_for_extraction unfold
 let c_shmem (d : shmem_desc) : Type0 =
   match d with
   | SHArray ty len -> larray ty len
-  //would be nice to just add as is_block_array refinement here, but it messes with typeclass resolution
+  //would be nice to just add as is_block refinement here, but it messes with typeclass resolution
 
 let rec c_shmems (d : list shmem_desc) : Type0 =
   match d with
@@ -47,7 +47,7 @@ let rec c_shmems (d : list shmem_desc) : Type0 =
 
 let c_shmem_inv (#d : shmem_desc) (c:c_shmem d) : prop =
   match d with
-  | SHArray ty len -> is_block_array #ty c
+  | SHArray ty len -> is_block #ty c
 
 let rec c_shmems_block_inv (#ds : list shmem_desc) (c:c_shmems ds) : prop =
   match ds with

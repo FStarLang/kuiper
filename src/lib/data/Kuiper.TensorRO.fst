@@ -85,7 +85,7 @@ let lem_is_global_iff_core
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : vtlayout d)
   (a : rotensor et l)
-  : Lemma (ensures is_global a <==> is_global_array (core a))
+  : Lemma (ensures is_global a <==> is_global (core a))
           [SMTPat (is_global a)]
   = ()
 
@@ -116,7 +116,7 @@ let tensor_pts_to
       pure (s == ro_chest l v)
 
 (* The raw indexing view over the [ulen] backing cells is concretizable
-   whenever the layout is; this lets us reuse [IArray.iarray_read]. *)
+   whenever the layout is; this lets us reuse [IArray.read]. *)
 inline_for_extraction noextract
 let raw_cview (len : erased nat) (pf : squash (SZ.fits len))
   : IV.ciview (IV.raw_view #len)
@@ -300,7 +300,7 @@ fn tensor_gather_n_underspec
 }
 
 inline_for_extraction noextract
-fn tensor_read
+fn read
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : vtlayout d) {| cv : cvtlayout l |}
   (a : rotensor et l)
@@ -316,7 +316,7 @@ fn tensor_read
 {
   unfold tensor_pts_to a #f s;
   let cm : szlt l.ulen = cv.cimap i;
-  let res = IA.iarray_read #et #(uview l) #(cvtlayout_ciview cv) a cm;
+  let res = IA.read #et #(uview l) #(cvtlayout_ciview cv) a cm;
   (* [(uview l).ait] is definitionally [natlt l.ulen], but the solver no longer
      sees through the projection; state the type equality and coerce. *)
   uview_ait l ();
@@ -326,7 +326,7 @@ fn tensor_read
   res
 }
 
-let tensor_pts_to_cell
+let pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : vtlayout d)
   ([@@@mkey] a : rotensor et l)
@@ -336,7 +336,7 @@ let tensor_pts_to_cell
   : slprop
   = pts_to_cell (core a) #f (l.imap i) v
 
-let tensor_pts_to_cell_eq
+let pts_to_cell_eq
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : vtlayout d)
   (a : rotensor et l) (i : abs d) (f : perm) (v : et)
@@ -350,13 +350,13 @@ instance is_send_across_global_tensor_cell
   (#l : vtlayout d)
   (a : rotensor et l { is_global a })
   (#f : perm) (i : abs d) (v : et)
-  : is_send_across gpu_of (tensor_pts_to_cell a #f i v)
+  : is_send_across gpu_of (pts_to_cell a #f i v)
   =
   let pf : is_send_across gpu_of (pts_to_cell (core a) #f (l.imap i) v) = solve in
   pf
 
 inline_for_extraction noextract
-fn tensor_read_cell
+fn read_cell
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : vtlayout d) {| cv : cvtlayout l |}
   (a : rotensor et l)
@@ -370,7 +370,7 @@ fn tensor_read_cell
   ensures
     pure (v == s)
 {
-  tensor_pts_to_cell_eq a (up i) f s;
+  pts_to_cell_eq a (up i) f s;
   rewrite (Cell a (up i) |-> Frac f s)
        as (pts_to_cell (core a) #f (l.imap (up i)) s);
   let cm : SZ.t = cv.cimap i;

@@ -33,7 +33,7 @@ fn array2_collect_approx_tiled
   requires
     forall+ (bid : natlt (ntr * ntc)) (tid : natlt (trows * tcols)).
       exists* (v : et).
-        tensor_pts_to_cell
+        pts_to_cell
           (array2_subtile gm trows tcols (bid / ntc) (bid % ntc))
           (idx2 (tid / tcols <: natlt trows) (tid % tcols <: natlt tcols)) v **
         pure (spec_fn ((bid / ntc) * trows + (tid / tcols))

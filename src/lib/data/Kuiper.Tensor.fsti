@@ -100,7 +100,7 @@ val lem_is_global_iff_core
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
-  : Lemma (ensures is_global a <==> is_global_array (core a))
+  : Lemma (ensures is_global a <==> is_global (core a))
           [SMTPat (is_global a)]
 
 val tensor_pts_to
@@ -298,7 +298,7 @@ instance ctensor_ciview
 }
 
 inline_for_extraction noextract
-fn tensor_read
+fn read
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
@@ -313,7 +313,7 @@ fn tensor_read
     pure (v == acc s (up i))
 
 inline_for_extraction noextract
-fn tensor_write
+fn write
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
@@ -334,7 +334,7 @@ unfold let ( .() )
   (i : conc d)
   (#f : perm)
   (#s : chest d et)
-  = tensor_read #et #r #d #l a i #f #s
+  = read #et #r #d #l a i #f #s
 
 (* Syntax *)
 inline_for_extraction noextract
@@ -345,9 +345,9 @@ unfold let ( .()<- )
   (i : conc d)
   (v : et)
   (#s : chest d et)
-  = tensor_write #et #r #d #l a i v #s
+  = write #et #r #d #l a i v #s
 
-val tensor_pts_to_cell
+val pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   ([@@@mkey] a : tensor et l)
@@ -360,10 +360,10 @@ val tensor_pts_to_cell
 instance cell_pts_to (#et : Type) (#r : nat) (#d : shape r) (#l : tlayout d)
   : has_pts_to (cell (tensor et l) (abs d)) et
 = {
-  pts_to = (fun (Cell ar i) #f v -> tensor_pts_to_cell ar #f i v);
+  pts_to = (fun (Cell ar i) #f v -> pts_to_cell ar #f i v);
 }
 
-val tensor_pts_to_cell_eq
+val pts_to_cell_eq
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l) (i : abs d) (f : perm) (v : et)
@@ -377,7 +377,7 @@ val is_send_across_global_tensor_cell
   (#l : tlayout d)
   (a : tensor et l { is_global a })
   (#f : perm) (i : abs d) (v : et)
-  : is_send_across gpu_of (tensor_pts_to_cell a #f i v)
+  : is_send_across gpu_of (pts_to_cell a #f i v)
 
 ghost
 fn tensor_explode
@@ -456,7 +456,7 @@ fn tensor_iraise
     tensor_pts_to a #f s
 
 inline_for_extraction noextract
-fn tensor_read_cell
+fn read_cell
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
@@ -464,14 +464,14 @@ fn tensor_read_cell
   (#f : perm)
   (#s : erased et)
   preserves
-    tensor_pts_to_cell a #f (up i) s
+    pts_to_cell a #f (up i) s
   returns
     v : et
   ensures
     pure (v == s)
 
 inline_for_extraction noextract
-fn tensor_write_cell
+fn write_cell
   (#et : Type0) (#r : erased nat) (#d : shape r)
   (#l : tlayout d) {| ctlayout l |}
   (a : tensor et l)
@@ -479,9 +479,9 @@ fn tensor_write_cell
   (v : et)
   (#s : erased et)
   requires
-    tensor_pts_to_cell a (up i) s
+    pts_to_cell a (up i) s
   ensures
-    tensor_pts_to_cell a (up i) v
+    pts_to_cell a (up i) v
 
 (* Rank-2 conveniences over the (natlt rows & natlt cols) index pair. *)
 
@@ -580,7 +580,7 @@ instance tensor_pts_to_shareable
   _gather_n = (fun (n: pos) (#fr : perm) -> tensor_gather_n t n #fr);
 }
 
-val ref_of_tensor_cell
+val ref_of_cell
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
   (a : tensor et l)
@@ -588,7 +588,7 @@ val ref_of_tensor_cell
   : GTot (ref et)
 
 inline_for_extraction noextract
-fn get_ref_of_tensor_cell
+fn get_ref_of_cell
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
   (a : tensor et l) {| ctlayout l |}
@@ -596,10 +596,10 @@ fn get_ref_of_tensor_cell
   returns
     r : ref et
   ensures
-    rewrites_to r (ref_of_tensor_cell a (up i))
+    rewrites_to r (ref_of_cell a (up i))
 
 ghost
-fn tensor_cell_to_ref
+fn cell_to_ref
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
   (a : tensor et l)
@@ -609,10 +609,10 @@ fn tensor_cell_to_ref
   requires
     Cell a i |-> Frac f v
   ensures
-    ref_of_tensor_cell a i |-> Frac f v
+    ref_of_cell a i |-> Frac f v
 
 ghost
-fn tensor_cell_from_ref
+fn cell_from_ref
   (#et : Type0)
   (#r : nat) (#s : shape r) (#l : tlayout s)
   (a : tensor et l)
@@ -620,6 +620,6 @@ fn tensor_cell_from_ref
   (#f : perm)
   (#v : erased et)
   requires
-    ref_of_tensor_cell a i |-> Frac f v
+    ref_of_cell a i |-> Frac f v
   ensures
     Cell a i |-> Frac f v

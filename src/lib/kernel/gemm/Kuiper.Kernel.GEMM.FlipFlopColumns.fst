@@ -28,7 +28,7 @@ let own_1_col_at
   (m : array2 et l) (em : chest2 et tile tile) (tid : natlt tile)
   : slprop =
   forall+ (ii : natlt tile).
-    tensor_pts_to_cell m (idx2 ii tid) (acc2 em ii tid)
+    pts_to_cell m (idx2 ii tid) (acc2 em ii tid)
 
 let barrier_p
   (#et : Type0) (#tile : valid_tile)
@@ -255,24 +255,24 @@ fn even_barrier_p_to_q
   with em2. assert (m2 |-> em2);
   tensor_ilower2 m1;
   tensor_ilower2 m2;
-  forevery_commute (fun (r c : natlt tile) -> tensor_pts_to_cell m1 (idx2 r c) (acc2 em1 r c));
-  forevery_commute (fun (r c : natlt tile) -> tensor_pts_to_cell m2 (idx2 r c) (acc2 em2 r c));
+  forevery_commute (fun (r c : natlt tile) -> pts_to_cell m1 (idx2 r c) (acc2 em1 r c));
+  forevery_commute (fun (r c : natlt tile) -> pts_to_cell m2 (idx2 r c) (acc2 em2 r c));
   forevery_map
-    (fun (c : natlt tile) -> forall+ (r : natlt tile). tensor_pts_to_cell m1 (idx2 r c) (acc2 em1 r c))
+    (fun (c : natlt tile) -> forall+ (r : natlt tile). pts_to_cell m1 (idx2 r c) (acc2 em1 r c))
     (fun (c : natlt tile) -> own_1_col m1 c)
     fn c {
       forevery_map
-        (fun (r : natlt tile) -> tensor_pts_to_cell m1 (idx2 r c) (acc2 em1 r c))
+        (fun (r : natlt tile) -> pts_to_cell m1 (idx2 r c) (acc2 em1 r c))
         (fun (r : natlt tile) -> exists* (x : et). Cell m1 (idx2 r c) |-> x)
         fn r { };
       fold own_1_col m1 c;
     };
   forevery_map
-    (fun (c : natlt tile) -> forall+ (r : natlt tile). tensor_pts_to_cell m2 (idx2 r c) (acc2 em2 r c))
+    (fun (c : natlt tile) -> forall+ (r : natlt tile). pts_to_cell m2 (idx2 r c) (acc2 em2 r c))
     (fun (c : natlt tile) -> own_1_col m2 c)
     fn c {
       forevery_map
-        (fun (r : natlt tile) -> tensor_pts_to_cell m2 (idx2 r c) (acc2 em2 r c))
+        (fun (r : natlt tile) -> pts_to_cell m2 (idx2 r c) (acc2 em2 r c))
         (fun (r : natlt tile) -> exists* (x : et). Cell m2 (idx2 r c) |-> x)
         fn r { };
       fold own_1_col m2 c;
@@ -312,14 +312,14 @@ fn odd_barrier_p_to_q
   forevery_unzip _ _;
   forevery_map
     (fun c -> own_1_col_at m1 (v1 (it / 2)) c)
-    (fun c -> forall+ (r : natlt tile). tensor_pts_to_cell m1 (idx2 r c) (acc2 (v1 (it / 2)) r c))
+    (fun c -> forall+ (r : natlt tile). pts_to_cell m1 (idx2 r c) (acc2 (v1 (it / 2)) r c))
     fn c { unfold own_1_col_at m1 (v1 (it / 2)) c };
   forevery_map
     (fun c -> own_1_col_at m2 (v2 (it / 2)) c)
-    (fun c -> forall+ (r : natlt tile). tensor_pts_to_cell m2 (idx2 r c) (acc2 (v2 (it / 2)) r c))
+    (fun c -> forall+ (r : natlt tile). pts_to_cell m2 (idx2 r c) (acc2 (v2 (it / 2)) r c))
     fn c { unfold own_1_col_at m2 (v2 (it / 2)) c };
-  forevery_commute (fun (c r : natlt tile) -> tensor_pts_to_cell m1 (idx2 r c) (acc2 (v1 (it / 2)) r c));
-  forevery_commute (fun (c r : natlt tile) -> tensor_pts_to_cell m2 (idx2 r c) (acc2 (v2 (it / 2)) r c));
+  forevery_commute (fun (c r : natlt tile) -> pts_to_cell m1 (idx2 r c) (acc2 (v1 (it / 2)) r c));
+  forevery_commute (fun (c r : natlt tile) -> pts_to_cell m2 (idx2 r c) (acc2 (v2 (it / 2)) r c));
   tensor_iraise2 m1;
   tensor_iraise2 m2;
   tensor_share_n m1 tile;
