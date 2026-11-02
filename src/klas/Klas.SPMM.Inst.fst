@@ -30,7 +30,7 @@ fn inst_on
     (k * chunk et) /? blockItemsX
   }))
   (rows shared cols : szp)
-  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global_csr_matrix gA})
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : larray sz rows)
@@ -100,7 +100,7 @@ fn inst
     (k * chunk et) /? blockItemsX
   }))
   (rows shared cols : szp)
-  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global_csr_matrix gA})
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : larray sz rows)

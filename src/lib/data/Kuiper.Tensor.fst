@@ -61,7 +61,7 @@ let lem_is_global_iff_core
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l)
-  : Lemma (ensures is_global a <==> is_global_array (core a))
+  : Lemma (ensures is_global a <==> is_global (core a))
           [SMTPat (is_global a)]
   = ()
 

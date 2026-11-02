@@ -41,7 +41,7 @@ val visibility_of_gsub (#a:Type0) (arr:array a) (i:nat)
 let visible_on_gpu #a (x:array a) (gpu_id:int) =
   gpu_of (loc_id_of_array x) == gpu_id_loc gpu_id
 
-let is_global_array #a (#[T.exact (`0)]gpu_id:int) (x:array a) : prop =
+let is_global #a (#[T.exact (`0)]gpu_id:int) (x:array a) : prop =
   visible_on_gpu x gpu_id /\
   visibility_of x == gpu_of
 
@@ -89,7 +89,7 @@ instance val is_send_across_array_exists (#a : Type0) (arr : array a)
   : is_send_across (visibility_of arr) (array_exists arr)
 
 instance is_send_across_global_array_exists
-  (#a : Type0) (arr : array a{is_global_array arr})
+  (#a : Type0) (arr : array a{is_global arr})
   : is_send_across gpu_of (array_exists arr) =
   let i : is_send_across (visibility_of arr) (array_exists arr) = solve in i
 
@@ -213,7 +213,7 @@ instance val is_send_pts_to_slice
 
 instance is_send_across_global_array
   (#et:Type0)
-  (a : array et { is_global_array a })
+  (a : array et { is_global a })
   (#i #j #f #s:_)
 : is_send_across gpu_of (pts_to_slice a #f i j s)
 = let i : is_send_across (visibility_of a) (pts_to_slice a #f i j s) = solve in
@@ -251,7 +251,7 @@ fn gpu_array_alloc
       pure (
         Seq.length s == sz /\
         aligned 128 x /\
-        is_global_array x /\
+        is_global x /\
         A.is_full_array x
       )
 

@@ -39,7 +39,7 @@ let lem_is_global_iff_core
   (#a : Type0)
   (#st : Type) (#vw : aview a st)
   (g : varray vw)
-  : Lemma (ensures is_global g <==> is_global_array (core g))
+  : Lemma (ensures is_global g <==> is_global (core g))
           [SMTPat (is_global g)]
   = ()
 

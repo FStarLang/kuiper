@@ -416,7 +416,7 @@ let kdesc
   (#lB : layout2 shared cols)
   (#lC : layout2 rows cols)
   {| ctlayout lB, ctlayout lC |}
-  (gA : csr_matrix et (SZ.v rows) (SZ.v shared) { is_global_csr_matrix gA })
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared) { is_global gA })
   (#fA : perm)
   (gB : array2 et lB { is_global gB })
   (#fB : perm)
@@ -460,7 +460,7 @@ fn mmcomb_gpu
   (#lB : layout2 shared cols)
   (#lC : layout2 rows cols)
   {| ctlayout lB, ctlayout lC |}
-  (gA : csr_matrix et (SZ.v rows) (SZ.v shared) { is_global_csr_matrix gA })
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared) { is_global gA })
   (#fA : perm)
   (gB : array2 et lB { is_global gB })
   (#fB : perm)

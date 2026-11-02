@@ -198,7 +198,7 @@ fn kernel
 
 instance send_global_array_contents
   (#a : Type0)
-  (arr : array a{is_global_array arr})
+  (arr : array a{is_global arr})
   (#f : perm)
   (contents : seq a)
   : is_send_across gpu_of (Pulse.Lib.Array.pts_to arr #f contents)
@@ -206,8 +206,8 @@ instance send_global_array_contents
 
 fn run
   (n : sz{SZ.v n <= 1073741823})
-  (inputs : larray f32 (SZ.v n){is_global_array inputs})
-  (outputs : larray f32 (4 * SZ.v n){is_global_array outputs})
+  (inputs : larray f32 (SZ.v n){is_global inputs})
+  (outputs : larray f32 (4 * SZ.v n){is_global outputs})
   (#xs : erased (lseq f32 (SZ.v n)))
   preserves cpu ** on gpu_loc (inputs |-> xs)
   requires exists* before. on gpu_loc (outputs |-> before)
@@ -246,8 +246,8 @@ inline_for_extraction noextract
 fn run_exp
   (#t : Type0) {| floating t |}
   (n : sz)
-  (inputs : larray t (SZ.v n){is_global_array inputs})
-  (outputs : larray t (SZ.v n){is_global_array outputs})
+  (inputs : larray t (SZ.v n){is_global inputs})
+  (outputs : larray t (SZ.v n){is_global outputs})
   (#xs : erased (lseq t (SZ.v n)))
   preserves cpu ** on gpu_loc (inputs |-> xs)
   requires exists* before. on gpu_loc (outputs |-> before)
@@ -293,9 +293,9 @@ fn subtraction_kernel
 
 fn run_subtraction
   (n : sz{SZ.v n <= 2147483647})
-  (left : larray f32 (SZ.v n){is_global_array left})
-  (right : larray f32 (SZ.v n){is_global_array right})
-  (outputs : larray f32 (2 * SZ.v n){is_global_array outputs})
+  (left : larray f32 (SZ.v n){is_global left})
+  (right : larray f32 (SZ.v n){is_global right})
+  (outputs : larray f32 (2 * SZ.v n){is_global outputs})
   (#xs : erased (lseq f32 (SZ.v n)))
   (#ys : erased (lseq f32 (SZ.v n)))
   preserves cpu ** on gpu_loc (left |-> xs ** right |-> ys)

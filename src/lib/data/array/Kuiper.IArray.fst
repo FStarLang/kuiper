@@ -15,7 +15,7 @@ type iarray (et : Type0) (vw : aiview) : Type0 =
   larray et (len vw)
 
 let is_global (#et : Type0) (#vw : aiview) (arr : iarray et vw) : prop =
-  B.is_global_array arr
+  B.is_global arr
 
 inline_for_extraction noextract
 let from_array
@@ -31,7 +31,7 @@ let lem_is_global_iff_core
   (#a : Type0)
   (#vw : aiview)
   (g : iarray a vw)
-  : Lemma (ensures is_global g <==> is_global_array (core g))
+  : Lemma (ensures is_global g <==> is_global (core g))
           [SMTPat (is_global g)]
   = ()
 

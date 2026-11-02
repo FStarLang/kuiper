@@ -69,7 +69,7 @@ fn kernel
 
 instance send_global_array_contents
   (#a:Type0)
-  (arr:array a{is_global_array arr})
+  (arr:array a{is_global arr})
   (#f:perm)
   (contents:seq a)
   : is_send_across gpu_of (Pulse.Lib.Array.pts_to arr #f contents)
@@ -80,8 +80,8 @@ fn run
   (#t:Type0) {| floating t |}
   (operation:t -> t)
   (n:sz)
-  (inputs:larray t (SZ.v n){is_global_array inputs})
-  (outputs:larray t (SZ.v n){is_global_array outputs})
+  (inputs:larray t (SZ.v n){is_global inputs})
+  (outputs:larray t (SZ.v n){is_global outputs})
   (#xs:erased (lseq t (SZ.v n)))
   preserves cpu ** on gpu_loc (inputs |-> xs)
   requires exists* before. on gpu_loc (outputs |-> before)

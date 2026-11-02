@@ -382,7 +382,7 @@ fn gpu_array_alloc
       pure (
         Seq.length s == sz /\
         aligned 128 x /\
-        is_global_array x /\
+        is_global x /\
         A.is_full_array x
       )
 {

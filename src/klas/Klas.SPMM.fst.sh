@@ -69,7 +69,7 @@ module MS = Kuiper.Spec.GEMM
 // that divides cols and use a float4-wide fallback.
 fn spmm_f32_dispatch
   (rows shared cols : szp)
-  (gA : csr_matrix f32 (SZ.v rows) (SZ.v shared){is_global_csr_matrix gA})
+  (gA : csr_matrix f32 (SZ.v rows) (SZ.v shared){is_global gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (#fA : perm)
   (row_indices : larray sz rows)
