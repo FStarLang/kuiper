@@ -3,8 +3,6 @@ module Kuiper.Sparse.DotProduct
 #lang-pulse
 open Kuiper
 open Kuiper.Sparse.Common
-module SZ = FStar.SizeT
-module KSeq = Kuiper.Seq.Common
 
 let rec _dprod_acc_lemma0
   (#n1 #n2 : nat)

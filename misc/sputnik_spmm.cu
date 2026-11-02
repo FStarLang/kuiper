@@ -4,12 +4,12 @@
 
 typedef uint32_t scalar;
 
-typedef struct smatrix {
+typedef struct csr_matrix {
     int nnz;
     scalar *elems;
     int *col_ind;
     int *row_off;
-} smatrix;
+} csr_matrix;
 
 __device__ __forceinline__
 void predicateInit(uint32_t *predicates, int words) {
@@ -72,7 +72,7 @@ void spmm_kernel(int rows,
                  int cols,
                  int shared,
                  // sparse matrix in CSR format
-                 smatrix gA,
+                 csr_matrix gA,
                  // dense matrices in row-major format
                  scalar *gB, scalar *gC)
 {

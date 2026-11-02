@@ -3,7 +3,6 @@ module Kuiper.Sparse.Array
 #lang-pulse
 open Kuiper
 open Kuiper.Sparse.Common
-module SZ = FStar.SizeT
 
 ghost
 fn array_pts_to_eq

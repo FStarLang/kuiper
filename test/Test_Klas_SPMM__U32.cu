@@ -2,7 +2,7 @@
 
 const char *progname = __FILE__;
 
-typedef Kuiper_Sparse_Matrix_smatrix__uint32_t smatrix_t;
+typedef Kuiper_Sparse_Matrix_csr_matrix__uint32_t csr_matrix_t;
 
 static int g_ok = 1;
 static int g_tests = 0;
@@ -23,7 +23,7 @@ static void cpu_matmul(
 static void run_spmm(
     const char *label, uint32_t *AD, int rows, int shared, int cols)
 {
-    smatrix_t A = sparsify_u32(AD, rows, shared);
+    csr_matrix_t A = sparsify_u32(AD, rows, shared);
     uint32_t *row_indices = mk_row_indices(rows, A);
     uint32_t *B = mk_dense_matrix_u32(shared, cols, 50);
     uint32_t *CD = (uint32_t *) calloc(rows * cols, sizeof CD[0]);
@@ -31,7 +31,7 @@ static void run_spmm(
     if (do_check)
         cpu_matmul(AD, B, CD, rows, shared, cols);
 
-    smatrix_t dA;
+    csr_matrix_t dA;
     uint32_t *drow_indices, *dB, *dC;
     upload_spmm_u32(
         rows, shared, cols, A, row_indices, B, &dA, &drow_indices, &dB, &dC);

@@ -9,8 +9,6 @@ open Kuiper.Sparse.Common
 open Kuiper.Seq.Common { (@+) }
 open Kuiper.EMatrix
 open Kuiper.Spec.GEMM
-module SZ = FStar.SizeT
-module KSeq = Kuiper.Seq.Common
 
 
 let rec _dprod_acc
