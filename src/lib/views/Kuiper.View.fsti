@@ -165,12 +165,12 @@ let ai_to_ci
 
 (* Operating over the abstract view. *)
 
-let is_full_view #et #st (vw : aview et st) : prop =
-  IView.is_full_view vw.iview
+let is_full #et #st (vw : aview et st) : prop =
+  IView.is_full vw.iview
 
 let to_seq
   (#a:Type) (#st : Type0)
-  (vw : aview a st { is_full_view vw })
+  (vw : aview a st { is_full vw })
   (v : st)
   : GTot (lseq a (len vw))
   = Seq.init_ghost (len vw) fun (i : natlt (len vw)) ->
@@ -184,19 +184,19 @@ let from_seq
   = vw.ctn.from_fun (fun i -> s @! it_to_nat vw i)
 
 val to_from (#a #st : Type)
-  (vw : aview a st { is_full_view vw })
+  (vw : aview a st { is_full vw })
   (s : lseq a (len vw))
   : Lemma (ensures to_seq vw (from_seq vw s) == s)
           [SMTPat (to_seq vw (from_seq vw s))]
 
 val from_to (#a #st : Type)
-  (vw : aview a st { is_full_view vw })
+  (vw : aview a st { is_full vw })
   (v : st)
   : Lemma (ensures from_seq vw (to_seq vw v) == v)
           [SMTPat (from_seq vw (to_seq vw v))]
 
 val to_seq_upd (#a #st : Type)
-  (vw : aview a st { is_full_view vw })
+  (vw : aview a st { is_full vw })
   (v : st)
   (i : vw.iview.ait)
   (x : a)

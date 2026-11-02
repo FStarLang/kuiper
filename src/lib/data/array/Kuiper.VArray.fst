@@ -489,7 +489,7 @@ fn varray_cell_reindex
 ghost
 fn varray_abs
   (#et #st : Type0)
-  (vw : aview et st { is_full_view vw })
+  (vw : aview et st { is_full vw })
   (a : larray et (len vw))
   (#f : perm)
   (#v : st)
@@ -526,7 +526,7 @@ fn varray_abs
 ghost
 fn varray_abs'
   (#et #st : Type0)
-  (vw : aview et st { is_full_view vw })
+  (vw : aview et st { is_full vw })
   (a : larray et (len vw))
   (#f : perm)
   (#v : lseq et (len vw))
@@ -542,7 +542,7 @@ fn varray_abs'
 ghost
 fn varray_abs_alt'
   (#et #st : Type0)
-  (vw : aview et st { is_full_view vw })
+  (vw : aview et st { is_full vw })
   (sz : nat { sz == len vw })
   (a : larray et sz)
   (#f : perm)
@@ -558,7 +558,7 @@ fn varray_abs_alt'
 ghost
 fn varray_concr
   (#et #st : Type0)
-  (#vw : aview et st { is_full_view vw })
+  (#vw : aview et st { is_full vw })
   (a : varray vw)
   (#f : perm)
   (#v : erased st)
@@ -677,7 +677,7 @@ fn varray_iabs
 inline_for_extraction noextract
 fn varray_alloc0
   (#et : Type0) {| sized et |} (len : sz { len > 0 }) (#st : Type0)
-  (vw : aview et st { is_full_view vw /\ Len.len vw == len})
+  (vw : aview et st { is_full vw /\ Len.len vw == len})
   preserves
     cpu
   requires
@@ -700,7 +700,7 @@ fn varray_alloc0
 inline_for_extraction noextract
 fn varray_free
   (#et #st : Type0)
-  (#vw : aview et st { is_full_view vw })
+  (#vw : aview et st { is_full vw })
   (a : varray vw)
   (#v : erased st)
   preserves
@@ -1200,7 +1200,7 @@ fn varray_write
 inline_for_extraction noextract
 fn varray_from_array
   (#et:Type0) {| sized et |} (#st : Type0)
-  (#vw : aview et st { is_full_view vw })
+  (#vw : aview et st { is_full vw })
   (clen : sz { SZ.v clen == vw.iview.len})
   (va : varray vw)
   (a : vec et)
@@ -1227,7 +1227,7 @@ fn varray_from_array
 inline_for_extraction noextract
 fn varray_to_array
   (#et:Type0) {| sized et |} (#st : Type0)
-  (#vw : aview et st { is_full_view vw })
+  (#vw : aview et st { is_full vw })
   (clen : sz { SZ.v clen == vw.iview.len})
   (a : vec et)
   (va : varray vw)

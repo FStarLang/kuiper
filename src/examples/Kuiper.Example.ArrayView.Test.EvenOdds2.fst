@@ -165,8 +165,8 @@ let surj_lemma #et (len:nat)
   = Classical.forall_intro (surj_lemma' #et #len)
 
 let is_full (et:Type) (len:nat)
-  : Lemma (is_full_view (sum_aview (even_view et len) (odd_view et len)))
-          [SMTPat (is_full_view (sum_aview (even_view et len) (odd_view et len)))]
+  : Lemma (is_full (sum_aview (even_view et len) (odd_view et len)))
+          [SMTPat (is_full (sum_aview (even_view et len) (odd_view et len)))]
   = IView.full_iff_cardinal (sum_aview (even_view et len) (odd_view et len)).iview #(solve <: enumerable _)
 
 #push-options ""

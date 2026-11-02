@@ -33,10 +33,10 @@ instance has_len_aiview : has_len aiview = {
   len = (fun vw -> vw.len);
 }
 
-let is_full_view (avw : aiview) : prop =
+let is_full (avw : aiview) : prop =
   is_surj avw.step.imap.f
 
-let is_full_view_lempat (avw : aiview { is_full_view avw })
+let is_full_lempat (avw : aiview { is_full avw })
      (i : natlt avw.len)
   : Lemma (in_image avw.step.imap.f i)
           [SMTPat (in_image avw.step.imap.f i)]
@@ -46,7 +46,7 @@ let is_full_view_lempat (avw : aiview { is_full_view avw })
 val full_iff_cardinal
   (vw : aiview)
   {| Enumerable.enumerable vw.ait |}
-  : Lemma (is_full_view vw <==> Enumerable.cardinal vw.ait #_ == vw.len)
+  : Lemma (is_full vw <==> Enumerable.cardinal vw.ait #_ == vw.len)
 
 (* Nothing fancy here. *)
 inline_for_extraction noextract
@@ -222,7 +222,7 @@ let compose_cstep
 }
 
 [@@erasable] // avoid silly warning
-val full_view_bij (avw : aiview { is_full_view avw })
+val full_view_bij (avw : aiview { is_full avw })
   : Ghost (avw.ait =~ natlt avw.len)
           (requires True)
           (ensures fun b -> forall x. b.ff x == it_to_nat avw x)

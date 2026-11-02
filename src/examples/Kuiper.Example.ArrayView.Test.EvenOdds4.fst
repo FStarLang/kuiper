@@ -148,7 +148,7 @@ fn foo_odd
 inline_for_extraction noextract // view polymorphic
 fn foo_even'
   (#vw : aview u32 100 (lseq u32 100))
-  (#_ : squash (is_full_view vw /\ vw.iview.sch == (raw_aiview_schema 100)))
+  (#_ : squash (is_full vw /\ vw.iview.sch == (raw_aiview_schema 100)))
   {| c : cview vw |}
   (#_ : squash (c.sch == raw_ciview_schema 100))
   (a : varray (even_view vw))
@@ -163,7 +163,7 @@ fn foo_even'
 inline_for_extraction noextract // view polymorphic
 fn foo_odd'
   (#vw : aview u32 100 (lseq u32 100))
-  (#_ : squash (is_full_view vw /\ vw.iview.sch == (raw_aiview_schema 100)))
+  (#_ : squash (is_full vw /\ vw.iview.sch == (raw_aiview_schema 100)))
   {| c : cview vw |}
   (#_ : squash (c.sch == raw_ciview_schema 100))
   (a : varray (odd_view vw))
@@ -181,7 +181,7 @@ let split_view (vw : aview 'et 'len (lseq 'et 'len) { vw.iview.ait == (raw_aivie
 inline_for_extraction noextract // view polymorphic
 fn test'
   (#vw : aview u32 100 (lseq u32 100))
-  (#_ : squash (is_full_view vw /\ vw.iview.sch == (raw_aiview_schema 100)))
+  (#_ : squash (is_full vw /\ vw.iview.sch == (raw_aiview_schema 100)))
   {| c : cview vw |}
   (#_ : squash (c.sch == raw_ciview_schema 100))
   (a : varray vw)

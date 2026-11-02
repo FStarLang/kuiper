@@ -314,7 +314,7 @@ fn iarray_end
 ghost
 fn iarray_end2_
   (#et : Type0)
-  (#vw : aiview { is_full_view vw })
+  (#vw : aiview { is_full vw })
   (a : iarray et vw)
   (#f : perm)
   (#v : vw.ait -> GTot et)
@@ -338,7 +338,7 @@ fn iarray_end2_
 inline_for_extraction noextract
 fn iarray_end2
   (#et : Type0)
-  (#vw : aiview { is_full_view vw })
+  (#vw : aiview { is_full vw })
   (a : iarray et vw)
   (#f : perm)
   (#v : vw.ait -> GTot et)

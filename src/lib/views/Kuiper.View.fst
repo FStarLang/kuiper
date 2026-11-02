@@ -15,7 +15,7 @@ let it_nat_rel #a #st (vw : aview a st) (i : vw.iview.ait)
   = IView.it_nat_rel vw.iview i j
 
 let to_from (#a #st : Type)
-  (vw : aview a st { is_full_view vw })
+  (vw : aview a st { is_full vw })
   (s : lseq a (len vw))
   : Lemma (ensures to_seq vw (from_seq vw s) == s)
           [SMTPat (to_seq vw (from_seq vw s))]
@@ -39,7 +39,7 @@ let to_from (#a #st : Type)
     assert (Seq.equal s (to_seq vw (from_seq vw s)))
 
 let from_to (#a #st : Type)
-  (vw : aview a st { is_full_view vw })
+  (vw : aview a st { is_full vw })
   (v : st)
   : Lemma (ensures from_seq vw (to_seq vw v) == v)
           [SMTPat (from_seq vw (to_seq vw v))]
@@ -65,7 +65,7 @@ let from_to (#a #st : Type)
   ()
 
 let to_seq_upd (#a #st : Type)
-  (vw : aview a st { is_full_view vw })
+  (vw : aview a st { is_full vw })
   (v : st)
   (i : vw.iview.ait)
   (x : a)

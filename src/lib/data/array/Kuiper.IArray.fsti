@@ -255,7 +255,7 @@ fn iarray_end
 inline_for_extraction noextract
 fn iarray_end2
   (#et : Type0)
-  (#vw : aiview { is_full_view vw })
+  (#vw : aiview { is_full vw })
   (a : iarray et vw)
   (#f : perm)
   (#v : vw.ait -> GTot et)
