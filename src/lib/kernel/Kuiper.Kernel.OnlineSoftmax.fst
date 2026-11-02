@@ -170,6 +170,18 @@ private let inv_of_pos_pat (n : pos)
   : Lemma (FStar.Real.(1.0R /. of_int n >. 0.0R)) [SMTPat (FStar.Real.(1.0R /. of_int n))]
   = ()
 
+(* Cell [i] of [online_softmax_real s], given the folded maximum and sum.
+   Proved in a small context: at the end of [kfonline_softmax] the query
+   unfolding [online_softmax_real] times out. *)
+let online_softmax_real_cell
+  (s : Seq.seq real { Seq.length s > 0 }) (m d : real) (i : natlt (Seq.length s))
+  : Lemma
+    (requires hide (m, d) ==
+       seq_fold_left online_softmax_real_iter (hide (s @! 0, 1.0R))
+         (Seq.slice s 1 (Seq.length s)))
+    (ensures online_softmax_real s @! i == exp ((s @! i) -. m) /. d)
+  = assert (Seq.equal (seq_drop 1 s) (Seq.slice s 1 (Seq.length s)))
+
 inline_for_extraction noextract
 fn kfonline_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -280,6 +292,12 @@ fn kfonline_softmax
   assert pure (fexp (x `sub` !max) %~ exp (gx -. reveal !gmax));
   let y = (fexp (x `sub` !max) `div` !sum);
   assert pure (y %~ (exp (gx -. reveal !gmax) /. reveal !gsum));
+  // The loop has folded the whole row.
+  assert pure (SZ.v !i == SZ.v lenab);
+  assert pure (hide (reveal !gmax, reveal !gsum) ==
+    seq_fold_left online_softmax_real_iter
+      (hide (ras @! 0, 1.0R)) (Seq.slice (reveal ras) 1 (Seq.length ras)));
+  online_softmax_real_cell (reveal ras) (reveal !gmax) (reveal !gsum) (SZ.v tid);
   assert pure ((online_softmax_real (reveal ras)) @! tid == exp (gx -. reveal !gmax) /. reveal !gsum);
   assert pure (y %~ ((online_softmax_real (reveal ras)) @! tid));
   online_softmax_is_softmax (reveal ras);
