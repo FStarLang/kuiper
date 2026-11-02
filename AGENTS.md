@@ -84,6 +84,11 @@ make extract-all    # F* → .krml → .cu via Karamel
 make dist           # copy generated .cu/.h to dist/
 ```
 
+When adding or changing examples, kernels, or extraction code, regenerate the
+tracked CUDA snapshot with `make -skj32 dist` (add `ADMIT=1` when building with
+SMT admission). Review and include the resulting `dist/` changes in the PR,
+including new `.cu`/`.h` files. CI currently only warns when `dist/` is stale.
+
 ### Tests
 
 Tests compile extracted CUDA code and compare output against expected files in `test/`:

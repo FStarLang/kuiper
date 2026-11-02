@@ -9,6 +9,8 @@ open Kuiper.Approximates.Base
 open Kuiper.Real
 open Kuiper.Float.Realops
 module Sqrt = FStar.Math.Sqrt
+module Pow = FStar.Math.Pow
+module Trig = Kuiper.Real.Trigonometry
 
 inline_for_extraction noextract
 val t : Type0
@@ -94,5 +96,27 @@ fn rsqrt_approx_ftz (x : t)
     forall (xr : Sqrt.rpos).
       v_approximates x xr ==>
       v_approximates result (r_rsqrt xr))
+
+val pow_approx
+  (x y : t)
+  (xr : Pow.rpos)
+  (yr : real)
+  : Lemma
+      (requires v_approximates x xr /\ v_approximates y yr)
+      (ensures v_approximates (pow x y) (Pow.pow xr yr))
+
+val sin_approx
+  (x : t)
+  (xr : real)
+  : Lemma
+      (requires v_approximates x xr)
+      (ensures v_approximates (sin x) (Trig.sin xr))
+
+val cos_approx
+  (x : t)
+  (xr : real)
+  : Lemma
+      (requires v_approximates x xr)
+      (ensures v_approximates (cos x) (Trig.cos xr))
 
 val lem_sizeof () : Lemma (Sized.size #t == 4sz)

@@ -5,9 +5,11 @@ module Kuiper.Float32.FastMath
 open Pulse.Lib.Core
 open Kuiper.Locs
 open Kuiper.Float32
+open Kuiper.Floating.Base
 open Kuiper.Approximates.Base
 open Kuiper.Real
 open Kuiper.Float.Realops
+module F = Kuiper.Floating.Base
 
 (* New trusted approximation contracts, not derived generic-trig refinements.
    Extraction selects __sinf/__cosf; no IEEE bit or error-bound claim is made. *)
@@ -57,7 +59,7 @@ fn log (x : t)
 }
 
 (* Trusted device intrinsics, extracted directly without host fallbacks or
-   algebraic substitutions. These real approximation contracts do not specify
+   algebraic substitutions. The real approximation clauses do not specify
    IEEE bits, exceptional values, or numerical error bounds. *)
 noextract
 fn exp (x : t)
@@ -86,11 +88,27 @@ fn fma_rn (x y z : t)
       v_approximates x xr /\ v_approximates y yr /\ v_approximates z zr ==>
       v_approximates result (r_fma xr yr zr))
 
+(* Ghost-only model of the deterministic GPU __fsub_rn intrinsic:
+   https://docs.nvidia.com/cuda/archive/13.0.0/cuda-math-api/cuda_math_api/group__CUDA__MATH__INTRINSIC__SINGLE.html#_CPPv49__fsub_rnff
+   Repeated identical inputs give identical results, but no particular NaN
+   sign or payload is specified. This does not add a host implementation. *)
+val pure_sub_rn (x y : t) : GTot (result : t{
+    (forall (xr yr : real).
+      v_approximates x xr /\ v_approximates y yr ==>
+      v_approximates result (r_sub xr yr)) /\
+    (match kind x, kind y with
+     | NaN, _ | _, NaN -> NaN? (kind result)
+     | Infinite, Finite -> result == x
+     | Finite, Infinite -> result == F.neg y
+     | Infinite, Infinite ->
+         (x == y ==> NaN? (kind result)) /\
+         (x =!= y ==> result == x)
+     | Finite, Finite ->
+         (x == y ==> result == F.zero) /\
+         (is_zero x /\ is_zero y /\ x =!= y ==> result == x))})
+
 noextract
 fn sub_rn (x y : t)
   preserves gpu
   returns result : t
-  ensures pure (
-    forall (xr yr : real).
-      v_approximates x xr /\ v_approximates y yr ==>
-      v_approximates result (r_sub xr yr))
+  ensures pure (result == pure_sub_rn x y)

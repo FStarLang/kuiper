@@ -58,6 +58,7 @@ done
 cat << EOF
 
 open Kuiper.Sparse
+open Kuiper.Sparse.Approx
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
@@ -78,51 +79,55 @@ fn spmm_f32_dispatch
   (#fB : perm)
   (gC : array2 f32 (rm rows cols) { is_global gC})
   (#_ : squash (aligned 16 (core gC)))
-  (elems : erased (lseq f32 gA.nnz))
-  (col_ind : erased (lseq sz gA.nnz))
-  (row_off : erased (lseq sz (rows + 1)))
   (#eA : chest2 f32 rows shared)
+  (#rA : chest2 real rows shared)
   (row_perm : permutation (natlt rows))
   (#eB : chest2 f32 shared cols)
+  (#rB : chest2 real shared cols)
   (#eC : chest2 f32 rows cols)
   norewrite
   preserves
     cpu **
-    on gpu_loc (smatrix_pts_to' gA #fA elems col_ind row_off eA) **
+    on gpu_loc (smatrix_approx gA #fA eA rA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB)
   requires
+    pure (eB %~ rB) **
     pure (4 /? cols) **
     on gpu_loc (live gC) **
     pure (
+      rows * (cols \`divup\` 2) <= max_blocks /\\
       rows * (cols \`divup\` 4) <= max_blocks /\\
       rows * (cols \`divup\` 8) <= max_blocks /\\
       rows * (cols \`divup\` 16) <= max_blocks /\\
       rows * (cols \`divup\` 32) <= max_blocks /\\
-      rows * (cols \`divup\` 64) <= max_blocks
+      rows * (cols \`divup\` 64) <= max_blocks /\\
+      rows < 10000 /\\
+      shared < 10000 /\\
+      cols < 10000
     ) **
     pure (8 <= max_threads)
-  ensures on gpu_loc (gC |-> MS.matmul eA eB)
+  ensures on gpu_loc (matrix_approx gC (MS.matmul rA rB))
 {
   if (cols %^ 64sz = 0sz) {
     lemma_divides_mod 64 (SZ.v cols);
     g_spmm_f32_32x64x8 rows shared cols gA row_indices fri gB gC
-      elems col_ind row_off #eA row_perm #eB #eC;
+      #_ #eA #rA row_perm #eB #rB #eC;
   } else if (cols %^ 32sz = 0sz) {
     lemma_divides_mod 32 (SZ.v cols);
     g_spmm_f32_32x32x8 rows shared cols gA row_indices fri gB gC
-      elems col_ind row_off #eA row_perm #eB #eC;
+      #_ #eA #rA row_perm #eB #rB #eC;
   } else if (cols %^ 16sz = 0sz) {
     lemma_divides_mod 16 (SZ.v cols);
     g_spmm_f32_32x16x4 rows shared cols gA row_indices fri gB gC
-      elems col_ind row_off #eA row_perm #eB #eC;
+      #_ #eA #rA row_perm #eB #rB #eC;
   } else if (cols %^ 8sz = 0sz) {
     lemma_divides_mod 8 (SZ.v cols);
     g_spmm_f32_32x8x2 rows shared cols gA row_indices fri gB gC
-      elems col_ind row_off #eA row_perm #eB #eC;
+      #_ #eA #rA row_perm #eB #rB #eC;
   } else {
     g_spmm_f32_32x4x1 rows shared cols gA row_indices fri gB gC
-      elems col_ind row_off #eA row_perm #eB #eC;
+      #_ #eA #rA row_perm #eB #rB #eC;
   }
 }
 EOF

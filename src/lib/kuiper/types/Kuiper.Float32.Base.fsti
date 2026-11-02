@@ -23,6 +23,9 @@ inline_for_extraction let bit_eq = F.bit_eq
 inline_for_extraction let ieee_eq = F.ieee_eq
 inline_for_extraction let eq = ieee_eq
 
+(* Native unary minus, not subtraction from positive zero. *)
+val neg : t -> t
+
 val of_int_zero : squash (of_int 0L == zero)
 val of_int_one : squash (of_int 1L == one)
 
@@ -71,17 +74,41 @@ val lte_is_lt_or_eq : (x : t) -> (y : t) ->
           [SMTPat (lte x y)]
 
 val neg_kind : (x : t) ->
+    Lemma (ensures kind (neg x) == kind x)
+          [SMTPat (neg x)]
+
+val neg_is_zero : (x : t) ->
+    Lemma (ensures is_zero (neg x) == is_zero x)
+          [SMTPat (is_zero (neg x))]
+
+val zero_sub_kind : (x : t) ->
     Lemma (ensures kind (zero `sub` x) == kind x)
           [SMTPat (zero `sub` x)]
 
-val neg_neg : (x : t) ->
+val zero_sub_involutive : (x : t) ->
     Lemma (requires ~(NaN? (kind x)))
           (ensures eq (zero `sub` (zero `sub` x)) x)
           [SMTPat (zero `sub` (zero `sub` x))]
 
-val lt_neg_flip : (x : t) -> (y : t) ->
+val lt_zero_sub_flip : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
           (ensures lt x y <==> lt (zero `sub` y) (zero `sub` x))
+          [SMTPat (lt (zero `sub` y) (zero `sub` x))]
+
+val zero_sub_is_neg : (x : t) ->
+    Lemma (requires ~(NaN? (kind x)))
+          (ensures eq (zero `sub` x) (neg x) /\
+                   (~(is_zero x) ==> zero `sub` x == neg x))
+          [SMTPat (zero `sub` x)]
+
+val neg_neg : (x : t) ->
+    Lemma (requires ~(NaN? (kind x)))
+          (ensures eq (neg (neg x)) x)
+          [SMTPat (neg (neg x))]
+
+val lt_neg_flip : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+          (ensures lt x y <==> lt (neg y) (neg x))
           [SMTPat (lt x y)]
 
 val negate_lt_is_lte : (x : t) -> (y : t) ->
@@ -119,6 +146,12 @@ val  mul_one : (x : t) ->
 val sub_is_add_neg : (x : t) -> (y : t) ->
     Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
                     ~(NaN? (kind (sub x y))))
+          (ensures eq (sub x y) (add x (neg y)))
+          [SMTPat (sub x y)]
+
+val sub_is_add_zero_sub : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+                    ~(NaN? (kind (sub x y))))
           (ensures eq (sub x y) (add x (zero `sub` y)))
           [SMTPat (sub x y)]
 
@@ -140,6 +173,19 @@ val fmax_spec : (x : t) -> (y : t) ->
           [SMTPat (fmax x y)]
 
 val fexp : t -> t
+
+(* Trusted CUDA expf special values, separate from real approximation:
+   https://docs.nvidia.com/cuda/archive/13.0.0/cuda-math-api/cuda_math_api/group__CUDA__MATH__SINGLE.html#_CPPv44expff
+   Equality specifies positive zero exactly; NaN signs/payloads are unspecified.
+   This is the ordinary expf binding, not the fast __expf intrinsic. *)
+val exp_special_values (x : t)
+  : Lemma (ensures
+      ((is_zero x ==> fexp x == one) /\
+       (x == neg infinity ==> fexp x == zero) /\
+       (x == infinity ==> fexp x == infinity) /\
+       (NaN? (kind x) ==> NaN? (kind (fexp x)))))
+      [SMTPat (fexp x)]
+
 val flog : t -> t
 val fexpm1 : t -> t
 val flog1p : t -> t

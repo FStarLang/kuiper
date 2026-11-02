@@ -29,6 +29,11 @@ val is_full_slice
 // val loc_id_of_array (#a:Type u#0) (#sz:nat) (x:gpu_array a sz) : loc_id
 val visibility_of #a (x:array a) : visibility
 
+val visibility_of_gsub (#a:Type0) (arr:array a) (i:nat)
+  (j:nat{i <= j /\ j <= A.length arr})
+  : Lemma (visibility_of (A.gsub arr i j) == visibility_of arr)
+          [SMTPat (visibility_of (A.gsub arr i j))]
+
 // let visible_at #a #sz (x:gpu_array a sz) (l:loc_id) =
 //   visibility_of x (loc_id_of_array x) ==
 //   visibility_of x l

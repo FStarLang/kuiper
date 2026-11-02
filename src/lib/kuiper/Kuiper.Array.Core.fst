@@ -37,6 +37,9 @@ let is_full_slice #et a n =
 // let loc_id_of_array #a #sz x = loc_id_of_array x
 let visibility_of #a x = visibility_of_array x
 
+let visibility_of_gsub #a arr i j =
+  A.visibility_of_array_gsub arr i j
+
 (* Base address of the GPU array, used to model alignment. This number
 is in units of *bytes*, not array elements. *)
 let base_address (#a : Type u#0) (x : array a)

@@ -12,6 +12,7 @@ unfold let r_zero : real = 0.0R
 unfold let r_one : real = 1.0R
 unfold let r_add (x y:real) : real = x +. y
 unfold let r_mul (x y:real) : real = x *. y
+unfold let r_neg (x:real) : real = 0.0R -. x
 unfold let r_sub (x y:real) : real = x -. y
 unfold let r_div (x:real) (y:real{y =!= 0.0R}) : real = x /. y
 unfold let r_rcp (x:real{x =!= 0.0R}) : real = 1.0R /. x

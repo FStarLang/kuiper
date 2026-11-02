@@ -20,47 +20,6 @@ module Chest = Kuiper.Chest
 inline_for_extraction noextract
 instance has_vec_cpy_sz : has_vec_cpy sz = { _chunk = 4sz; _pf = ez }
 
-(* Propiedades sobre escalares *)
-
-// no sé como usar assume y tambien incluirla en la interfaz
-let zero_is_absorbing_l
-  (#et:_) {| scalar et |}
-  (k : et)
-  : Lemma
-    (requires true)
-    (ensures k `mul` zero == zero)
-    [SMTPat (k `mul` zero)]
-    // FIXME: ^ this pattern does not kick in
-    // if we use `d.mul` instead of `mul`. Why?
-= admit()
-
-let zero_is_absorbing_r
-  (#et:_) {| scalar et |}
-  (k : et)
-  : Lemma
-    (requires true)
-    (ensures zero `mul` k == zero)
-    [SMTPat (zero `mul` k )]
-= admit()
-
-let zero_is_id_l
-  (#et:_) {| scalar et |}
-  (k : et)
-  : Lemma
-    (requires true)
-    (ensures k `add` zero == k)
-    [SMTPat (k `add` zero)]
-= admit()
-
-let zero_is_id_r
-  (#et:_) {| scalar et |}
-  (k : et)
-  : Lemma
-    (requires true)
-    (ensures zero `add` k == k)
-    [SMTPat (zero `add` k)]
-= admit()
-
 (* Secuencias *)
 
 let rec mem_slice
@@ -170,6 +129,25 @@ let is_ematrix_tile_at
   seq_chunk s (k * chunk et) ==
   ematrix_row_chunk em i (offset_chunk et j k nthr)
 
+let is_ematrix_tile_at_intro
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat { chunk et /? cols })
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (j : nat { chunk et /? j })
+  (#row_tile : nat { chunk et /? row_tile })
+  (s : lseq et row_tile)
+  (nthr : nat)
+  (k : natlt (row_tile / chunk et))
+: Lemma
+  (requires
+    offset_chunk et j k nthr < cols /\
+    seq_chunk s (k * chunk et) ==
+      ematrix_row_chunk em i (offset_chunk et j k nthr))
+  (ensures is_ematrix_tile_at em i j s nthr k)
+=
+  ()
+
 let is_ematrix_tile
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (#rows #cols : nat { chunk et /? cols })
@@ -184,6 +162,44 @@ let is_ematrix_tile
   forall (k : natlt (row_tile / chunk et)).
     offset_chunk et j k nthr < cols ==>
       is_ematrix_tile_at em i j s nthr k
+
+let is_ematrix_tile_at_eq
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat { chunk et /? cols })
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (j : nat { chunk et /? j })
+  (#row_tile : nat { chunk et /? row_tile })
+  (s : lseq et row_tile)
+  (nthr : nat)
+  (k : natlt (row_tile / chunk et))
+: Lemma
+  (requires
+    offset_chunk et j k nthr < cols /\
+    is_ematrix_tile em i j s nthr)
+  (ensures
+    seq_chunk s (k * chunk et) ==
+    ematrix_row_chunk em i (offset_chunk et j k nthr))
+=
+  ()
+
+let is_ematrix_tile_intro
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (#rows #cols : nat { chunk et /? cols })
+  (em : chest2 et rows cols)
+  (i : natlt rows)
+  (j : nat { chunk et /? j })
+  (#row_tile : nat { chunk et /? row_tile })
+  (s : lseq et row_tile)
+  (nthr : nat)
+: Lemma
+  (requires
+    forall (k : natlt (row_tile / chunk et)).
+      offset_chunk et j k nthr < cols ==>
+        is_ematrix_tile_at em i j s nthr k)
+  (ensures is_ematrix_tile em i j s nthr)
+=
+  ()
 
 (* Propiedades sobre las posiciones de un arreglo ralo *)
 

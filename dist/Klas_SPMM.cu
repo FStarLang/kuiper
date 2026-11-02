@@ -44,10 +44,10 @@ __hoisted_spmm_u32_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     uint32_t lchunk[4U] = {0U};
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -76,14 +76,14 @@ __hoisted_spmm_u32_0(uint32_t rows, uint32_t cols,
                     uint32_t kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         uint32_t lchunk[4U] = {0U};
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -112,10 +112,10 @@ __hoisted_spmm_u32_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 uint32_t lchunk[4U] = {0U};
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -133,10 +133,8 @@ void Klas_SPMM_spmm_u32(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__uint32_t gA, uint32_t *row_indices,
     uint32_t *gB, uint32_t *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_spmm_u32_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 1024U, s,
@@ -189,12 +187,12 @@ __hoisted_spmm_f32_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 64U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -224,17 +222,17 @@ __hoisted_spmm_f32_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 64U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 64U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 64U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 64U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -264,12 +262,12 @@ __hoisted_spmm_f32_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 64U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -288,10 +286,8 @@ void Klas_SPMM_spmm_f32(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__float gA, uint32_t *row_indices, float *gB,
     float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_spmm_f32_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 4096U, s,
@@ -344,11 +340,11 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 4U)));
+                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -377,15 +373,15 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(
-                            lchunk, gB + (cols * kr + (n_idx + __anf013 * 4U)));
+                            lchunk, gB + (cols * kr + (n_idx + __anf08 * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -413,10 +409,10 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(lchunk, gB + (cols * kr + (n_idx + __anf05 * 4U)));
+                vec_memcpy(lchunk, gB + (cols * kr + (n_idx + __anf02 * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -433,10 +429,8 @@ void Klas_SPMM_g_spmm_f32_32x4x1(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__float gA, uint32_t *row_indices, float *gB,
     float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x4x1_0,
         rows * (cols / 4U + (uint32_t) (cols % 4U != 0U)), 1U, 256U, s, rows,
@@ -489,11 +483,11 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 2U * 4U)));
+                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 2U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -522,15 +516,15 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 2U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 2U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -559,11 +553,11 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 2U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 2U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -581,10 +575,8 @@ void Klas_SPMM_g_spmm_f32_32x8x2(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__float gA, uint32_t *row_indices, float *gB,
     float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x8x2_0,
         rows * (cols / 8U + (uint32_t) (cols % 8U != 0U)), 2U, 256U, s, rows,
@@ -637,11 +629,11 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 4U * 4U)));
+                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 4U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -670,15 +662,15 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 4U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 4U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -707,11 +699,11 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 4U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 4U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -729,10 +721,8 @@ void Klas_SPMM_g_spmm_f32_32x16x4(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__float gA, uint32_t *row_indices, float *gB,
     float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x16x4_0,
         rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)), 4U, 256U, s, rows,
@@ -785,11 +775,11 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 8U * 4U)));
+                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 8U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -818,15 +808,15 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 8U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 8U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -855,11 +845,11 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 8U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 8U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -877,10 +867,8 @@ void Klas_SPMM_g_spmm_f32_32x32x8(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__float gA, uint32_t *row_indices, float *gB,
     float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x32x8_0,
         rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)), 8U, 256U, s, rows,
@@ -933,12 +921,12 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 8U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 8U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 8U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 8U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -968,17 +956,16 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 8U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 8U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf013 * 8U * 4U)));
+                                gB + (cols * kr + (n_idx + __anf08 * 8U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -1008,12 +995,12 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 8U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 8U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf05 * 8U * 4U)));
+                        lchunk, gB + (cols * kr + (n_idx + __anf02 * 8U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -1032,10 +1019,8 @@ void Klas_SPMM_g_spmm_f32_32x64x8(uint32_t rows, uint32_t shared, uint32_t cols,
     Kuiper_Sparse_Matrix_smatrix__float gA, uint32_t *row_indices, float *gB,
     float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x64x8_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 8U, 256U, s, rows,
@@ -1088,11 +1073,11 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 4U)));
+                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -1121,15 +1106,15 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(
-                            lchunk, gB + (cols * kr + (n_idx + __anf013 * 4U)));
+                            lchunk, gB + (cols * kr + (n_idx + __anf08 * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -1157,10 +1142,10 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(lchunk, gB + (cols * kr + (n_idx + __anf05 * 4U)));
+                vec_memcpy(lchunk, gB + (cols * kr + (n_idx + __anf02 * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -1177,9 +1162,7 @@ void Klas_SPMM_g_spmm_f32_32x4x1_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x4x1_on_0,
         rows * (cols / 4U + (uint32_t) (cols % 4U != 0U)), 1U, 256U, s, rows,
@@ -1230,11 +1213,11 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 2U * 4U)));
+                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 2U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -1263,15 +1246,15 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 2U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 2U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -1300,11 +1283,11 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 2U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 2U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -1322,9 +1305,7 @@ void Klas_SPMM_g_spmm_f32_32x8x2_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x8x2_on_0,
         rows * (cols / 8U + (uint32_t) (cols % 8U != 0U)), 2U, 256U, s, rows,
@@ -1375,11 +1356,11 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 4U * 4U)));
+                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 4U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -1408,15 +1389,15 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 4U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 4U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -1445,11 +1426,11 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 4U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 4U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -1467,9 +1448,7 @@ void Klas_SPMM_g_spmm_f32_32x16x4_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x16x4_on_0,
         rows * (cols / 16U + (uint32_t) (cols % 16U != 0U)), 4U, 256U, s, rows,
@@ -1520,11 +1499,11 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf04 * 8U * 4U)));
+                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 8U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -1553,15 +1532,15 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 8U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 8U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -1590,11 +1569,11 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 8U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 8U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -1612,9 +1591,7 @@ void Klas_SPMM_g_spmm_f32_32x32x8_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x32x8_on_0,
         rows * (cols / 32U + (uint32_t) (cols % 32U != 0U)), 8U, 256U, s, rows,
@@ -1665,12 +1642,12 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 8U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 8U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 8U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 8U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -1700,17 +1677,16 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 8U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 8U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf013 * 8U * 4U)));
+                                gB + (cols * kr + (n_idx + __anf08 * 8U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -1740,12 +1716,12 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 8U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 8U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf05 * 8U * 4U)));
+                        lchunk, gB + (cols * kr + (n_idx + __anf02 * 8U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -1764,9 +1740,7 @@ void Klas_SPMM_g_spmm_f32_32x64x8_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(256U);
     KPR_KCALL(__hoisted_g_spmm_f32_32x64x8_on_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 8U, 256U, s, rows,
@@ -1817,11 +1791,11 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -1850,15 +1824,15 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -1887,11 +1861,11 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -1909,10 +1883,8 @@ void Klas_SPMM_g_spmm_f32_64x64x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x64x16_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 512U, s, rows,
@@ -1965,11 +1937,11 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -1998,15 +1970,15 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -2035,11 +2007,11 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -2057,9 +2029,7 @@ void Klas_SPMM_g_spmm_f32_64x64x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x64x16_on_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 512U, s, rows,
@@ -2110,12 +2080,12 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -2145,17 +2115,17 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -2185,12 +2155,12 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -2209,10 +2179,8 @@ void Klas_SPMM_g_spmm_f32_64x128x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x128x16_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 512U, s,
@@ -2265,12 +2233,12 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -2300,17 +2268,17 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -2340,12 +2308,12 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -2364,9 +2332,7 @@ void Klas_SPMM_g_spmm_f32_64x128x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x128x16_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 512U, s,
@@ -2417,12 +2383,12 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -2452,17 +2418,17 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -2492,12 +2458,12 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -2516,10 +2482,8 @@ void Klas_SPMM_g_spmm_f32_64x256x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x256x16_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 512U, s,
@@ -2572,12 +2536,12 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -2607,17 +2571,17 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -2647,12 +2611,12 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -2671,9 +2635,7 @@ void Klas_SPMM_g_spmm_f32_64x256x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x256x16_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 512U, s,
@@ -2724,12 +2686,12 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -2759,17 +2721,17 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 8U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -2799,12 +2761,12 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -2823,10 +2785,8 @@ void Klas_SPMM_g_spmm_f32_64x512x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x512x16_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 512U, s,
@@ -2879,12 +2839,12 @@ __hoisted_g_spmm_f32_64x512x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -2914,17 +2874,17 @@ __hoisted_g_spmm_f32_64x512x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 8U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -2954,12 +2914,12 @@ __hoisted_g_spmm_f32_64x512x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -2978,9 +2938,7 @@ void Klas_SPMM_g_spmm_f32_64x512x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(512U);
     KPR_KCALL(__hoisted_g_spmm_f32_64x512x16_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 512U, s,
@@ -3031,11 +2989,11 @@ __hoisted_g_spmm_f32_128x64x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3064,15 +3022,15 @@ __hoisted_g_spmm_f32_128x64x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -3101,11 +3059,11 @@ __hoisted_g_spmm_f32_128x64x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -3123,10 +3081,8 @@ void Klas_SPMM_g_spmm_f32_128x64x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x64x16_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 1024U, s,
@@ -3179,11 +3135,11 @@ __hoisted_g_spmm_f32_128x64x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3212,15 +3168,15 @@ __hoisted_g_spmm_f32_128x64x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -3249,11 +3205,11 @@ __hoisted_g_spmm_f32_128x64x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -3271,9 +3227,7 @@ void Klas_SPMM_g_spmm_f32_128x64x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x64x16_on_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 1024U, s,
@@ -3324,12 +3278,12 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3359,17 +3313,17 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -3399,12 +3353,12 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -3423,10 +3377,8 @@ void Klas_SPMM_g_spmm_f32_128x128x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x16_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 1024U, s,
@@ -3479,12 +3431,12 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3514,17 +3466,17 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -3554,12 +3506,12 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -3578,9 +3530,7 @@ void Klas_SPMM_g_spmm_f32_128x128x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x16_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 1024U, s,
@@ -3631,11 +3581,11 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3664,15 +3614,15 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -3701,11 +3651,11 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -3723,10 +3673,8 @@ void Klas_SPMM_g_spmm_f32_128x128x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x32_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 1024U, s,
@@ -3779,11 +3727,11 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3812,15 +3760,15 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -3849,11 +3797,11 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -3871,9 +3819,7 @@ void Klas_SPMM_g_spmm_f32_128x128x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x128x32_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 1024U, s,
@@ -3924,12 +3870,12 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3959,17 +3905,17 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -3999,12 +3945,12 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -4023,10 +3969,8 @@ void Klas_SPMM_g_spmm_f32_128x256x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x16_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 1024U, s,
@@ -4079,12 +4023,12 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4114,17 +4058,17 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -4154,12 +4098,12 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -4178,9 +4122,7 @@ void Klas_SPMM_g_spmm_f32_128x256x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x16_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 1024U, s,
@@ -4231,12 +4173,12 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 32U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4266,17 +4208,17 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 32U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 32U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -4306,12 +4248,12 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -4330,10 +4272,8 @@ void Klas_SPMM_g_spmm_f32_128x256x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x32_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 1024U, s,
@@ -4386,12 +4326,12 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 32U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4421,17 +4361,17 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 32U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 32U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -4461,12 +4401,12 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -4485,9 +4425,7 @@ void Klas_SPMM_g_spmm_f32_128x256x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x256x32_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 1024U, s,
@@ -4538,12 +4476,12 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4573,17 +4511,17 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 8U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -4613,12 +4551,12 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -4637,10 +4575,8 @@ void Klas_SPMM_g_spmm_f32_128x512x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x16_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 1024U, s,
@@ -4693,12 +4629,12 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4728,17 +4664,17 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 8U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -4768,12 +4704,12 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -4792,9 +4728,7 @@ void Klas_SPMM_g_spmm_f32_128x512x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x16_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 1024U, s,
@@ -4845,12 +4779,12 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 32U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4880,17 +4814,17 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 32U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 32U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -4920,12 +4854,12 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -4944,10 +4878,8 @@ void Klas_SPMM_g_spmm_f32_128x512x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x32_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 1024U, s,
@@ -5000,12 +4932,12 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 32U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5035,17 +4967,17 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 32U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 32U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -5075,12 +5007,12 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -5099,9 +5031,7 @@ void Klas_SPMM_g_spmm_f32_128x512x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(1024U);
     KPR_KCALL(__hoisted_g_spmm_f32_128x512x32_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 1024U, s,
@@ -5152,11 +5082,11 @@ __hoisted_g_spmm_f32_256x64x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5185,15 +5115,15 @@ __hoisted_g_spmm_f32_256x64x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -5222,11 +5152,11 @@ __hoisted_g_spmm_f32_256x64x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -5244,10 +5174,8 @@ void Klas_SPMM_g_spmm_f32_256x64x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x64x16_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 2048U, s,
@@ -5300,11 +5228,11 @@ __hoisted_g_spmm_f32_256x64x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5333,15 +5261,15 @@ __hoisted_g_spmm_f32_256x64x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -5370,11 +5298,11 @@ __hoisted_g_spmm_f32_256x64x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -5392,9 +5320,7 @@ void Klas_SPMM_g_spmm_f32_256x64x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x64x16_on_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 2048U, s,
@@ -5445,12 +5371,12 @@ __hoisted_g_spmm_f32_256x128x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5480,17 +5406,17 @@ __hoisted_g_spmm_f32_256x128x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -5520,12 +5446,12 @@ __hoisted_g_spmm_f32_256x128x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -5544,10 +5470,8 @@ void Klas_SPMM_g_spmm_f32_256x128x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x16_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 2048U, s,
@@ -5600,12 +5524,12 @@ __hoisted_g_spmm_f32_256x128x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5635,17 +5559,17 @@ __hoisted_g_spmm_f32_256x128x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -5675,12 +5599,12 @@ __hoisted_g_spmm_f32_256x128x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -5699,9 +5623,7 @@ void Klas_SPMM_g_spmm_f32_256x128x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x16_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 2048U, s,
@@ -5752,11 +5674,11 @@ __hoisted_g_spmm_f32_256x128x32_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5785,15 +5707,15 @@ __hoisted_g_spmm_f32_256x128x32_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -5822,11 +5744,11 @@ __hoisted_g_spmm_f32_256x128x32_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -5844,10 +5766,8 @@ void Klas_SPMM_g_spmm_f32_256x128x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x32_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 2048U, s,
@@ -5900,11 +5820,11 @@ __hoisted_g_spmm_f32_256x128x32_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5933,15 +5853,15 @@ __hoisted_g_spmm_f32_256x128x32_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -5970,11 +5890,11 @@ __hoisted_g_spmm_f32_256x128x32_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -5992,9 +5912,7 @@ void Klas_SPMM_g_spmm_f32_256x128x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x128x32_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 2048U, s,
@@ -6045,12 +5963,12 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6080,17 +5998,17 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -6120,12 +6038,12 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -6144,10 +6062,8 @@ void Klas_SPMM_g_spmm_f32_256x256x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x16_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 2048U, s,
@@ -6200,12 +6116,12 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6235,17 +6151,17 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -6275,12 +6191,12 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -6299,9 +6215,7 @@ void Klas_SPMM_g_spmm_f32_256x256x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x16_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 2048U, s,
@@ -6352,12 +6266,12 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 32U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6387,17 +6301,17 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 32U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 32U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -6427,12 +6341,12 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -6451,10 +6365,8 @@ void Klas_SPMM_g_spmm_f32_256x256x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x32_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 2048U, s,
@@ -6507,12 +6419,12 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 32U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6542,17 +6454,17 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 32U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 32U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -6582,12 +6494,12 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -6606,9 +6518,7 @@ void Klas_SPMM_g_spmm_f32_256x256x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x32_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 2048U, s,
@@ -6659,11 +6569,11 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6692,15 +6602,15 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 64U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -6729,11 +6639,11 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 64U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -6751,10 +6661,8 @@ void Klas_SPMM_g_spmm_f32_256x256x64(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x64_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U, 2048U, s,
@@ -6807,11 +6715,11 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6840,15 +6748,15 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 64U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -6877,11 +6785,11 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 64U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -6899,9 +6807,7 @@ void Klas_SPMM_g_spmm_f32_256x256x64_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x256x64_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U, 2048U, s,
@@ -6952,12 +6858,12 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6987,17 +6893,17 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 8U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -7027,12 +6933,12 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -7051,10 +6957,8 @@ void Klas_SPMM_g_spmm_f32_256x512x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x16_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 2048U, s,
@@ -7107,12 +7011,12 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7142,17 +7046,17 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 8U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -7182,12 +7086,12 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -7206,9 +7110,7 @@ void Klas_SPMM_g_spmm_f32_256x512x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x16_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 2048U, s,
@@ -7259,12 +7161,12 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 32U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7294,17 +7196,17 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 32U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 32U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -7334,12 +7236,12 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -7358,10 +7260,8 @@ void Klas_SPMM_g_spmm_f32_256x512x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x32_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 2048U, s,
@@ -7414,12 +7314,12 @@ __hoisted_g_spmm_f32_256x512x32_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 32U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7449,17 +7349,17 @@ __hoisted_g_spmm_f32_256x512x32_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 32U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 32U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -7489,12 +7389,12 @@ __hoisted_g_spmm_f32_256x512x32_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -7513,9 +7413,7 @@ void Klas_SPMM_g_spmm_f32_256x512x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x32_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 2048U, s,
@@ -7566,12 +7464,12 @@ __hoisted_g_spmm_f32_256x512x64_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 64U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7601,17 +7499,17 @@ __hoisted_g_spmm_f32_256x512x64_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 64U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 64U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 64U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 64U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -7641,12 +7539,12 @@ __hoisted_g_spmm_f32_256x512x64_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 64U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -7665,10 +7563,8 @@ void Klas_SPMM_g_spmm_f32_256x512x64(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x64_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 2048U, s,
@@ -7721,12 +7617,12 @@ __hoisted_g_spmm_f32_256x512x64_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 64U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7756,17 +7652,17 @@ __hoisted_g_spmm_f32_256x512x64_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 64U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 64U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 64U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 64U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -7796,12 +7692,12 @@ __hoisted_g_spmm_f32_256x512x64_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 64U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -7820,9 +7716,7 @@ void Klas_SPMM_g_spmm_f32_256x512x64_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(2048U);
     KPR_KCALL(__hoisted_g_spmm_f32_256x512x64_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 2048U, s,
@@ -7873,11 +7767,11 @@ __hoisted_g_spmm_f32_512x64x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7906,15 +7800,15 @@ __hoisted_g_spmm_f32_512x64x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -7943,11 +7837,11 @@ __hoisted_g_spmm_f32_512x64x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -7965,10 +7859,8 @@ void Klas_SPMM_g_spmm_f32_512x64x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x64x16_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 4096U, s,
@@ -8021,11 +7913,11 @@ __hoisted_g_spmm_f32_512x64x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8054,15 +7946,15 @@ __hoisted_g_spmm_f32_512x64x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -8091,11 +7983,11 @@ __hoisted_g_spmm_f32_512x64x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -8113,9 +8005,7 @@ void Klas_SPMM_g_spmm_f32_512x64x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x64x16_on_0,
         rows * (cols / 64U + (uint32_t) (cols % 64U != 0U)), 16U, 4096U, s,
@@ -8166,12 +8056,12 @@ __hoisted_g_spmm_f32_512x128x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8201,17 +8091,17 @@ __hoisted_g_spmm_f32_512x128x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -8241,12 +8131,12 @@ __hoisted_g_spmm_f32_512x128x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -8265,10 +8155,8 @@ void Klas_SPMM_g_spmm_f32_512x128x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x16_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 4096U, s,
@@ -8321,12 +8209,12 @@ __hoisted_g_spmm_f32_512x128x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8356,17 +8244,17 @@ __hoisted_g_spmm_f32_512x128x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -8396,12 +8284,12 @@ __hoisted_g_spmm_f32_512x128x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -8420,9 +8308,7 @@ void Klas_SPMM_g_spmm_f32_512x128x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x16_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 16U, 4096U, s,
@@ -8473,11 +8359,11 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8506,15 +8392,15 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -8543,11 +8429,11 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -8565,10 +8451,8 @@ void Klas_SPMM_g_spmm_f32_512x128x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x32_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 4096U, s,
@@ -8621,11 +8505,11 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8654,15 +8538,15 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -8691,11 +8575,11 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -8713,9 +8597,7 @@ void Klas_SPMM_g_spmm_f32_512x128x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x128x32_on_0,
         rows * (cols / 128U + (uint32_t) (cols % 128U != 0U)), 32U, 4096U, s,
@@ -8766,12 +8648,12 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8801,17 +8683,17 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -8841,12 +8723,12 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -8865,10 +8747,8 @@ void Klas_SPMM_g_spmm_f32_512x256x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x16_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 4096U, s,
@@ -8921,12 +8801,12 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8956,17 +8836,17 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -8996,12 +8876,12 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -9020,9 +8900,7 @@ void Klas_SPMM_g_spmm_f32_512x256x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x16_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 16U, 4096U, s,
@@ -9073,12 +8951,12 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 32U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9108,17 +8986,17 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 32U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 32U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -9148,12 +9026,12 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -9172,10 +9050,8 @@ void Klas_SPMM_g_spmm_f32_512x256x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x32_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 4096U, s,
@@ -9228,12 +9104,12 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 32U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9263,17 +9139,17 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 32U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 32U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -9303,12 +9179,12 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -9327,9 +9203,7 @@ void Klas_SPMM_g_spmm_f32_512x256x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x32_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 32U, 4096U, s,
@@ -9380,11 +9254,11 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9413,15 +9287,15 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 64U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -9450,11 +9324,11 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 64U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -9472,10 +9346,8 @@ void Klas_SPMM_g_spmm_f32_512x256x64(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x64_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U, 4096U, s,
@@ -9528,11 +9400,11 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9561,15 +9433,15 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 64U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -9598,11 +9470,11 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 64U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -9620,9 +9492,7 @@ void Klas_SPMM_g_spmm_f32_512x256x64_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x256x64_on_0,
         rows * (cols / 256U + (uint32_t) (cols % 256U != 0U)), 64U, 4096U, s,
@@ -9673,12 +9543,12 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9708,17 +9578,17 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 8U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -9748,12 +9618,12 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -9772,10 +9642,8 @@ void Klas_SPMM_g_spmm_f32_512x512x16(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x16_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 4096U, s,
@@ -9828,12 +9696,12 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 8U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 16U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 16U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9863,17 +9731,17 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 8U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 16U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 16U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 16U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -9903,12 +9771,12 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 8U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 16U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 16U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -9927,9 +9795,7 @@ void Klas_SPMM_g_spmm_f32_512x512x16_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x16_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 16U, 4096U, s,
@@ -9980,12 +9846,12 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 32U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -10015,17 +9881,17 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 32U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 32U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -10055,12 +9921,12 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -10079,10 +9945,8 @@ void Klas_SPMM_g_spmm_f32_512x512x32(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x32_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 4096U, s,
@@ -10135,12 +9999,12 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 32U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 32U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -10170,17 +10034,17 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 4U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 32U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 32U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 32U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -10210,12 +10074,12 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 4U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 32U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 32U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -10234,9 +10098,7 @@ void Klas_SPMM_g_spmm_f32_512x512x32_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x32_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 32U, 4096U, s,
@@ -10287,12 +10149,12 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 64U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -10322,17 +10184,17 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 64U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 64U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 64U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 64U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -10362,12 +10224,12 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 64U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -10386,10 +10248,8 @@ void Klas_SPMM_g_spmm_f32_512x512x64(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x64_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 4096U, s,
@@ -10442,12 +10302,12 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 2U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
-                    if (n_idx + __anf04 * 64U * 4U < cols) {
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf04 * 64U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -10477,17 +10337,17 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 2U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
-                        if (n_idx + __anf013 * 64U * 4U < cols) {
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
+                        if (n_idx + __anf08 * 64U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
                             vec_memcpy(lchunk,
-                                gB + (cols * kr +
-                                         (n_idx + __anf013 * 64U * 4U)));
+                                gB +
+                                    (cols * kr + (n_idx + __anf08 * 64U * 4U)));
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
-                                out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                                out[__anf11 * 4U + ix] += kx * lchunk[ix];
                         }
                     }
                 }
@@ -10517,12 +10377,12 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 2U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
-                if (n_idx + __anf05 * 64U * 4U < cols) {
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf05 * 64U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -10541,9 +10401,7 @@ void Klas_SPMM_g_spmm_f32_512x512x64_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x64_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 64U, 4096U, s,
@@ -10594,11 +10452,11 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 128U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 128U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -10627,15 +10485,15 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 128U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 128U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -10664,11 +10522,11 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 128U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 128U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -10686,10 +10544,8 @@ void Klas_SPMM_g_spmm_f32_512x512x128(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC)
 {
+    KRML_MAYBE_UNUSED_VAR(shared);
     cudaStream_t s = KPR_FRESH_STREAM();
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x128_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 128U, 4096U, s,
@@ -10742,11 +10598,11 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t rows, uint32_t cols,
                 uint32_t k1 = 0U;
                 for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
-                    uint32_t __anf04 = k1;
+                    uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
                     vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf04 * 128U * 4U)));
+                        gB + (cols * kr + (n_idx + __anf01 * 128U * 4U)));
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -10775,15 +10631,15 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t rows, uint32_t cols,
                     float kx = elems_tile[kv];
                     uint32_t k1 = 0U;
                     for (; k1 < 1U; k1++) {
-                        uint32_t __anf12 = k1;
-                        uint32_t __anf013 = k1;
+                        uint32_t __anf11 = k1;
+                        uint32_t __anf08 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
                         vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf013 * 128U * 4U)));
+                            gB + (cols * kr + (n_idx + __anf08 * 128U * 4U)));
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
-                            out[__anf12 * 4U + ix] += kx * lchunk[ix];
+                            out[__anf11 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -10812,11 +10668,11 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t rows, uint32_t cols,
             uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf12 = k1;
-                uint32_t __anf05 = k1;
+                uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
                 vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf05 * 128U * 4U)));
+                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 128U * 4U)));
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf12 * 4U + ix] += kx * lchunk[ix];
@@ -10834,9 +10690,7 @@ void Klas_SPMM_g_spmm_f32_512x512x128_on(uint32_t rows, uint32_t shared,
     uint32_t cols, Kuiper_Sparse_Matrix_smatrix__float gA,
     uint32_t *row_indices, float *gB, float *gC, cudaStream_t s)
 {
-    KPR_GUARD(rows < 10000U);
-    KPR_GUARD(shared < 10000U);
-    KPR_GUARD(cols < 10000U);
+    KRML_MAYBE_UNUSED_VAR(shared);
     KPR_SHMEM_FITS(4096U);
     KPR_KCALL(__hoisted_g_spmm_f32_512x512x128_on_0,
         rows * (cols / 512U + (uint32_t) (cols % 512U != 0U)), 128U, 4096U, s,

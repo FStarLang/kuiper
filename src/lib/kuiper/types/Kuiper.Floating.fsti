@@ -21,10 +21,6 @@ let ieee_eq_refl (#t:Type) {| floating t |} (x:t)
   = eq_spec x x
 
 inline_for_extraction noextract
-let neg (#t:Type) {| floating t |} (x : t) : t =
-  zero `sub` x
-
-inline_for_extraction noextract
 let gt (#t:Type) {| floating t |} (x y : t) : bool =
   lt y x
 

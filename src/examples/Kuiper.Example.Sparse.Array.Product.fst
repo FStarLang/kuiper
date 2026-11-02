@@ -6,24 +6,42 @@ open Kuiper.Sparse
 open Kuiper.Sparse.DotProduct
 open Kuiper.Sparse.FMA
 
+(* Stored sparse entries approximate reals; structural gaps are real zero. *)
+let sarray_approx'
+  (#et : Type0) {| scalar et, real_like et |}
+  (#l : nat) (a : sarray et l) (s : lseq et l) (rs : lseq real l)
+  (elems : lseq et a.nnz) (pos : lseq sz a.nnz) (relems : lseq real a.nnz)
+  : slprop
+  = a.elems |-> elems ** a.pos |-> pos **
+      pure (valid_pos l (cast_pos pos) /\ elems %~ relems /\
+            s == seq_unsparse a.nnz l elems (cast_pos pos) /\
+            rs == seq_unsparse a.nnz l relems (cast_pos pos))
+
+let sarray_approx
+  (#et : Type0) {| scalar et, real_like et |}
+  (#l : nat) (a : sarray et l) (s : lseq et l) (rs : lseq real l) : slprop
+  = exists* elems pos relems. sarray_approx' a s rs elems pos relems
+
 inline_for_extraction noextract
 fn sarray_product_dense
-  (#et : eqtype) {| scalar et |}
+  (#et : eqtype) {| scalar et, real_like et |}
   (#l : erased nat)
   (a : sarray et l)
   (v : larray et l)
-  (#s #t : erased (lseq et l))
-  preserves gpu ** a |-> s ** v |-> t
+  (#s : erased (lseq et l))
+  (#rs : erased (lseq real l))
+  (#t : erased (lseq et l))
+  (#rt : erased (lseq real l))
+  preserves gpu ** sarray_approx a s rs ** v |-> t
+  requires pure (t %~ rt)
   returns
     dp: et
   ensures
-    pure (dp == dprod s t)
+    pure (dp %~ dprod rs rt)
 {
-  unfold sarray_pts_to a s;
-  unfold sarray_pts_to' a s;
+  unfold sarray_approx a s rs;
 
-  with v_elems. assert pts_to_slice a.elems 0 a.nnz v_elems;
-  with v_pos.   assert pts_to_slice a.pos 0 a.nnz   v_pos;
+  with v_elems v_pos relems. unfold sarray_approx' a s rs v_elems v_pos relems;
 
   let mut i = 0sz;
   let mut dp : et = zero;
@@ -35,7 +53,7 @@ fn sarray_product_dense
       live dp ** live i **
         pure (
           !i <= a.nnz /\
-          !dp = _sparse_dprod v_elems (cast_pos v_pos) t !i
+          !dp %~ _sparse_dprod relems (cast_pos v_pos) rt !i
         )
     decreases (a.nnz - !i)
   {
@@ -47,12 +65,12 @@ fn sarray_product_dense
     i := !i +^ 1sz;
   };
 
-  sparse_dprod_lemma v_elems pos t;
+  sparse_dprod_lemma relems pos rt;
 
-  fold sarray_pts_to' a s;
-  fold sarray_pts_to a s;
+  fold sarray_approx' a s rs v_elems v_pos relems;
+  fold sarray_approx a s rs;
 
   !dp;
 }
 
-let sarray_product_dense_u32 #len = sarray_product_dense #u32 #_ #len
+let sarray_product_dense_u32 #len = sarray_product_dense #u32 #_ #_ #len

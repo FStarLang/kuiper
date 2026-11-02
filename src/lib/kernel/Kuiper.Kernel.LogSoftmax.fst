@@ -112,21 +112,6 @@ fn log_softmax_gpu
   ()
 }
 
-(* Transport the device-side chest approximation to the host sequence view. *)
-let approx_to_seq_l1
-    (#et:Type0) {| floating et, real_like et |}
-    (#n:nat) (res : chest1 et n) (r : chest1 real n)
-  : Lemma (requires res %~ r)
-          (ensures (to_seq (l1_forward n) res <: lseq et n) %~ chest1_to_seq r)
-  = let s : lseq et n = to_seq (l1_forward n) res in
-    let q = chest1_to_seq r in
-    introduce forall (i:nat). i < n ==> (s @! i) %~ (q @! i)
-    with introduce _ ==> _
-    with (
-      assert (s @! i == acc res (i, ()));
-      assert (q @! i == acc r (i, ()))
-    )
-
 inline_for_extraction noextract
 fn log_softmax
   (#et : Type0) {| floating et, real_like et, floating_real_like et |}
@@ -159,7 +144,9 @@ fn log_softmax
     };
   log_softmax_gpu nth ga (seq_to_chest1 ra);
   with res. assert on gpu_loc (ga |-> res);
-  approx_to_seq_l1 res (log_softmax_real (seq_to_chest1 ra));
+  (* Transfer the tensor approximation to the sequence copied back to the host. *)
+  Kuiper.Chest1.Helpers.chest1_to_seq_approx res (log_softmax_real (seq_to_chest1 ra));
+  assert pure (Seq.equal (to_seq (l1_forward lena) res) (chest1_to_seq res));
   map_loc gpu_loc #(ga |-> res) #(core ga |-> to_seq (l1_forward lena) res)
     fn _ { tensor_concr ga; };
   memcpy_device_to_host a (core ga) lena;
