@@ -347,7 +347,7 @@ unfold let ( .()<- )
   (#s : chest d et)
   = tensor_write #et #r #d #l a i v #s
 
-val tensor_pts_to_cell
+val pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   ([@@@mkey] a : tensor et l)
@@ -360,10 +360,10 @@ val tensor_pts_to_cell
 instance cell_pts_to (#et : Type) (#r : nat) (#d : shape r) (#l : tlayout d)
   : has_pts_to (cell (tensor et l) (abs d)) et
 = {
-  pts_to = (fun (Cell ar i) #f v -> tensor_pts_to_cell ar #f i v);
+  pts_to = (fun (Cell ar i) #f v -> pts_to_cell ar #f i v);
 }
 
-val tensor_pts_to_cell_eq
+val pts_to_cell_eq
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l) (i : abs d) (f : perm) (v : et)
@@ -377,7 +377,7 @@ val is_send_across_global_tensor_cell
   (#l : tlayout d)
   (a : tensor et l { is_global a })
   (#f : perm) (i : abs d) (v : et)
-  : is_send_across gpu_of (tensor_pts_to_cell a #f i v)
+  : is_send_across gpu_of (pts_to_cell a #f i v)
 
 ghost
 fn tensor_explode
@@ -464,7 +464,7 @@ fn tensor_read_cell
   (#f : perm)
   (#s : erased et)
   preserves
-    tensor_pts_to_cell a #f (up i) s
+    pts_to_cell a #f (up i) s
   returns
     v : et
   ensures
@@ -479,9 +479,9 @@ fn tensor_write_cell
   (v : et)
   (#s : erased et)
   requires
-    tensor_pts_to_cell a (up i) s
+    pts_to_cell a (up i) s
   ensures
-    tensor_pts_to_cell a (up i) v
+    pts_to_cell a (up i) v
 
 (* Rank-2 conveniences over the (natlt rows & natlt cols) index pair. *)
 

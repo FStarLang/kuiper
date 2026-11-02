@@ -320,20 +320,20 @@ fn setup
   Math.prod_cancel_divides p.blockItemsX (chunk et) p.blockWidth;
   forevery_map
     (fun r -> forall+ (c : natlt p.cols).
-      tensor_pts_to_cell gC (idx2 r c) (acc2 eC r c))
+      pts_to_cell gC (idx2 r c) (acc2 eC r c))
     (fun r -> forall+ (b : natlt (divup p.cols p.blockItemsX)).
       pts_to_tile_in_matrix gC r (b * p.blockItemsX) eC p.blockItemsX)
     fn r {
       forevery_factor_ p.cols p.blockItemsX _;
       forevery_map #(natlt (divup p.cols p.blockItemsX))
         (fun b -> forall+ (ix : natlt p.blockItemsX {b * p.blockItemsX + ix < p.cols}).
-          tensor_pts_to_cell gC (idx2 r (b * p.blockItemsX + ix))
+          pts_to_cell gC (idx2 r (b * p.blockItemsX + ix))
             (acc2 eC r (b * p.blockItemsX + ix)))
         (fun b -> pts_to_tile_in_matrix gC r (b * p.blockItemsX) eC p.blockItemsX)
         fn b {
           forevery_unrefine_pred' #(natlt p.blockItemsX)
             (fun ix -> b * p.blockItemsX + ix < p.cols)
-            (fun ix _ -> tensor_pts_to_cell gC (idx2 r (b * p.blockItemsX + ix))
+            (fun ix _ -> pts_to_cell gC (idx2 r (b * p.blockItemsX + ix))
               (acc2 eC r (b * p.blockItemsX + ix)));
           fold pts_to_tile_in_matrix gC r (b * p.blockItemsX) eC p.blockItemsX;
         };

@@ -624,7 +624,7 @@ let bkpre
         MU.approx1 mapA mapA_r /\ MU.approx1 mapB mapB_r) **
   gA |-> Frac (fA /. ((batch * (m * n)) * (tile * tile))) eA **
   gB |-> Frac (fB /. ((batch * (m * n)) * (tile * tile))) eB **
-  tensor_pts_to_cell
+  pts_to_cell
     gC
     (page, (mrow, (mcol, (brow, (bcol, ())))))
     (Chest.acc eC (page, (mrow, (mcol, (brow, (bcol, ()))))))
@@ -667,7 +667,7 @@ let bkpost
   gA |-> Frac (fA /. ((batch * (m * n)) * (tile * tile))) eA **
   gB |-> Frac (fB /. ((batch * (m * n)) * (tile * tile))) eB **
   exists* (v : tc).
-    tensor_pts_to_cell
+    pts_to_cell
       gC
       (page, (mrow, (mcol, (brow, (bcol, ())))))
       v **
@@ -729,7 +729,7 @@ fn bkf
 
   (* Rewrite bkpre's cell index into decoded-variable form. *)
   rewrite
-    tensor_pts_to_cell
+    pts_to_cell
       gC
       ((bid % batch <: natlt batch),
         (((bid / batch) / n <: natlt m),
@@ -741,7 +741,7 @@ fn bkf
             (((bid / batch) % n <: natlt n),
               ((tid / tile <: natlt tile), ((tid % tile <: natlt tile), ()))))))
   as
-    tensor_pts_to_cell
+    pts_to_cell
       gC
       ((page <: natlt batch),
         ((mrow <: natlt m),
@@ -783,7 +783,7 @@ fn bkf
 
   (* Rewrite the cell index back to the arithmetic form used by bkpost. *)
   rewrite
-    tensor_pts_to_cell
+    pts_to_cell
       gC
       ((page <: natlt batch),
         ((mrow <: natlt m),
@@ -791,7 +791,7 @@ fn bkf
             ((brow <: natlt tile), ((bcol <: natlt tile), ())))))
       v1
   as
-    tensor_pts_to_cell
+    pts_to_cell
       gC
       ((bid % batch <: natlt batch),
         (((bid / batch) / n <: natlt m),
@@ -1072,11 +1072,11 @@ fn bsetup
 
   forevery_iso (btile_idx_bij batch m n tile)
     (fun (idx : abs (batch @| m @| n @| tile @| tile @| INil)) ->
-       tensor_pts_to_cell gC idx (Chest.acc eC idx));
+       pts_to_cell gC idx (Chest.acc eC idx));
   forevery_unflatten' _;
   forevery_ext_2 _
     (fun (bid : natlt (batch * (m * n))) (tid : natlt (tile * tile)) ->
-       tensor_pts_to_cell gC
+       pts_to_cell gC
          ((bid % batch <: natlt batch),
            (((bid / batch) / n <: natlt m),
              (((bid / batch) % n <: natlt n),
@@ -1103,7 +1103,7 @@ fn bsetup
     (fun bid tid -> gA |-> Frac (fA /. n_threads) eA)
     (fun bid tid -> gB |-> Frac (fB /. n_threads) eB)
     (fun (bid : natlt (batch * (m * n))) (tid : natlt (tile * tile)) ->
-       tensor_pts_to_cell gC
+       pts_to_cell gC
          ((bid % batch <: natlt batch),
            (((bid / batch) / n <: natlt m),
              (((bid / batch) % n <: natlt n),
@@ -1190,7 +1190,7 @@ fn bteardown
   let vf : (natlt (batch * (m * n)) -> natlt (tile * tile) -> GTot tc) =
     forevery_exists_2
       (fun (bid : natlt (batch * (m * n))) (tid : natlt (tile * tile)) (v : tc) ->
-        tensor_pts_to_cell gC
+        pts_to_cell gC
           ((bid % batch <: natlt batch),
             (((bid / batch) / n <: natlt m),
               (((bid / batch) % n <: natlt n),
@@ -1210,7 +1210,7 @@ fn bteardown
   forevery_extract_pure_2
     #(natlt (batch * (m * n))) #(natlt (tile * tile))
     (fun (bid : natlt (batch * (m * n))) (tid : natlt (tile * tile)) ->
-      tensor_pts_to_cell gC
+      pts_to_cell gC
         ((bid % batch <: natlt batch),
           (((bid / batch) / n <: natlt m),
             (((bid / batch) % n <: natlt n),
@@ -1231,7 +1231,7 @@ fn bteardown
   forevery_map_2
     #(natlt (batch * (m * n))) #(natlt (tile * tile))
     (fun (bid : natlt (batch * (m * n))) (tid : natlt (tile * tile)) ->
-      tensor_pts_to_cell gC
+      pts_to_cell gC
         ((bid % batch <: natlt batch),
           (((bid / batch) / n <: natlt m),
             (((bid / batch) % n <: natlt n),
@@ -1242,7 +1242,7 @@ fn bteardown
               (chest_flat42 #real #m #n #tile #tile (chest_slice 0 (bid % batch) rC))
               (((bid / batch) / n) * tile + (tid / tile)) (((bid / batch) % n) * tile + (tid % tile))))
     (fun (bid : natlt (batch * (m * n))) (tid : natlt (tile * tile)) ->
-      tensor_pts_to_cell gC
+      pts_to_cell gC
         ((bid % batch <: natlt batch),
           (((bid / batch) / n <: natlt m),
             (((bid / batch) % n <: natlt n),
@@ -1251,15 +1251,15 @@ fn bteardown
 
   forevery_ext_2 _
     (fun (bid : natlt (batch * (m * n))) (tid : natlt (tile * tile)) ->
-      tensor_pts_to_cell gC ((btile_idx_bij batch m n tile).gg (bid, tid))
+      pts_to_cell gC ((btile_idx_bij batch m n tile).gg (bid, tid))
         (Chest.acc eC' ((btile_idx_bij batch m n tile).gg (bid, tid))));
   forevery_flatten'
     (fun (xy : natlt (batch * (m * n)) & natlt (tile * tile)) ->
-      tensor_pts_to_cell gC ((btile_idx_bij batch m n tile).gg xy)
+      pts_to_cell gC ((btile_idx_bij batch m n tile).gg xy)
         (Chest.acc eC' ((btile_idx_bij batch m n tile).gg xy)));
   forevery_iso_back (btile_idx_bij batch m n tile)
     (fun (idx : abs (batch @| m @| n @| tile @| tile @| INil)) ->
-      tensor_pts_to_cell gC idx (Chest.acc eC' idx));
+      pts_to_cell gC idx (Chest.acc eC' idx));
   tensor_implode gC;
 
   (* Final batched matrix-level approximation, reduced cellwise to the per-page

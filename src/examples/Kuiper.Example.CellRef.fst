@@ -15,7 +15,7 @@ fn cell_get
   (#f : perm)
   (#v : erased u32)
   preserves
-    tensor_pts_to_cell a #f ((i <: natlt 16), ()) v
+    pts_to_cell a #f ((i <: natlt 16), ()) v
   returns
     r : u32
   ensures
@@ -35,9 +35,9 @@ fn cell_set
   (w : u32)
   (#v : erased u32)
   requires
-    tensor_pts_to_cell a ((i <: natlt 16), ()) v
+    pts_to_cell a ((i <: natlt 16), ()) v
   ensures
-    tensor_pts_to_cell a ((i <: natlt 16), ()) w
+    pts_to_cell a ((i <: natlt 16), ()) w
 {
   tensor_cell_to_ref a ((SZ.v i <: natlt 16), ());
   let p = get_ref_of_tensor_cell a ((i <: szlt 16), ());

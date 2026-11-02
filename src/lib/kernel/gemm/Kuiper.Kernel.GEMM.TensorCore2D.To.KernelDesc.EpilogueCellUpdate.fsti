@@ -99,13 +99,13 @@ fn epilogue_cell_update
     c |-> Frac fC eC **
     acc |-> Frac (1.0R /. warp_size) eAcc
   requires
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 (SZ.v row) (SZ.v col))
       (reveal old)
   ensures
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 (SZ.v row) (SZ.v col))

@@ -274,7 +274,7 @@ unfold let ( .() )
 //   (#s : chest d et)
 //   = tensor_write #et #r #d #l a i v #s
 
-val tensor_pts_to_cell
+val pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : vtlayout d)
   ([@@@mkey] a : rotensor et l)
@@ -287,10 +287,10 @@ val tensor_pts_to_cell
 instance cell_pts_to (#et : Type) (#r : nat) (#d : shape r) (#l : vtlayout d)
   : has_pts_to (cell (rotensor et l) (abs d)) et
 = {
-  pts_to = (fun (Cell ar i) #f v -> tensor_pts_to_cell ar #f i v);
+  pts_to = (fun (Cell ar i) #f v -> pts_to_cell ar #f i v);
 }
 
-val tensor_pts_to_cell_eq
+val pts_to_cell_eq
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : vtlayout d)
   (a : rotensor et l) (i : abs d) (f : perm) (v : et)
@@ -304,7 +304,7 @@ val is_send_across_global_tensor_cell
   (#l : vtlayout d)
   (a : rotensor et l { is_global a })
   (#f : perm) (i : abs d) (v : et)
-  : is_send_across gpu_of (tensor_pts_to_cell a #f i v)
+  : is_send_across gpu_of (pts_to_cell a #f i v)
 
 inline_for_extraction noextract
 fn tensor_read_cell

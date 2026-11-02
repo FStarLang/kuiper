@@ -433,8 +433,8 @@ fn tensor_fold_outer
       Cell (from_array (tlayout_fold_outer l) (core a)) j
         |-> Frac f (acc (fold_chest m) j))
     fn j {
-      tensor_pts_to_cell_eq a (fold_bij.gg j) f (acc m (fold_bij.gg j));
-      tensor_pts_to_cell_eq (from_array (tlayout_fold_outer l) (core a)) j f
+      pts_to_cell_eq a (fold_bij.gg j) f (acc m (fold_bij.gg j));
+      pts_to_cell_eq (from_array (tlayout_fold_outer l) (core a)) j f
         (acc (fold_chest m) j);
       rewrite
         Cell a (fold_bij.gg j) |-> Frac f (acc m (fold_bij.gg j))
@@ -475,8 +475,8 @@ fn tensor_unfold_outer
       Cell (from_array l (core a)) i
         |-> Frac f (acc (unfold_chest m) i))
     fn i {
-      tensor_pts_to_cell_eq a (fold_bij.ff i) f (acc m (fold_bij.ff i));
-      tensor_pts_to_cell_eq (from_array l (core a)) i f
+      pts_to_cell_eq a (fold_bij.ff i) f (acc m (fold_bij.ff i));
+      pts_to_cell_eq (from_array l (core a)) i f
         (acc (unfold_chest m) i);
       rewrite
         Cell a (fold_bij.ff i) |-> Frac f (acc m (fold_bij.ff i))

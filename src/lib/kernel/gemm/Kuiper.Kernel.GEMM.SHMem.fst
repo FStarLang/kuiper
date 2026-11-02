@@ -93,7 +93,7 @@ let live_cell
   (i : natlt m)
   (j : natlt n)
   : slprop
-  = exists* v. tensor_pts_to_cell gm (idx2 i j) v
+  = exists* v. pts_to_cell gm (idx2 i j) v
 
 (* Description of shared memory used in this kernel. *)
 inline_for_extraction noextract
@@ -114,11 +114,11 @@ fn explode2
   ensures array_exists (core a)
   ensures
     forall+ (r : natlt m) (c : natlt n).
-      tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c)
+      pts_to_cell a #f (idx2 r c) (acc2 s r c)
 {
   tensor_explode2 a;
-  forevery_ext _ (fun i -> tensor_pts_to_cell a #f (idx2 (fst i) (snd i)) (acc2 s (fst i) (snd i)));
-  forevery_unflatten (fun r c -> tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c));
+  forevery_ext _ (fun i -> pts_to_cell a #f (idx2 (fst i) (snd i)) (acc2 s (fst i) (snd i)));
+  forevery_unflatten (fun r c -> pts_to_cell a #f (idx2 r c) (acc2 s r c));
   ()
 }
 
@@ -133,11 +133,11 @@ fn implode2
     pure (SZ.fits (l.ulen))
   requires
     forall+ (r : natlt m) (c : natlt n).
-      tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c)
+      pts_to_cell a #f (idx2 r c) (acc2 s r c)
   ensures a |-> Frac f s
 {
-  forevery_flatten (fun r c -> tensor_pts_to_cell a #f (idx2 r c) (acc2 s r c));
-  forevery_ext _ (fun i -> tensor_pts_to_cell a #f (idx2 (fst i) (snd i)) (acc2 s (fst i) (snd i)));
+  forevery_flatten (fun r c -> pts_to_cell a #f (idx2 r c) (acc2 s r c));
+  forevery_ext _ (fun i -> pts_to_cell a #f (idx2 (fst i) (snd i)) (acc2 s (fst i) (snd i)));
   tensor_implode2 a;
   ()
 }
@@ -180,8 +180,8 @@ let barrier_p_cell
       FStar.Math.Lemmas.cancel_mul_div mrows (SZ.v tile);
       FStar.Math.Lemmas.cancel_mul_div mshared (SZ.v tile);
       FStar.Math.Lemmas.cancel_mul_div mcols (SZ.v tile);
-      tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapA (ematrix_subtile eA tile tile mrow (it / 2))) (tid/tile) (tid%tile)) **
-      tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapB (ematrix_subtile eB tile tile (it / 2) mcol)) (tid/tile) (tid%tile))
+      pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapA (ematrix_subtile eA tile tile mrow (it / 2))) (tid/tile) (tid%tile)) **
+      pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapB (ematrix_subtile eB tile tile (it / 2) mcol)) (tid/tile) (tid%tile))
 
 (* Fold the even-step shared-ownership form into barrier_p_cell.
    The runtime [if]s make the [it >= 2*mshared] and [even it] guards in
@@ -324,16 +324,16 @@ fn barrier_p_to_q_cell_transform
       with em2. assert (pts_to sa2 #1.0R em2);
       explode2 sa1;
       forevery_unfactor' (tile * tile) tile tile
-        (fun r c -> tensor_pts_to_cell sa1 (idx2 r c) (acc2 em1 r c));
+        (fun r c -> pts_to_cell sa1 (idx2 r c) (acc2 em1 r c));
       explode2 sa2;
       forevery_unfactor' (tile * tile) tile tile
-        (fun r c -> tensor_pts_to_cell sa2 (idx2 r c) (acc2 em2 r c));
+        (fun r c -> pts_to_cell sa2 (idx2 r c) (acc2 em2 r c));
       forevery_map
-        (fun (tid : natlt (tile * tile)) -> tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 em1 (tid/tile) (tid%tile)))
+        (fun (tid : natlt (tile * tile)) -> pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 em1 (tid/tile) (tid%tile)))
         (fun (tid : natlt (tile * tile)) -> live_cell sa1 (tid/tile) (tid%tile))
         fn tid { fold live_cell };
       forevery_map
-        (fun (tid : natlt (tile * tile)) -> tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 em2 (tid/tile) (tid%tile)))
+        (fun (tid : natlt (tile * tile)) -> pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 em2 (tid/tile) (tid%tile)))
         (fun (tid : natlt (tile * tile)) -> live_cell sa2 (tid/tile) (tid%tile))
         fn tid { fold live_cell };
       forevery_zip
@@ -354,19 +354,19 @@ fn barrier_p_to_q_cell_transform
       forevery_map
         (fun (tid : natlt (tile * tile)) -> barrier_p_cell mapA mapB tile eA eB bid sa1 sa2 it tid)
         (fun (tid : natlt (tile * tile)) ->
-          tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapA (ematrix_subtile eA tile tile mrow (it/2))) (tid/tile) (tid%tile)) **
-          tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapB (ematrix_subtile eB tile tile (it/2) mcol)) (tid/tile) (tid%tile)))
+          pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapA (ematrix_subtile eA tile tile mrow (it/2))) (tid/tile) (tid%tile)) **
+          pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapB (ematrix_subtile eB tile tile (it/2) mcol)) (tid/tile) (tid%tile)))
         fn tid {
           rewrite barrier_p_cell mapA mapB tile eA eB bid sa1 sa2 it tid
-               as tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapA (ematrix_subtile eA tile tile mrow (it/2))) (tid/tile) (tid%tile)) **
-                  tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapB (ematrix_subtile eB tile tile (it/2) mcol)) (tid/tile) (tid%tile));
+               as pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapA (ematrix_subtile eA tile tile mrow (it/2))) (tid/tile) (tid%tile)) **
+                  pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (acc2 (Chest.chest_map mapB (ematrix_subtile eB tile tile (it/2) mcol)) (tid/tile) (tid%tile));
         };
       forevery_unzip _ _;
       forevery_factor' (tile * tile) tile tile
-        (fun r c -> tensor_pts_to_cell sa1 (idx2 r c) (acc2 (Chest.chest_map mapA (ematrix_subtile eA tile tile mrow (it/2))) r c));
+        (fun r c -> pts_to_cell sa1 (idx2 r c) (acc2 (Chest.chest_map mapA (ematrix_subtile eA tile tile mrow (it/2))) r c));
       implode2 sa1;
       forevery_factor' (tile * tile) tile tile
-        (fun r c -> tensor_pts_to_cell sa2 (idx2 r c) (acc2 (Chest.chest_map mapB (ematrix_subtile eB tile tile (it/2) mcol)) r c));
+        (fun r c -> pts_to_cell sa2 (idx2 r c) (acc2 (Chest.chest_map mapB (ematrix_subtile eB tile tile (it/2) mcol)) r c));
       implode2 sa2;
       tensor_share_n sa1 (tile * tile);
       tensor_share_n sa2 (tile * tile);
@@ -563,7 +563,7 @@ let bkpre1
   let cidx = sbtile_cell_idx batch mrows mcols tile bid tid in
   (gA |-> Frac (fA /. ((batch * (mrows * mcols)) * (tile * tile))) eA) **
   (gB |-> Frac (fB /. ((batch * (mrows * mcols)) * (tile * tile))) eB) **
-  tensor_pts_to_cell gC cidx (Chest.acc eC cidx)
+  pts_to_cell gC cidx (Chest.acc eC cidx)
 
 unfold
 let bkpost1
@@ -609,7 +609,7 @@ let bkpost1
   (gA |-> Frac (fA /. ((batch * (mrows * mcols)) * (tile * tile))) eA) **
   (gB |-> Frac (fB /. ((batch * (mrows * mcols)) * (tile * tile))) eB) **
   (exists* (v : tc).
-    tensor_pts_to_cell gC cidx v **
+    pts_to_cell gC cidx v **
     pure (v %~ MS.ggemm_single mapA_r mapB_r comb_r
             rA_p rB_p rC_p
             grow gcol))
@@ -888,8 +888,8 @@ fn bkf
     rewrite each v1 as (acc2 (ematrix_subtile (eA_p) tile tile (SZ.v mrow) (SZ.v !bk)) (tid / tile) (tid % tile));
     rewrite each v2 as (acc2 (ematrix_subtile (eB_p) tile tile (SZ.v !bk) (SZ.v mcol)) (tid / tile) (tid % tile));
 
-    rewrite tensor_pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (mapA (acc2 (ematrix_subtile (eA_p) tile tile (SZ.v mrow) (SZ.v !bk)) (tid/tile) (tid%tile))) **
-            tensor_pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (mapB (acc2 (ematrix_subtile (eB_p) tile tile (SZ.v !bk) (SZ.v mcol)) (tid/tile) (tid%tile)))
+    rewrite pts_to_cell sa1 (idx2 (tid/tile) (tid%tile)) (mapA (acc2 (ematrix_subtile (eA_p) tile tile (SZ.v mrow) (SZ.v !bk)) (tid/tile) (tid%tile))) **
+            pts_to_cell sa2 (idx2 (tid/tile) (tid%tile)) (mapB (acc2 (ematrix_subtile (eB_p) tile tile (SZ.v !bk) (SZ.v mcol)) (tid/tile) (tid%tile)))
          as barrier_p_cell mapA mapB tile (eA_p) (eB_p) (SZ.v rest) sa1 sa2 (2 * !bk + 1) tid;
 
     assert pure (barrier_p_cell mapA mapB tile (eA_p) (eB_p) (SZ.v rest) sa1 sa2 (2 * !bk + 1) tid
@@ -985,7 +985,7 @@ fn bkf
   assert (pure (SZ.v gcol_sz == SZ.v mcol * SZ.v tile + SZ.v bcol));
   up3_lemma #batch #(mrows * tile) #(mcols * tile) page grow_sz gcol_sz;
   assert (pure (up ci == sbtile_cell_idx batch mrows mcols tile bidn tidn));
-  rewrite (tensor_pts_to_cell gC
+  rewrite (pts_to_cell gC
              ((SZ.v page <: natlt batch),
                (((SZ.v rest / SZ.v mcols * SZ.v tile + SZ.v brow) <: natlt (mrows * tile)),
                  (((SZ.v rest % SZ.v mcols * SZ.v tile + SZ.v bcol) <: natlt (mcols * tile)), ())))
@@ -993,14 +993,14 @@ fn bkf
                ((SZ.v page <: natlt batch),
                  (((SZ.v rest / SZ.v mcols * SZ.v tile + SZ.v brow) <: natlt (mrows * tile)),
                    (((SZ.v rest % SZ.v mcols * SZ.v tile + SZ.v bcol) <: natlt (mcols * tile)), ())))))
-       as (tensor_pts_to_cell gC (up ci) (Chest.acc eC (up ci)));
+       as (pts_to_cell gC (up ci) (Chest.acc eC (up ci)));
   let v0 = tensor_read_cell gC (page, (grow_sz, (gcol_sz, ())));
   let v1 = comb v0 !sum;
   // Note: repeat ci here since the let binding above does not inline.
   // Not doing so means we get tuples (structs) in generated CUDA
   tensor_write_cell gC (page, (grow_sz, (gcol_sz, ()))) v1;
-  rewrite (tensor_pts_to_cell gC (up ci) v1)
-       as (tensor_pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile (SZ.v bid) (SZ.v tid)) v1);
+  rewrite (pts_to_cell gC (up ci) v1)
+       as (pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile (SZ.v bid) (SZ.v tid)) v1);
 
   (* Bridge the cell value to the per-page real spec. *)
   acc_bridge batch mrows mcols tile rC bidn tidn;
@@ -1086,14 +1086,14 @@ fn bsetup
 
   forevery_iso (sbtile_idx_bij batch mrows mcols tile)
     (fun (idx : abs (batch @| (mrows * tile) @| (mcols * tile) @| INil)) ->
-       tensor_pts_to_cell gC idx (Chest.acc eC idx));
+       pts_to_cell gC idx (Chest.acc eC idx));
   forevery_unflatten' _;
 
   sbtile_gg_all batch mrows mcols tile;
 
   forevery_ext_2 _
    (fun (bid : natlt (batch * (mrows * mcols))) (tid : natlt (tile * tile)) ->
-      tensor_pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile bid tid)
+      pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile bid tid)
          (Chest.acc eC (sbtile_cell_idx batch mrows mcols tile bid tid)));
 
   forevery_factor n_threads (batch * (mrows * mcols)) (tile * tile)
@@ -1107,7 +1107,7 @@ fn bsetup
     (fun (bid : natlt (batch * (mrows * mcols))) (tid : natlt (tile * tile)) ->
        gB |-> Frac (fB /. n_threads) eB)
     (fun (bid : natlt (batch * (mrows * mcols))) (tid : natlt (tile * tile)) ->
-       tensor_pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile bid tid)
+       pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile bid tid)
          (Chest.acc eC (sbtile_cell_idx batch mrows mcols tile bid tid)));
 
   forevery_ext_2 _
@@ -1188,7 +1188,7 @@ fn bteardown
   let vf : (natlt (batch * (mrows * mcols)) -> natlt (tile * tile) -> GTot tc) =
     forevery_exists_2
       (fun (bid : natlt (batch * (mrows * mcols))) (tid : natlt (tile * tile)) (v : tc) ->
-        tensor_pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile bid tid) v **
+        pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile bid tid) v **
         pure (v %~ MS.ggemm_single mapA_r mapB_r comb_r
                 (chest_slice 0 (bid % batch) rA <: chest2 real (mrows * tile) (mshared * tile))
                 (chest_slice 0 (bid % batch) rB <: chest2 real (mshared * tile) (mcols * tile))
@@ -1205,7 +1205,7 @@ fn bteardown
   forevery_extract_pure_2
     #(natlt (batch * (mrows * mcols))) #(natlt (tile * tile))
     (fun (bid : natlt (batch * (mrows * mcols))) (tid : natlt (tile * tile)) ->
-      tensor_pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile bid tid) (vf bid tid) **
+      pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile bid tid) (vf bid tid) **
       pure (vf bid tid %~ MS.ggemm_single mapA_r mapB_r comb_r
               (chest_slice 0 (bid % batch) rA <: chest2 real (mrows * tile) (mshared * tile))
               (chest_slice 0 (bid % batch) rB <: chest2 real (mshared * tile) (mcols * tile))
@@ -1224,7 +1224,7 @@ fn bteardown
   forevery_map_2
     #(natlt (batch * (mrows * mcols))) #(natlt (tile * tile))
     (fun (bid : natlt (batch * (mrows * mcols))) (tid : natlt (tile * tile)) ->
-      tensor_pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile bid tid) (vf bid tid) **
+      pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile bid tid) (vf bid tid) **
       pure (vf bid tid %~ MS.ggemm_single mapA_r mapB_r comb_r
               (chest_slice 0 (bid % batch) rA <: chest2 real (mrows * tile) (mshared * tile))
               (chest_slice 0 (bid % batch) rB <: chest2 real (mshared * tile) (mcols * tile))
@@ -1232,22 +1232,22 @@ fn bteardown
               (((bid / batch) / mcols) * tile + (tid / tile))
               (((bid / batch) % mcols) * tile + (tid % tile))))
     (fun (bid : natlt (batch * (mrows * mcols))) (tid : natlt (tile * tile)) ->
-      tensor_pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile bid tid) (vf bid tid))
+      pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile bid tid) (vf bid tid))
     fn bid tid { () };
 
   sbtile_gg_all batch mrows mcols tile;
 
   forevery_ext_2 _
     (fun (bid : natlt (batch * (mrows * mcols))) (tid : natlt (tile * tile)) ->
-      tensor_pts_to_cell gC ((sbtile_idx_bij batch mrows mcols tile).gg (bid, tid))
+      pts_to_cell gC ((sbtile_idx_bij batch mrows mcols tile).gg (bid, tid))
         (Chest.acc eC' ((sbtile_idx_bij batch mrows mcols tile).gg (bid, tid))));
   forevery_flatten'
     (fun (xy : natlt (batch * (mrows * mcols)) & natlt (tile * tile)) ->
-      tensor_pts_to_cell gC ((sbtile_idx_bij batch mrows mcols tile).gg xy)
+      pts_to_cell gC ((sbtile_idx_bij batch mrows mcols tile).gg xy)
         (Chest.acc eC' ((sbtile_idx_bij batch mrows mcols tile).gg xy)));
   forevery_iso_back (sbtile_idx_bij batch mrows mcols tile)
     (fun (idx : abs (batch @| (mrows * tile) @| (mcols * tile) @| INil)) ->
-      tensor_pts_to_cell gC idx (Chest.acc eC' idx));
+      pts_to_cell gC idx (Chest.acc eC' idx));
   tensor_implode gC;
 
   (* Final batched matrix-level approximation, reduced cellwise/pagewise. *)

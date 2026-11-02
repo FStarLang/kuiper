@@ -7,7 +7,7 @@ open Kuiper.Kernel.GEMMGPU.Type
 
 open Kuiper
 open Kuiper.Tensor
-open Kuiper.Tensor { tensor_pts_to_cell as pts_to_cell }
+open Kuiper.Tensor { pts_to_cell as pts_to_cell }
 module MS = Kuiper.Spec.GEMM
 module SZ = Kuiper.SizeT
 open Kuiper.Shape

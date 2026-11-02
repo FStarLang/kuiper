@@ -22,7 +22,7 @@ module Kuiper.Kernel.GEMM.Naive1
 open Kuiper
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Slice
-open Kuiper.Tensor { tensor_pts_to_cell as pts_to_cell }
+open Kuiper.Tensor { pts_to_cell as pts_to_cell }
 open Kuiper.Shape
 open Kuiper.Chest
 open Kuiper.Bijection

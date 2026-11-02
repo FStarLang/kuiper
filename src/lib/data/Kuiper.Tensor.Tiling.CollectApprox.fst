@@ -37,7 +37,7 @@ fn array2_collect_approx_tiled
   requires
     forall+ (bid : natlt (ntr * ntc)) (tid : natlt (trows * tcols)).
       exists* (v : et).
-        tensor_pts_to_cell
+        pts_to_cell
           (array2_subtile gm trows tcols (bid / ntc) (bid % ntc))
           (idx2 (tid / tcols <: natlt trows) (tid % tcols <: natlt tcols)) v **
         pure (spec_fn ((bid / ntc) * trows + (tid / tcols))
@@ -57,7 +57,7 @@ fn array2_collect_approx_tiled
       let tc = bid % ntc in
       let i = tid / tcols in
       let j = tid % tcols in
-      tensor_pts_to_cell
+      pts_to_cell
         (array2_subtile gm trows tcols tr tc)
         (idx2 (i <: natlt trows) (j <: natlt tcols)) v **
       pure (spec_fn (tr * trows + i) (tc * tcols + j) v));
@@ -70,7 +70,7 @@ fn array2_collect_approx_tiled
       let tc = bid % ntc in
       let i = tid / tcols in
       let j = tid % tcols in
-      tensor_pts_to_cell
+      pts_to_cell
         (array2_subtile gm trows tcols tr tc)
         (idx2 (i <: natlt trows) (j <: natlt tcols)) (vf bid tid) **
       pure (spec_fn (tr * trows + i) (tc * tcols + j) (vf bid tid)))
@@ -90,7 +90,7 @@ fn array2_collect_approx_tiled
       let tc = bid % ntc in
       let i = tid / tcols in
       let j = tid % tcols in
-      tensor_pts_to_cell
+      pts_to_cell
         (array2_subtile gm trows tcols tr tc)
         (idx2 (i <: natlt trows) (j <: natlt tcols)) (vf bid tid) **
       pure (spec_fn (tr * trows + i) (tc * tcols + j) (vf bid tid)))
@@ -99,7 +99,7 @@ fn array2_collect_approx_tiled
       let tc = bid % ntc in
       let i = tid / tcols in
       let j = tid % tcols in
-      tensor_pts_to_cell
+      pts_to_cell
         (array2_subtile gm trows tcols tr tc)
         (idx2 (i <: natlt trows) (j <: natlt tcols)) (vf bid tid))
     fn bid tid { () };
@@ -109,7 +109,7 @@ fn array2_collect_approx_tiled
     (ntr * ntc) ntr ntc
     (trows * tcols) trows tcols
     (fun (bid : natlt (ntr * ntc)) (tid : natlt (trows * tcols)) ->
-      tensor_pts_to_cell
+      pts_to_cell
         (array2_subtile gm trows tcols (bid / ntc) (bid % ntc))
         (idx2 (tid / tcols <: natlt trows) (tid % tcols <: natlt tcols)) (vf bid tid));
 
@@ -120,11 +120,11 @@ fn array2_collect_approx_tiled
   forevery_ext_4
     (fun (tr:natlt ntr) (tc:natlt ntc) (i:natlt trows) (j:natlt tcols) ->
       let bid = tr * ntc + tc in let tid = i * tcols + j in
-      tensor_pts_to_cell
+      pts_to_cell
         (array2_subtile gm trows tcols (bid / ntc) (bid % ntc))
         (idx2 (tid / tcols <: natlt trows) (tid % tcols <: natlt tcols)) (vf bid tid))
     (fun (tr:natlt ntr) (tc:natlt ntc) (i:natlt trows) (j:natlt tcols) ->
-      tensor_pts_to_cell
+      pts_to_cell
         (array2_subtile gm trows tcols tr tc)
         (idx2 (i <: natlt trows) (j <: natlt tcols)) (vf (tr * ntc + tc) (i * tcols + j)));
 

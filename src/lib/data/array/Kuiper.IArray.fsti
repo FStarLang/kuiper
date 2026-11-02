@@ -54,7 +54,7 @@ val lem_core_from_array
           [SMTPat (from_array vw p)]
 
 (* Ownership over a single index. *)
-val iarray_pts_to_cell
+val pts_to_cell
   (#et:Type)
   (#vw : aiview)
   ([@@@mkey] a : iarray et vw)
@@ -63,21 +63,21 @@ val iarray_pts_to_cell
   (v : et)
   : slprop
 
-val iarray_pts_to_cell_def
+val pts_to_cell_def
   (#et : Type)
   (#vw : aiview)
   (a : iarray et vw)
   (#f : perm)
   (i : vw.ait)
   (v : et)
-  : Lemma (iarray_pts_to_cell a #f i v ==
+  : Lemma (pts_to_cell a #f i v ==
             pts_to_cell (core a) #f (it_to_nat vw i) v)
 
 [@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
 instance cell_pts_to (#et : Type) (#vw : aiview)
   : has_pts_to (cell (iarray et vw) vw.ait) et
 = {
-  pts_to = (fun (Cell ar i) #f v -> iarray_pts_to_cell #et #vw ar #f i v);
+  pts_to = (fun (Cell ar i) #f v -> pts_to_cell #et #vw ar #f i v);
 }
 
 val iarray_pts_to
@@ -114,7 +114,7 @@ val is_send_across_global_iarray_cell
   (#f : perm)
   (i : vw.ait)
   (v : et)
-  : is_send_across gpu_of (iarray_pts_to_cell a #f i v)
+  : is_send_across gpu_of (pts_to_cell a #f i v)
 
 unfold
 instance has_pts_to (#et:Type0) (#vw : aiview)
@@ -438,11 +438,11 @@ fn iarray_read_cell
   (#f : perm)
   (#v0 : erased et)
   requires
-    iarray_pts_to_cell a #f (ci_to_ai vw ci) v0
+    pts_to_cell a #f (ci_to_ai vw ci) v0
   returns
     v : et
   ensures
-    iarray_pts_to_cell a #f (ci_to_ai vw ci) v **
+    pts_to_cell a #f (ci_to_ai vw ci) v **
     pure (v == v0)
 
 inline_for_extraction noextract

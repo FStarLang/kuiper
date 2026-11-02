@@ -126,7 +126,7 @@ fn lower_cont
     (fun i -> Cell (core a <: array et) (cl.offset + i <: nat) |-> Frac f (Seq.index s' i))
     fn i {
       cl.pf i;
-      tensor_pts_to_cell_eq a (idx1 i) f (acc s (idx1 i));
+      pts_to_cell_eq a (idx1 i) f (acc s (idx1 i));
       rewrite  Cell a (idx1 i) |-> Frac f (acc s (idx1 i))
       as pts_to_cell (core a) #f (cl.offset + i) (Seq.index s' i);
     };
@@ -158,12 +158,12 @@ fn raise_cont
     (fun i -> Cell a (idx1 i) |-> Frac f (acc s' (idx1 i)))
     fn i {
       cl.pf i;
-      tensor_pts_to_cell_eq a (idx1 i) f (Seq.index s i);
+      pts_to_cell_eq a (idx1 i) f (Seq.index s i);
       rewrite Cell (core a <: array et) (cl.offset + i <: nat) |-> Frac f (Seq.index s i)
       as  Cell a (idx1 i) |-> Frac f (acc s' (idx1 i));
     };
   forevery_abs1_iso_back #sz
-    (fun i -> tensor_pts_to_cell a #f i (acc s' i));
+    (fun i -> pts_to_cell a #f i (acc s' i));
   tensor_implode_with_exists a;
 }
 

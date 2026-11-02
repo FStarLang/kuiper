@@ -69,11 +69,11 @@ fn teardown
   forevery_unzip _ _;
   forevery_elim_pure _;
   forevery_rw_size (SZ.v n) (sizeof d);
-  assert forall+ (i: natlt (sizeof d)). tensor_pts_to_cell a (unflatten d i) (accs i);
+  assert forall+ (i: natlt (sizeof d)). pts_to_cell a (unflatten d i) (accs i);
   forevery_ext #(natlt (sizeof d))
-    (fun i -> tensor_pts_to_cell a (unflatten d i) (accs i))
-    (fun i -> tensor_pts_to_cell a (unflatten d i) (accs (flatten d (unflatten d i))));
-  forevery_iso_back (flatten_bij d) (fun (i : abs d) -> tensor_pts_to_cell a i (accs (flatten d i)));
+    (fun i -> pts_to_cell a (unflatten d i) (accs i))
+    (fun i -> pts_to_cell a (unflatten d i) (accs (flatten d (unflatten d i))));
+  forevery_iso_back (flatten_bij d) (fun (i : abs d) -> pts_to_cell a i (accs (flatten d i)));
   let s' = Kuiper.Chest.mk d (fun i -> accs (flatten d i));
   forevery_map
     (fun (i : abs d) -> Cell a i |-> (accs (flatten d i)))
@@ -115,7 +115,7 @@ fn kf
     Cell a (up (cunflatten cd i)) |-> acc s (unflatten d i);
   let x = tensor_read_cell a (cunflatten cd i);
   tensor_write_cell a (cunflatten cd i) (f (cunflatten cd i) x);
-  with v. assert tensor_pts_to_cell a (up (cunflatten cd i)) v;
+  with v. assert pts_to_cell a (up (cunflatten cd i)) v;
   rewrite
     Cell a (up (cunflatten cd i)) |-> v
   as
@@ -152,7 +152,7 @@ let kmap
     setup    = setup    n frame vf a #s;
     teardown = teardown n frame vf a #s;
     kpre  = (fun (i : natlt (sizeof d)) -> frame (fr /. n) ** Cell a (unflatten d i) |-> (acc s (unflatten d i)));
-    kpost = (fun (i : natlt (sizeof d)) -> frame (fr /. n) ** exists* v. tensor_pts_to_cell a (unflatten d i) v **
+    kpost = (fun (i : natlt (sizeof d)) -> frame (fr /. n) ** exists* v. pts_to_cell a (unflatten d i) v **
                                              pure (vf (unflatten d i) (acc s (unflatten d i)) v));
     kpost_sendable = solve;
     kpre_sendable  = solve;

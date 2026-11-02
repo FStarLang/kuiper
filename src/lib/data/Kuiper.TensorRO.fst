@@ -326,7 +326,7 @@ fn tensor_read
   res
 }
 
-let tensor_pts_to_cell
+let pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : vtlayout d)
   ([@@@mkey] a : rotensor et l)
@@ -336,7 +336,7 @@ let tensor_pts_to_cell
   : slprop
   = pts_to_cell (core a) #f (l.imap i) v
 
-let tensor_pts_to_cell_eq
+let pts_to_cell_eq
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : vtlayout d)
   (a : rotensor et l) (i : abs d) (f : perm) (v : et)
@@ -350,7 +350,7 @@ instance is_send_across_global_tensor_cell
   (#l : vtlayout d)
   (a : rotensor et l { is_global a })
   (#f : perm) (i : abs d) (v : et)
-  : is_send_across gpu_of (tensor_pts_to_cell a #f i v)
+  : is_send_across gpu_of (pts_to_cell a #f i v)
   =
   let pf : is_send_across gpu_of (pts_to_cell (core a) #f (l.imap i) v) = solve in
   pf
@@ -370,7 +370,7 @@ fn tensor_read_cell
   ensures
     pure (v == s)
 {
-  tensor_pts_to_cell_eq a (up i) f s;
+  pts_to_cell_eq a (up i) f s;
   rewrite (Cell a (up i) |-> Frac f s)
        as (pts_to_cell (core a) #f (l.imap (up i)) s);
   let cm : SZ.t = cv.cimap i;

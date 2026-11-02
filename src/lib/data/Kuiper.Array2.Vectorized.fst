@@ -133,13 +133,13 @@ fn get_slice
   // Convert pts_to_cell to pts_to_cell
   forevery_map_2
     (fun (r : natlt rows) (c : natlt cols) ->
-      T.tensor_pts_to_cell gm #f (idx2 r c) (acc2 em r c))
+      T.pts_to_cell gm #f (idx2 r c) (acc2 em r c))
     (fun (r : natlt rows) (c : natlt cols) ->
       pts_to_cell (T.core gm) #f (cell_of_pos l r c) (acc2 em r c))
     fn r c {
-      T.tensor_pts_to_cell_eq gm (idx2 r c) f (acc2 em r c);
+      T.pts_to_cell_eq gm (idx2 r c) f (acc2 em r c);
       rewrite
-        T.tensor_pts_to_cell gm #f (idx2 r c) (acc2 em r c)
+        T.pts_to_cell gm #f (idx2 r c) (acc2 em r c)
       as
         pts_to_cell (T.core gm) #f (cell_of_pos l r c) (acc2 em r c);
     };
@@ -333,13 +333,13 @@ fn unget_slice
     (fun (r : natlt rows) (c : natlt cols) ->
       pts_to_cell (T.core gm) #f (cell_of_pos l r c) (acc2 em r c))
     (fun (r : natlt rows) (c : natlt cols) ->
-      T.tensor_pts_to_cell gm #f (idx2 r c) (acc2 em r c))
+      T.pts_to_cell gm #f (idx2 r c) (acc2 em r c))
     fn r c {
-      T.tensor_pts_to_cell_eq gm (idx2 r c) f (acc2 em r c);
+      T.pts_to_cell_eq gm (idx2 r c) f (acc2 em r c);
       rewrite
         pts_to_cell (T.core gm) #f (cell_of_pos l r c) (acc2 em r c)
       as
-        T.tensor_pts_to_cell gm #f (idx2 r c) (acc2 em r c);
+        T.pts_to_cell gm #f (idx2 r c) (acc2 em r c);
     };
   T.tensor_iraise2 gm;
 }

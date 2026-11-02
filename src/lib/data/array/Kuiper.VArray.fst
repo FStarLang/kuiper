@@ -57,7 +57,7 @@ let lem_core_from_array
           [SMTPat (from_array vw p)]
   = ()
 
-let varray_pts_to_cell
+let pts_to_cell
   (#et #st : Type0)
   (#vw : aview et st)
   ([@@@mkey] a : varray vw)
@@ -67,17 +67,17 @@ let varray_pts_to_cell
   : slprop
   = Cell a i |-> Frac f v
 
-let varray_pts_to_cell_eq
+let pts_to_cell_eq
   (#et:Type)
   (#st:Type0) (#vw : aview et st)
   (a : varray vw)
   (i : vw.iview.ait)
   (f : perm)
   (v : et)
-  : Lemma (varray_pts_to_cell a #f i v
+  : Lemma (pts_to_cell a #f i v
            ==
            pts_to_cell (core a) #f (vw.iview.step.imap.f i) v)
-  = IArray.iarray_pts_to_cell_def #et #vw.iview a #f i v
+  = IArray.pts_to_cell_def #et #vw.iview a #f i v
 
 (* [Cell a i |-> Frac f v], with the [cell_pts_to] instance of the interface
    pinned explicitly.  In this file [varray] is transparent, so the [|->]
@@ -95,11 +95,11 @@ let vcell (#et #st : Type) (#vw : aview et st)
       #_ #_ #(Pulse.Class.PtsTo.pts_to_frac _ _ (cell_pts_to #et #st #vw))
       (Cell a i) (Frac f v)
 
-(* [varray_pts_to_cell] and [IArray.iarray_pts_to_cell] are the same slprop, but
+(* [pts_to_cell] and [IArray.pts_to_cell] are the same slprop, but
    are built with the two different instances above; normalization bridges them,
    the solver no longer does it on its own. *)
 let unfold_varray_cell () : T.Tac unit =
-  T.norm [delta_only [`%varray_pts_to_cell;
+  T.norm [delta_only [`%pts_to_cell;
                       `%Pulse.Class.PtsTo.op_Bar_Minus_Greater;
                       `%Pulse.Class.PtsTo.pts_to;
                       `%Pulse.Class.PtsTo.pts_to_frac;
@@ -144,7 +144,7 @@ instance is_send_across_global_varray_cell
   (#f : perm)
   (i : vw.iview.ait)
   (v : et)
-  : is_send_across gpu_of (varray_pts_to_cell a #f i v)
+  : is_send_across gpu_of (pts_to_cell a #f i v)
   = solve
 
 ghost
@@ -186,8 +186,8 @@ fn varray_explode
 {
   unfold varray_pts_to a #f v;
   IArray.iarray_explode a;
-  rewrite (forall+ (i : vw.iview.ait). IArray.iarray_pts_to_cell a #f i (vw.ctn.acc v i))
-       as (forall+ (i : vw.iview.ait). varray_pts_to_cell a #f i (vw.ctn.acc v i))
+  rewrite (forall+ (i : vw.iview.ait). IArray.pts_to_cell a #f i (vw.ctn.acc v i))
+       as (forall+ (i : vw.iview.ait). pts_to_cell a #f i (vw.ctn.acc v i))
        by unfold_varray_cell ();
   ()
 }
@@ -208,8 +208,8 @@ fn varray_implode_with_exists
   ensures
     a |-> Frac f v
 {
-  rewrite (forall+ (i : vw.iview.ait). varray_pts_to_cell a #f i (vw.ctn.acc v i))
-       as (forall+ (i : vw.iview.ait). IArray.iarray_pts_to_cell a #f i (vw.ctn.acc v i))
+  rewrite (forall+ (i : vw.iview.ait). pts_to_cell a #f i (vw.ctn.acc v i))
+       as (forall+ (i : vw.iview.ait). IArray.pts_to_cell a #f i (vw.ctn.acc v i))
        by unfold_varray_cell ();
   IArray.iarray_implode_with_exists a;
   fold varray_pts_to a #f v;
@@ -231,8 +231,8 @@ fn varray_implode
   ensures
     a |-> Frac f v
 {
-  rewrite (forall+ (i : vw.iview.ait). varray_pts_to_cell a #f i (vw.ctn.acc v i))
-       as (forall+ (i : vw.iview.ait). IArray.iarray_pts_to_cell a #f i (vw.ctn.acc v i))
+  rewrite (forall+ (i : vw.iview.ait). pts_to_cell a #f i (vw.ctn.acc v i))
+       as (forall+ (i : vw.iview.ait). IArray.pts_to_cell a #f i (vw.ctn.acc v i))
        by unfold_varray_cell ();
   IArray.iarray_implode a;
   fold varray_pts_to a #f v;
@@ -511,9 +511,9 @@ fn varray_abs
   varray_explode a1;
   forevery_map'
     (fun (i: vw1.iview.ait) ->
-      varray_pts_to_cell a1 #f i (vw1.ctn.acc (to_seq vw v) i))
+      pts_to_cell a1 #f i (vw1.ctn.acc (to_seq vw v) i))
     (fun (i: vw.iview.ait) ->
-      varray_pts_to_cell (from_array vw a) #f i (vw.ctn.acc v i))
+      pts_to_cell (from_array vw a) #f i (vw.ctn.acc v i))
     fn i i' {
       varray_cell_reindex a1 i (from_array vw a) i';
       rewrite each vw1.ctn.acc (to_seq vw v) i
@@ -570,12 +570,12 @@ fn varray_concr
   varray_explode a;
   forevery_map
     #vw.iview.ait
-    (fun i -> varray_pts_to_cell a #f i (vw.ctn.acc v i))
+    (fun i -> pts_to_cell a #f i (vw.ctn.acc v i))
     (fun i -> pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.ctn.acc v i))
     fn i {
-      unfold varray_pts_to_cell a #f i (vw.ctn.acc v i);
-      IArray.iarray_pts_to_cell_def a #f i (vw.ctn.acc v i);
-      rewrite IArray.iarray_pts_to_cell a #f i (vw.ctn.acc v i)
+      unfold pts_to_cell a #f i (vw.ctn.acc v i);
+      IArray.pts_to_cell_def a #f i (vw.ctn.acc v i);
+      rewrite IArray.pts_to_cell a #f i (vw.ctn.acc v i)
             as pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.ctn.acc v i);
       ()
   };
@@ -631,7 +631,7 @@ fn varray_iconcr
     ensures
       pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.ctn.acc v i)
   {
-    IArray.iarray_pts_to_cell_def a #f i (vw.ctn.acc v i);
+    IArray.pts_to_cell_def a #f i (vw.ctn.acc v i);
     rewrite
       Cell a i |-> Frac f (vw.ctn.acc v i)
     as
@@ -663,7 +663,7 @@ fn varray_iabs
     ensures
       Cell a i |-> Frac f (vw.ctn.acc v i)
   {
-    IArray.iarray_pts_to_cell_def a #f i (vw.ctn.acc v i);
+    IArray.pts_to_cell_def a #f i (vw.ctn.acc v i);
     rewrite
       pts_to_cell (core a) #f (vw.iview.step.imap.f i) (vw.ctn.acc v i)
     as
@@ -730,8 +730,8 @@ fn varray_view_equiv_
   varray_pts_to_ref a;
   varray_explode a;
   forevery_map'
-    (fun (i: vw.iview.ait) -> varray_pts_to_cell a #f i (vw.ctn.acc v i))
-    (fun (i: vw'.iview.ait) -> varray_pts_to_cell (from_array vw' (core a)) #f i (vw'.ctn.acc v i))
+    (fun (i: vw.iview.ait) -> pts_to_cell a #f i (vw.ctn.acc v i))
+    (fun (i: vw'.iview.ait) -> pts_to_cell (from_array vw' (core a)) #f i (vw'.ctn.acc v i))
     fn i i' {
       varray_cell_reindex a i (from_array vw' (core a)) i';
       rewrite each vw.ctn.acc v i as vw'.ctn.acc v i';
@@ -923,8 +923,8 @@ fn varray_join2_
   varray_explode al;
   varray_explode ar;
   forevery_join_either'
-    (fun (i: vw1.iview.ait) -> varray_pts_to_cell al #f i (vw1.ctn.acc v1 i))
-    (fun (i: vw2.iview.ait) -> varray_pts_to_cell ar #f i (vw2.ctn.acc v2 i));
+    (fun (i: vw1.iview.ait) -> pts_to_cell al #f i (vw1.ctn.acc v1 i))
+    (fun (i: vw2.iview.ait) -> pts_to_cell ar #f i (vw2.ctn.acc v2 i));
   (* Use [forevery_map'], which allows the index type to change to a
      propositionally equal one: the resulting [forall+] must be stated over
      [(sum_aview vw1 vw2).iview.ait] (as [varray_implode_with_exists] expects), and the
@@ -934,26 +934,26 @@ fn varray_join2_
     #(either vw1.iview.ait vw2.iview.ait)
     #((sum_aview vw1 vw2).iview.ait)
     (fun (x: either vw1.iview.ait vw2.iview.ait) ->
-      merge_either (fun i -> varray_pts_to_cell al #f i (vw1.ctn.acc v1 i))
-        (fun i -> varray_pts_to_cell ar #f i (vw2.ctn.acc v2 i))
+      merge_either (fun i -> pts_to_cell al #f i (vw1.ctn.acc v1 i))
+        (fun i -> pts_to_cell ar #f i (vw2.ctn.acc v2 i))
         x)
     (fun (i: (sum_aview vw1 vw2).iview.ait) ->
-      varray_pts_to_cell (from_array (sum_aview vw1 vw2) (core al)) #f
+      pts_to_cell (from_array (sum_aview vw1 vw2) (core al)) #f
         i
         ((sum_aview vw1 vw2).ctn.acc (v1, v2) i))
     fn x y {
       match x {
         Inl i -> {
           unfold merge_either
-            (fun i -> varray_pts_to_cell al #f i (vw1.ctn.acc v1 i))
-            (fun i -> varray_pts_to_cell ar #f i (vw2.ctn.acc v2 i))
+            (fun i -> pts_to_cell al #f i (vw1.ctn.acc v1 i))
+            (fun i -> pts_to_cell ar #f i (vw2.ctn.acc v2 i))
             (Inl i);
           varray_cell_reindex al i (from_array (sum_aview vw1 vw2) (core al)) y;
         }
         Inr i -> {
           unfold merge_either
-            (fun i -> varray_pts_to_cell al #f i (vw1.ctn.acc v1 i))
-            (fun i -> varray_pts_to_cell ar #f i (vw2.ctn.acc v2 i))
+            (fun i -> pts_to_cell al #f i (vw1.ctn.acc v1 i))
+            (fun i -> pts_to_cell ar #f i (vw2.ctn.acc v2 i))
             (Inr i);
           varray_cell_reindex ar i (from_array (sum_aview vw1 vw2) (core al)) y;
         }
@@ -1094,9 +1094,9 @@ fn varray_write_cell'
     Cell a (reveal ai) |-> reveal v1
 {
   rewrite each reveal ai as (ci_to_ai vw ci);
-  fold varray_pts_to_cell a (ci_to_ai vw ci) (reveal v0);
+  fold pts_to_cell a (ci_to_ai vw ci) (reveal v0);
   varray_write_cell a ci v1;
-  unfold varray_pts_to_cell a (ci_to_ai vw ci) (reveal v1);
+  unfold pts_to_cell a (ci_to_ai vw ci) (reveal v1);
   rewrite each (ci_to_ai vw ci) as (reveal ai);
 }
 
@@ -1110,16 +1110,16 @@ fn varray_read_cell
   (#f : perm)
   (#v0 : erased et)
   requires
-    varray_pts_to_cell a #f (ci_to_ai vw ci) v0
+    pts_to_cell a #f (ci_to_ai vw ci) v0
   returns
     v : et
   ensures
-    varray_pts_to_cell a #f (ci_to_ai vw ci) v **
+    pts_to_cell a #f (ci_to_ai vw ci) v **
     pure (v == v0)
 {
-  unfold varray_pts_to_cell a #f (ci_to_ai vw ci) v0;
+  unfold pts_to_cell a #f (ci_to_ai vw ci) v0;
   let res = IArray.iarray_read_cell a ci;
-  fold varray_pts_to_cell a #f (ci_to_ai vw ci) v0;
+  fold pts_to_cell a #f (ci_to_ai vw ci) v0;
   res
 }
 
@@ -1143,9 +1143,9 @@ fn varray_read_cell'
     pure (v == v0)
 {
   rewrite each reveal ai as (ci_to_ai vw i);
-  fold varray_pts_to_cell a #f (ci_to_ai vw i) (reveal v0);
+  fold pts_to_cell a #f (ci_to_ai vw i) (reveal v0);
   let res = varray_read_cell a i;
-  unfold varray_pts_to_cell a #f (ci_to_ai vw i) res;
+  unfold pts_to_cell a #f (ci_to_ai vw i) res;
   rewrite each (ci_to_ai vw i) as (reveal ai);
   res
 }

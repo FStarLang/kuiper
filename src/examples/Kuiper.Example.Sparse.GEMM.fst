@@ -205,7 +205,7 @@ let kpre
   =
   csr_matrix_approx gA #(fA /. (rows * cols)) eA rA **
   gB |-> Frac (fB /. (rows * cols)) eB **
-  tensor_pts_to_cell gC (idx2 (gid / cols) (gid % cols))
+  pts_to_cell gC (idx2 (gid / cols) (gid % cols))
     (acc2 eC (gid / cols) (gid % cols))
 
 unfold
@@ -314,12 +314,12 @@ fn setup
   tensor_ilower2 gC;
 
   forevery_unfactor' (rows * cols) rows cols (fun r c ->
-    tensor_pts_to_cell gC (idx2 (r) (c)) (acc2 eC r c));
+    pts_to_cell gC (idx2 (r) (c)) (acc2 eC r c));
 
   // Join resources into a single bigstar
   forevery_zip #(natlt (rows * cols))
     (fun _ -> gB |-> Frac (fB /. (rows * cols)) eB)
-    (fun i -> tensor_pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i/cols) (i%cols)));
+    (fun i -> pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i/cols) (i%cols)));
   forevery_zip #(natlt (rows * cols))
     (fun _ -> csr_matrix_approx gA #(fA /. (rows * cols)) eA rA)
     _;
@@ -329,7 +329,7 @@ fn setup
     (fun i ->
       (csr_matrix_approx gA #(fA /. (rows * cols)) eA rA) **
       (gB |-> Frac (fB /. (rows * cols)) eB) **
-      tensor_pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i / cols) (i % cols)))
+      pts_to_cell gC (idx2 ((i/cols <: natlt rows)) ((i%cols <: natlt cols))) (acc2 eC (i / cols) (i % cols)))
     (fun i ->
       kpre comb comb_r gA gB gC eA rA eB rB eC rC fA fB i);
   forevery_rw_size (rows * cols) nthr;

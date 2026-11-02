@@ -52,7 +52,7 @@ let lem_core_from_array
   = ()
 
 (* Ownership over a single index. *)
-let iarray_pts_to_cell
+let pts_to_cell
   (#et:Type0)
   (#vw : aiview)
   ([@@@mkey] a : iarray et vw)
@@ -62,14 +62,14 @@ let iarray_pts_to_cell
   : slprop
   = pts_to_cell (core a) #f (it_to_nat vw i) v
 
-let iarray_pts_to_cell_def
+let pts_to_cell_def
   (#et : Type)
   (#vw : aiview)
   (a : iarray et vw)
   (#f : perm)
   (i : vw.ait)
   (v : et)
-  : Lemma (iarray_pts_to_cell a #f i v ==
+  : Lemma (pts_to_cell a #f i v ==
             pts_to_cell (core a) #f (it_to_nat vw i) v)
   = ()
 
@@ -84,7 +84,7 @@ let iarray_pts_to
   = array_exists (core a) **
     pure (SZ.fits (len vw)) **
     (forall+ (i : vw.ait).
-      iarray_pts_to_cell a #f i (v i))
+      pts_to_cell a #f i (v i))
 
 let is_send_across_iarray
   (#et : Type0)
@@ -117,7 +117,7 @@ instance is_send_across_global_iarray_cell
   (#f : perm)
   (i : vw.ait)
   (v : et)
-  : is_send_across gpu_of (iarray_pts_to_cell a #f i v)
+  : is_send_across gpu_of (pts_to_cell a #f i v)
   = solve
 
 ghost
@@ -149,8 +149,8 @@ fn iarray_ext
 {
   unfold iarray_pts_to a #f v1;
   forevery_ext
-    (fun i -> iarray_pts_to_cell a #f i (v1 i))
-    (fun i -> iarray_pts_to_cell a #f i (v2 i));
+    (fun i -> pts_to_cell a #f i (v1 i))
+    (fun i -> pts_to_cell a #f i (v2 i));
   fold iarray_pts_to a #f v2;
 }
 
@@ -205,18 +205,18 @@ fn iarray_implode
     a |-> Frac f v
 {
   let i = nonempty_elim vw.ait;
-  forevery_remove (fun (j : vw.ait) -> iarray_pts_to_cell a #f j (v j)) i;
-  unfold iarray_pts_to_cell a #f i (v i);
+  forevery_remove (fun (j : vw.ait) -> pts_to_cell a #f j (v j)) i;
+  unfold pts_to_cell a #f i (v i);
   slice_array_exists (core a) (it_to_nat vw i) (it_to_nat vw i + 1);
-  fold iarray_pts_to_cell a #f i (v i);
-  forevery_insert (fun (j : vw.ait) -> iarray_pts_to_cell a #f j (v j)) i;
+  fold pts_to_cell a #f i (v i);
+  forevery_insert (fun (j : vw.ait) -> pts_to_cell a #f j (v j)) i;
   forevery_unrefine _;
   iarray_implode_with_exists a;
 }
 
 (* Begin viewing something abstractly, with the trivial view. *)
 let unfold_raw_view () : T.Tac unit =
-  T.norm [delta_only [`%iarray_pts_to_cell; `%from_array; `%core; `%g_seq_acc;
+  T.norm [delta_only [`%pts_to_cell; `%from_array; `%core; `%g_seq_acc;
                       `%raw_view; `%it_to_nat; `%Kuiper.Injection.op_Bar_Tilde_Greater;
                       `%inj_id; `%Kuiper.Injection.cinj_id; `%Kuiper.Injection.mk_cinj;
                       `%Kuiper.Common.natlt; `%FStar.Pervasives.id;
@@ -242,7 +242,7 @@ fn iarray_begin_
      do the conversion by normalization instead. *)
   rewrite (forall+ (i: natlt (reveal len)). pts_to_cell a #f i (v @! i))
        as (forall+ (i: (raw_view #len).ait).
-             iarray_pts_to_cell (from_array (raw_view #len) a) #f i (g_seq_acc v i))
+             pts_to_cell (from_array (raw_view #len) a) #f i (g_seq_acc v i))
        by unfold_raw_view ();
   fold iarray_pts_to (from_array (raw_view #len) a) #f (g_seq_acc v);
 }
@@ -278,16 +278,16 @@ fn iarray_end_
 {
   unfold iarray_pts_to a #f v;
   (* [raw_view.ait] is definitionally [natlt len]; convert by normalization. *)
-  rewrite (forall+ (i: (raw_view #len).ait). iarray_pts_to_cell a #f i (v i))
-       as (forall+ (i: natlt (reveal len)). iarray_pts_to_cell a #f i (v i))
+  rewrite (forall+ (i: (raw_view #len).ait). pts_to_cell a #f i (v i))
+       as (forall+ (i: natlt (reveal len)). pts_to_cell a #f i (v i))
        by unfold_raw_view ();
   forevery_ext
     (fun (i : natlt len) ->
-      iarray_pts_to_cell a #f i (v i))
+      pts_to_cell a #f i (v i))
     (fun (i : natlt len) ->
-      iarray_pts_to_cell a #f i (Seq.init_ghost len v @! i));
+      pts_to_cell a #f i (Seq.init_ghost len v @! i));
   rewrite (forall+ (i: natlt (reveal len)).
-             iarray_pts_to_cell a #f i (Seq.init_ghost len v @! i))
+             pts_to_cell a #f i (Seq.init_ghost len v @! i))
        as (forall+ (i: natlt (Kuiper.Len.len (raw_view #len))).
              pts_to_cell (core a) #f i (Seq.init_ghost len v @! i))
        by unfold_raw_view ();
@@ -329,7 +329,7 @@ fn iarray_end2_
 
   let s = Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i));
   forevery_ext #(natlt vw.len)
-    (fun i -> iarray_pts_to_cell a #f (b.gg i) (v (b.gg i)))
+    (fun i -> pts_to_cell a #f (b.gg i) (v (b.gg i)))
     (fun i -> pts_to_cell (core a) #f i (s @! i));
 
   B.array_unslice_1_with_exists (core a);
@@ -395,8 +395,8 @@ fn iarray_reindex_
   unfold iarray_pts_to a #f v;
   forevery_iso bij _;
   forevery_ext
-    (fun i -> iarray_pts_to_cell a #f (bij.gg i) (v (bij.gg i)))
-    (fun i -> iarray_pts_to_cell (from_array (reindex_view vw bij) (core a)) #f i (v (bij.gg i)));
+    (fun i -> pts_to_cell a #f (bij.gg i) (v (bij.gg i)))
+    (fun i -> pts_to_cell (from_array (reindex_view vw bij) (core a)) #f i (v (bij.gg i)));
   forevery_rw_type ait' (reindex_view vw bij).ait _;
   fold iarray_pts_to
     (from_array (reindex_view vw bij) (core a)) #f
@@ -441,19 +441,19 @@ fn iarray_split2_
   unfold iarray_pts_to a #f v;
   (* [(sum_aiview vw1 vw2).ait] is definitionally [either vw1.ait vw2.ait];
      the solver no longer sees through the projection, so normalize. *)
-  rewrite (forall+ (i: (sum_aiview vw1 vw2 #()).ait). iarray_pts_to_cell a #f i (v i))
-       as (forall+ (i: either vw1.ait vw2.ait). iarray_pts_to_cell a #f i (v i))
+  rewrite (forall+ (i: (sum_aiview vw1 vw2 #()).ait). pts_to_cell a #f i (v i))
+       as (forall+ (i: either vw1.ait vw2.ait). pts_to_cell a #f i (v i))
        by unfold_raw_view ();
   forevery_split_either #vw1.ait #vw2.ait _;
 
   forevery_ext #vw1.ait
-    (fun i -> iarray_pts_to_cell a #f (Inl i) (v (Inl i)))
-    (fun i -> iarray_pts_to_cell (from_array vw1 (core a)) #f i (v (Inl #vw1.ait #vw2.ait i)));
+    (fun i -> pts_to_cell a #f (Inl i) (v (Inl i)))
+    (fun i -> pts_to_cell (from_array vw1 (core a)) #f i (v (Inl #vw1.ait #vw2.ait i)));
   fold iarray_pts_to (from_array vw1 (core a)) #f (fun i -> v (Inl i));
 
   forevery_ext #vw2.ait
-    (fun i -> iarray_pts_to_cell a #f (Inr i) (v (Inr i)))
-    (fun i -> iarray_pts_to_cell (from_array vw2 (core a)) #f i (v (Inr #vw1.ait #vw2.ait i)));
+    (fun i -> pts_to_cell a #f (Inr i) (v (Inr i)))
+    (fun i -> pts_to_cell (from_array vw2 (core a)) #f i (v (Inr #vw1.ait #vw2.ait i)));
   fold iarray_pts_to (from_array vw2 (core a)) #f (fun i -> v (Inr i));
 }
 
@@ -499,19 +499,19 @@ fn iarray_split_n
     preserves array_exists (core a)
     requires
       forall+ (j : (vws i).ait).
-        iarray_pts_to_cell a #f (| i, j |) (v (| i, j |))
+        pts_to_cell a #f (| i, j |) (v (| i, j |))
     ensures
       from_array (vws i) (core a) |-> Frac f (fun j -> v (| i, j |))
   {
     ghost
     fn aux2 (j : (vws i).ait)
       requires
-        iarray_pts_to_cell a #f (| i, j |) (v (| i, j |))
+        pts_to_cell a #f (| i, j |) (v (| i, j |))
       ensures
-        iarray_pts_to_cell (from_array (vws i) (core a)) #f j (v (| i, j |))
+        pts_to_cell (from_array (vws i) (core a)) #f j (v (| i, j |))
     {
-      unfold iarray_pts_to_cell a #f (| i, j |) (v (| i, j |));
-      fold iarray_pts_to_cell (from_array (vws i) (core a)) #f j (v (| i, j |))
+      unfold pts_to_cell a #f (| i, j |) (v (| i, j |));
+      fold pts_to_cell (from_array (vws i) (core a)) #f j (v (| i, j |))
     };
     forevery_map _ _ aux2;
     fold iarray_pts_to (from_array (vws i) (core a)) #f (fun j -> v (| i, j |));
@@ -550,7 +550,7 @@ fn iarray_share_n
     fn _ {
       forevery_ext #(vw.ait)
         (fun i -> pts_to_cell (core a) #(f /. Real.of_int k) (it_to_nat vw i) (v i))
-        (fun i -> iarray_pts_to_cell a #(f /. Real.of_int k) i (v i));
+        (fun i -> pts_to_cell a #(f /. Real.of_int k) i (v i));
       fold iarray_pts_to a #(f /. Real.of_int k) v;
     };
 }
@@ -584,11 +584,11 @@ fn iarray_gather_n
     };
   forevery_commute _;
   forevery_map
-    (fun i -> forall+ (_ : natlt k). iarray_pts_to_cell a #(f /. Real.of_int k) i (v i))
-    (fun i -> iarray_pts_to_cell a #f i (v i))
+    (fun i -> forall+ (_ : natlt k). pts_to_cell a #(f /. Real.of_int k) i (v i))
+    (fun i -> pts_to_cell a #f i (v i))
     fn i {
       slice_gather (core a) _ _ k;
-      fold iarray_pts_to_cell a #f i (v i);
+      fold pts_to_cell a #f i (v i);
     };
   fold iarray_pts_to a #f v;
 }
@@ -609,25 +609,25 @@ fn iarray_pts_to_eq
 {
   unfold iarray_pts_to a #f1 v1;
   unfold iarray_pts_to a #f2 v2;
-  forevery_zip (fun i -> iarray_pts_to_cell a #f1 i (v1 i))
-               (fun i -> iarray_pts_to_cell a #f2 i (v2 i));
+  forevery_zip (fun i -> pts_to_cell a #f1 i (v1 i))
+               (fun i -> pts_to_cell a #f2 i (v2 i));
   ghost
   fn aux (i : vw.ait)
     requires
-      iarray_pts_to_cell a #f1 i (v1 i) **
-      iarray_pts_to_cell a #f2 i (v2 i)
+      pts_to_cell a #f1 i (v1 i) **
+      pts_to_cell a #f2 i (v2 i)
     ensures
-      iarray_pts_to_cell a #f1 i (v2 i) **
-      iarray_pts_to_cell a #f2 i (v2 i)
+      pts_to_cell a #f1 i (v2 i) **
+      pts_to_cell a #f2 i (v2 i)
   {
-    unfold iarray_pts_to_cell a #f1 i (v1 i);
-    unfold iarray_pts_to_cell a #f2 i (v2 i);
+    unfold pts_to_cell a #f1 i (v1 i);
+    unfold pts_to_cell a #f2 i (v2 i);
     slice_pts_to_eq (core a) (it_to_nat vw i) (it_to_nat vw i + 1) #f1 f2;
     assert pure (seq![v1 i] == seq![v2 i]);
     assert pure (seq![v1 i] @! 0 == seq![v2 i] @! 0); // sad...
     assert pure (v1 i == v2 i);
-    fold iarray_pts_to_cell a #f1 i (v1 i);
-    fold iarray_pts_to_cell a #f2 i (v2 i);
+    fold pts_to_cell a #f1 i (v1 i);
+    fold pts_to_cell a #f2 i (v2 i);
   };
   forevery_map #(vw.ait) _ _ aux;
   forevery_unzip _ _;
@@ -667,7 +667,7 @@ fn iarray_write_cell
   assert pure (SZ.v (coerce_eq #_ #(SZ.szlt vw.len) () (cw.step.cimap.cf (cw.sch.bij.ff ai)))
                  == vw.step.imap.f ai);
 
-  unfold iarray_pts_to_cell a ai v0;
+  unfold pts_to_cell a ai v0;
   rewrite each it_to_nat vw (reveal ai) as ni;
   slice_write (core a) ni v1;
   with s'. assert (B.pts_to_slice (core a) ni (ni+1) s');
@@ -677,7 +677,7 @@ fn iarray_write_cell
     B.pts_to_slice (core a) i (i+1) v
   as
     B.pts_to_slice (core a) i (i+1) seq![v @! 0];
-  fold iarray_pts_to_cell a (ci_to_ai vw ci) v1;
+  fold pts_to_cell a (ci_to_ai vw ci) v1;
   ();
 }
 
@@ -711,11 +711,11 @@ fn iarray_read_cell
   (#f : perm)
   (#v0 : erased et)
   requires
-    iarray_pts_to_cell a #f (ci_to_ai vw ci) v0
+    pts_to_cell a #f (ci_to_ai vw ci) v0
   returns
     v : et
   ensures
-    iarray_pts_to_cell a #f (ci_to_ai vw ci) v **
+    pts_to_cell a #f (ci_to_ai vw ci) v **
     pure (v == v0)
 {
   let ai : erased vw.ait = ci |> cw.sch.bij.gg; (* abstract index *)
@@ -732,12 +732,12 @@ fn iarray_read_cell
   assert pure (SZ.v (coerce_eq #_ #(SZ.szlt vw.len) () (cw.step.cimap.cf (cw.sch.bij.ff ai)))
                  == vw.step.imap.f ai);
 
-  unfold iarray_pts_to_cell a #f ai v0;
+  unfold pts_to_cell a #f ai v0;
   rewrite each it_to_nat vw (reveal ai) as ni;
   let res = B.slice_read (core a) ni;
   with s'. assert (B.pts_to_slice (core a) #f ni (ni+1) s');
   rewrite each SZ.v ni as (ci_to_ai vw ci |~> vw.step.imap);
-  fold iarray_pts_to_cell a #f (ci_to_ai vw ci) v0;
+  fold pts_to_cell a #f (ci_to_ai vw ci) v0;
   res;
 }
 
@@ -805,24 +805,24 @@ fn iarray_write
   forevery_extract_if (ci_to_ai vw ci) _;
   iarray_write_cell a ci e;
 
-  forevery_intro_if (ci_to_ai vw ci) (fun i -> iarray_pts_to_cell a i e);
+  forevery_intro_if (ci_to_ai vw ci) (fun i -> pts_to_cell a i e);
   forevery_zip #vw.ait
     (fun i -> if t2b (i == ci_to_ai vw ci)
-              then iarray_pts_to_cell a i e
+              then pts_to_cell a i e
               else emp)
     _;
   ghost
   fn aux (i : vw.ait)
     requires
       (if t2b (i == ci_to_ai vw ci)
-       then iarray_pts_to_cell a i e
+       then pts_to_cell a i e
        else emp)
     **
       (if t2b (i == ci_to_ai vw ci)
        then emp
-       else iarray_pts_to_cell a i (v0 i))
+       else pts_to_cell a i (v0 i))
     ensures
-       iarray_pts_to_cell a i (oplus v0 (ci_to_ai vw ci) e i)
+       pts_to_cell a i (oplus v0 (ci_to_ai vw ci) e i)
   {
     let cond = t2b (i == ci_to_ai vw ci);
     if cond {

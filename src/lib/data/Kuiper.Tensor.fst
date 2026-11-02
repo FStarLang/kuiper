@@ -362,7 +362,7 @@ fn tensor_write
   fold tensor_pts_to a;
 }
 
-let tensor_pts_to_cell
+let pts_to_cell
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   ([@@@mkey] a : tensor et l)
@@ -370,7 +370,7 @@ let tensor_pts_to_cell
   ([@@@mkey] i : abs d)
   (v : et)
   : slprop
-  = A.varray_pts_to_cell a #f i v
+  = A.pts_to_cell a #f i v
 
 (* [Cell a i |-> Frac f v], with the [cell_pts_to] instance of the interface
    pinned explicitly.  In this file [tensor] is transparent, so the [|->]
@@ -389,11 +389,11 @@ let tcell (#et : Type0) (#r : nat) (#d : shape r)
       #_ #_ #(Pulse.Class.PtsTo.pts_to_frac _ _ (cell_pts_to #et #r #d #l))
       (Cell a i) (Frac f v)
 
-(* [tensor_pts_to_cell] and [A.varray_pts_to_cell] are the same slprop, but are
+(* [pts_to_cell] and [A.pts_to_cell] are the same slprop, but are
    built with the two different instances above; normalization bridges them, the
    solver no longer does it on its own. *)
 let unfold_tensor_cell () : T.Tac unit =
-  T.norm [delta_only [`%tensor_pts_to_cell;
+  T.norm [delta_only [`%pts_to_cell;
                       `%Pulse.Class.PtsTo.op_Bar_Minus_Greater;
                       `%Pulse.Class.PtsTo.pts_to;
                       `%Pulse.Class.PtsTo.pts_to_frac;
@@ -401,21 +401,21 @@ let unfold_tensor_cell () : T.Tac unit =
           iota; primops];
   slprop_equiv_norm ()
 
-let tensor_pts_to_cell_eq
+let pts_to_cell_eq
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l) (i : abs d) (f : perm) (v : et)
   : Lemma (tcell a #f i v
            ==
            pts_to_cell (core a) #f (l.imap.f i) v)
-  = A.varray_pts_to_cell_eq a i f v
+  = A.pts_to_cell_eq a i f v
 
 instance is_send_across_global_tensor_cell
   (#et : Type0) (#r : nat) (#d : shape r)
   (#l : tlayout d)
   (a : tensor et l { is_global a })
   (#f : perm) (i : abs d) (v : et)
-  : is_send_across gpu_of (tensor_pts_to_cell a #f i v)
+  : is_send_across gpu_of (pts_to_cell a #f i v)
   = solve
 
 ghost
@@ -442,8 +442,8 @@ fn tensor_explode
       Cell a i |-> Frac f ((tensor_aview et l).ctn.acc s i))
     (fun (i : abs d) ->
       Cell a i |-> Frac f (acc s i));
-  (* Bridge from [A.varray_pts_to_cell] (what [|->] means here) to
-     [tensor_pts_to_cell] (what it means in the interface). *)
+  (* Bridge from [A.pts_to_cell] (what [|->] means here) to
+     [pts_to_cell] (what it means in the interface). *)
   rewrite (forall+ (i : abs d). Cell a i |-> Frac f (acc s i))
        as (forall+ (i : abs d). tcell a #f i (acc s i))
        by unfold_tensor_cell ();
@@ -529,7 +529,7 @@ fn tensor_ilower
     (fun (i : abs d) -> tcell a #f i (acc s i))
     (fun (i : abs d) -> pts_to_cell (core a) #f (l.imap.f i) (acc s i))
     fn i {
-      tensor_pts_to_cell_eq a i f (acc s i);
+      pts_to_cell_eq a i f (acc s i);
       rewrite
         tcell a #f i (acc s i)
       as
@@ -556,7 +556,7 @@ fn tensor_iraise
     (fun (i : abs d) -> pts_to_cell (core a) #f (l.imap.f i) (acc s i))
     (fun (i : abs d) -> tcell a #f i (acc s i))
     fn i {
-      tensor_pts_to_cell_eq a i f (acc s i);
+      pts_to_cell_eq a i f (acc s i);
       rewrite
         pts_to_cell (core a) #f (l.imap.f i) (acc s i)
       as
@@ -574,15 +574,15 @@ fn tensor_read_cell
   (#f : perm)
   (#s : erased et)
   preserves
-    tensor_pts_to_cell a #f (up i) s
+    pts_to_cell a #f (up i) s
   returns
     v : et
   ensures
     pure (v == s)
 {
-  unfold tensor_pts_to_cell a #f (up i) s;
+  unfold pts_to_cell a #f (up i) s;
   let v = A.varray_read_cell a i;
-  fold tensor_pts_to_cell a #f (up i) s;
+  fold pts_to_cell a #f (up i) s;
   v
 }
 
@@ -595,13 +595,13 @@ fn tensor_write_cell
   (v : et)
   (#s : erased et)
   requires
-    tensor_pts_to_cell a (up i) s
+    pts_to_cell a (up i) s
   ensures
-    tensor_pts_to_cell a (up i) v
+    pts_to_cell a (up i) v
 {
-  unfold tensor_pts_to_cell a (up i) s;
+  unfold pts_to_cell a (up i) s;
   A.varray_write_cell a i v;
-  fold tensor_pts_to_cell a (up i) v;
+  fold pts_to_cell a (up i) v;
   ()
 }
 
@@ -791,7 +791,7 @@ fn tensor_cell_to_ref
   ensures
     ref_of_tensor_cell a i |-> Frac f v
 {
-  tensor_pts_to_cell_eq a i f v;
+  pts_to_cell_eq a i f v;
   rewrite tcell a #f i v
        as pts_to_cell (core a) #f (l.imap.f i) v;
   Array.Core.array_cell_to_ref (core a) (l.imap.f i);
@@ -810,7 +810,7 @@ fn tensor_cell_from_ref
   ensures
     tcell a #f (i) (v)
 {
-  tensor_pts_to_cell_eq a i f v;
+  pts_to_cell_eq a i f v;
   Array.Core.array_cell_from_ref (core a) (l.imap.f i);
   rewrite pts_to_cell (core a) #f (l.imap.f i) v
        as tcell a #f i v;

@@ -237,7 +237,7 @@ let kpre_block
   : slprop
   = x |-> Frac ((1.0R /. SZ.v rows) /. nth) sx **
     if_ (op_Equals #nat tid 0) (Cell output ((bid, ()) <: abs (rows @| INil)) |-> (acc1 sout bid)) **
-    exists* (v : et). tensor_pts_to_cell (from_array (l1_forward nth) shmem._1) (tid, ()) v
+    exists* (v : et). pts_to_cell (from_array (l1_forward nth) shmem._1) (tid, ()) v
 
 unfold
 let kpost_block
@@ -384,10 +384,10 @@ fn kf_block
     let css : chest1 et nth = hide (mk1 #et #nth (fun (k:natlt nth) -> acc1 ss k));
     forevery_refine_ext' #nat #(fun (k:nat) -> 0 <= k /\ k < nth) (fun (k:nat) -> k < nth) _;
     forevery_ext
-      (fun (k:natlt nth) -> tensor_pts_to_cell sa ((k <: natlt nth), ()) (acc1 ss (k - 0)))
-      (fun (k:natlt nth) -> tensor_pts_to_cell sa (abs_bij.gg k) (acc (reveal css) (abs_bij.gg k)));
+      (fun (k:natlt nth) -> pts_to_cell sa ((k <: natlt nth), ()) (acc1 ss (k - 0)))
+      (fun (k:natlt nth) -> pts_to_cell sa (abs_bij.gg k) (acc (reveal css) (abs_bij.gg k)));
     forevery_iso_back (abs_bij #nth)
-      (fun (i : abs (nth @| INil)) -> tensor_pts_to_cell sa i (acc (reveal css) i));
+      (fun (i : abs (nth @| INil)) -> pts_to_cell sa i (acc (reveal css) i));
     tensor_implode sa #1.0R #(reveal css);
     rewrite each sa as from_array (l1_forward nth) shmem._1;
     if_intro_true' (op_Equals #nat tid 0) (

@@ -1291,15 +1291,15 @@ let bt2d_cptr_eq (batch m n : nat) (bm bn tm tn : pos)
    discharge [elim_trade]'s pure side-condition inside [bkf] (whose ambient
    context is too heavy for Z3 to re-derive even this trivial arithmetic fact).
    For [x =!= ci0] the two threshold [if]s pick the same branch, so the two
-   [tensor_pts_to_cell] slprops coincide. *)
+   [pts_to_cell] slprops coincide. *)
 let bt2d_ite_thresh_slprop
   (#et : Type0) (#r : nat) (#d : shape r) (#l : tlayout d) (a : T.tensor et l)
   (nn : pos) (ci0 : nat)
   (ptr : (natlt nn) -> GTot (abs d))
   (fA fB : (natlt nn) -> GTot et)
   : Lemma (forall (x : natlt nn). ~(x == ci0) ==>
-      T.tensor_pts_to_cell a #1.0R (ptr x) (if x < ci0 + 1 then fA x else fB x)
-      == T.tensor_pts_to_cell a #1.0R (ptr x) (if x < ci0 then fA x else fB x))
+      T.pts_to_cell a #1.0R (ptr x) (if x < ci0 + 1 then fA x else fB x)
+      == T.pts_to_cell a #1.0R (ptr x) (if x < ci0 then fA x else fB x))
   = ()
 
 #push-options "--fuel 4 --ifuel 4 --z3rlimit 40"
@@ -1509,7 +1509,7 @@ let bkpre1
   (gA |-> Frac (fA /. (Ghost.reveal (bt2d_nall_e batch m n bm bn tm tn))) eA) **
   (gB |-> Frac (fB /. (Ghost.reveal (bt2d_nall_e batch m n bm bn tm tn))) eB) **
   forall+ (ii : natlt (tm * tn)).
-    tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
+    pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
       (Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii))
 
 (* Opaque wrapper for the per-thread output-cell resource of a page.  Keeping the
@@ -1534,7 +1534,7 @@ let bt2d_c_cells
   : slprop
   =
   forall+ (ii : natlt (tm * tn)).
-    tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+    pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
       (Chest.acc e (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii))
 
 unfold
@@ -1567,7 +1567,7 @@ let bkpost1
   (gA |-> Frac (fA /. (Ghost.reveal (bt2d_nall_e batch m n bm bn tm tn))) eA) **
   (gB |-> Frac (fB /. (Ghost.reveal (bt2d_nall_e batch m n bm bn tm tn))) eB) **
   forall+ (ii : natlt (tm * tn)).
-    tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
+    pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
       (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
         (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii))
 
@@ -1908,18 +1908,18 @@ fn bkf
      scoped to each ghost step and never enters the loop's quantified goal. *)
   forevery_map
     (fun (ii : natlt (tm * tn)) ->
-      tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
+      pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
         (Chest.acc eC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)))
     (fun (ii : natlt (tm * tn)) ->
-      tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
+      pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
         (if ii < 0
          then Chest.acc gbmm (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
          else Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)))
     fn (ii : natlt (tm * tn)) {
       bt2d_cptr_eq batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii;
-      rewrite (tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
+      rewrite (pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
                  (Chest.acc eC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)))
-           as (tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
+           as (pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
                 (if ii < 0
                  then Chest.acc gbmm (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
                  else Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)));
@@ -1935,7 +1935,7 @@ fn bkf
           vr @! idx ==
             acc2 (ettile (MS.matmul (Kuiper.Chest.chest_map mapA eA_p) (Kuiper.Chest.chest_map mapB eB_p)) bm bn tm tn (SZ.v rest) (SZ.v tid)) (idx / tn) (idx % tn))) **
       (forall+ (ii : natlt (tm * tn)).
-        tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
+        pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
           (if ii < c
            then Chest.acc gbmm (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
            else Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)))
@@ -1951,7 +1951,7 @@ fn bkf
     with cval vrval. assert (
       (rchProd |-> vrval) **
       (forall+ (ii : natlt (tm * tn)).
-        tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
+        pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
           (if ii < cval
            then Chest.acc gbmm (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
            else Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii))));
@@ -1959,7 +1959,7 @@ fn bkf
 
     forevery_extract' #(natlt (tm * tn)) (SZ.v ci0)
       (fun (ii : natlt (tm * tn)) ->
-        tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
+        pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
           (if ii < SZ.v ci0
            then Chest.acc gbmm (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
            else Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)));
@@ -2017,8 +2017,8 @@ fn bkf
     bt2d_cptr_eq batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0);
 
     with vold.
-      rewrite (tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0)) vold)
-           as (tensor_pts_to_cell gC (up cci) vold);
+      rewrite (pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0)) vold)
+           as (pts_to_cell gC (up cci) vold);
 
     let v0 = tensor_read_cell gC (page, (grow_sz, (gcol_sz, ())));
     let v1 = rchProd.(ci0);
@@ -2036,8 +2036,8 @@ fn bkf
       ((SZ.v rest % (n/bn)) * bn + (SZ.v tid % (bn/tn)) * tn + SZ.v ci0 % tn);
     assert pure (v' == Chest.acc gbmm (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0)));
 
-    rewrite (tensor_pts_to_cell gC (up cci) v')
-         as (tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0))
+    rewrite (pts_to_cell gC (up cci) v')
+         as (pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0))
               (Chest.acc gbmm (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0))));
 
     (* Re-insert with the incremented threshold predicate (opaque [bt2d_cptr],
@@ -2045,21 +2045,21 @@ fn bkf
     Pulse.Lib.Forall.elim_forall
       #(natlt (tm * tn) -> slprop)
       (fun (ii : natlt (tm * tn)) ->
-        tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
+        pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
           (if ii < SZ.v ci0 + 1
            then Chest.acc gbmm (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
            else Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)));
 
-    rewrite (tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0))
+    rewrite (pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0))
               (Chest.acc gbmm (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0))))
-         as (tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0))
+         as (pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0))
               (if SZ.v ci0 < SZ.v ci0 + 1
                then Chest.acc gbmm (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0))
                else Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) (SZ.v ci0))));
 
     (* For x =!= ci0, the two threshold conditions coincide ((x < ci0+1) iff
        (x < ci0) on nats), so the [if]-selected values are equal and hence the
-       two [tensor_pts_to_cell] slprops are equal by congruence.  Proved by a
+       two [pts_to_cell] slprops are equal by congruence.  Proved by a
        standalone lemma in a clean context; the ambient [bkf] VC is too heavy
        for Z3 to re-derive this trivial fact inline.  The lemma's conclusion is
        exactly [elim_trade]'s pure side-condition. *)
@@ -2081,7 +2081,7 @@ fn bkf
   with c vrf. assert (
     (rchProd |-> vrf) **
     (forall+ (ii : natlt (tm * tn)).
-      tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
+      pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
         (if ii < c
          then Chest.acc gbmm (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
          else Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii))));
@@ -2089,20 +2089,20 @@ fn bkf
   rewrite each c as (tm * tn);
   forevery_map
     (fun (ii : natlt (tm * tn)) ->
-      tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
+      pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
         (if ii < tm * tn
          then Chest.acc gbmm (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
          else Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)))
     (fun (ii : natlt (tm * tn)) ->
-      tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
+      pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
         (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB) (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)))
     fn (ii : natlt (tm * tn)) {
       bt2d_cptr_eq batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii;
-      rewrite (tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
+      rewrite (pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
                  (if ii < tm * tn
                   then Chest.acc gbmm (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
                   else Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)))
-           as (tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
+           as (pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)
                 (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB) (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 (SZ.v bid) (SZ.v tid) ii)));
     };
 
@@ -2358,7 +2358,7 @@ fn bsetup
   tensor_explode gC;
   forevery_iso (bt2d_idx_bij batch m n bm bn tm tn sq1 sq2)
     (fun (idx : abs (batch @| m @| n @| INil)) ->
-       tensor_pts_to_cell gC idx (Chest.acc eC idx));
+       pts_to_cell gC idx (Chest.acc eC idx));
   forevery_unflatten' _;
 
   bt2d_gg_all batch m n bm bn tm tn sq1 sq2;
@@ -2368,17 +2368,17 @@ fn bsetup
   forevery_map
     (fun (bid : natlt (batch * (m/bm * (n/bn)))) ->
        forall+ (tt : natlt (bm/tm * (bn/tn)) & natlt (tm * tn)).
-         tensor_pts_to_cell gC ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg (bid, tt))
+         pts_to_cell gC ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg (bid, tt))
            (Chest.acc eC ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg (bid, tt))))
     (fun (bid : natlt (batch * (m/bm * (n/bn)))) ->
        forall+ (tid : natlt (bm/tm * (bn/tn))) (ii : natlt (tm * tn)).
-         tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+         pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
            (Chest.acc eC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)))
     fn bid {
       forevery_unflatten' _;
       forevery_ext_2 _
         (fun (tid : natlt (bm/tm * (bn/tn))) (ii : natlt (tm * tn)) ->
-           tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+           pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
              (Chest.acc eC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)));
     };
 
@@ -2396,7 +2396,7 @@ fn bsetup
        gB |-> Frac (fB /. n_total) eB)
     (fun (bid : natlt (batch * (m/bm * (n/bn)))) (tid : natlt (bm/tm * (bn/tn))) ->
        forall+ (ii : natlt (tm * tn)).
-         tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+         pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
            (Chest.acc eC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)));
 
   (* Step 6: fold to [bkpre1], bridge through the opaque [bt2d_cpre1] carrier so
@@ -2410,7 +2410,7 @@ fn bsetup
        gA |-> Frac (fA /. n_total) eA **
        gB |-> Frac (fB /. n_total) eB **
        (forall+ (ii : natlt (tm * tn)).
-          tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+          pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
             (Chest.acc eC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii))))
     (fun (bid : natlt (batch * (m/bm * (n/bn)))) (tid : natlt (bm/tm * (bn/tn))) ->
        bt2d_cpre1 mapA mapB comb gA eA gB eB gC eC bm bn bk tm tn sq1 sq2 fA fB bid tid)
@@ -2426,23 +2426,23 @@ fn bsetup
          [bt2d_cptr] that [bkpre1] carries (per-cell reveal via [bt2d_cptr_eq]). *)
       forevery_map
         (fun (ii : natlt (tm * tn)) ->
-           tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+           pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
              (Chest.acc eC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)))
         (fun (ii : natlt (tm * tn)) ->
-           tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
+           pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
              (Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)))
         fn (ii : natlt (tm * tn)) {
           bt2d_cptr_eq batch m n bm bn tm tn sq1 sq2 bid tid ii;
-          rewrite (tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+          rewrite (pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
                      (Chest.acc eC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)))
-               as (tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
+               as (pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
                     (Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)));
         };
       bt2d_cpre1_eq mapA mapB comb gA eA gB eB gC eC bm bn bk tm tn sq1 sq2 fA fB bid tid;
       rewrite (gA |-> Frac (fA /. (Ghost.reveal (bt2d_nall_e batch m n bm bn tm tn))) eA **
                gB |-> Frac (fB /. (Ghost.reveal (bt2d_nall_e batch m n bm bn tm tn))) eB **
                (forall+ (ii : natlt (tm * tn)).
-                  tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
+                  pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
                     (Chest.acc eC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii))))
         as (bt2d_cpre1 mapA mapB comb gA eA gB eB gC eC bm bn bk tm tn sq1 sq2 fA fB bid tid);
     };
@@ -2527,7 +2527,7 @@ fn bteardown
       gA |-> Frac (fA /. n_total) eA **
       gB |-> Frac (fB /. n_total) eB **
       forall+ (ii : natlt (tm * tn)).
-        tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+        pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
           (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
             (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)))
     fn bid tid {
@@ -2542,19 +2542,19 @@ fn bteardown
          [bt2d_cell_idx] the gather bijection consumes (per-cell [bt2d_cptr_eq]). *)
       forevery_map
         (fun (ii : natlt (tm * tn)) ->
-           tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
+           pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
              (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
                (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)))
         (fun (ii : natlt (tm * tn)) ->
-           tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+           pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
              (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
                (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)))
         fn (ii : natlt (tm * tn)) {
           bt2d_cptr_eq batch m n bm bn tm tn sq1 sq2 bid tid ii;
-          rewrite (tensor_pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
+          rewrite (pts_to_cell gC (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)
                      (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
                        (bt2d_cptr batch m n bm bn tm tn sq1 sq2 bid tid ii)))
-               as (tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+               as (pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
                     (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
                       (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)));
         };
@@ -2569,7 +2569,7 @@ fn bteardown
     (fun (bid : natlt (batch * (m/bm * (n/bn)))) (tid : natlt (bm/tm * (bn/tn))) ->
       gB |-> Frac (fB /. n_total) eB **
       (forall+ (ii : natlt (tm * tn)).
-        tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+        pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
           (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
             (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii))));
   forevery_unzip_2
@@ -2577,7 +2577,7 @@ fn bteardown
       gB |-> Frac (fB /. n_total) eB)
     (fun (bid : natlt (batch * (m/bm * (n/bn)))) (tid : natlt (bm/tm * (bn/tn))) ->
       forall+ (ii : natlt (tm * tn)).
-        tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+        pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
           (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
             (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)));
   forevery_unfactor' n_total (batch * (m/bm * (n/bn))) (bm/tm * (bn/tn))
@@ -2594,39 +2594,39 @@ fn bteardown
   forevery_map
     (fun (bid : natlt (batch * (m/bm * (n/bn)))) ->
       forall+ (tid : natlt (bm/tm * (bn/tn))) (ii : natlt (tm * tn)).
-        tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+        pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
           (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
             (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)))
     (fun (bid : natlt (batch * (m/bm * (n/bn)))) ->
       forall+ (tt : natlt (bm/tm * (bn/tn)) & natlt (tm * tn)).
-        tensor_pts_to_cell gC ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg (bid, tt))
+        pts_to_cell gC ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg (bid, tt))
           (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
             ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg (bid, tt))))
     fn bid {
       forevery_ext_2
         (fun (tid : natlt (bm/tm * (bn/tn))) (ii : natlt (tm * tn)) ->
-          tensor_pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
+          pts_to_cell gC (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)
             (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
               (bt2d_cell_idx batch m n bm bn tm tn sq1 sq2 bid tid ii)))
         (fun (tid : natlt (bm/tm * (bn/tn))) (ii : natlt (tm * tn)) ->
-          tensor_pts_to_cell gC ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg (bid, (tid, ii)))
+          pts_to_cell gC ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg (bid, (tid, ii)))
             (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
               ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg (bid, (tid, ii)))));
       forevery_flatten'
         (fun (tt : natlt (bm/tm * (bn/tn)) & natlt (tm * tn)) ->
-          tensor_pts_to_cell gC ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg (bid, tt))
+          pts_to_cell gC ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg (bid, tt))
             (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
               ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg (bid, tt))));
     };
 
   forevery_flatten'
     (fun (xy : natlt (batch * (m/bm * (n/bn))) & (natlt (bm/tm * (bn/tn)) & natlt (tm * tn))) ->
-      tensor_pts_to_cell gC ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg xy)
+      pts_to_cell gC ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg xy)
         (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB)
           ((bt2d_idx_bij batch m n bm bn tm tn sq1 sq2).gg xy)));
   forevery_iso_back (bt2d_idx_bij batch m n bm bn tm tn sq1 sq2)
     (fun (idx : abs (batch @| m @| n @| INil)) ->
-      tensor_pts_to_cell gC idx (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB) idx));
+      pts_to_cell gC idx (Chest.acc (MS.gbmmcomb mapA mapB comb eC eA eB) idx));
   tensor_implode gC;
 }
 #pop-options

@@ -36,13 +36,13 @@ fn own_lane_cells_rw
   unfold own_lane_cells m em1 lane;
   forevery_map
     #(ij : (natlt rows & natlt cols){in_lane rows cols lane ij})
-    (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em1 ij._1 ij._2))
-    (fun ij -> tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em2 ij._1 ij._2))
+    (fun ij -> pts_to_cell m (idx2 ij._1 ij._2) (acc2 em1 ij._1 ij._2))
+    (fun ij -> pts_to_cell m (idx2 ij._1 ij._2) (acc2 em2 ij._1 ij._2))
     fn ij {
       rewrite
-        tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em1 ij._1 ij._2)
+        pts_to_cell m (idx2 ij._1 ij._2) (acc2 em1 ij._1 ij._2)
       as
-        tensor_pts_to_cell m (idx2 ij._1 ij._2) (acc2 em2 ij._1 ij._2);
+        pts_to_cell m (idx2 ij._1 ij._2) (acc2 em2 ij._1 ij._2);
     };
   fold own_lane_cells m em2 lane;
 }
@@ -127,26 +127,26 @@ fn epilogue_fragment_step
   forevery_remove'
     #(natlt rows & natlt cols)
     (fun ij -> in_lane rows cols lane ij)
-    (fun ij -> tensor_pts_to_cell
+    (fun ij -> pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 ij._1 ij._2)
       (acc2 em ij._1 ij._2))
     eij;
 
-  assert tensor_pts_to_cell
+  assert pts_to_cell
     (output_fragment d bm bn rows cols wm wn
       (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
     (idx2 (reveal eij)._1 (reveal eij)._2)
     (acc2 em (reveal eij)._1 (reveal eij)._2);
   rewrite
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 (reveal eij)._1 (reveal eij)._2)
       (acc2 em (reveal eij)._1 (reveal eij)._2)
   as
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 (SZ.v row) (SZ.v col))
@@ -156,7 +156,7 @@ fn epilogue_fragment_step
     mrow mcol warpRow warpCol bid wid
     acc d idx row col;
   rewrite
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 (SZ.v row) (SZ.v col))
@@ -167,7 +167,7 @@ fn epilogue_fragment_step
           (SZ.v idx) eAcc)
         (SZ.v row) (SZ.v col))
   as
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 (SZ.v row) (SZ.v col))
@@ -179,13 +179,13 @@ fn epilogue_fragment_step
   rewrite each (acc2 eTarget (SZ.v row) (SZ.v col)) as
     acc2 em' (SZ.v row) (SZ.v col);
   rewrite
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 (SZ.v row) (SZ.v col))
       (acc2 em' (SZ.v row) (SZ.v col))
   as
-    tensor_pts_to_cell
+    pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 (reveal eij)._1 (reveal eij)._2)
@@ -193,12 +193,12 @@ fn epilogue_fragment_step
   forevery_ext
     #(ij : (natlt rows & natlt cols){
       in_lane rows cols lane ij /\ ij =!= eij})
-    (fun ij -> tensor_pts_to_cell
+    (fun ij -> pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 ij._1 ij._2)
       (acc2 em ij._1 ij._2))
-    (fun ij -> tensor_pts_to_cell
+    (fun ij -> pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 ij._1 ij._2)
@@ -206,7 +206,7 @@ fn epilogue_fragment_step
   forevery_insert
     #(natlt rows & natlt cols)
     #(fun ij -> in_lane rows cols lane ij /\ ij =!= eij)
-    (fun ij -> tensor_pts_to_cell
+    (fun ij -> pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 ij._1 ij._2)
@@ -217,7 +217,7 @@ fn epilogue_fragment_step
     #(fun ij ->
       (in_lane rows cols lane ij /\ ij =!= eij) \/ reveal eij == ij)
     (fun ij -> in_lane rows cols lane ij)
-    (fun ij -> tensor_pts_to_cell
+    (fun ij -> pts_to_cell
       (output_fragment d bm bn rows cols wm wn
         (SZ.v bid) (SZ.v wid) (SZ.v idx / wn) (SZ.v idx % wn))
       (idx2 ij._1 ij._2)

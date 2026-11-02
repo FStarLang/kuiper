@@ -88,7 +88,7 @@ let column_cell
   (m : array2 et l) (em : chest2 et tile tile) (tid : natlt tile)
   (initialized : bool) (ii : natlt tile)
   : slprop =
-  exists* (value : et). tensor_pts_to_cell m (idx2 ii tid) value **
+  exists* (value : et). pts_to_cell m (idx2 ii tid) value **
     pure (initialized ==> value == acc2 em ii tid)
 
 inline_for_extraction noextract
@@ -131,11 +131,11 @@ fn bring_2cols
   unfold own_1_col sa1 tid;
   unfold own_1_col sa2 tid;
   forevery_map
-    (fun (ii : natlt tile) -> exists* (value : tacc). tensor_pts_to_cell sa1 (idx2 ii tid) value)
+    (fun (ii : natlt tile) -> exists* (value : tacc). pts_to_cell sa1 (idx2 ii tid) value)
     (fun (ii : natlt tile) -> column_cell sa1 vA tid (ii < 0) ii)
     fn ii { fold column_cell sa1 vA tid (ii < 0) ii };
   forevery_map
-    (fun (ii : natlt tile) -> exists* (value : tacc). tensor_pts_to_cell sa2 (idx2 ii tid) value)
+    (fun (ii : natlt tile) -> exists* (value : tacc). pts_to_cell sa2 (idx2 ii tid) value)
     (fun (ii : natlt tile) -> column_cell sa2 vB tid (ii < 0) ii)
     fn ii { fold column_cell sa2 vB tid (ii < 0) ii };
   let mut i = 0sz;
@@ -190,12 +190,12 @@ fn bring_2cols
     (fun (ii : natlt tile) -> column_cell sa2 vB tid (ii < tile) ii);
   forevery_map
     (fun (ii : natlt tile) -> column_cell sa1 vA tid (ii < tile) ii)
-    (fun (ii : natlt tile) -> tensor_pts_to_cell sa1 (idx2 ii tid) (acc2 vA ii tid))
+    (fun (ii : natlt tile) -> pts_to_cell sa1 (idx2 ii tid) (acc2 vA ii tid))
     fn ii { unfold column_cell sa1 vA tid (ii < tile) ii };
   fold own_1_col_at sa1 vA tid;
   forevery_map
     (fun (ii : natlt tile) -> column_cell sa2 vB tid (ii < tile) ii)
-    (fun (ii : natlt tile) -> tensor_pts_to_cell sa2 (idx2 ii tid) (acc2 vB ii tid))
+    (fun (ii : natlt tile) -> pts_to_cell sa2 (idx2 ii tid) (acc2 vB ii tid))
     fn ii { unfold column_cell sa2 vB tid (ii < tile) ii };
   fold own_1_col_at sa2 vB tid;
 }

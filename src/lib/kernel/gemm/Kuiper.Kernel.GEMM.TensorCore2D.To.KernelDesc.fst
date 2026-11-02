@@ -68,7 +68,7 @@ fn split_array2_into_lane_cells
     (fun lane ->
       forall+ (ij : (natlt rows & natlt cols){
         in_lane rows cols lane ij}).
-        tensor_pts_to_cell m (idx2 ij._1 ij._2)
+        pts_to_cell m (idx2 ij._1 ij._2)
           (acc2 em ij._1 ij._2))
     (fun lane -> own_lane_cells m em lane)
     fn lane { fold own_lane_cells m em lane };

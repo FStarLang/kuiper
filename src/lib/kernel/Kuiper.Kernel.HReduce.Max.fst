@@ -114,25 +114,25 @@ fn array1_slice_concat
 
   (* Rewrite each side to use s *)
   forevery_ext
-    (fun (x:nat{i <= x /\ x < j}) -> tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 s1 (x - i)))
-    (fun (x:nat{i <= x /\ x < j}) -> tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 s (x - i)));
+    (fun (x:nat{i <= x /\ x < j}) -> pts_to_cell r ((x <: natlt sz), ()) (acc1 s1 (x - i)))
+    (fun (x:nat{i <= x /\ x < j}) -> pts_to_cell r ((x <: natlt sz), ()) (acc1 s (x - i)));
   forevery_ext
-    (fun (x:nat{j <= x /\ x < k}) -> tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 s2 (x - j)))
-    (fun (x:nat{j <= x /\ x < k}) -> tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 s (x - i)));
+    (fun (x:nat{j <= x /\ x < k}) -> pts_to_cell r ((x <: natlt sz), ()) (acc1 s2 (x - j)))
+    (fun (x:nat{j <= x /\ x < k}) -> pts_to_cell r ((x <: natlt sz), ()) (acc1 s (x - i)));
 
   (* Join *)
   forevery_refine_join' #nat
     (fun (x:nat) -> i <= x /\ x < j)
     (fun (x:nat) -> j <= x /\ x < k)
     (fun (x:nat{(i <= x /\ x < j) \/ (j <= x /\ x < k)}) ->
-      tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 s (x - i)));
+      pts_to_cell r ((x <: natlt sz), ()) (acc1 s (x - i)));
 
   (* Simplify *)
   forevery_refine_ext' #nat
     #(fun (x:nat) -> (i <= x /\ x < j) \/ (j <= x /\ x < k))
     (fun (x:nat) -> i <= x /\ x < k)
     (fun (x:nat{(i <= x /\ x < j) \/ (j <= x /\ x < k)}) ->
-      tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 s (x - i)));
+      pts_to_cell r ((x <: natlt sz), ()) (acc1 s (x - i)));
 
 
   // FIXME: Terrible that this is needed. But we have a length of (j-i)+(k-j) which
@@ -140,7 +140,7 @@ fn array1_slice_concat
   forevery_ext
     _
     (fun (x : nat{i <= x /\ x < k}) ->
-      tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 #_ #(k-i) s (x - i)));
+      pts_to_cell r ((x <: natlt sz), ()) (acc1 #_ #(k-i) s (x - i)));
 
   fold array1_pts_to_slice r i k s;
 }
@@ -191,7 +191,7 @@ fn array1_write_to_slice
   let s' : chest1 et (j - i) = upd1 s (idx - i) v;
   Pulse.Lib.Forall.elim_forall
     (fun (x:nat{i <= x /\ x < j}) ->
-      tensor_pts_to_cell r ((x <: natlt len), ()) (acc1 s' (x - i)));
+      pts_to_cell r ((x <: natlt len), ()) (acc1 s' (x - i)));
   Pulse.Lib.Trade.elim_trade _ _;
   fold array1_pts_to_slice r i j s';
   rewrite each s' as upd1 s (idx - i) v;
@@ -209,18 +209,18 @@ fn slice_singleton
   (v : et)
   (s : chest1 et 1)
   requires
-    tensor_pts_to_cell r ((i <: natlt sz), ()) v **
+    pts_to_cell r ((i <: natlt sz), ()) v **
     pure (v == acc1 s 0)
   ensures
     array1_pts_to_slice r i (i+1) s
 {
   forevery_singleton_intro'
     #(x:nat{i <= x /\ x < i + 1})
-    (fun x -> tensor_pts_to_cell r ((x <: natlt sz), ()) v)
+    (fun x -> pts_to_cell r ((x <: natlt sz), ()) v)
     i;
   forevery_ext
-    (fun (x:nat{i <= x /\ x < i + 1}) -> tensor_pts_to_cell r ((x <: natlt sz), ()) v)
-    (fun (x:nat{i <= x /\ x < i + 1}) -> tensor_pts_to_cell r ((x <: natlt sz), ()) (acc1 #_ #(i+1-i) s (x - i)));
+    (fun (x:nat{i <= x /\ x < i + 1}) -> pts_to_cell r ((x <: natlt sz), ()) v)
+    (fun (x:nat{i <= x /\ x < i + 1}) -> pts_to_cell r ((x <: natlt sz), ()) (acc1 #_ #(i+1-i) s (x - i)));
   fold array1_pts_to_slice r i (i+1) s;
 }
 
@@ -500,7 +500,7 @@ let kpre
   = a |-> Frac (1 /. nth) va **
     if_ (op_Equals #nat tid 0) (live out) **
     exists* (v : et).
-      tensor_pts_to_cell (from_array (l1_forward nth) shmem._1) (tid, ()) v
+      pts_to_cell (from_array (l1_forward nth) shmem._1) (tid, ()) v
 
 // Same RO permission to a, 1st thread has full ownership of shmem plus of the
 // output reference.  No need to specify the contents of the shmem array, it
@@ -959,10 +959,10 @@ fn kf
        then reindex to the abstract tensor index and implode. *)
     forevery_refine_ext' #nat #(fun (k:nat) -> 0 <= k /\ k < nth) (fun (k:nat) -> k < nth) _;
     forevery_ext
-      (fun (k:natlt nth) -> tensor_pts_to_cell sa ((k <: natlt nth), ()) (acc1 ss (k - 0)))
-      (fun (k:natlt nth) -> tensor_pts_to_cell sa (abs_bij.gg k) (acc (reveal css) (abs_bij.gg k)));
+      (fun (k:natlt nth) -> pts_to_cell sa ((k <: natlt nth), ()) (acc1 ss (k - 0)))
+      (fun (k:natlt nth) -> pts_to_cell sa (abs_bij.gg k) (acc (reveal css) (abs_bij.gg k)));
     forevery_iso_back (abs_bij #nth)
-      (fun (i : abs (nth @| INil)) -> tensor_pts_to_cell sa i (acc (reveal css) i));
+      (fun (i : abs (nth @| INil)) -> pts_to_cell sa i (acc (reveal css) i));
     tensor_implode sa #1.0R #(reveal css);
     rewrite each sa as from_array (l1_forward nth) shmem._1;
     if_intro_true' (op_Equals #nat tid 0) (
