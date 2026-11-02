@@ -354,7 +354,7 @@ fn skf
        acc eOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))))
   as
     (Cell gOut (up cphi) |-> acc eOut (sphi #et di do (SZ.v dim) eIdx (unflatten di (SZ.v i))));
-  tensor_write_cell gOut cphi v;
+  write_cell gOut cphi v;
   rewrite
     (Cell gOut (up cphi) |-> v)
   as

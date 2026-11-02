@@ -402,7 +402,7 @@ fn iarray_pts_to_eq
     a |-> Frac f2 v2
 
 inline_for_extraction noextract
-fn iarray_write_cell
+fn write_cell
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
@@ -415,7 +415,7 @@ fn iarray_write_cell
     Cell a (ci_to_ai vw ci) |-> v1
 
 inline_for_extraction noextract
-fn iarray_write_cell'
+fn write_cell'
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)

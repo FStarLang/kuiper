@@ -262,7 +262,7 @@ fn epilogue_cell_update
     (SZ.v row) (SZ.v col)
     (SZ.v globalRow) (SZ.v globalCol)
     1.0R (reveal old);
-  tensor_write_cell d
+  write_cell d
     (globalRow, (globalCol, ()))
     dv;
   global_cell_to_output d bm bn rows cols wm wn

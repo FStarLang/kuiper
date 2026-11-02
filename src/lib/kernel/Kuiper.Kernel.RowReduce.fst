@@ -146,7 +146,7 @@ fn array1_write_to_slice
 {
   unfold array1_pts_to_slice r i j s;
   forevery_extract' #(x:nat{i <= x /\ x < j}) (SZ.v idx) _;
-  tensor_write_cell r ((idx <: szlt len), ()) v;
+  write_cell r ((idx <: szlt len), ()) v;
   let s' : erased (lseq et (j - i)) = Seq.upd s (idx - i) v;
   Pulse.Lib.Forall.elim_forall
     (fun (x:nat{i <= x /\ x < j}) ->
@@ -833,7 +833,7 @@ fn kf_block
 
   (* Compute partial sum over stride and write to shmem. *)
   let psum : et = sum_stride_map_2d pre_map pre_map_r rows cols x bid nth tid vr_row;
-  tensor_write_cell sa (tid, ()) psum;
+  write_cell sa (tid, ()) psum;
 
   (* Set up tree reduction state. *)
   let mut n : szlt 32 = 0sz;
@@ -894,7 +894,7 @@ fn kf_block
     (**)assert pure (Seq.equal (Seq.slice (reveal vr_s) 0 nth) (reveal vr_s));
 
     let res = array1_read_from_slice sa 0sz;
-    tensor_write_cell output (bid, ()) res;
+    write_cell output (bid, ()) res;
 
     with ss. assert array1_pts_to_slice sa 0 nth ss;
     unfold array1_pts_to_slice sa;

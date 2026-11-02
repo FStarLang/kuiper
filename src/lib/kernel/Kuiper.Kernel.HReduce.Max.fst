@@ -187,7 +187,7 @@ fn array1_write_to_slice
 {
   unfold array1_pts_to_slice r i j s;
   forevery_extract' #(x:nat{i <= x /\ x < j}) (SZ.v idx) _;
-  tensor_write_cell r ((idx <: szlt len), ()) v;
+  write_cell r ((idx <: szlt len), ()) v;
   let s' : chest1 et (j - i) = upd1 s (idx - i) v;
   Pulse.Lib.Forall.elim_forall
     (fun (x:nat{i <= x /\ x < j}) ->
@@ -898,7 +898,7 @@ fn kf
   (* Compute partial max and write to shmem *)
   (**)chest1_to_seq_approx va vr;
   let psum : et = max_stride_map pre_map pre_map_r lena a nth tid vr;
-  tensor_write_cell sa (tid, ()) psum;
+  write_cell sa (tid, ()) psum;
 
   (* Now do tree reduction on shmem *)
   let mut n : szlt 32 = 0sz;

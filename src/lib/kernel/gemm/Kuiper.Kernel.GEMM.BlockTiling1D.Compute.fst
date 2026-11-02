@@ -152,7 +152,7 @@ fn bring_2cols
       unfold column_cell sa1 vA tid (ci < ci) ci;
       let tileM = array2_extract_tile_ro' gA (SZ.v tile) (SZ.v tile) (SZ.v mm) (SZ.v kk);
       let v1 = read tileM ((ci <: szlt _), ((tid <: szlt _), ()));
-      tensor_write_cell sa1 ((ci <: szlt _), ((tid <: szlt _), ())) (mapA v1);
+      write_cell sa1 ((ci <: szlt _), ((tid <: szlt _), ())) (mapA v1);
       ambig_trade_elim ();
       fold column_cell sa1 vA tid true ci;
       Pulse.Lib.Forall.elim_forall (fun ii -> column_cell sa1 vA tid (ii < ci + 1) ii);
@@ -167,7 +167,7 @@ fn bring_2cols
       unfold column_cell sa2 vB tid (ci < ci) ci;
       let tileM = array2_extract_tile_ro' gB (SZ.v tile) (SZ.v tile) (SZ.v kk) (SZ.v nn);
       let v2 = read tileM ((ci <: szlt _), ((tid <: szlt _), ()));
-      tensor_write_cell sa2 ((ci <: szlt _), ((tid <: szlt _), ())) (mapB v2);
+      write_cell sa2 ((ci <: szlt _), ((tid <: szlt _), ())) (mapB v2);
       ambig_trade_elim ();
       fold column_cell sa2 vB tid true ci;
       Pulse.Lib.Forall.elim_forall (fun ii -> column_cell sa2 vB tid (ii < ci + 1) ii);

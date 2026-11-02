@@ -270,7 +270,7 @@ fn kfonline_softmax
   online_softmax_is_softmax (reveal ras);
   lem_softmax_real_to_seq ra;
   assert pure (y %~ acc1 (softmax_real ra) tid);
-  tensor_write_cell b ((tid <: szlt lenab), ()) y;
+  write_cell b ((tid <: szlt lenab), ()) y;
   ()
 }
 

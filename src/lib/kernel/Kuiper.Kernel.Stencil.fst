@@ -89,7 +89,7 @@ fn kf
     (ml `mul` stencil 1 0) `add` (mm `mul` stencil 1 1) `add` (mr `mul` stencil 1 2) `add`
     (bl `mul` stencil 2 0) `add` (bm `mul` stencil 2 1) `add` (br `mul` stencil 2 2);
 
-  tensor_write_cell gOut (cidx2 i j) sv;
+  write_cell gOut (cidx2 i j) sv;
 }
 #pop-options
 

@@ -324,7 +324,7 @@ fn kf_block
 
   (* Compute partial max over stride and write to shmem. *)
   let psum : et = max_stride_map_2d pre_map pre_map_r rows cols x bid nth tid vr_row;
-  tensor_write_cell sa (tid, ()) psum;
+  write_cell sa (tid, ()) psum;
 
   (* Set up tree reduction state. *)
   let mut n : szlt 32 = 0sz;
@@ -377,7 +377,7 @@ fn kf_block
     (**)assert (pure (Seq.equal (Seq.slice (reveal vr_s) 0 nth) (reveal vr_s)));
 
     let res = array1_read_from_slice sa 0sz;
-    tensor_write_cell output (bid, ()) res;
+    write_cell output (bid, ()) res;
 
     with ss. assert array1_pts_to_slice sa 0 nth ss;
     unfold array1_pts_to_slice sa;

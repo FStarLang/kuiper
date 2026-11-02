@@ -779,7 +779,7 @@ fn bkf
 
   let v0 = read_cell gC (page, (mrow, (mcol, (brow, (bcol, ())))));
   let v1 = comb v0 s;
-  tensor_write_cell gC (page, (mrow, (mcol, (brow, (bcol, ())))) ) v1;
+  write_cell gC (page, (mrow, (mcol, (brow, (bcol, ())))) ) v1;
 
   (* Rewrite the cell index back to the arithmetic form used by bkpost. *)
   rewrite

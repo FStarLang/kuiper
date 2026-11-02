@@ -658,7 +658,7 @@ fn bkf
     open Pulse.Lib.Array;
     let v1 = sums.(!row);
     let v' = comb v0 v1;
-    tensor_write_cell gC (page, (grow_sz, (gcol_sz, ()))) v';
+    write_cell gC (page, (grow_sz, (gcol_sz, ()))) v';
 
     rewrite (pts_to_cell gC (up ci) v')
          as (pts_to_cell gC (bbtile_cell_idx batch mrows mcols tile (SZ.v bid) (SZ.v tid) (SZ.v crow)) v');

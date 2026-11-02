@@ -642,7 +642,7 @@ let raw_ciview_schema_cit (l : erased nat) (_ : squash (SZ.fits l))
   = ()
 
 inline_for_extraction noextract
-fn iarray_write_cell
+fn write_cell
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
@@ -682,7 +682,7 @@ fn iarray_write_cell
 }
 
 inline_for_extraction noextract
-fn iarray_write_cell'
+fn write_cell'
   (#et:Type0)
   (#vw : aiview) {| cw : ciview vw |}
   (a : iarray et vw)
@@ -697,7 +697,7 @@ fn iarray_write_cell'
     Cell a (reveal ai) |-> reveal v1
 {
   rewrite each ai as ci_to_ai vw ci;
-  let res = iarray_write_cell #et  a ci v1;
+  let res = write_cell #et  a ci v1;
   rewrite each ci_to_ai vw ci as ai;
   res
 }
@@ -803,7 +803,7 @@ fn write
 {
   unfold iarray_pts_to a v0;
   forevery_extract_if (ci_to_ai vw ci) _;
-  iarray_write_cell a ci e;
+  write_cell a ci e;
 
   forevery_intro_if (ci_to_ai vw ci) (fun i -> pts_to_cell a i e);
   forevery_zip #vw.ait

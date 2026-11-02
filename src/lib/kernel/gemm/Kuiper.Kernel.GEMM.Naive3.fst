@@ -116,7 +116,7 @@ fn kf
 
   let v0 = read_cell gC (trow, (tcol, ()));
   let v1 = comb v0 s;
-  tensor_write_cell gC (trow, (tcol, ())) v1;
+  write_cell gC (trow, (tcol, ())) v1;
 
   ()
 }

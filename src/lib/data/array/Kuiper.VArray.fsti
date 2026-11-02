@@ -582,7 +582,7 @@ fn varray_pts_to_eq
     a |-> Frac f2 v2
 
 inline_for_extraction noextract
-fn varray_write_cell
+fn write_cell
   (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
@@ -596,7 +596,7 @@ fn varray_write_cell
     Cell a (ci_to_ai vw ci) |-> v1
 
 inline_for_extraction noextract
-fn varray_write_cell'
+fn write_cell'
   (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}

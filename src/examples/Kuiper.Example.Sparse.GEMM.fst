@@ -269,7 +269,7 @@ fn kf
   let s = matmul_dotprod gA gB #eA #rA #eB #rB trow tcol;
   let v0 = read_cell gC ((trow <: szlt _), ((tcol <: szlt _), ()));
   let v1 = comb v0 s;
-  tensor_write_cell gC ((trow <: szlt _), ((tcol <: szlt _), ())) v1;
+  write_cell gC ((trow <: szlt _), ((tcol <: szlt _), ())) v1;
 
   ()
 }

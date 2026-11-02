@@ -545,7 +545,7 @@ fn cp_array2_vec
         pts_to_cell dst (idx2 (reveal nrow) (reveal colpk)) (acc2 em' (reveal nrow) (reveal colpk))
       as
         pts_to_cell dst (idx2 (SZ.v ridx <: natlt rows) (SZ.v cidx <: natlt cols)) (acc2 em' (reveal nrow) (reveal colpk));
-      tensor_write_cell dst (ridx, (cidx, ())) v;
+      write_cell dst (ridx, (cidx, ())) v;
 
       let em'' : chest2 et rows cols = upd2 em' (reveal nrow) (reveal colpk) v;
 

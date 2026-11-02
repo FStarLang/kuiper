@@ -322,7 +322,7 @@ fn read_cell
     pure (v == s)
 
 // inline_for_extraction noextract
-// fn tensor_write_cell
+// fn write_cell
 //   (#et : Type0) (#r : erased nat) (#d : shape r)
 //   (#l : vtlayout d) {| ctlayout l |}
 //   (a : rotensor et l)

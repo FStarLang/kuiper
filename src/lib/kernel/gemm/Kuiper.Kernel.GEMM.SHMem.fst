@@ -874,10 +874,10 @@ fn bkf
 
     (* Write to shmem: unfold live_cell, write mapped value, keep specific content *)
     unfold live_cell sa1 (v brow) (v bcol);
-    tensor_write_cell sa1 ((brow <: szlt _), ((bcol <: szlt _), ())) (mapA v1);
+    write_cell sa1 ((brow <: szlt _), ((bcol <: szlt _), ())) (mapA v1);
 
     unfold live_cell sa2 (v brow) (v bcol);
-    tensor_write_cell sa2 ((brow <: szlt _), ((bcol <: szlt _), ())) (mapB v2);
+    write_cell sa2 ((brow <: szlt _), ((bcol <: szlt _), ())) (mapB v2);
 
     (* Odd barrier: give per-cell ownership with specific content *)
     odd_2x1 !bk;
@@ -998,7 +998,7 @@ fn bkf
   let v1 = comb v0 !sum;
   // Note: repeat ci here since the let binding above does not inline.
   // Not doing so means we get tuples (structs) in generated CUDA
-  tensor_write_cell gC (page, (grow_sz, (gcol_sz, ()))) v1;
+  write_cell gC (page, (grow_sz, (gcol_sz, ()))) v1;
   rewrite (pts_to_cell gC (up ci) v1)
        as (pts_to_cell gC (sbtile_cell_idx batch mrows mcols tile (SZ.v bid) (SZ.v tid)) v1);
 

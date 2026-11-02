@@ -1061,7 +1061,7 @@ fn varray_pts_to_eq
 }
 
 inline_for_extraction noextract
-fn varray_write_cell
+fn write_cell
   (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
@@ -1074,11 +1074,11 @@ fn varray_write_cell
   ensures
     Cell a (ci_to_ai vw ci) |-> v1
 {
-  IArray.iarray_write_cell a ci v1;
+  IArray.write_cell a ci v1;
 }
 
 inline_for_extraction noextract
-fn varray_write_cell'
+fn write_cell'
   (#et #st : Type)
   (#vw : aview et st)
   {| cw : cview vw |}
@@ -1095,7 +1095,7 @@ fn varray_write_cell'
 {
   rewrite each reveal ai as (ci_to_ai vw ci);
   fold pts_to_cell a (ci_to_ai vw ci) (reveal v0);
-  varray_write_cell a ci v1;
+  write_cell a ci v1;
   unfold pts_to_cell a (ci_to_ai vw ci) (reveal v1);
   rewrite each (ci_to_ai vw ci) as (reveal ai);
 }

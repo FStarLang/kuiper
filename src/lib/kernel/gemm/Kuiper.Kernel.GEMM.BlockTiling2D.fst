@@ -2023,7 +2023,7 @@ fn bkf
     let v0 = read_cell gC (page, (grow_sz, (gcol_sz, ())));
     let v1 = rchProd.(ci0);
     let v' = comb v0 v1;
-    tensor_write_cell gC (page, (grow_sz, (gcol_sz, ()))) v';
+    write_cell gC (page, (grow_sz, (gcol_sz, ()))) v';
 
     (* Exact reconstruction: v' == acc gbmm cell. *)
     bt2d_acc_bridge batch m n bm bn tm tn sq1 sq2 eC (SZ.v bid) (SZ.v tid) (SZ.v ci0);
