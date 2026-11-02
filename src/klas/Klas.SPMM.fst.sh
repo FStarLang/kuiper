@@ -65,8 +65,12 @@ open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
 open Kuiper.EMatrix
 module MS = Kuiper.Spec.GEMM
 
-// Klas has no predicated column tails, so select the largest Sputnik tile
-// that divides cols and use a float4-wide fallback.
+// Expose the concrete vector width to the dispatcher proof.
+let chunk_f32_is_four () : Lemma (Kuiper.Array.Vectorized.chunk f32 == 4sz) =
+  assert_norm (Kuiper.Array.Vectorized.chunk f32 == 4sz)
+
+// Keep the existing aligned-tile dispatch policy and float4-wide fallback.
+// Direct instantiations also support partial tiles when 4 divides cols.
 fn spmm_f32_dispatch
   (rows shared cols : szp)
   (gA : csr_matrix f32 (SZ.v rows) (SZ.v shared){is_global_csr_matrix gA})
@@ -109,6 +113,8 @@ fn spmm_f32_dispatch
     pure (8 <= max_threads)
   ensures on gpu_loc (matrix_approx gC (MS.matmul rA rB))
 {
+  chunk_f32_is_four ();
+  assert pure (Kuiper.Array.Vectorized.chunk f32 /? cols);
   if (cols %^ 64sz = 0sz) {
     lemma_divides_mod 64 (SZ.v cols);
     g_spmm_f32_32x64x8 rows shared cols gA row_indices fri gB gC

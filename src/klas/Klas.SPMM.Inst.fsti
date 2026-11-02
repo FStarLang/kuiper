@@ -53,8 +53,8 @@ fn inst_on
   preserves cpu ** stream_live s
   requires
     pure (eB %~ rB) **
+    pure (chunk et /? cols) **
     epoch_live s e **
-    pure (blockItemsX /? cols) **
     on gpu_loc (csr_matrix_approx gA #fA eA rA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
     on gpu_loc (gB |-> Frac fB eB) **
@@ -107,7 +107,7 @@ fn inst
     on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (eB %~ rB) **
-    pure (blockItemsX /? cols) **
+    pure (chunk et /? cols) **
     on gpu_loc (live gC) **
     pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
   ensures on gpu_loc (matrix_approx gC (MS.matmul rA rB))
