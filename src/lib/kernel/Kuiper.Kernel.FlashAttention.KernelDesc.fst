@@ -132,6 +132,13 @@ fn mrestore_row
   Pulse.Lib.Trade.elim_trade _ _;
 }
 
+let stride_index_bound (rows : nat) (srows : pos {srows /? rows})
+  (tr : natlt srows) (i : natlt (rows / srows))
+  : Lemma (tr + i * srows < rows)
+=
+  FStar.Math.Lemmas.lemma_mult_le_right srows (i + 1) (rows / srows);
+  FStar.Math.Lemmas.lemma_div_exact rows srows
+
 inline_for_extraction noextract
 instance c_stride_subtile_layout
   (#rows #cols : erased nat)
@@ -148,6 +155,8 @@ instance c_stride_subtile_layout
     all_fit = ();
     cimap = (fun (x : conc ((rows/srows) @| (cols/scols) @| INil)) ->
                 match x with | (i, (j, ())) ->
+                stride_index_bound rows srows tr (SZ.v i);
+                stride_index_bound cols scols tc (SZ.v j);
                 let x' =
                   (concr tr +^ i *^ concr srows,
                    (concr tc +^ j *^ concr scols,
