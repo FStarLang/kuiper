@@ -603,7 +603,7 @@ fn subproducts2d
       let va = read gA ((tm *^ arow +^ vj0r <: szlt _), ((vdir <: szlt _), ()));
       cacheA_step eA tm arow vdir vrA (SZ.v vj0r) va;
       rAcol.(vj0r) <- va;
-      j0 := vj0r +^ 1sz;
+      j0 := !j0 +^ 1sz;
     };
     with vrAcol. assert rAcol |-> vrAcol;
     cacheA_full eA tm arow !dotIdx vrAcol;
@@ -628,7 +628,7 @@ fn subproducts2d
       let vb = read gB ((vdir2 <: szlt _), ((tn *^ bcol +^ vj1r <: szlt _), ()));
       cacheB_step eB tn bcol vdir2 vrB (SZ.v vj1r) vb;
       rBrow.(vj1r) <- vb;
-      j1 := vj1r +^ 1sz;
+      j1 := !j1 +^ 1sz;
     };
     with vrBrow. assert rBrow |-> vrBrow;
     cacheB_full eB tn bcol !dotIdx vrBrow;
@@ -674,7 +674,7 @@ fn subproducts2d
         sub_inv_step mapA mapB tm tn v_cur vrAcol vrBrow (SZ.v vm) (SZ.v vn) v_n mad;
         rchProd.(idx) <- mad;
 
-        resIdxN := vn +^ 1sz;
+        resIdxN := !resIdxN +^ 1sz;
       };
 
       with v_r. assert rchProd |-> v_r;

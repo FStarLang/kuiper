@@ -70,7 +70,7 @@ float Kuiper_Example_Float32GPU_multiply(float x, float y)
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
     MUST(cudaMemcpy(
-        &out, device, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
+        &out, device, (uint64_t) sizeof(float), cudaMemcpyDeviceToHost));
     float result = out;
     MUST(cudaFree(device));
     return result;
@@ -85,7 +85,7 @@ float Kuiper_Example_Float32GPU_exponentiate(float x)
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
     MUST(cudaMemcpy(
-        &out, device, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
+        &out, device, (uint64_t) sizeof(float), cudaMemcpyDeviceToHost));
     float result = out;
     MUST(cudaFree(device));
     return result;
@@ -100,7 +100,7 @@ float Kuiper_Example_Float32GPU_reciprocal(float x)
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
     MUST(cudaMemcpy(
-        &out, device, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
+        &out, device, (uint64_t) sizeof(float), cudaMemcpyDeviceToHost));
     float result = out;
     MUST(cudaFree(device));
     return result;
@@ -115,7 +115,7 @@ float Kuiper_Example_Float32GPU_inverse_root(float x)
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
     MUST(cudaMemcpy(
-        &out, device, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
+        &out, device, (uint64_t) sizeof(float), cudaMemcpyDeviceToHost));
     float result = out;
     MUST(cudaFree(device));
     return result;

@@ -15,7 +15,7 @@ __hoisted_reduce_f16_plus_0(uint32_t lena, half *x_, uint32_t nth, half *out)
         acc = __hadd(acc, x_[idx]);
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < nth) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -23,6 +23,7 @@ __hoisted_reduce_f16_plus_0(uint32_t lena, half *x_, uint32_t nth, half *out)
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] = __hadd(gsa[threadIdx.x], gsa[nextid]);
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         out[blockIdx.x] = gsa[0U];
@@ -42,7 +43,7 @@ __hoisted_reduce_f32_plus_0(uint32_t lena, float *x_, uint32_t nth, float *out)
         acc += x_[idx];
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < nth) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -50,6 +51,7 @@ __hoisted_reduce_f32_plus_0(uint32_t lena, float *x_, uint32_t nth, float *out)
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] += gsa[nextid];
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         out[blockIdx.x] = gsa[0U];
@@ -70,7 +72,7 @@ __hoisted_reduce_f64_plus_0(
         acc += x_[idx];
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < nth) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -78,6 +80,7 @@ __hoisted_reduce_f64_plus_0(
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] += gsa[nextid];
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         out[blockIdx.x] = gsa[0U];
@@ -98,7 +101,7 @@ __hoisted_reduce_u32_plus_0(
         acc += x_[idx];
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < nth) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -106,6 +109,7 @@ __hoisted_reduce_u32_plus_0(
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] += gsa[nextid];
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         out[blockIdx.x] = gsa[0U];
@@ -126,7 +130,7 @@ __hoisted_reduce_u64_plus_0(
         acc += x_[idx];
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < nth) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -134,6 +138,7 @@ __hoisted_reduce_u64_plus_0(
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] += gsa[nextid];
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         out[blockIdx.x] = gsa[0U];
@@ -157,8 +162,8 @@ half Klas_HReduce_reduce_f16_plus(uint32_t nth, uint32_t lena, half *a)
     half *local_out = (half *) KRML_HOST_MALLOC(sizeof(half));
     if (local_out != NULL)
         local_out[0U] = __float2half_rn(0.0f);
-    MUST(cudaMemcpy(
-        local_out, out0, (uint32_t) sizeof(half), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(local_out, out0, (uint64_t) sizeof(half) * (uint64_t) 1U,
+        cudaMemcpyDeviceToHost));
     half res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
@@ -183,8 +188,8 @@ float Klas_HReduce_reduce_f32_plus(uint32_t nth, uint32_t lena, float *a)
     float *local_out = (float *) KRML_HOST_MALLOC(sizeof(float));
     if (local_out != NULL)
         local_out[0U] = 0.0f;
-    MUST(cudaMemcpy(
-        local_out, out0, (uint32_t) sizeof(float), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(local_out, out0, (uint64_t) sizeof(float) * (uint64_t) 1U,
+        cudaMemcpyDeviceToHost));
     float res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
@@ -209,8 +214,8 @@ double Klas_HReduce_reduce_f64_plus(uint32_t nth, uint32_t lena, double *a)
     double *local_out = (double *) KRML_HOST_MALLOC(sizeof(double));
     if (local_out != NULL)
         local_out[0U] = 0.0;
-    MUST(cudaMemcpy(
-        local_out, out0, (uint32_t) sizeof(double), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(local_out, out0, (uint64_t) sizeof(double) * (uint64_t) 1U,
+        cudaMemcpyDeviceToHost));
     double res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
@@ -234,8 +239,8 @@ uint32_t Klas_HReduce_reduce_u32_plus(uint32_t nth, uint32_t lena, uint32_t *a)
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
     uint32_t *local_out = (uint32_t *) KRML_HOST_CALLOC(1U, sizeof(uint32_t));
-    MUST(cudaMemcpy(
-        local_out, out0, (uint32_t) sizeof(uint32_t), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(local_out, out0,
+        (uint64_t) sizeof(uint32_t) * (uint64_t) 1U, cudaMemcpyDeviceToHost));
     uint32_t res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));
@@ -259,8 +264,8 @@ uint64_t Klas_HReduce_reduce_u64_plus(uint32_t nth, uint32_t lena, uint64_t *a)
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
     uint64_t *local_out = (uint64_t *) KRML_HOST_CALLOC(1U, sizeof(uint64_t));
-    MUST(cudaMemcpy(
-        local_out, out0, (uint32_t) sizeof(uint64_t), cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(local_out, out0,
+        (uint64_t) sizeof(uint64_t) * (uint64_t) 1U, cudaMemcpyDeviceToHost));
     uint64_t res = local_out[0U];
     KRML_HOST_FREE(local_out);
     MUST(cudaFree(out0));

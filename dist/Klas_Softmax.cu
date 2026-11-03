@@ -59,7 +59,7 @@ __hoisted_softmax_gpu_n_f16_2(uint32_t lena, half *a_, uint32_t nth, half *sums)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < nth) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -67,6 +67,7 @@ __hoisted_softmax_gpu_n_f16_2(uint32_t lena, half *a_, uint32_t nth, half *sums)
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] = __hadd(gsa[threadIdx.x], gsa[nextid]);
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         sums[blockIdx.x] = gsa[0U];
@@ -144,7 +145,7 @@ __hoisted_softmax_gpu_n_f32_2(
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < nth) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -152,6 +153,7 @@ __hoisted_softmax_gpu_n_f32_2(
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] += gsa[nextid];
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         sums[blockIdx.x] = gsa[0U];
@@ -229,7 +231,7 @@ __hoisted_softmax_gpu_n_f64_2(
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < nth) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -237,6 +239,7 @@ __hoisted_softmax_gpu_n_f64_2(
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] += gsa[nextid];
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         sums[blockIdx.x] = gsa[0U];
@@ -313,7 +316,7 @@ __hoisted_softmax_gpu_f16_2(uint32_t lena, half *a_, half *sums)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < 1024U) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -321,6 +324,7 @@ __hoisted_softmax_gpu_f16_2(uint32_t lena, half *a_, half *sums)
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] = __hadd(gsa[threadIdx.x], gsa[nextid]);
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         sums[blockIdx.x] = gsa[0U];
@@ -397,7 +401,7 @@ __hoisted_softmax_gpu_f32_2(uint32_t lena, float *a_, float *sums)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < 1024U) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -405,6 +409,7 @@ __hoisted_softmax_gpu_f32_2(uint32_t lena, float *a_, float *sums)
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] += gsa[nextid];
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         sums[blockIdx.x] = gsa[0U];
@@ -481,7 +486,7 @@ __hoisted_softmax_gpu_f64_2(uint32_t lena, double *a_, double *sums)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < 1024U) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -489,6 +494,7 @@ __hoisted_softmax_gpu_f64_2(uint32_t lena, double *a_, double *sums)
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] += gsa[nextid];
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         sums[blockIdx.x] = gsa[0U];
@@ -565,7 +571,7 @@ __hoisted_softmax_n_f16_2(uint32_t lena, half *a_, uint32_t nth, half *sums)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < nth) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -573,6 +579,7 @@ __hoisted_softmax_n_f16_2(uint32_t lena, half *a_, uint32_t nth, half *sums)
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] = __hadd(gsa[threadIdx.x], gsa[nextid]);
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         sums[blockIdx.x] = gsa[0U];
@@ -648,7 +655,7 @@ __hoisted_softmax_n_f32_2(uint32_t lena, float *a_, uint32_t nth, float *sums)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < nth) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -656,6 +663,7 @@ __hoisted_softmax_n_f32_2(uint32_t lena, float *a_, uint32_t nth, float *sums)
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] += gsa[nextid];
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         sums[blockIdx.x] = gsa[0U];
@@ -732,7 +740,7 @@ __hoisted_softmax_n_f64_2(uint32_t lena, double *a_, uint32_t nth, double *sums)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < nth) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -740,6 +748,7 @@ __hoisted_softmax_n_f64_2(uint32_t lena, double *a_, uint32_t nth, double *sums)
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] += gsa[nextid];
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         sums[blockIdx.x] = gsa[0U];
@@ -816,7 +825,7 @@ __hoisted_softmax_f16_2(uint32_t lena, half *a_, half *sums)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < 1024U) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -824,6 +833,7 @@ __hoisted_softmax_f16_2(uint32_t lena, half *a_, half *sums)
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] = __hadd(gsa[threadIdx.x], gsa[nextid]);
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         sums[blockIdx.x] = gsa[0U];
@@ -899,7 +909,7 @@ __hoisted_softmax_f32_2(uint32_t lena, float *a_, float *sums)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < 1024U) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -907,6 +917,7 @@ __hoisted_softmax_f32_2(uint32_t lena, float *a_, float *sums)
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] += gsa[nextid];
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         sums[blockIdx.x] = gsa[0U];
@@ -982,7 +993,7 @@ __hoisted_softmax_f64_2(uint32_t lena, double *a_, double *sums)
     }
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
-    for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
+    while ((uint32_t) (1U << (uint32_t) n) < 1024U) {
         uint32_t vn = n;
         __syncthreads();
         uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
@@ -990,6 +1001,7 @@ __hoisted_softmax_f64_2(uint32_t lena, double *a_, double *sums)
             if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
                 0U)
                 gsa[threadIdx.x] += gsa[nextid];
+        n = vn + 1U;
     }
     if (threadIdx.x == 0U)
         sums[blockIdx.x] = gsa[0U];
@@ -1258,8 +1270,8 @@ void Klas_Softmax_softmax_gpu_f64(uint32_t lena, double *a)
 void Klas_Softmax_softmax_n_f16(uint32_t nth, uint32_t lena, half *a)
 {
     half *ga = (half *) KPR_GPU_ALLOC((uint32_t) sizeof(half), lena);
-    MUST(cudaMemcpy(
-        ga, a, (uint32_t) sizeof(half) * lena, cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(ga, a, (uint64_t) sizeof(half) * (uint64_t) lena,
+        cudaMemcpyHostToDevice));
     half *maxs = (half *) KPR_GPU_ALLOC((uint32_t) sizeof(half), 1U);
     half *sums = (half *) KPR_GPU_ALLOC((uint32_t) sizeof(half), 1U);
     uint32_t nthm = nth <= lena ? nth : lena;
@@ -1297,16 +1309,16 @@ void Klas_Softmax_softmax_n_f16(uint32_t nth, uint32_t lena, half *a)
     MUST(cudaStreamDestroy(s3));
     MUST(cudaFree(sums));
     MUST(cudaFree(maxs));
-    MUST(cudaMemcpy(
-        a, ga, (uint32_t) sizeof(half) * lena, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(a, ga, (uint64_t) sizeof(half) * (uint64_t) lena,
+        cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
 void Klas_Softmax_softmax_n_f32(uint32_t nth, uint32_t lena, float *a)
 {
     float *ga = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), lena);
-    MUST(cudaMemcpy(
-        ga, a, (uint32_t) sizeof(float) * lena, cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(ga, a, (uint64_t) sizeof(float) * (uint64_t) lena,
+        cudaMemcpyHostToDevice));
     float *maxs = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 1U);
     float *sums = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 1U);
     uint32_t nthm = nth <= lena ? nth : lena;
@@ -1344,16 +1356,16 @@ void Klas_Softmax_softmax_n_f32(uint32_t nth, uint32_t lena, float *a)
     MUST(cudaStreamDestroy(s3));
     MUST(cudaFree(sums));
     MUST(cudaFree(maxs));
-    MUST(cudaMemcpy(
-        a, ga, (uint32_t) sizeof(float) * lena, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(a, ga, (uint64_t) sizeof(float) * (uint64_t) lena,
+        cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
 void Klas_Softmax_softmax_n_f64(uint32_t nth, uint32_t lena, double *a)
 {
     double *ga = (double *) KPR_GPU_ALLOC((uint32_t) sizeof(double), lena);
-    MUST(cudaMemcpy(
-        ga, a, (uint32_t) sizeof(double) * lena, cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(ga, a, (uint64_t) sizeof(double) * (uint64_t) lena,
+        cudaMemcpyHostToDevice));
     double *maxs = (double *) KPR_GPU_ALLOC((uint32_t) sizeof(double), 1U);
     double *sums = (double *) KPR_GPU_ALLOC((uint32_t) sizeof(double), 1U);
     uint32_t nthm = nth <= lena ? nth : lena;
@@ -1391,16 +1403,16 @@ void Klas_Softmax_softmax_n_f64(uint32_t nth, uint32_t lena, double *a)
     MUST(cudaStreamDestroy(s3));
     MUST(cudaFree(sums));
     MUST(cudaFree(maxs));
-    MUST(cudaMemcpy(
-        a, ga, (uint32_t) sizeof(double) * lena, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(a, ga, (uint64_t) sizeof(double) * (uint64_t) lena,
+        cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
 void Klas_Softmax_softmax_f16(uint32_t lena, half *a)
 {
     half *ga = (half *) KPR_GPU_ALLOC((uint32_t) sizeof(half), lena);
-    MUST(cudaMemcpy(
-        ga, a, (uint32_t) sizeof(half) * lena, cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(ga, a, (uint64_t) sizeof(half) * (uint64_t) lena,
+        cudaMemcpyHostToDevice));
     half *maxs = (half *) KPR_GPU_ALLOC((uint32_t) sizeof(half), 1U);
     half *sums = (half *) KPR_GPU_ALLOC((uint32_t) sizeof(half), 1U);
     uint32_t nthm = 1024U <= lena ? 1024U : lena;
@@ -1438,16 +1450,16 @@ void Klas_Softmax_softmax_f16(uint32_t lena, half *a)
     MUST(cudaStreamDestroy(s3));
     MUST(cudaFree(sums));
     MUST(cudaFree(maxs));
-    MUST(cudaMemcpy(
-        a, ga, (uint32_t) sizeof(half) * lena, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(a, ga, (uint64_t) sizeof(half) * (uint64_t) lena,
+        cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
 void Klas_Softmax_softmax_f32(uint32_t lena, float *a)
 {
     float *ga = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), lena);
-    MUST(cudaMemcpy(
-        ga, a, (uint32_t) sizeof(float) * lena, cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(ga, a, (uint64_t) sizeof(float) * (uint64_t) lena,
+        cudaMemcpyHostToDevice));
     float *maxs = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 1U);
     float *sums = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 1U);
     uint32_t nthm = 1024U <= lena ? 1024U : lena;
@@ -1485,16 +1497,16 @@ void Klas_Softmax_softmax_f32(uint32_t lena, float *a)
     MUST(cudaStreamDestroy(s3));
     MUST(cudaFree(sums));
     MUST(cudaFree(maxs));
-    MUST(cudaMemcpy(
-        a, ga, (uint32_t) sizeof(float) * lena, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(a, ga, (uint64_t) sizeof(float) * (uint64_t) lena,
+        cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }
 
 void Klas_Softmax_softmax_f64(uint32_t lena, double *a)
 {
     double *ga = (double *) KPR_GPU_ALLOC((uint32_t) sizeof(double), lena);
-    MUST(cudaMemcpy(
-        ga, a, (uint32_t) sizeof(double) * lena, cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(ga, a, (uint64_t) sizeof(double) * (uint64_t) lena,
+        cudaMemcpyHostToDevice));
     double *maxs = (double *) KPR_GPU_ALLOC((uint32_t) sizeof(double), 1U);
     double *sums = (double *) KPR_GPU_ALLOC((uint32_t) sizeof(double), 1U);
     uint32_t nthm = 1024U <= lena ? 1024U : lena;
@@ -1532,7 +1544,7 @@ void Klas_Softmax_softmax_f64(uint32_t lena, double *a)
     MUST(cudaStreamDestroy(s3));
     MUST(cudaFree(sums));
     MUST(cudaFree(maxs));
-    MUST(cudaMemcpy(
-        a, ga, (uint32_t) sizeof(double) * lena, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(a, ga, (uint64_t) sizeof(double) * (uint64_t) lena,
+        cudaMemcpyDeviceToHost));
     MUST(cudaFree(ga));
 }

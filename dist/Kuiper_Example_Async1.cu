@@ -66,7 +66,7 @@ uint64_t *Kuiper_Example_Async1_galloc(uint64_t x)
     uint64_t r = x;
     uint64_t *gr = (uint64_t *) KPR_GPU_ALLOC((uint32_t) sizeof(uint64_t), 1U);
     MUST(cudaMemcpy(
-        gr, &r, (uint32_t) sizeof(uint64_t), cudaMemcpyHostToDevice));
+        gr, &r, (uint64_t) sizeof(uint64_t), cudaMemcpyHostToDevice));
     return gr;
 }
 
@@ -74,7 +74,7 @@ uint64_t Kuiper_Example_Async1_gread(uint64_t *gr)
 {
     uint64_t r = 0ULL;
     MUST(cudaMemcpy(
-        &r, gr, (uint32_t) sizeof(uint64_t), cudaMemcpyDeviceToHost));
+        &r, gr, (uint64_t) sizeof(uint64_t), cudaMemcpyDeviceToHost));
     return r;
 }
 

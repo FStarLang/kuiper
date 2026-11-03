@@ -578,8 +578,7 @@ let launch (_tys:list cty) (args:list expr) : ML expr =
 (* For loops                                                            *)
 (* -------------------------------------------------------------------- *)
 
-(* [for_loop lo hi f]: a counter in a stack cell, which karamel turns into a
-   [for] loop. *)
+(* [for_loop lo hi f]: a counter in a stack cell. *)
 let for_loop (_tys:list cty) (args:list expr) : ML expr =
   match args with
   | [lo; hi; f] ->
@@ -606,64 +605,6 @@ let for_loop (_tys:list cty) (args:list expr) : ML expr =
       mk (ELet (i, TRef (RManual, usize), cell, loop)) TUnit E_Impure)
   | _ -> fail "for_loop: expected 3 arguments"
 
-(* karamel's [-fauto-for-loops] turns [while (c) { ..; x = e; }] into
-   [for (; c; x = e) { .. }] even when [e] mentions a variable declared in the
-   body, which then does not compile.  Pulse loops typically read their
-   counter into a local, [let vi = !i], and end with [i := vi +^ 1sz]; when
-   the counter is otherwise only read, the final write may re-read it
-   instead, which keeps the step closed. *)
-let counter_uses (r:string) (e:expr) : ML (int & int) =
-  let nuses = mk_ref 0 in
-  let reads = mk_ref 0 in
-  let rec go (e:expr) : ML expr =
-    (match e.e with
-     | EVar y -> if y = r then nuses := !nuses + 1
-     | EOp ({ po_op = BufRead }, [{ e = EVar y }; _]) -> if y = r then reads := !reads + 1
-     | _ -> ());
-    emap go e in
-  ignore (go e);
-  (!nuses, !reads)
-
-let rec map_tail (f:expr -> ML (option expr)) (e:expr) : ML (option expr) =
-  let re (e':expr') : expr = { e with e = e' } in
-  match e.e with
-  | ELet (y, t, d, b) ->
-    (match map_tail f b with Some b -> Some (re (ELet (y, t, d, b))) | None -> None)
-  | ESeq (a, b) ->
-    (match map_tail f b with Some b -> Some (re (ESeq (a, b))) | None -> None)
-  | _ -> f e
-
-let rec reread_counter (body:expr) : ML expr =
-  let re (e':expr') : expr = { body with e = e' } in
-  match body.e with
-  | ELet (v, t, d, rest) ->
-    let rewritten : option expr =
-      match d.e with
-      | EOp ({ po_op = BufRead }, [{ e = EVar r }; { e = EConst (CInt (k, _, _)) }]) ->
-        let nuses, reads = counter_uses r rest in
-        if nuses <> reads + 1 then None else
-        map_tail (fun tl ->
-          match tl.e with
-          | EOp (o, [rv; kv; x]) ->
-            (match o.po_op, rv.e, kv.e with
-             | BufWrite, EVar r', EConst (CInt (k', _, _))
-                 when r' = r && k' = k && occurs v x ->
-               Some { tl with e = EOp (o, [rv; kv; subst v d x]) }
-             | _ -> None)
-          | _ -> None) rest
-      | _ -> None in
-    (match rewritten with
-     | Some rest -> re (ELet (v, t, d, rest))
-     | None -> re (ELet (v, t, d, reread_counter rest)))
-  | ESeq (a, b) -> re (ESeq (a, reread_counter b))
-  | _ -> body
-
-let while_ (_tys:list cty) (args:list expr) : ML expr =
-  match args with
-  | [{ e = EFun (_, cond) }; { e = EFun (_, body) }] ->
-    mk (EWhile (cond, reread_counter body)) TUnit E_Impure
-  | _ -> fail "while_: expected two thunks"
-
 (* -------------------------------------------------------------------- *)
 (* Memory                                                               *)
 (* -------------------------------------------------------------------- *)
@@ -673,17 +614,35 @@ let memcpy_kind (k:string) : expr = cname k i32
 let cuda_memcpy (kind:string) (dst src bytes : expr) : ML expr =
   must (call "cudaMemcpy" [dst; src; bytes; memcpy_kind kind] i32)
 
+(* Byte counts must not use [usize]: --custard_sizet_width 32 narrows it
+   (including sizeof) to uint32_t. CUDA's size_t is 64-bit; widen both
+   operands before multiplying, while retaining 32-bit element indices. *)
+let memcpy_elem_size (sized:expr) (elt:cty) : ML expr =
+  let wide = TInt (Unsigned, W64) in
+  match elt with
+  | TAny | TUnit | TArrow _ | TExn ->
+    mk (ECast (elem_size sized elt, wide)) wide E_Pure
+  | _ ->
+    let size = mk (ESizeof elt) (ctype "size_t") E_Pure in
+    mk (ECast (size, wide)) wide E_Pure
+
+let memcpy_bytes (sized:expr) (elt:cty) (cnt:expr) : ML expr =
+  let wide = TInt (Unsigned, W64) in
+  let cnt = mk (ECast (cnt, wide)) wide cnt.eff in
+  mk (EOp ({ po_op = Mult; po_ty = Some (PInt (Unsigned, W64)) },
+           [memcpy_elem_size sized elt; cnt])) wide cnt.eff
+
 (* [Kuiper.Ref.memcpy_*]: one element. *)
 let ref_memcpy (kind:string) (_tys:list cty) (args:list expr) : ML expr =
   match args with
-  | [sized; dst; src] -> cuda_memcpy kind dst src (elem_size sized (pointee dst.ty))
+  | [sized; dst; src] -> cuda_memcpy kind dst src (memcpy_elem_size sized (pointee dst.ty))
   | _ -> fail ("Ref.memcpy: expected 3 arguments, got " ^ show (List.length args))
 
 (* [Kuiper.Array.Core.memcpy_*]. *)
 let arr_memcpy (kind:string) (_tys:list cty) (args:list expr) : ML expr =
   match args with
   | [sized; dst; src; cnt] ->
-    cuda_memcpy kind dst src (uop Mult (elem_size sized (pointee dst.ty)) cnt)
+    cuda_memcpy kind dst src (memcpy_bytes sized (pointee dst.ty) cnt)
   | _ -> fail ("Array.memcpy: expected 4 arguments, got " ^ show (List.length args))
 
 (* [Kuiper.Array.Core.memcpy_*']: the offsets are in elements. *)
@@ -691,7 +650,7 @@ let arr_memcpy' (kind:string) (_tys:list cty) (args:list expr) : ML expr =
   match args with
   | [sized; dst; dst_off; src; src_off; cnt] ->
     cuda_memcpy kind (bufsub dst dst_off) (bufsub src src_off)
-                (uop Mult (elem_size sized (pointee dst.ty)) cnt)
+                (memcpy_bytes sized (pointee dst.ty) cnt)
   | _ -> fail ("Array.memcpy': expected 6 arguments, got " ^ show (List.length args))
 
 let gpu_array_alloc (tys:list cty) (args:list expr) : ML expr =
@@ -1160,5 +1119,4 @@ let _ =
 
   (* For loops *)
   prim "Kuiper.For.for_loop" 3 for_loop;
-  prim "Pulse.Lib.Dv.while_" 2 while_;
   prim "Kuiper.For.for_loop'" 3 for_loop

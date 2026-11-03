@@ -21,13 +21,13 @@ __hoisted_hf_0(float *a, float two)
 void Kuiper_Example_Array_VectorizedAccess_hf(float *v)
 {
     float *a = (float *) KPR_GPU_ALLOC((uint32_t) sizeof(float), 4U);
-    MUST(cudaMemcpy(
-        a, v, (uint32_t) sizeof(float) * 4U, cudaMemcpyHostToDevice));
+    MUST(cudaMemcpy(a, v, (uint64_t) sizeof(float) * (uint64_t) 4U,
+        cudaMemcpyHostToDevice));
     cudaStream_t s = KPR_FRESH_STREAM();
     KPR_KCALL(__hoisted_hf_0, 1U, 1U, 0U, s, a, 1.0f + 1.0f);
     MUST(cudaStreamSynchronize(s));
     MUST(cudaStreamDestroy(s));
-    MUST(cudaMemcpy(
-        v, a, (uint32_t) sizeof(float) * 4U, cudaMemcpyDeviceToHost));
+    MUST(cudaMemcpy(v, a, (uint64_t) sizeof(float) * (uint64_t) 4U,
+        cudaMemcpyDeviceToHost));
     MUST(cudaFree(a));
 }
