@@ -3,6 +3,9 @@ module Kuiper.Sparse.SPMM.Compute
 #lang-pulse
 
 open Kuiper
+#set-options "--z3rlimit 20"
+module MU = Kuiper.Kernel.GEMM.Util
+open Kuiper.Sparse.SPMM.Maps
 open Kuiper.EMatrix
 open Kuiper.Seq.Common { (@+), seq_replace }
 open Kuiper.Spec.GEMM
@@ -63,67 +66,114 @@ let chunk_end_bound (n k : nat) (ch : pos)
   FStar.Math.Lemmas.swap_mul ch (k / ch);
   Math.block_lemma n ch (k / ch)
 
+#push-options "--z3rlimit 20"
+inline_for_extraction noextract
+fn load_scalar_chunk
+  (#tb : Type0)
+  (ch : szp)
+  (dst : larray tb ch)
+  (#n : sz)
+  (#lrow : layout1 n) {| ctlayout lrow |}
+  (row : array1 tb lrow)
+  (#frow : perm) (#vrow : chest1 tb n)
+  (off : sz { off + ch <= n })
+  preserves gpu ** row |-> Frac frow vrow
+  requires live dst
+  ensures dst |-> Seq.slice (chest1_to_seq vrow) off (off + ch)
+{
+  Pulse.Lib.Array.pts_to_len dst;
+  with initial. assert dst |-> initial;
+  let mut lane = 0sz;
+  while (!lane <^ ch)
+    invariant exists* vl (values : lseq tb ch).
+      lane |-> vl ** dst |-> values **
+      pure (vl <= ch /\
+        (forall (i : natlt ch). i < vl ==>
+          values @! i == acc1 vrow (off + i)))
+    decreases (ch - !lane)
+  {
+    let b = Kuiper.Tensor.read row (cidx1 (off +^ !lane));
+    open Pulse.Lib.Array;
+    dst.(!lane) <- b;
+    lane := !lane +^ 1sz;
+  };
+  with values. assert dst |-> values;
+  assert pure (Seq.equal values
+    (Seq.slice (chest1_to_seq vrow) off (off + ch)));
+}
+
 inline_for_extraction noextract
 fn load_vmprod_chunk
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (#n1 : sz { chunk et /? n1 })
+  (#ta #tb #et : Type0)
+  {| scalar ta, real_like ta, scalar tb, real_like tb, sized tb, has_vec_cpy tb,
+     scalar et, real_like et |}
+  (mapA : ta -> et)
+  (mapB : tb -> et)
+  (rmapA : real -> real { MU.approx1 mapA rmapA })
+  (rmapB : real -> real { MU.approx1 mapB rmapB })
+  (ch : szp)
+  (#n1 : sz { ch /? n1 })
   (y : larray et n1)
   (#vy : erased (lseq et n1))
-  (x : et)
+  (x : ta)
   (#rx : erased real)
   (#ry : erased (lseq real n1))
-  (#n2 : sz { chunk et /? n2 })
+  (#n2 : sz { ch /? n2 })
   (#lrow : layout1 n2) {| ctlayout lrow, clrow : cont_layout lrow |}
-  (row : array1 et lrow)
+  (row : array1 tb lrow)
   (#frow : perm)
-  (#vrow : chest1 et n2)
+  (#vrow : chest1 tb n2)
   (#rrow : chest1 real n2)
-  (k1 : sz { k1 + chunk et <= n1 })
-  (k2 : sz { chunk et /? k2 })
+  (k1 : sz { k1 + ch <= n1 })
+  (k2 : sz { ch /? k2 })
   (bounds_checked : bool)
   preserves gpu
   preserves row |-> Frac frow vrow
   requires  pure (aligned 16 (core row))
-  requires  pure (aligned_cont_layout (chunk et) clrow)
+  requires  pure (aligned_cont_layout ch clrow)
   requires  pure (bounds_checked ==> k2 < n2)
   requires  pure (x %~ rx /\ vrow %~ rrow /\ vy %~ ry)
   requires  y |-> vy
   ensures exists* (vy' : lseq et n1).
-    y |-> vy' ** pure (vy' %~ seq_fma' (chunk et) (reveal rx) (chest1_to_seq rrow) ry k1 k2)
+    y |-> vy' ** pure (vy' %~ seq_fma' ch (rmapA (reveal rx)) #n2 (Seq.map_seq rmapB (chest1_to_seq rrow)) ry k1 k2)
 {
-  if (bounds_checked || k2 <^ n2)
-  {
-    let mut lchunk = [| zero #et #_; chunk et |];
+  if (bounds_checked || k2 <^ n2) {
+    let mut lchunk = [| zero #tb #_; ch |];
     assume pure (aligned 16 lchunk);
-    (* [array_cpy_chunk] slices [row] at [k2 .. k2 + chunk et]. *)
-    __divides_next (chunk et) k2 n2;
-    rewrite (row |-> Frac frow vrow)
-         as (row |-> Frac frow (seq_to_chest1 (chest1_to_seq vrow)));
-    chunk_end_bound n2 k2 (chunk et);
-    array_cpy_chunk lchunk #_ #lrow #_ #clrow row k2;
-    rewrite (row |-> Frac frow (seq_to_chest1 (chest1_to_seq vrow)))
-         as (row |-> Frac frow vrow);
+    chunk_end_bound n2 k2 ch;
+    // Retain vector loads when the input and output vector widths agree.
+    // Otherwise, read exactly the output lanes owned by this thread.
+    if (FStar.SizeT.eq ch (chunk tb)) {
+      rewrite (row |-> Frac frow vrow)
+           as (row |-> Frac frow (seq_to_chest1 (chest1_to_seq vrow)));
+      array_cpy_chunk lchunk #_ #lrow #_ #clrow row k2;
+      rewrite (row |-> Frac frow (seq_to_chest1 (chest1_to_seq vrow)))
+           as (row |-> Frac frow vrow);
+    } else {
+      load_scalar_chunk ch lchunk row k2;
+    };
     Kuiper.Chest1.Helpers.chest1_to_seq_approx vrow rrow;
-    assert pure (Seq.slice (chest1_to_seq vrow) k2 (k2 + chunk et) %~
-                 Seq.slice (chest1_to_seq rrow) k2 (k2 + chunk et));
-    fma_arr x (chunk et) lchunk y
-      #_ #rx #(Seq.slice (chest1_to_seq rrow) k2 (k2 + chunk et)) #ry k1;
+    assert pure (Seq.slice (chest1_to_seq vrow) k2 (k2 + ch) %~
+                 Seq.slice (chest1_to_seq rrow) k2 (k2 + ch));
+    fma_arr mapA mapB rmapA rmapB x ch lchunk y
+      #_ #rx #(Seq.slice (chest1_to_seq rrow) k2 (k2 + ch)) #ry k1;
   }
-  else {}
+
 }
+#pop-options
 
 (* Keep the divisibility proof in a small pure context.  Reconstructing this
    refinement while elaborating the [SizeT] expression below is needlessly
    expensive once the scalar/sized dictionaries carry canonicality proofs. *)
 #push-options "--z3rlimit 20"
 let lemma_divides_vmprod_offset
-  (et : Type0) {| sized et, has_vec_cpy et |}
-  (j k step : sz { fits (j + k * step * chunk et) })
+  (ch : szp)
+  (j k step : sz { fits (j + k * step * ch) })
   : Lemma
-      (requires chunk et /? j)
-      (ensures chunk et /? (j +^ k *^ step *^ chunk et))
-  = lemma_divides_product (chunk et) (k * step);
-    lemma_divides_sum (chunk et) j (k * step * chunk et)
+      (requires ch /? j)
+      (ensures ch /? (j +^ k *^ step *^ ch))
+  = lemma_divides_product ch (k * step);
+    lemma_divides_sum ch j (k * step * ch)
 #pop-options
 
 
@@ -144,52 +194,59 @@ let vmprod_chunk_bounds
 
 inline_for_extraction noextract
 fn load_vmprod_row
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (#n1 : sz { chunk et /? n1 })
+  (#ta #tb #et : Type0)
+  {| scalar ta, real_like ta, scalar tb, real_like tb, sized tb, has_vec_cpy tb,
+     scalar et, real_like et |}
+  (mapA : ta -> et)
+  (mapB : tb -> et)
+  (rmapA : real -> real { MU.approx1 mapA rmapA })
+  (rmapB : real -> real { MU.approx1 mapB rmapB })
+  (ch : szp)
+  (#n1 : sz { ch /? n1 })
   (y : larray et n1)
   (#vy : erased (lseq et n1))
-  (x : et)
+  (x : ta)
   (#rx : erased real)
   (#ry : erased (lseq real n1))
-  (#n2 : sz { chunk et /? n2 })
+  (#n2 : sz { ch /? n2 })
   (#lrow : layout1 n2) {| ctlayout lrow, clrow : cont_layout lrow |}
-  (row : array1 et lrow)
+  (row : array1 tb lrow)
   (#frow : perm)
-  (#vrow : chest1 et n2)
+  (#vrow : chest1 tb n2)
   (#rrow : chest1 real n2)
-  (j : sz { chunk et /? j })
+  (j : sz { ch /? j })
   (step : sz)
   (bounds_checked : bool)
   preserves gpu
   preserves row |-> Frac frow vrow
   requires  pure (aligned 16 (core row))
-  requires  pure (aligned_cont_layout (chunk et) clrow)
+  requires  pure (aligned_cont_layout ch clrow)
   requires  pure (fits (j + n1 * step))
-  requires  pure (bounds_checked ==> n1 == chunk et /\ j < n2)
+  requires  pure (bounds_checked ==> n1 == ch /\ j < n2)
   requires  pure (x %~ rx /\ vrow %~ rrow /\ vy %~ ry)
   requires  y |-> vy
   ensures exists* (vy' : lseq et n1).
-    y |-> vy' ** pure (vy' %~ Spec.seq_load_vmprod_row (chunk et) ry (reveal rx) (chest1_to_seq rrow) j step (n1 / chunk et))
+    y |-> vy' ** pure (vy' %~ Spec.seq_load_vmprod_row ch #n1 ry (rmapA (reveal rx)) #n2 (Seq.map_seq rmapB (chest1_to_seq rrow)) j step (n1 / ch))
 {
   let mut k : sz = 0sz;
 
-  while (!k <^ n1 /^ chunk et)
+  while (!k <^ n1 /^ ch)
     invariant exists* vk (vy' : lseq et n1).
       k |-> vk **
       y |-> vy' **
       pure (
-        vk <= n1 / chunk et /\
-        vy' %~ Spec.seq_load_vmprod_row (chunk et) ry (reveal rx) (chest1_to_seq rrow) j step vk
+        vk <= n1 / ch /\
+        vy' %~ Spec.seq_load_vmprod_row ch #n1 ry (rmapA (reveal rx)) #n2 (Seq.map_seq rmapB (chest1_to_seq rrow)) j step vk
       )
-    decreases (n1 /^ chunk et - !k)
+    decreases (n1 /^ ch - !k)
   {
     with vk. assert k |-> vk;
-    vmprod_chunk_bounds (v n1) (v j) (v step) (v n2) (chunk et) (v vk) bounds_checked;
-    lemma_divides_vmprod_offset et j vk step;
-    load_vmprod_chunk
-      y x #rx #(Spec.seq_load_vmprod_row (chunk et) ry (reveal rx) (chest1_to_seq rrow) j step !k)
+    vmprod_chunk_bounds (v n1) (v j) (v step) (v n2) ch (v vk) bounds_checked;
+    lemma_divides_vmprod_offset ch j vk step;
+    load_vmprod_chunk mapA mapB rmapA rmapB ch
+      y x #rx #(Spec.seq_load_vmprod_row ch #n1 ry (rmapA (reveal rx)) #n2 (Seq.map_seq rmapB (chest1_to_seq rrow)) j step !k)
       row #_ #_ #rrow
-      (!k *^ chunk et) (j +^ !k *^ step *^ chunk et)
+      (!k *^ ch) (j +^ !k *^ step *^ ch)
       bounds_checked;
     k := !k +^ 1sz;
   };
@@ -201,24 +258,31 @@ open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
 
 inline_for_extraction noextract
 fn tile_mm_
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (#m1 #n1 : sz { chunk et /? n1 })
+  (#ta #tb #et : Type0)
+  {| scalar ta, real_like ta, scalar tb, real_like tb, sized tb, has_vec_cpy tb,
+     scalar et, real_like et |}
+  (mapA : ta -> et)
+  (mapB : tb -> et)
+  (rmapA : real -> real { MU.approx1 mapA rmapA })
+  (rmapB : real -> real { MU.approx1 mapB rmapB })
+  (ch : szp)
+  (#m1 #n1 : sz { ch /? n1 })
   (y : larray et n1)
   (#vy : erased (lseq et n1))
   (#ry : erased (lseq real n1))
-  (elems : larray et m1)
+  (elems : larray ta m1)
   (row_ind : larray sz m1)
   (#fx : perm)
-  (#m2 #n2 : szp { chunk et /? n2 })
+  (#m2 #n2 : szp { ch /? n2 })
   (#lm : layout2 m2 n2) {| ctlayout lm, srm : strided_row_major lm |}
-  (m : array2 et lm)
+  (m : array2 tb lm)
   (#fm : perm)
-  (#em : chest2 et m2 n2)
+  (#em : chest2 tb m2 n2)
   (#rm : chest2 real m2 n2)
-  (j : sz { chunk et /? j })
+  (j : sz { ch /? j })
   (step : sz)
   (to : szle m1)
-  (#velems : erased (lseq et to))
+  (#velems : erased (lseq ta to))
   (#relems : erased (lseq real to))
   (#vrow_ind : erased (lseq sz to))
   (#_ : squash (in_bounds 0 m2 (cast_pos vrow_ind)))
@@ -226,12 +290,12 @@ fn tile_mm_
   preserves pts_to_slice elems   #fx 0 to velems
   preserves pts_to_slice row_ind #fx 0 to vrow_ind
   preserves m |-> Frac fm em
-  requires  pure (aligned 16 (core m) /\ aligned_strided_row_major (chunk et) srm)
+  requires  pure (aligned 16 (core m) /\ aligned_strided_row_major ch srm)
   requires  pure (fits (j + n1 * step))
   requires  pure (vy %~ ry /\ velems %~ relems /\ em %~ rm)
   requires  y |-> vy
   ensures exists* (vy' : lseq et n1).
-    y |-> vy' ** pure (vy' %~ Spec.seq_load_vmprod (chunk et) ry relems (cast_pos vrow_ind) rm j step to)
+    y |-> vy' ** pure (vy' %~ Spec.seq_load_vmprod ch #to #n1 ry (Seq.map_seq rmapA relems) (cast_pos vrow_ind) (Kuiper.Chest.chest_map rmapB rm) j step to)
 {
   // All vector chunks owned by this thread start at or after j. Threads
   // outside the output can skip the reduction, but must still participate
@@ -248,7 +312,7 @@ fn tile_mm_
         y |-> vy' **
         pure (
           vk <= to /\
-          vy' %~ Spec.seq_load_vmprod (chunk et) ry relems (cast_pos vrow_ind) rm j step vk
+          vy' %~ Spec.seq_load_vmprod ch #to #n1 ry (Seq.map_seq rmapA relems) (cast_pos vrow_ind) (Kuiper.Chest.chest_map rmapB rm) j step vk
         )
       decreases (to - !k)
     {
@@ -260,70 +324,80 @@ fn tile_mm_
       assert pure (v kr == cast_pos vrow_ind @! kv);
 
       tensor_extract_row_ro m (v kr);
-      aligned_cont_strided_row_major lm (chunk et) kr;
+      aligned_cont_strided_row_major lm ch kr;
 
-      load_vmprod_row
-        y kx #(relems @! kv) #(Spec.seq_load_vmprod (chunk et) ry relems (cast_pos vrow_ind) rm j step kv)
+      load_vmprod_row mapA mapB rmapA rmapB ch
+        y kx #(relems @! kv) #(Spec.seq_load_vmprod ch #to #n1 ry (Seq.map_seq rmapA relems) (cast_pos vrow_ind) (Kuiper.Chest.chest_map rmapB rm) j step kv)
         #_ #_ #(ctlayout_slice _ 0 (v kr)) // should not be needed
-        (tensor_row m (v kr)) #_ #_ #(chest2_row rm (v kr)) j step (FStar.SizeT.eq n1 (chunk et));
+        (tensor_row m (v kr)) #_ #_ #(chest2_row rm (v kr)) j step (FStar.SizeT.eq n1 ch);
 
       tensor_restore_row m (v kr);
 
       k := !k +^ 1sz;
     }
   } else {
-    Spec.seq_load_vmprod_outside (chunk et) ry relems (cast_pos vrow_ind) rm j step to;
-    assert pure (Spec.seq_load_vmprod (chunk et) ry relems (cast_pos vrow_ind) rm j step to == reveal ry);
+    Spec.seq_load_vmprod_outside ch #to #n1 ry (Seq.map_seq rmapA relems) (cast_pos vrow_ind) (Kuiper.Chest.chest_map rmapB rm) j step to;
+    assert pure (Spec.seq_load_vmprod ch #to #n1 ry (Seq.map_seq rmapA relems) (cast_pos vrow_ind) (Kuiper.Chest.chest_map rmapB rm) j step to == reveal ry);
     assert pure (seq_approximates (reveal vy) (reveal ry));
   }
 }
 
 let tile_mm_lemma0
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (#shared #cols : nat {  chunk et /? cols })
-  (#ly : nat { chunk et /? ly })
+  (#et : Type0) {| scalar et, real_like et |}
+  (rmapA rmapB : real -> real)
+  (ch : pos)
+  (#shared #cols : nat {  ch /? cols })
+  (#ly : nat { ch /? ly })
   (y0 : erased (lseq real ly))
   (eB : chest2 real shared cols)
-  (j : nat { chunk et /? j })
+  (j : nat { ch /? j })
   (step : nat)
   (y : lseq et ly)
 : Lemma (requires y %~ y0)
-        (ensures tile_mm_result y0 (Seq.empty <: lseq real 0) Seq.empty eB j step y)
+        (ensures tile_mm_result rmapA rmapB ch y0 (Seq.empty <: lseq real 0) Seq.empty eB j step y)
 = ()
 
 let tile_mm_mask_lemma
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (#shared #cols : nat { chunk et /? cols })
-  (#ly : nat { chunk et /? ly })
+  (#et : Type0) {| scalar et, real_like et |}
+  (rmapA rmapB : real -> real)
+  (ch : pos)
+  (#shared #cols : nat { ch /? cols })
+  (#ly : nat { ch /? ly })
   (y0 : lseq real ly)
   (nnz : nat)
   (mask_len : natle nnz)
   (elems : erased (lseq real (nnz - mask_len)))
   (row_ind : erased (lseq nat nnz) { in_bounds 0 shared row_ind })
   (eB : chest2 real shared cols)
-  (j : nat { chunk et /? j })
+  (j : nat { ch /? j })
   (step : nat)
   (y : lseq et ly)
 : Lemma
-  (requires tile_mm_result y0 (Seq.create mask_len zero @+ elems) row_ind eB j step y)
-  (ensures  tile_mm_result y0 elems (Seq.slice row_ind mask_len nnz) eB j step y)
+  (requires rmapA 0.0R == 0.0R /\
+    tile_mm_result rmapA rmapB ch y0 (Seq.create mask_len zero @+ elems) row_ind eB j step y)
+  (ensures  tile_mm_result rmapA rmapB ch y0 elems (Seq.slice row_ind mask_len nnz) eB j step y)
 =
+  map_zero_prefix rmapA mask_len elems;
   introduce forall (i : natlt ly).
-    (let col = j + i / chunk et * step * chunk et + i % chunk et in
+    (let col = j + i / ch * step * ch + i % ch in
      col < cols ==> (y @! i) %~
-       sparse_dprod_acc (y0 @! i) elems (Seq.slice row_ind mask_len nnz) (ematrix_col eB col))
+       sparse_dprod_acc (y0 @! i) (Seq.map_seq rmapA elems) (Seq.slice row_ind mask_len nnz) (ematrix_col (Kuiper.Chest.chest_map rmapB eB) col))
   with (
-    let col = j + i / chunk et * step * chunk et + i % chunk et in
+    let col = j + i / ch * step * ch + i % ch in
     if col < cols then (
-      _dprod_acc_mask_lemma (y0 @! i) mask_len elems
-        (seq_make_sparse row_ind (ematrix_col eB col)) nnz;
-      seq_make_sparse_slice row_ind mask_len nnz (ematrix_col eB col)
+      _dprod_acc_mask_lemma (y0 @! i) mask_len (Seq.map_seq rmapA elems)
+        (seq_make_sparse row_ind (ematrix_col (Kuiper.Chest.chest_map rmapB eB) col)) nnz;
+      seq_make_sparse_slice row_ind mask_len nnz
+        (ematrix_col (Kuiper.Chest.chest_map rmapB eB) col)
     )
   )
 
 let tile_mm_result_lemma
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (#rows #shared #cols : nat { chunk et /? cols })
+  (#et : Type0) {| scalar et, real_like et |}
+  (rmapA : real -> real { rmapA 0.0R == 0.0R })
+  (rmapB : real -> real)
+  (ch : pos)
+  (#rows #shared #cols : nat { ch /? cols })
   (eA : chest2 real rows shared)
   (i : natlt rows)
   (#nnz : nat)
@@ -331,86 +405,98 @@ let tile_mm_result_lemma
   (row_ind : erased (lseq nat nnz))
   (#_ : squash (in_bounds 0 shared row_ind /\ sorted row_ind))
   (eB : chest2 real shared cols)
-  (j : nat { chunk et /? j })
+  (j : nat { ch /? j })
   (step : nat)
-  (#ly : nat { chunk et /? ly })
+  (#ly : nat { ch /? ly })
   (y : lseq et ly)
 : Lemma
   (requires
     seq_unsparse _ _ elems row_ind == ematrix_row eA i /\
-    tile_mm_result
+    tile_mm_result rmapA rmapB ch
       (Seq.create ly zero)
       elems row_ind
       eB
       j step
       y
   )
-  (ensures tile_approximates (matmul eA eB) i j y step)
+  (ensures tile_values_approx ch (matmul (Kuiper.Chest.chest_map rmapA eA) (Kuiper.Chest.chest_map rmapB eB)) i j y step)
 =
   introduce forall (ix : natlt ly).
-    (let col = j + ix / chunk et * step * chunk et + ix % chunk et in
-     col < cols ==> (y @! ix) %~ acc2 (matmul eA eB) i col)
+    (let col = j + ix / ch * step * ch + ix % ch in
+     col < cols ==> (y @! ix) %~ acc2 (matmul (Kuiper.Chest.chest_map rmapA eA) (Kuiper.Chest.chest_map rmapB eB)) i col)
   with (
-    let col = j + ix / chunk et * step * chunk et + ix % chunk et in
+    let col = j + ix / ch * step * ch + ix % ch in
     if col < cols then (
-      sparse_dprod_lemma elems row_ind (ematrix_col eB col);
-      dprod_is_matmul_single eA eB i col
+      map_unsparse rmapA elems row_ind shared;
+      sparse_dprod_lemma (Seq.map_seq rmapA elems) row_ind
+        (ematrix_col (Kuiper.Chest.chest_map rmapB eB) col);
+      dprod_is_matmul_single (Kuiper.Chest.chest_map rmapA eA) (Kuiper.Chest.chest_map rmapB eB) i col
     )
   )
 
 let tile_mm_witness
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (#shared #cols : nat {  chunk et /? cols })
-  (#ly : nat { chunk et /? ly })
+  (#et : Type0) {| scalar et, real_like et |}
+  (rmapA rmapB : real -> real)
+  (ch : pos)
+  (#shared #cols : nat {  ch /? cols })
+  (#ly : nat { ch /? ly })
   (y0 : erased (lseq real ly))
   (#lA : nat)
   (elems : erased (lseq real lA))
   (row_ind : erased (lseq nat lA) { in_bounds 0 shared row_ind })
   (eB : chest2 real shared cols)
-  (j : nat { chunk et /? j })
+  (j : nat { ch /? j })
   (step : nat)
   (y : lseq et ly)
   : Ghost (erased (lseq real ly))
-      (requires tile_mm_result y0 elems row_ind eB j step y)
+      (requires tile_mm_result rmapA rmapB ch y0 elems row_ind eB j step y)
       (ensures fun ry -> y %~ ry /\
-        Spec.tile_mm_result (chunk et) y0 elems row_ind eB j step ry)
+        Spec.tile_mm_result ch y0 (Seq.map_seq rmapA elems) row_ind
+          (Kuiper.Chest.chest_map rmapB eB) j step ry)
   = hide (Seq.init_ghost ly (fun i ->
-      let col = j + i / chunk et * step * chunk et + i % chunk et in
+      let col = j + i / ch * step * ch + i % ch in
       if col < cols
-      then sparse_dprod_acc (y0 @! i) elems row_ind (ematrix_col eB col)
+      then sparse_dprod_acc (y0 @! i) (Seq.map_seq rmapA elems) row_ind (ematrix_col (Kuiper.Chest.chest_map rmapB eB) col)
       else to_real (y @! i)))
 
 inline_for_extraction noextract
 fn tile_mm
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (#shared #cols : szp { chunk et /? cols } )
-  (#ly : sz { chunk et /? ly })
+  (#ta #tb #et : Type0)
+  {| scalar ta, real_like ta, scalar tb, real_like tb, sized tb, has_vec_cpy tb,
+     scalar et, real_like et |}
+  (mapA : ta -> et)
+  (mapB : tb -> et)
+  (rmapA : real -> real { MU.approx1 mapA rmapA })
+  (rmapB : real -> real { MU.approx1 mapB rmapB })
+  (ch : szp)
+  (#shared #cols : szp { ch /? cols } )
+  (#ly : sz { ch /? ly })
   (y : larray et ly)
   (vy0 : erased (lseq real ly))
   (#vy : erased (lseq et ly))
-  (#lA : sz) (elems : larray et lA) (row_ind : larray sz lA) (#fA : perm)
+  (#lA : sz) (elems : larray ta lA) (row_ind : larray sz lA) (#fA : perm)
   (#nnz : erased nat)
-  (velems : erased (lseq et nnz))
+  (velems : erased (lseq ta nnz))
   (vrow_ind : erased (lseq sz nnz) { in_bounds 0 shared (cast_pos vrow_ind) })
   (relems : erased (lseq real nnz))
   (#lB : layout2 shared cols) {| ctlayout lB, srm : strided_row_major lB |}
-  (mB : array2 et lB) (#fB : perm) (#eB : chest2 et shared cols)
+  (mB : array2 tb lB) (#fB : perm) (#eB : chest2 tb shared cols)
   (#rB : chest2 real shared cols)
-  (j : sz { chunk et /? j })
+  (j : sz { ch /? j })
   (step : sz)
   (from to : erased nat { to <= nnz })
   (cant : szle lA { v cant == to - from })
   preserves gpu
-  preserves pts_to_slice elems   #fA 0 cant (Seq.slice velems from to <: lseq et cant)
+  preserves pts_to_slice elems   #fA 0 cant (Seq.slice velems from to <: lseq ta cant)
   preserves pts_to_slice row_ind #fA 0 cant (Seq.slice vrow_ind from to <: lseq sz cant)
   preserves mB |-> Frac fB eB
-  requires  pure (aligned 16 (core mB) /\ aligned_strided_row_major (chunk et) srm)
+  requires  pure (aligned 16 (core mB) /\ aligned_strided_row_major ch srm)
   requires  pure (fits (j + ly * step))
   requires  pure (velems %~ relems /\ eB %~ rB)
   requires
     y |-> vy **
     pure (
-      tile_mm_result
+      tile_mm_result rmapA rmapB ch
         vy0
         (Seq.slice relems 0 from <: lseq real from)
         (Seq.slice (cast_pos vrow_ind) 0 from)
@@ -421,26 +507,26 @@ fn tile_mm
   ensures exists* (vy' : lseq et ly).
     y |-> vy' **
     pure (
-      tile_mm_result
+      tile_mm_result rmapA rmapB ch
         vy0
         (Seq.slice relems 0 to <: lseq real to)
         (Seq.slice (cast_pos vrow_ind) 0 to <: lseq nat to)
         rB j step vy'
     )
 {
-  let ry = tile_mm_witness vy0 #from
+  let ry = tile_mm_witness rmapA rmapB ch vy0 #from
     (Seq.slice relems 0 from) (Seq.slice (cast_pos vrow_ind) 0 from)
     rB j step vy;
 
-  tile_mm_ y #vy #ry elems row_ind mB #fB #eB #rB j step cant
+  tile_mm_ mapA mapB rmapA rmapB ch y #vy #ry elems row_ind mB #fB #eB #rB j step cant
     #_ #(Seq.slice relems from to);
-  Spec.seq_load_vmprod_step_lemma (chunk et) cant vy0 relems
-    (cast_pos vrow_ind) from (v cant) rB j step ry;
+  Spec.seq_load_vmprod_step_lemma ch cant vy0 (Seq.map_seq rmapA relems)
+    (cast_pos vrow_ind) from (v cant) (Kuiper.Chest.chest_map rmapB rB) j step ry;
 
   assert pure (Seq.equal
     (cast_pos #cant (Seq.slice vrow_ind from to))
     (Seq.slice (cast_pos vrow_ind) from to));
   with vy'. assert y |-> vy';
-  assert pure (tile_mm_result vy0 #to (Seq.slice relems 0 to)
+  assert pure (tile_mm_result rmapA rmapB ch vy0 #to (Seq.slice relems 0 to)
     (Seq.slice (cast_pos vrow_ind) 0 to) rB j step vy');
 }

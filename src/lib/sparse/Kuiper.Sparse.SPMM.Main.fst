@@ -3,6 +3,7 @@ module Kuiper.Sparse.SPMM.Main
 #lang-pulse
 
 open Kuiper
+module MU = Kuiper.Kernel.GEMM.Util
 open Kuiper.Sparse
 open Kuiper.Sparse.Approx
 open Kuiper.Sparse.LoadStore
@@ -42,22 +43,24 @@ let spmm_idx_succ_bound
 (* Name the dependent prefix specification so loop-invariant well-formedness
    does not repeatedly reconstruct its slice and output-length refinements. *)
 let tile_mm_prefix_result
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
+  (#et #tacc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et, scalar tacc, real_like tacc |}
+  (rmapA rmapB : real -> real)
   (p : parameters et)
   (out0 : lseq real (threadItemsX p))
   (#n : nat)
   (elems : lseq real n)
   (row_ind : lseq sz n)
   (rB : chest2 real p.shared p.cols)
-  (n_idx : nat { chunk et /? n_idx })
+  (n_idx : nat { p.outputChunk /? n_idx })
   (stop : nat)
-  (v_out : seq et)
+  (v_out : seq tacc)
   : prop
   = stop <= n /\
     in_bounds 0 p.shared (cast_pos row_ind) /\
     len v_out == threadItemsX p /\
-    Compute.tile_mm_result
-      #et #_ #_ #_ #_ #p.shared #p.cols #(threadItemsX p)
+    Compute.tile_mm_result rmapA rmapB p.outputChunk
+      #p.shared #p.cols #(threadItemsX p)
       out0 #stop
       (Seq.slice elems 0 stop)
       (Seq.slice (cast_pos row_ind) 0 stop)
@@ -65,12 +68,19 @@ let tile_mm_prefix_result
 
 inline_for_extraction noextract
 fn kf_main
-  (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et, real_like et |}
+  (#et #tb #tacc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, sized tb, has_vec_cpy tb, real_like tb,
+     scalar tacc, real_like tacc |}
+  (mapA : et -> tacc)
+  (mapB : tb -> tacc)
+  (rmapA : real -> real { MU.approx1 mapA rmapA /\ rmapA 0.0R == 0.0R })
+  (rmapB : real -> real { MU.approx1 mapB rmapB })
   (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (#lB : layout2 p.shared p.cols) {| ctlB : ctlayout lB, srmB : strided_row_major lB |}
-  (gB : array2 et lB)
+  (gB : array2 tb lB)
   // matriz sparse ga
   (#elems : erased (lseq et gA.nnz))
   (#col_ind : erased (lseq sz gA.nnz))
@@ -78,14 +88,14 @@ fn kf_main
   (#relems : erased (lseq real gA.nnz))
   (rA : chest2 real p.rows p.shared)
   // matriz densa gb
-  (#eB : chest2 et p.shared p.cols)
+  (#eB : chest2 tb p.shared p.cols)
   (#rB : chest2 real p.shared p.cols { eB %~ rB })
   (#fA #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
   // salida
-  (out : larray et (p.blockItemsX /^ p.blockWidth))
+  (out : larray tacc (p.blockItemsX /^ p.blockWidth))
   // shmem
   (elems_tile : larray et p.blockItemsK { aligned 16 elems_tile })
   (col_ind_tile : larray sz p.blockItemsK { aligned 16 col_ind_tile })
@@ -104,7 +114,7 @@ fn kf_main
   requires  pure (aligned 16 gA.col_ind)
   preserves gB |-> Frac (fB /. allthreads p) eB
   requires  pure (aligned 16 (core gB))
-  requires  pure (aligned_strided_row_major (chunk et) srmB)
+  requires  pure (aligned_strided_row_major (p.outputChunk) srmB)
   preserves
     B.barrier_tok (
       barrier_contract p row_perm elems col_ind row_off
@@ -114,7 +124,7 @@ fn kf_main
   requires  thread_live_chunks elems_tile p.blockWidth tid
   requires  thread_live_chunks col_ind_tile p.blockWidth tid
   requires  B.barrier_state 0
-  requires  out |-> Seq.create (p.blockItemsX / p.blockWidth) d.zero
+  requires  out |-> Seq.create (p.blockItemsX / p.blockWidth) (zero #tacc)
   requires  live idx
   requires  nnz |-> (re -^ ri')
   ensures exists* (v_idx :sz) (residue : szle (re - ri)) vout.
@@ -124,9 +134,9 @@ fn kf_main
     B.barrier_state (v_idx * 2) **
     barrier_in p row_perm elems col_ind row_off
       elems_tile col_ind_tile bid (v_idx * 2) tid **
-    out |-> (vout <: seq et) **
+    out |-> (vout <: seq tacc) **
     pure (
-      Compute.tile_mm_result #_ #_ #_ #hvc #_
+      Compute.tile_mm_result rmapA rmapB p.outputChunk
         (Seq.create (threadItemsX p) 0.0R <: lseq real (threadItemsX p))
         (Seq.slice relems ri (re - residue))
         (lslice' (cast_pos col_ind) ri (re - residue))
@@ -142,7 +152,7 @@ fn kf_main
   assert pure (ri' <= ri /\ ri <= re /\ re <= gA.nnz);
   assert pure (ri - ri' < p.blockItemsK);
 
-  let out0 : erased (lseq et (threadItemsX p)) =
+  let out0 : erased (lseq tacc (threadItemsX p)) =
     Seq.create (p.blockItemsX / p.blockWidth) zero;
   let rout0 : erased (lseq real (threadItemsX p)) =
     Seq.create (p.blockItemsX / p.blockWidth) zero;
@@ -161,7 +171,7 @@ fn kf_main
     // let row_ind : erased (lseq nat (re - ri')) = hide (Seq.slice (cast_pos col_ind) ri' re);
     let row_ind_ : erased (lseq sz (re - ri')) = hide (Seq.slice col_ind ri' re);
 
-    kf_head
+    kf_head mapA mapB rmapA rmapB
       p row_perm
       gA gB #_ #_ #_ #relems
       rA #_ #rB
@@ -201,8 +211,7 @@ fn kf_main
 
     with v_out. assert out |-> v_out;
     assert pure (
-      Compute.tile_mm_result
-        #et #_ #_ #_ #_
+      Compute.tile_mm_result rmapA rmapB p.outputChunk
         #p.shared #p.cols
         #(threadItemsX p)
         (rout0 <: lseq real (threadItemsX p))
@@ -225,7 +234,7 @@ fn kf_main
           pure (
             !idx > 0 /\ !idx <= (re - ri') / p.blockItemsK /\
             SZ.v !nnz == re - ri' - !idx * p.blockItemsK /\
-            tile_mm_prefix_result p rout0 row_relems row_ind_
+            tile_mm_prefix_result rmapA rmapB p rout0 row_relems row_ind_
               rB n_idx (!idx * p.blockItemsK) v_out
           )
         )
@@ -264,7 +273,7 @@ fn kf_main
         (v_idx * p.blockItemsK)
         (v_idx * p.blockItemsK + p.blockItemsK);
       // TODO
-      assert pure (chunk et /? p.cols);
+      assert pure (p.outputChunk /? p.cols);
       assert pure (in_bounds 0 p.shared (cast_pos row_ind_));
       assert pure (!idx * p.blockItemsK + p.blockItemsK <= re - ri');
       Seq.lemma_len_slice
@@ -281,7 +290,7 @@ fn kf_main
       assert pure (ri' + !idx * p.blockItemsK + p.blockItemsK <= gA.nnz);
 
       #set-options "--z3rlimit 60" {
-        Compute.tile_mm
+        Compute.tile_mm mapA mapB rmapA rmapB p.outputChunk
           out
           rout0
           elems_tile col_ind_tile #(1.0R /. p.blockWidth)
@@ -333,8 +342,7 @@ fn kf_main
       (ri' + v_idx * p.blockItemsK - ri)
       (v_idx * p.blockItemsK) ();
 
-    Compute.tile_mm_mask_lemma
-      #et #_ #_ #_ #_
+    Compute.tile_mm_mask_lemma rmapA rmapB p.outputChunk
       #p.shared #p.cols
       #(threadItemsX p) rout0
       (v_idx * p.blockItemsK)
@@ -396,7 +404,7 @@ fn kf_main
     idx := 0sz;
     nnz := re -^ ri;
 
-    Compute.tile_mm_lemma0
+    Compute.tile_mm_lemma0 rmapA rmapB p.outputChunk
       rout0
       rB n_idx p.blockWidth out0;
 

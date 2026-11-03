@@ -3,6 +3,8 @@ module Kuiper.Sparse.SPMM
 #lang-pulse
 
 open Kuiper
+module MU = Kuiper.Kernel.GEMM.Util
+module Epilogue = Kuiper.Sparse.SPMM.Epilogue
 open Kuiper.Sparse
 open Kuiper.Sparse.Approx
 open Kuiper.Sparse.LoadStore
@@ -58,12 +60,19 @@ let slice_suffix_slice
 #push-options "--z3rlimit 60 --using_facts_from '* -Kuiper.Sparse.Common.sorted_slice'"
 inline_for_extraction noextract
 fn kf_residue
-  (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et, real_like et |}
+  (#et #tb #tacc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, sized tb, has_vec_cpy tb, real_like tb,
+     scalar tacc, real_like tacc |}
+  (mapA : et -> tacc)
+  (mapB : tb -> tacc)
+  (rmapA : real -> real { MU.approx1 mapA rmapA /\ rmapA 0.0R == 0.0R })
+  (rmapB : real -> real { MU.approx1 mapB rmapB })
   (p : parameters et)
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols) {| ctlayout lB, srm : strided_row_major lB |}
   (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
-  (gB : array2 et lB)
+  (gB : array2 tb lB)
   // matriz sparse ga
   (#elems : erased (lseq et gA.nnz))
   (#col_ind : erased (lseq sz gA.nnz))
@@ -71,14 +80,14 @@ fn kf_residue
   (#relems : erased (lseq real gA.nnz))
   (rA : chest2 real p.rows p.shared)
   // matriz densa gb
-  (#eB : chest2 et p.shared p.cols)
+  (#eB : chest2 tb p.shared p.cols)
   (#rB : chest2 real p.shared p.cols { eB %~ rB })
   (#fA #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
   (#_ : squash ((chunk sz * p.blockWidth) /? p.blockItemsK))
   // salida
-  (out : larray et (p.blockItemsX /^ p.blockWidth))
+  (out : larray tacc (p.blockItemsX /^ p.blockWidth))
   // shmem
   (elems_tile : larray et p.blockItemsK { aligned 16 elems_tile })
   (col_ind_tile : larray sz p.blockItemsK { aligned 16 col_ind_tile })
@@ -99,7 +108,7 @@ fn kf_residue
   requires  pure (aligned 16 gA.col_ind)
   preserves gB |-> Frac (fB /. allthreads p) eB
   requires  pure (aligned 16 (core gB))
-  requires  pure (aligned_strided_row_major (chunk et) srm)
+  requires  pure (aligned_strided_row_major (p.outputChunk) srm)
   preserves
     B.barrier_tok (
       barrier_contract p row_perm elems col_ind row_off
@@ -111,10 +120,10 @@ fn kf_residue
     barrier_in p row_perm elems col_ind row_off
       elems_tile col_ind_tile bid (idx * 2) tid
   // Keep the erased output's lseq type explicit at the tile_mm boundary.
-  requires exists* (vout : lseq et (threadItemsX p)).
-    out |-> (vout <: seq et) **
+  requires exists* (vout : lseq tacc (threadItemsX p)).
+    out |-> (vout <: seq tacc) **
     pure (
-      Compute.tile_mm_result #_ #_ #_ #hvc #_
+      Compute.tile_mm_result rmapA rmapB p.outputChunk
         #p.shared #p.cols
         #(threadItemsX p)
         (Seq.create (p.blockItemsX / p.blockWidth) 0.0R)
@@ -126,10 +135,10 @@ fn kf_residue
   ensures B.barrier_state ((idx + 1) * 2)
   ensures exists* (s : seq et). elems_tile |-> Frac (1.0R /. p.blockWidth) s
   ensures exists* (s : seq sz). col_ind_tile |-> Frac (1.0R /. p.blockWidth) s
-  ensures exists* (vout : lseq et (threadItemsX p)).
-    out |-> (vout <: seq et) **
+  ensures exists* (vout : lseq tacc (threadItemsX p)).
+    out |-> (vout <: seq tacc) **
     pure (
-      Compute.tile_mm_result #_ #_ #_ #hvc #_
+      Compute.tile_mm_result rmapA rmapB p.outputChunk
         #p.shared #p.cols
         #(threadItemsX p)
         (Seq.create (p.blockItemsX / p.blockWidth) 0.0R)
@@ -147,7 +156,7 @@ fn kf_residue
   in_bounds_lslice 0 p.shared (cast_pos col_ind) ri (re - residue);
   FStar.Math.Lemmas.lemma_mod_lt (SZ.v re - SZ.v ri') (SZ.v p.blockItemsK);
   assert pure (residue < p.blockItemsK);
-  let out0 : erased (lseq et (threadItemsX p)) =
+  let out0 : erased (lseq tacc (threadItemsX p)) =
     Seq.create (p.blockItemsX / p.blockWidth) zero;
   let rout0 : erased (lseq real (threadItemsX p)) =
     Seq.create (p.blockItemsX / p.blockWidth) 0.0R;
@@ -181,7 +190,7 @@ fn kf_residue
 
   with vout. assert out |-> vout;
   assert pure (
-    Compute.tile_mm_result
+    Compute.tile_mm_result rmapA rmapB p.outputChunk
       rout0
       #(re - ri - residue)
       (Seq.slice row_relems 0 (re - ri - residue))
@@ -192,9 +201,9 @@ fn kf_residue
   sparse_load_residue p row_perm gA #_ #row_off #elems #col_ind #relems #rA #fA
     elems_tile col_ind_tile bid ri ri' re tid idx residue;
 
-  Seq.slice_slice elems   ri re ((re - ri) - residue) (re - ri);
-    Seq.slice_slice relems   ri re ((re - ri) - residue) (re - ri);
-  Seq.slice_slice col_ind ri re ((re - ri) - residue) (re - ri);
+  slice_suffix_slice #et elems ri re residue;
+  slice_suffix_slice #real relems ri re residue;
+  slice_suffix_slice #sz col_ind ri re residue;
 
   assert pure (
     Seq.equal
@@ -206,7 +215,6 @@ fn kf_residue
       (Seq.slice relems (re - residue) re)
       (Seq.slice row_relems ((re - ri) - residue) (re - ri))
   );
-  slice_suffix_slice #sz col_ind ri re residue;
   assert pure (
     Seq.equal
       (Seq.slice col_ind (re - residue) re)
@@ -216,7 +224,7 @@ fn kf_residue
   assert pure (threadItemsX p == p.blockItemsX / p.blockWidth);
   tcol_fits p bid tid;
 
-  Compute.tile_mm
+  Compute.tile_mm mapA mapB rmapA rmapB p.outputChunk
     out rout0
     #vout #p.blockItemsK elems_tile col_ind_tile
     #(1.0R /. p.blockWidth) #(re - ri)
@@ -256,11 +264,34 @@ fn kf_residue
 }
 #pop-options
 
+let gmmcomb_model
+  (rmapA rmapB : real -> real) (rcomb : real -> real -> real)
+  (#rows #shared #cols : nat)
+  (rC : chest2 real rows cols) (rA : chest2 real rows shared)
+  (rB : chest2 real shared cols)
+  : Lemma (Kuiper.Chest.chest_comb rcomb rC
+      (MS.matmul (Kuiper.Chest.chest_map rmapA rA) (Kuiper.Chest.chest_map rmapB rB)) ==
+      MS.gmmcomb rmapA rmapB rcomb rC rA rB)
+  = assert (Kuiper.Chest.equal
+      (Kuiper.Chest.chest_comb rcomb rC
+        (MS.matmul (Kuiper.Chest.chest_map rmapA rA) (Kuiper.Chest.chest_map rmapB rB)))
+      (MS.gmmcomb rmapA rmapB rcomb rC rA rB))
+
 #push-options "--z3rlimit 15"
 inline_for_extraction noextract
 fn kf
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (p : parameters et)
+  (#et #tb #tc #tacc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, sized tb, has_vec_cpy tb, real_like tb,
+     scalar tc, sized tc, has_vec_cpy tc, real_like tc,
+     scalar tacc, real_like tacc |}
+  (mapA : et -> tacc)
+  (mapB : tb -> tacc)
+  (rmapA : real -> real { MU.approx1 mapA rmapA /\ rmapA 0.0R == 0.0R })
+  (rmapB : real -> real { MU.approx1 mapB rmapB })
+  (comb : tc -> tacc -> tc)
+  (rcomb : real -> real -> real { approx2 comb rcomb })
+  (p : parameters et { p.outputChunk == chunk tc })
   (row_perm : permutation (natlt p.rows))
   (blockChunks : sz{
     SZ.v blockChunks == SZ.v p.blockItemsX / SZ.v p.blockWidth
@@ -271,14 +302,14 @@ fn kf
   // TODO esto tiene que estar acá? podria estar en block_pre?
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (row_indices : larray sz p.rows)
-  (gB : array2 et lB)
+  (gB : array2 tb lB)
   // TODO esto tiene que estar acá? podria estar en block_pre?
   (#_ : squash (aligned 16 (core gB)))
-  (#_ : squash (aligned_strided_row_major (chunk et) srmB))
-  (gC : array2 et lC)
+  (#_ : squash (aligned_strided_row_major (p.outputChunk) srmB))
+  (gC : array2 tc lC)
   // TODO esto tiene que estar acá? podria estar en block_pre?
   (#_ : squash (aligned 16 (core gC)))
-  (#_ : squash (aligned_strided_row_major (chunk et) srmC))
+  (#_ : squash (aligned_strided_row_major (p.outputChunk) srmC))
   // matriz sparse ga
   (#elems : erased (lseq et gA.nnz))
   (#col_ind : erased (lseq sz gA.nnz))
@@ -286,8 +317,9 @@ fn kf
   (#relems : erased (lseq real gA.nnz))
   (#rA : chest2 real p.rows p.shared)
   // matriz densa gb
-  (#eB : chest2 et p.shared p.cols)
+  (#eB : chest2 tb p.shared p.cols)
   (#rB : chest2 real p.shared p.cols { eB %~ rB })
+  (#rC : chest2 real p.rows p.cols)
   (#fA #fri #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
@@ -303,7 +335,7 @@ fn kf
     pure (c_shmems_inv sh) **
     kpre
       p row_perm
-      gA row_indices gB gC
+      gA row_indices gB gC rC
       elems col_ind row_off
       #relems rA eB rB
       fA fri fB
@@ -319,7 +351,7 @@ fn kf
   ensures
     kpost
       p row_perm
-      gA row_indices gB gC
+      gA row_indices gB gC (MS.gmmcomb rmapA rmapB rcomb rC rA rB)
       elems col_ind row_off
       #relems rA eB rB
       fA fri fB
@@ -369,17 +401,17 @@ fn kf
   longitud del array, porque sería un VLA. Por eso agregué un argumento
   al kernel (blockChunks) que tiene un refinamiento que asegura que
   es igual (p.blockItemsK / p.blockWidth). *)
-  let mut out = [| zero #et #_; blockChunks |];
+  let mut out = [| zero #tacc #_; blockChunks |];
   assume pure (aligned 16 out);
 
-  let out0 : erased (lseq et (p.blockItemsX / p.blockWidth)) =
+  let out0 : erased (lseq tacc (p.blockItemsX / p.blockWidth)) =
     Seq.create (p.blockItemsX / p.blockWidth) zero;
   let rout0 : erased (lseq real (p.blockItemsX / p.blockWidth)) =
     Seq.create (p.blockItemsX / p.blockWidth) zero;
 
   //------------------main-----------------------------------------
 
-  kf_main
+  kf_main mapA mapB rmapA rmapB
     p row_perm
     gA gB #_ #_ #_ #relems
     rA #_ #rB
@@ -397,7 +429,7 @@ fn kf
   assert pure ((SZ.v !idx + 1) * 2 ==
     barrier_count p row_perm col_ind row_off bid);
 
-  kf_residue
+  kf_residue mapA mapB rmapA rmapB
     p row_perm
     gA gB #_ #_ #_ #relems rA #_ #rB
     out
@@ -419,7 +451,7 @@ fn kf
       (Seq.slice (cast_pos col_ind) ri re)
   );
 
-  Compute.tile_mm_result_lemma
+  Compute.tile_mm_result_lemma rmapA rmapB p.outputChunk
     rA m_idx
     #(re - ri)
     (Seq.slice relems ri re) (Seq.slice (cast_pos col_ind) ri re)
@@ -432,9 +464,14 @@ fn kf
   as (SizeT.v (Seq.Base.index (ordering row_perm) (SizeT.v (brow_ p bid))));
 
   // TODO renombrar y usar modulo calificado
-  matrix_store_tile_vec_approx
-    gC m_idx n_idx (Kuiper.Spec.GEMM.matmul rA rB)
+  Epilogue.combine_store comb rcomb
+    gC m_idx n_idx rC
+    (MS.matmul (Kuiper.Chest.chest_map rmapA rA) (Kuiper.Chest.chest_map rmapB rB))
     (p.blockItemsX /^ p.blockWidth) out p.blockWidth;
+  gmmcomb_model rmapA rmapB rcomb rC rA rB;
+  rewrite each (Kuiper.Chest.chest_comb rcomb rC
+      (MS.matmul (Kuiper.Chest.chest_map rmapA rA) (Kuiper.Chest.chest_map rmapB rB)))
+    as (MS.gmmcomb rmapA rmapB rcomb rC rA rB);
 
   rewrite each (SizeT.v (Seq.Base.index (ordering row_perm) (SizeT.v (brow_ p bid))))
   as (brow p bid |~> row_perm);
@@ -459,8 +496,18 @@ fn kf
 
 inline_for_extraction noextract
 let kdesc
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (p : parameters et)
+  (#et #tb #tc #tacc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, sized tb, has_vec_cpy tb, real_like tb,
+     scalar tc, sized tc, has_vec_cpy tc, real_like tc,
+     scalar tacc, real_like tacc |}
+  (mapA : et -> tacc)
+  (mapB : tb -> tacc)
+  (rmapA : real -> real { MU.approx1 mapA rmapA /\ rmapA 0.0R == 0.0R })
+  (rmapB : real -> real { MU.approx1 mapB rmapB })
+  (comb : tc -> tacc -> tc)
+  (rcomb : real -> real -> real { approx2 comb rcomb })
+  (p : parameters et { p.outputChunk == chunk tc })
   (row_perm : permutation (natlt p.rows))
   (blockChunks : sz{
     SZ.v blockChunks == SZ.v p.blockItemsX / SZ.v p.blockWidth
@@ -470,12 +517,12 @@ let kdesc
   (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared){is_global gA})
   (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
   (row_indices : larray sz p.rows)
-  (gB : array2 et lB {is_global gB})
+  (gB : array2 tb lB {is_global gB})
   (#_ : squash (aligned 16 (core gB)))
-  (#_ : squash (aligned_strided_row_major (chunk et) srmB))
-  (gC : array2 et lC {is_global gC})
+  (#_ : squash (aligned_strided_row_major (p.outputChunk) srmB))
+  (gC : array2 tc lC {is_global gC})
   (#_ : squash (aligned 16 (core gC)))
-  (#_ : squash (aligned_strided_row_major (chunk et) srmC))
+  (#_ : squash (aligned_strided_row_major (p.outputChunk) srmC))
   // matriz sparse gA
   (elems : erased (lseq et gA.nnz))
   (col_ind : erased (lseq sz gA.nnz))
@@ -483,8 +530,9 @@ let kdesc
   (#relems : erased (lseq real gA.nnz))
   (rA : chest2 real p.rows p.shared)
   // matrices densas
-  (#eB : chest2 et p.shared p.cols)
+  (#eB : chest2 tb p.shared p.cols)
   (#rB : chest2 real p.shared p.cols { eB %~ rB })
+  (#rC : chest2 real p.rows p.cols)
   (#fA #fri #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
   (#_ : squash ((chunk et * p.blockWidth) /? p.blockItemsK))
@@ -494,13 +542,13 @@ let kdesc
       csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
-      live gC
+      matrix_approx gC rC
     )
     (
       csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
       row_indices |-> Frac fri (ordering row_perm) **
       gB |-> Frac fB eB **
-      matrix_approx gC (MS.matmul rA rB)
+      matrix_approx gC (MS.gmmcomb rmapA rmapB rcomb rC rA rB)
     )
 = {
   nblk = nblocks p;
@@ -523,7 +571,7 @@ let kdesc
   block_pre  = (fun bid -> forall+ (tid : natlt p.blockWidth).
     block_pre
       p row_perm
-      gA row_indices gB gC
+      gA row_indices gB gC rC
       elems col_ind row_off
       #relems rA eB rB
       fA fri fB
@@ -532,7 +580,7 @@ let kdesc
   block_post = (fun bid -> forall+ (tid : natlt p.blockWidth).
     block_post
       p row_perm
-      gA row_indices gB gC
+      gA row_indices gB gC (MS.gmmcomb rmapA rmapB rcomb rC rA rB)
       elems col_ind row_off
       #relems rA eB rB
       fA fri fB
@@ -540,47 +588,48 @@ let kdesc
   );
   setup = setup
     p row_perm
-    gA row_indices gB gC
+    gA row_indices gB gC rC
     elems col_ind row_off
     #relems #_ #_ #rB #fA;
   teardown = teardown
     p row_perm
-    gA row_indices gB gC
+    gA row_indices gB gC (MS.gmmcomb rmapA rmapB rcomb rC rA rB)
     elems col_ind row_off
     #relems #_ #_ #rB #fA;
 
   block_frame    = (fun _ar _bid -> emp);
   block_setup = block_setup
     p row_perm
-    gA row_indices gB gC
+    gA row_indices gB gC rC
     elems col_ind row_off
     #relems #rA #eB #rB
     #fA #fri #fB;
   block_teardown = block_teardown
     p row_perm
-    gA row_indices gB gC
+    gA row_indices gB gC (MS.gmmcomb rmapA rmapB rcomb rC rA rB)
     elems col_ind row_off
     #relems #rA #eB #rB
     #fA #fri #fB;
 
   kpre  = kpre
     p row_perm
-    gA row_indices gB gC
+    gA row_indices gB gC rC
     elems col_ind row_off
     #relems rA eB rB
     fA fri fB;
   kpost = kpost
     p row_perm
-    gA row_indices gB gC
+    gA row_indices gB gC (MS.gmmcomb rmapA rmapB rcomb rC rA rB)
     elems col_ind row_off
     #relems rA eB rB
     fA fri fB;
 
   f =
-    kf
+    kf mapA mapB rmapA rmapB comb rcomb
       p row_perm blockChunks
       gA
-      row_indices gB gC;
+      row_indices gB gC
+      #_ #_ #elems #col_ind #row_off #relems #rA #eB #rB #rC;
 
   block_pre_sendable=magic();
   block_post_sendable=magic();
@@ -600,6 +649,216 @@ let located_csr_matrix_model
   (rA : chest2 real rows shared)
   : slprop
   = on gpu_loc (csr_matrix_model gA #fA elems col_ind row_off relems eA rA)
+
+inline_for_extraction noextract
+fn gspmm_on
+  (#et #tb #tc #tacc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, sized tb, has_vec_cpy tb, real_like tb,
+     scalar tc, sized tc, has_vec_cpy tc, real_like tc,
+     scalar tacc, real_like tacc |}
+  (mapA : et -> tacc)
+  (mapB : tb -> tacc)
+  (rmapA : real -> real { MU.approx1 mapA rmapA /\ rmapA 0.0R == 0.0R })
+  (rmapB : real -> real { MU.approx1 mapB rmapB })
+  (comb : tc -> tacc -> tc)
+  (rcomb : real -> real -> real { approx2 comb rcomb })
+  (rows shared cols : szp { chunk tc /? cols })
+  (blockItemsK blockItemsX : szp)
+  (blockWidth : (k : szp {
+    (k * chunk et) /? blockItemsK /\
+    (k * chunk sz) /? blockItemsK /\
+    (k * chunk tc) /? blockItemsX
+  }))
+  (blockChunks : sz{
+    SZ.v blockChunks == SZ.v blockItemsX / SZ.v blockWidth
+  }) // Ver nota abajo
+  (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
+  (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global gA})
+  (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
+  (#fA : perm)
+  (row_indices : larray sz rows)
+  (fri : perm)
+  (gB : array2 tb lB{is_global gB})
+  (#_ : squash (aligned 16 (core gB)))
+  (#_ : squash (aligned_strided_row_major (chunk tc) srmB))
+  (#fB : perm)
+  (gC : array2 tc lC{is_global gC})
+  (#_ : squash (aligned 16 (core gC)))
+  (#_ : squash (aligned_strided_row_major (chunk tc) srmC))
+  // matriz sparse gA
+  (#eA : chest2 et rows shared)
+  (#rA : chest2 real rows shared)
+  // permutacion de filas
+  (row_perm : permutation (natlt rows))
+  // matrices densas
+  (#eB : chest2 tb shared cols)
+  (#rB : chest2 real shared cols)
+  (#rC : chest2 real rows cols)
+  (s : stream_t)
+  (#e : epoch_t)
+  norewrite
+  preserves cpu ** stream_live s
+  requires
+    epoch_live s e **
+    on gpu_loc (csr_matrix_approx gA #fA eA rA) **
+    on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
+    on gpu_loc (gB |-> Frac fB eB) **
+    on gpu_loc (matrix_approx gC rC) **
+    pure (eB %~ rB) **
+    pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
+  ensures
+    epoch_live s (epoch_next e) **
+    pledge0 (epoch_done s (epoch_next e)) (on gpu_loc (
+      csr_matrix_approx gA #fA eA rA **
+      row_indices |-> Frac fri (ordering row_perm) **
+      gB |-> Frac fB eB **
+      matrix_approx gC (MS.gmmcomb rmapA rmapB rcomb rC rA rB)
+    ))
+{
+  chunk_le_16 (chunk tc) (size #tc);
+  Math.prod_cancel_divides blockItemsX (chunk tc) blockWidth;
+  lemma_aligned_strided_row_major_l2_row_major
+    #(SZ.v blockItemsK) #(SZ.v blockChunks) (chunk tc);
+
+  map_loc gpu_loc
+    #(csr_matrix_approx gA #fA eA rA)
+    #(exists* elems col_ind row_off relems. csr_matrix_model gA #fA elems col_ind row_off relems eA rA)
+    fn _ {
+      unfold csr_matrix_approx gA #fA eA rA;
+    };
+  with elems col_ind row_off relems.
+    fold located_csr_matrix_model gA #fA elems col_ind row_off relems eA rA;
+  unfold located_csr_matrix_model gA #fA elems col_ind row_off relems eA rA;
+  map_loc gpu_loc
+    #(csr_matrix_model gA #fA elems col_ind row_off relems eA rA)
+    #(csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
+      pure (valid_csr_matrix rows shared (cast_pos col_ind) (cast_pos row_off) /\
+        eA == matrix_unsparse rows shared elems (cast_pos col_ind) (cast_pos row_off)))
+    fn _ { unfold csr_matrix_model gA #fA elems col_ind row_off relems eA rA; };
+
+  launch (
+    kdesc mapA mapB rmapA rmapB comb rcomb
+      ({ outputChunk = chunk tc; rows; shared; cols; blockItemsK; blockItemsX; blockWidth; sz_req = () })
+      row_perm blockChunks #lB #_ #_ #lC
+      gA row_indices gB gC elems col_ind row_off #relems rA
+      #eB #rB #rC #fA #fri #fB
+  ) s;
+
+  rewrite_pledge #emp_inames #(epoch_done s (epoch_next e))
+    (on gpu_loc (
+      csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
+      row_indices |-> Frac fri (ordering row_perm) **
+      gB |-> Frac fB eB **
+      matrix_approx gC (MS.gmmcomb rmapA rmapB rcomb rC rA rB)
+    ))
+    (on gpu_loc (
+      csr_matrix_approx gA #fA eA rA **
+      row_indices |-> Frac fri (ordering row_perm) **
+      gB |-> Frac fB eB **
+      matrix_approx gC (MS.gmmcomb rmapA rmapB rcomb rC rA rB)
+    ))
+    #emp_inames
+    fn _ {
+      map_loc gpu_loc
+        #(csr_matrix_approx' gA #fA elems col_ind row_off relems rA)
+        #(csr_matrix_approx gA #fA eA rA)
+        fn _ {
+          fold csr_matrix_model gA #fA elems col_ind row_off relems eA rA;
+          fold csr_matrix_approx gA #fA eA rA;
+        };
+    };
+}
+
+(* Same structure as Kuiper.Kernel.launch_kernel_full_sync, one level up. *)
+inline_for_extraction noextract
+fn gspmm
+  (#et #tb #tc #tacc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, sized tb, has_vec_cpy tb, real_like tb,
+     scalar tc, sized tc, has_vec_cpy tc, real_like tc,
+     scalar tacc, real_like tacc |}
+  (mapA : et -> tacc)
+  (mapB : tb -> tacc)
+  (rmapA : real -> real { MU.approx1 mapA rmapA /\ rmapA 0.0R == 0.0R })
+  (rmapB : real -> real { MU.approx1 mapB rmapB })
+  (comb : tc -> tacc -> tc)
+  (rcomb : real -> real -> real { approx2 comb rcomb })
+  (rows shared cols : szp { chunk tc /? cols })
+  (blockItemsK blockItemsX : szp)
+  (blockWidth : (k : szp {
+    (k * chunk et) /? blockItemsK /\
+    (k * chunk sz) /? blockItemsK /\
+    (k * chunk tc) /? blockItemsX
+  }))
+  (blockChunks : sz{
+    SZ.v blockChunks == SZ.v blockItemsX / SZ.v blockWidth
+  }) // Ver nota abajo
+  (#lB : layout2 shared cols) {| ctlayout lB, srmB : strided_row_major lB |}
+  (#lC : layout2 rows cols)   {| ctlayout lC, srmC : strided_row_major lC |}
+  (gA : csr_matrix et (SZ.v rows) (SZ.v shared){is_global gA})
+  (#_ : squash (aligned 16 gA.elems /\ aligned 16 gA.col_ind))
+  (#fA : perm)
+  (row_indices : larray sz rows)
+  (fri : perm)
+  (gB : array2 tb lB{is_global gB})
+  (#_ : squash (aligned 16 (core gB)))
+  (#_ : squash (aligned_strided_row_major (chunk tc) srmB))
+  (#fB : perm)
+  (gC : array2 tc lC{is_global gC})
+  (#_ : squash (aligned 16 (core gC)))
+  (#_ : squash (aligned_strided_row_major (chunk tc) srmC))
+  // matriz sparse gA
+  (#eA : chest2 et rows shared)
+  (#rA : chest2 real rows shared)
+  // permutacion de filas
+  (row_perm : permutation (natlt rows))
+  // matrices densas
+  (#eB : chest2 tb shared cols)
+  (#rB : chest2 real shared cols)
+  (#rC : chest2 real rows cols)
+  norewrite
+  preserves
+    cpu **
+    on gpu_loc (csr_matrix_approx gA #fA eA rA) **
+    on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
+    on gpu_loc (gB |-> Frac fB eB)
+  requires
+    on gpu_loc (matrix_approx gC rC) **
+    pure (eB %~ rB) **
+    pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
+  ensures on gpu_loc (matrix_approx gC (MS.gmmcomb rmapA rmapB rcomb rC rA rB))
+{
+  let s = fresh_stream ();
+  init_epoch s ();
+  gspmm_on mapA mapB rmapA rmapB comb rcomb
+    rows shared cols
+    blockItemsK blockItemsX blockWidth
+    blockChunks
+    gA row_indices fri gB gC
+    #_ #_ #eA #rA row_perm #eB #rB #rC
+    s;
+  sync_stream s;
+  redeem_pledge emp_inames (epoch_done s _) (on gpu_loc (
+      csr_matrix_approx gA #fA eA rA **
+      row_indices |-> Frac fri (ordering row_perm) **
+      gB |-> Frac fB eB **
+      matrix_approx gC (MS.gmmcomb rmapA rmapB rcomb rC rA rB)
+  ));
+  drop_ (epoch_done s _);
+  drop_ (epoch_live s _);
+  destroy_stream s;
+}
+
+let gmmcomb_matmul
+  (#rows #shared #cols : nat)
+  (rC : chest2 real rows cols) (rA : chest2 real rows shared)
+  (rB : chest2 real shared cols)
+  : Lemma (MS.gmmcomb (fun x -> x) (fun x -> x) MS.comb2 rC rA rB ==
+      MS.matmul rA rB)
+  = MS.gmmcomb_id MS.comb2 rC rA rB;
+    MS.matmul_is_gemm rC rA rB
 
 inline_for_extraction noextract
 fn spmm_on
@@ -658,60 +917,21 @@ fn spmm_on
       matrix_approx gC (MS.matmul rA rB)
     ))
 {
-  Math.prod_cancel_divides blockItemsX (chunk et) blockWidth;
-  lemma_aligned_strided_row_major_l2_row_major
-    #(SZ.v blockItemsK) #(SZ.v blockChunks) (chunk et);
-
-  map_loc gpu_loc
-    #(csr_matrix_approx gA #fA eA rA)
-    #(exists* elems col_ind row_off relems. csr_matrix_model gA #fA elems col_ind row_off relems eA rA)
-    fn _ {
-      unfold csr_matrix_approx gA #fA eA rA;
-    };
-  with elems col_ind row_off relems.
-    fold located_csr_matrix_model gA #fA elems col_ind row_off relems eA rA;
-  unfold located_csr_matrix_model gA #fA elems col_ind row_off relems eA rA;
-  map_loc gpu_loc
-    #(csr_matrix_model gA #fA elems col_ind row_off relems eA rA)
-    #(csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
-      pure (valid_csr_matrix rows shared (cast_pos col_ind) (cast_pos row_off) /\
-        eA == matrix_unsparse rows shared elems (cast_pos col_ind) (cast_pos row_off)))
-    fn _ { unfold csr_matrix_model gA #fA elems col_ind row_off relems eA rA; };
-
-  launch (
-    kdesc #et #_
-      ({ rows; shared; cols; blockItemsK; blockItemsX; blockWidth; sz_req = () })
-      row_perm blockChunks #lB #_ #_ #lC
-      gA row_indices gB gC elems col_ind row_off #relems rA
-      #eB #rB #fA #fri #fB
-  ) s;
-
-  rewrite_pledge #emp_inames #(epoch_done s (epoch_next e))
-    (on gpu_loc (
-      csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
-      row_indices |-> Frac fri (ordering row_perm) **
-      gB |-> Frac fB eB **
-      matrix_approx gC (MS.matmul rA rB)
-    ))
-    (on gpu_loc (
-      csr_matrix_approx gA #fA eA rA **
-      row_indices |-> Frac fri (ordering row_perm) **
-      gB |-> Frac fB eB **
-      matrix_approx gC (MS.matmul rA rB)
-    ))
-    #emp_inames
-    fn _ {
-      map_loc gpu_loc
-        #(csr_matrix_approx' gA #fA elems col_ind row_off relems rA)
-        #(csr_matrix_approx gA #fA eA rA)
-        fn _ {
-          fold csr_matrix_model gA #fA elems col_ind row_off relems eA rA;
-          fold csr_matrix_approx gA #fA eA rA;
-        };
-    };
+  with initialC. assert on gpu_loc (gC |-> initialC);
+  map_loc gpu_loc #(gC |-> initialC)
+    #(matrix_approx gC (Kuiper.Chest.to_real_chest initialC))
+    fn _ { fold matrix_approx gC (Kuiper.Chest.to_real_chest initialC); };
+  gspmm_on (fun x -> x) (fun x -> x) (fun x -> x) (fun x -> x)
+    MS.comb2 MS.comb2
+    rows shared cols blockItemsK blockItemsX blockWidth blockChunks
+    gA row_indices fri gB gC
+    #_ #_ #eA #rA row_perm #eB #rB #(Kuiper.Chest.to_real_chest initialC) s;
+  rewrite each (MS.gmmcomb (fun x -> x) (fun x -> x) MS.comb2
+      (Kuiper.Chest.to_real_chest initialC) rA rB)
+    as (MS.matmul rA rB)
+    by (FStar.Tactics.V2.apply_lemma (`gmmcomb_matmul));
 }
 
-(* Same structure as Kuiper.Kernel.launch_kernel_full_sync, one level up. *)
 inline_for_extraction noextract
 fn spmm
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
@@ -760,23 +980,17 @@ fn spmm
     pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
   ensures on gpu_loc (matrix_approx gC (MS.matmul rA rB))
 {
-  let s = fresh_stream ();
-  init_epoch s ();
-  spmm_on
-    rows shared cols
-    blockItemsK blockItemsX blockWidth
-    blockChunks
+  with initialC. assert on gpu_loc (gC |-> initialC);
+  map_loc gpu_loc #(gC |-> initialC)
+    #(matrix_approx gC (Kuiper.Chest.to_real_chest initialC))
+    fn _ { fold matrix_approx gC (Kuiper.Chest.to_real_chest initialC); };
+  gspmm (fun x -> x) (fun x -> x) (fun x -> x) (fun x -> x)
+    MS.comb2 MS.comb2
+    rows shared cols blockItemsK blockItemsX blockWidth blockChunks
     gA row_indices fri gB gC
-    #_ #_ #eA #rA row_perm #eB #rB #eC
-    s;
-  sync_stream s;
-  redeem_pledge emp_inames (epoch_done s _) (on gpu_loc (
-      csr_matrix_approx gA #fA eA rA **
-      row_indices |-> Frac fri (ordering row_perm) **
-      gB |-> Frac fB eB **
-      matrix_approx gC (MS.matmul rA rB)
-  ));
-  drop_ (epoch_done s _);
-  drop_ (epoch_live s _);
-  destroy_stream s;
+    #_ #_ #eA #rA row_perm #eB #rB #(Kuiper.Chest.to_real_chest initialC);
+  rewrite each (MS.gmmcomb (fun x -> x) (fun x -> x) MS.comb2
+      (Kuiper.Chest.to_real_chest initialC) rA rB)
+    as (MS.matmul rA rB)
+    by (FStar.Tactics.V2.apply_lemma (`gmmcomb_matmul));
 }

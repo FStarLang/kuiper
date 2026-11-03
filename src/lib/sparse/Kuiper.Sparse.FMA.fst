@@ -2,6 +2,8 @@ module Kuiper.Sparse.FMA
 
 #lang-pulse
 open Kuiper
+open Kuiper.Sparse.Common
+module MU = Kuiper.Kernel.GEMM.Util
 open Kuiper.Seq.Common { seq_replace }
 
 inline_for_extraction noextract
@@ -20,11 +22,16 @@ let seq_fma
 
 inline_for_extraction noextract
 fn fma_arr
-  (#et : Type0) {| scalar et, real_like et |}
-  (x1 : et)
+  (#ta #tb #et : Type0)
+  {| scalar ta, real_like ta, scalar tb, real_like tb, scalar et, real_like et |}
+  (mapA : ta -> et)
+  (mapB : tb -> et)
+  (rmapA : real -> real { MU.approx1 mapA rmapA })
+  (rmapB : real -> real { MU.approx1 mapB rmapB })
+  (x1 : ta)
   (n : sz)
-  (x2 : larray et n)
-  (#vx2 : erased (lseq et n))
+  (x2 : larray tb n)
+  (#vx2 : erased (lseq tb n))
   (#sz_y : erased nat)
   (y : larray et sz_y)
   (#vy : erased (lseq et sz_y))
@@ -37,7 +44,7 @@ fn fma_arr
   requires  y |-> vy
   requires pure (x1 %~ rx1 /\ vx2 %~ rx2 /\ vy %~ ry)
   ensures exists* (vy' : lseq et sz_y).
-    y |-> vy' ** pure (vy' %~ seq_fma (reveal rx1) (reveal rx2) (reveal ry) k n)
+    y |-> vy' ** pure (vy' %~ seq_fma (rmapA (reveal rx1)) #n (Seq.map_seq rmapB (reveal rx2)) (reveal ry) k n)
 {
   let mut ix : sz = 0sz;
   while (!ix <^ n)
@@ -49,19 +56,19 @@ fn fma_arr
         (forall (i : natlt sz_y).
           (vy' @! i) %~
             (if k <= i && i < k + vix
-             then fma (ry @! i) (reveal rx1) (rx2 @! (i - k))
+             then fma (ry @! i) (rmapA (reveal rx1)) (rmapB (rx2 @! (i - k)))
              else ry @! i))
       )
     decreases (n - !ix)
   {
     open Pulse.Lib.Array;
-    y.(k +^ !ix) <- fma y.(k +^ !ix) x1 x2.(!ix);
+    y.(k +^ !ix) <- fma y.(k +^ !ix) (mapA x1) (mapB x2.(!ix));
     ix := !ix +^ 1sz;
   };
 
   with vy'. assert y |-> vy';
   assert pure (
-    vy' %~ seq_fma (reveal rx1) (reveal rx2) (reveal ry) k n
+    vy' %~ seq_fma (rmapA (reveal rx1)) #n (Seq.map_seq rmapB (reveal rx2)) (reveal ry) k n
   );
 }
 

@@ -15,6 +15,66 @@ let spmm_u32 = inst u32 128sz 128sz 32sz
 // A fixed-name f32 variant for the test and quick benching
 let spmm_f32 = inst f32 512sz 512sz 64sz
 
+// Mixed-precision variants use explicit input and output conversions.
+open Kuiper.Float.Casts
+
+let g_spmm_f16_f16_f32_f32_32x32x4 =
+  ginst f16 f16 f32 f32 (fcast #f16 #f32) (fcast #f16 #f32) (fun x -> x) (fun x -> x)
+    (fun _ sum -> fcast #f32 #f32 sum) (fun _ sum -> sum) 32sz 32sz 4sz
+let g_spmm_f16_f16_f32_f32_32x32x4_on =
+  ginst_on f16 f16 f32 f32 (fcast #f16 #f32) (fcast #f16 #f32) (fun x -> x) (fun x -> x)
+    (fun _ sum -> fcast #f32 #f32 sum) (fun _ sum -> sum) 32sz 32sz 4sz
+let g_spmm_bf16_bf16_f32_f32_32x32x4 =
+  ginst bf16 bf16 f32 f32 (fcast #bf16 #f32) (fcast #bf16 #f32) (fun x -> x) (fun x -> x)
+    (fun _ sum -> fcast #f32 #f32 sum) (fun _ sum -> sum) 32sz 32sz 4sz
+let g_spmm_bf16_bf16_f32_f32_32x32x4_on =
+  ginst_on bf16 bf16 f32 f32 (fcast #bf16 #f32) (fcast #bf16 #f32) (fun x -> x) (fun x -> x)
+    (fun _ sum -> fcast #f32 #f32 sum) (fun _ sum -> sum) 32sz 32sz 4sz
+let g_spmm_f16_f32_f16_f32_32x32x4 =
+  ginst f16 f32 f16 f32 (fcast #f16 #f32) (fcast #f32 #f32) (fun x -> x) (fun x -> x)
+    (fun _ sum -> fcast #f32 #f16 sum) (fun _ sum -> sum) 32sz 32sz 4sz
+let g_spmm_f16_f32_f16_f32_32x32x4_on =
+  ginst_on f16 f32 f16 f32 (fcast #f16 #f32) (fcast #f32 #f32) (fun x -> x) (fun x -> x)
+    (fun _ sum -> fcast #f32 #f16 sum) (fun _ sum -> sum) 32sz 32sz 4sz
+let g_spmm_f16_bf16_f32_f64_32x32x4 =
+  ginst f16 bf16 f32 f64 (fcast #f16 #f64) (fcast #bf16 #f64) (fun x -> x) (fun x -> x)
+    (fun _ sum -> fcast #f64 #f32 sum) (fun _ sum -> sum) 32sz 32sz 4sz
+let g_spmm_f16_bf16_f32_f64_32x32x4_on =
+  ginst_on f16 bf16 f32 f64 (fcast #f16 #f64) (fcast #bf16 #f64) (fun x -> x) (fun x -> x)
+    (fun _ sum -> fcast #f64 #f32 sum) (fun _ sum -> sum) 32sz 32sz 4sz
+let g_spmm_f16_f32_f32_f64_32x32x4 =
+  ginst f16 f32 f32 f64 (fcast #f16 #f64) (fcast #f32 #f64) (fun x -> x) (fun x -> x)
+    (fun _ sum -> fcast #f64 #f32 sum) (fun _ sum -> sum) 32sz 32sz 4sz
+let g_spmm_f16_f32_f32_f64_32x32x4_on =
+  ginst_on f16 f32 f32 f64 (fcast #f16 #f64) (fcast #f32 #f64) (fun x -> x) (fun x -> x)
+    (fun _ sum -> fcast #f64 #f32 sum) (fun _ sum -> sum) 32sz 32sz 4sz
+
+// Fused input maps and a GEMM epilogue with runtime alpha and beta.
+module MS = Kuiper.Spec.GEMM
+inline_for_extraction noextract
+let mapped_a (x : f16) : f32 = let y = fcast #f16 #f32 x in add y y
+inline_for_extraction noextract
+let mapped_b (x : f32) : f32 = add x one
+let mapped_a_ok (x : f16) (r : real)
+  : Lemma (requires x %~ r) (ensures mapped_a x %~ (r +. r))
+    [SMTPat (mapped_a x %~ (r +. r))]
+  = fcast_approx #f16 #f32 x r;
+    a_add (fcast #f16 #f32 x) (fcast #f16 #f32 x) r r
+let mapped_b_ok (x : f32) (r : real)
+  : Lemma (requires x %~ r) (ensures mapped_b x %~ (r +. 1.0R))
+    [SMTPat (mapped_b x %~ (r +. 1.0R))]
+  = a_add x (one #f32) r 1.0R
+let g_spmm_mapped_f16_f32_f16_f32_32x32x4 (alpha beta : f32) =
+  ginst f16 f32 f16 f32 mapped_a mapped_b
+    (fun x -> x +. x) (fun x -> x +. 1.0R)
+    (MS.lincomb_to #f32 #f16 alpha beta)
+    (MS.rlincomb (to_real alpha) (to_real beta)) 32sz 32sz 4sz
+let g_spmm_mapped_f16_f32_f16_f32_32x32x4_on (alpha beta : f32) =
+  ginst_on f16 f32 f16 f32 mapped_a mapped_b
+    (fun x -> x +. x) (fun x -> x +. 1.0R)
+    (MS.lincomb_to #f32 #f16 alpha beta)
+    (MS.rlincomb (to_real alpha) (to_real beta)) 32sz 32sz 4sz
+
 // Sputnik's f32 dispatcher uses 8, 16, 32, and 64-wide output tiles.
 let g_spmm_f32_32x4x1 = inst f32 32sz 4sz 1sz
 let g_spmm_f32_32x8x2 = inst f32 32sz 8sz 2sz

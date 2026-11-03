@@ -23,15 +23,17 @@ let size_req rows shared cols blockWidth blockItemsK blockItemsX =
 
 inline_for_extraction
 type parameters (et : Type0) {| sized et, has_vec_cpy et |} = {
+  // Sparse loads and output stores may have different vector widths.
+  outputChunk : (k : szp { k <= 16 });
   rows : szp;
   shared : szp;
-  cols : (k : szp { chunk et /? k});
+  cols : (k : szp { outputChunk /? k});
   blockItemsK : szp;
   blockItemsX : szp;
   blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\
-    (k * chunk et) /? blockItemsX
+    (k * outputChunk) /? blockItemsX
   });
   sz_req : squash (size_req rows shared cols blockWidth blockItemsK blockItemsX);
 }
@@ -138,17 +140,17 @@ let tcol
   (p : parameters et)
   (bid : natlt (nblocks_ p))
   (tid : nat)
-: Ghost nat (requires true) (ensures fun c -> chunk et /? c)
+: Ghost nat (requires true) (ensures fun c -> p.outputChunk /? c)
 =
-  lemma_divides_product (chunk et) tid;
-  assert chunk et /? (tid * chunk et);
+  lemma_divides_product p.outputChunk tid;
+  assert p.outputChunk /? (tid * p.outputChunk);
   lemma_divides_product p.blockItemsX (bid / p.rows);
   assert p.blockItemsX /? bcol p bid;
-  Math.prod_divides (p.blockWidth) (chunk et) p.blockItemsX;
-  assert chunk et /? p.blockItemsX;
-  Math.divides_chain (chunk et) p.blockItemsX (bcol p bid);
-  lemma_divides_sum (chunk et) (bcol p bid) (tid * chunk et);
-  bcol p bid + tid * chunk et
+  Math.prod_divides p.blockWidth p.outputChunk p.blockItemsX;
+  assert p.outputChunk /? p.blockItemsX;
+  Math.divides_chain p.outputChunk p.blockItemsX (bcol p bid);
+  lemma_divides_sum p.outputChunk (bcol p bid) (tid * p.outputChunk);
+  bcol p bid + tid * p.outputChunk
 
 (* [c * s == 16] implies [c <= 16], with explicit nonlinear steps *)
 let chunk_le_16 (c s : nat)
@@ -164,15 +166,13 @@ let tcol_
   (bid : szlt (nblocks_ p))
   (tid : szlt p.blockWidth)
 : Pure sz (requires true) (ensures fun c -> SZ.v c == tcol p bid tid)
-= assert (SZ.v (chunk et) * SZ.v (size #et) == 16);
-  chunk_le_16 (SZ.v (chunk et)) (SZ.v (size #et));
-  assert (SZ.v (chunk et) <= 16);
+= assert (SZ.v p.outputChunk <= 16);
   assert (SZ.v tid < SZ.v p.blockWidth /\ SZ.v p.blockWidth <= SZ.v max_threads);
-  let c : (c : sz { SZ.v c == SZ.v tid * SZ.v (chunk et) }) = tid *^ chunk et in
+  let c : (c : sz { SZ.v c == SZ.v tid * SZ.v p.outputChunk }) = tid *^ p.outputChunk in
   let b : (b : sz { SZ.v b == bcol p bid }) = bcol_ p bid in
   (* [c <= 1024 * 16] and [b < 10000], so [b + c] fits in 16 bits *)
-  FStar.Math.Lemmas.lemma_mult_le_right (SZ.v (chunk et)) (SZ.v tid) 1024;
-  FStar.Math.Lemmas.lemma_mult_le_left 1024 (SZ.v (chunk et)) 16;
+  FStar.Math.Lemmas.lemma_mult_le_right (SZ.v p.outputChunk) (SZ.v tid) 1024;
+  FStar.Math.Lemmas.lemma_mult_le_left 1024 (SZ.v p.outputChunk) 16;
   assert (SZ.v c <= 16384);
   assert_norm (pow2 16 == 65536);
   FStar.SizeT.fits_at_least_16 (SZ.v b + SZ.v c);
@@ -183,9 +183,9 @@ let tcol_
 let threadItemsX
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et |}
   (p : parameters et)
-: Ghost nat (requires true) (ensures fun k -> chunk et /? k)
+: Ghost nat (requires true) (ensures fun k -> p.outputChunk /? k)
 =
-  Math.prod_cancel_divides p.blockItemsX (chunk et) p.blockWidth;
+  Math.prod_cancel_divides p.blockItemsX p.outputChunk p.blockWidth;
   p.blockItemsX / p.blockWidth
 
 (* Description of shared memory used in this kernel. *)
