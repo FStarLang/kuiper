@@ -54,17 +54,25 @@ __hoisted_g_gemm_f32_32x32x32_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -90,7 +98,6 @@ __hoisted_g_gemm_bf16_32x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -107,7 +114,6 @@ __hoisted_g_gemm_bf16_32x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -122,7 +128,6 @@ __hoisted_g_gemm_bf16_32x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -137,28 +142,34 @@ __hoisted_g_gemm_bf16_32x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -230,18 +241,25 @@ __hoisted_g_gemm_f32_32x32x32_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -267,7 +285,6 @@ __hoisted_g_gemm_bf16_32x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -284,7 +301,6 @@ __hoisted_g_gemm_bf16_32x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -299,7 +315,6 @@ __hoisted_g_gemm_bf16_32x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -314,29 +329,34 @@ __hoisted_g_gemm_bf16_32x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -408,18 +428,25 @@ __hoisted_g_gemm_f32_32x32x32_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -445,7 +472,6 @@ __hoisted_g_gemm_bf16_32x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -462,7 +488,6 @@ __hoisted_g_gemm_bf16_32x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -477,7 +502,6 @@ __hoisted_g_gemm_bf16_32x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -492,29 +516,34 @@ __hoisted_g_gemm_bf16_32x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -586,19 +615,25 @@ __hoisted_g_gemm_f32_32x32x32_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -624,7 +659,6 @@ __hoisted_g_gemm_bf16_32x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -641,7 +675,6 @@ __hoisted_g_gemm_bf16_32x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += 32U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -656,7 +689,6 @@ __hoisted_g_gemm_bf16_32x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 32U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -671,30 +703,34 @@ __hoisted_g_gemm_bf16_32x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -766,17 +802,25 @@ __hoisted_g_gemm_f32_32x32x64_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -802,7 +846,6 @@ __hoisted_g_gemm_bf16_32x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -819,7 +862,6 @@ __hoisted_g_gemm_bf16_32x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -834,7 +876,6 @@ __hoisted_g_gemm_bf16_32x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -849,28 +890,34 @@ __hoisted_g_gemm_bf16_32x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -942,18 +989,25 @@ __hoisted_g_gemm_f32_32x32x64_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -979,7 +1033,6 @@ __hoisted_g_gemm_bf16_32x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -996,7 +1049,6 @@ __hoisted_g_gemm_bf16_32x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1011,7 +1063,6 @@ __hoisted_g_gemm_bf16_32x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1026,29 +1077,34 @@ __hoisted_g_gemm_bf16_32x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -1120,18 +1176,25 @@ __hoisted_g_gemm_f32_32x32x64_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -1157,7 +1220,6 @@ __hoisted_g_gemm_bf16_32x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -1174,7 +1236,6 @@ __hoisted_g_gemm_bf16_32x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1189,7 +1250,6 @@ __hoisted_g_gemm_bf16_32x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1204,29 +1264,34 @@ __hoisted_g_gemm_bf16_32x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -1298,19 +1363,25 @@ __hoisted_g_gemm_f32_32x32x64_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -1336,7 +1407,6 @@ __hoisted_g_gemm_bf16_32x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -1353,7 +1423,6 @@ __hoisted_g_gemm_bf16_32x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 32U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1368,7 +1437,6 @@ __hoisted_g_gemm_bf16_32x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 32U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1383,30 +1451,34 @@ __hoisted_g_gemm_bf16_32x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -1478,17 +1550,25 @@ __hoisted_g_gemm_f32_32x64x32_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -1514,7 +1594,6 @@ __hoisted_g_gemm_bf16_32x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -1531,7 +1610,6 @@ __hoisted_g_gemm_bf16_32x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1546,7 +1624,6 @@ __hoisted_g_gemm_bf16_32x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1561,28 +1638,34 @@ __hoisted_g_gemm_bf16_32x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -1654,18 +1737,25 @@ __hoisted_g_gemm_f32_32x64x32_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -1691,7 +1781,6 @@ __hoisted_g_gemm_bf16_32x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -1708,7 +1797,6 @@ __hoisted_g_gemm_bf16_32x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1723,7 +1811,6 @@ __hoisted_g_gemm_bf16_32x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1738,29 +1825,34 @@ __hoisted_g_gemm_bf16_32x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -1832,18 +1924,25 @@ __hoisted_g_gemm_f32_32x64x32_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -1869,7 +1968,6 @@ __hoisted_g_gemm_bf16_32x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -1886,7 +1984,6 @@ __hoisted_g_gemm_bf16_32x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1901,7 +1998,6 @@ __hoisted_g_gemm_bf16_32x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1916,29 +2012,34 @@ __hoisted_g_gemm_bf16_32x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -2010,19 +2111,25 @@ __hoisted_g_gemm_f32_32x64x32_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -2048,7 +2155,6 @@ __hoisted_g_gemm_bf16_32x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -2065,7 +2171,6 @@ __hoisted_g_gemm_bf16_32x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2080,7 +2185,6 @@ __hoisted_g_gemm_bf16_32x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2095,30 +2199,34 @@ __hoisted_g_gemm_bf16_32x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -2190,17 +2298,25 @@ __hoisted_g_gemm_f32_32x64x64_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -2226,7 +2342,6 @@ __hoisted_g_gemm_bf16_32x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -2243,7 +2358,6 @@ __hoisted_g_gemm_bf16_32x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2258,7 +2372,6 @@ __hoisted_g_gemm_bf16_32x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2273,28 +2386,34 @@ __hoisted_g_gemm_bf16_32x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -2366,18 +2485,25 @@ __hoisted_g_gemm_f32_32x64x64_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -2403,7 +2529,6 @@ __hoisted_g_gemm_bf16_32x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -2420,7 +2545,6 @@ __hoisted_g_gemm_bf16_32x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2435,7 +2559,6 @@ __hoisted_g_gemm_bf16_32x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2450,29 +2573,34 @@ __hoisted_g_gemm_bf16_32x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -2544,18 +2672,25 @@ __hoisted_g_gemm_f32_32x64x64_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -2581,7 +2716,6 @@ __hoisted_g_gemm_bf16_32x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -2598,7 +2732,6 @@ __hoisted_g_gemm_bf16_32x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2613,7 +2746,6 @@ __hoisted_g_gemm_bf16_32x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2628,29 +2760,34 @@ __hoisted_g_gemm_bf16_32x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -2722,19 +2859,25 @@ __hoisted_g_gemm_f32_32x64x64_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -2760,7 +2903,6 @@ __hoisted_g_gemm_bf16_32x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -2777,7 +2919,6 @@ __hoisted_g_gemm_bf16_32x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2792,7 +2933,6 @@ __hoisted_g_gemm_bf16_32x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2807,30 +2947,34 @@ __hoisted_g_gemm_bf16_32x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -2902,19 +3046,25 @@ __hoisted_g_gemm_f32_32x128x32_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -2940,7 +3090,6 @@ __hoisted_g_gemm_bf16_32x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -2957,7 +3106,6 @@ __hoisted_g_gemm_bf16_32x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2972,7 +3120,6 @@ __hoisted_g_gemm_bf16_32x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2987,30 +3134,34 @@ __hoisted_g_gemm_bf16_32x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -3082,18 +3233,25 @@ __hoisted_g_gemm_f32_32x128x32_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -3119,7 +3277,6 @@ __hoisted_g_gemm_bf16_32x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -3136,7 +3293,6 @@ __hoisted_g_gemm_bf16_32x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3151,7 +3307,6 @@ __hoisted_g_gemm_bf16_32x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3166,29 +3321,34 @@ __hoisted_g_gemm_bf16_32x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -3260,19 +3420,25 @@ __hoisted_g_gemm_f32_32x128x32_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -3298,7 +3464,6 @@ __hoisted_g_gemm_bf16_32x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -3315,7 +3480,6 @@ __hoisted_g_gemm_bf16_32x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3330,7 +3494,6 @@ __hoisted_g_gemm_bf16_32x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3345,30 +3508,34 @@ __hoisted_g_gemm_bf16_32x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -3440,19 +3607,25 @@ __hoisted_g_gemm_f32_32x128x32_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -3478,7 +3651,6 @@ __hoisted_g_gemm_bf16_32x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -3495,7 +3667,6 @@ __hoisted_g_gemm_bf16_32x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3510,7 +3681,6 @@ __hoisted_g_gemm_bf16_32x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3525,30 +3695,34 @@ __hoisted_g_gemm_bf16_32x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -3620,19 +3794,25 @@ __hoisted_g_gemm_f32_32x128x64_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -3658,7 +3838,6 @@ __hoisted_g_gemm_bf16_32x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -3675,7 +3854,6 @@ __hoisted_g_gemm_bf16_32x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3690,7 +3868,6 @@ __hoisted_g_gemm_bf16_32x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3705,30 +3882,34 @@ __hoisted_g_gemm_bf16_32x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -3800,18 +3981,25 @@ __hoisted_g_gemm_f32_32x128x64_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -3837,7 +4025,6 @@ __hoisted_g_gemm_bf16_32x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -3854,7 +4041,6 @@ __hoisted_g_gemm_bf16_32x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3869,7 +4055,6 @@ __hoisted_g_gemm_bf16_32x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3884,29 +4069,34 @@ __hoisted_g_gemm_bf16_32x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -3978,19 +4168,25 @@ __hoisted_g_gemm_f32_32x128x64_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -4016,7 +4212,6 @@ __hoisted_g_gemm_bf16_32x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -4033,7 +4228,6 @@ __hoisted_g_gemm_bf16_32x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4048,7 +4242,6 @@ __hoisted_g_gemm_bf16_32x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4063,30 +4256,34 @@ __hoisted_g_gemm_bf16_32x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -4158,19 +4355,25 @@ __hoisted_g_gemm_f32_32x128x64_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -4196,7 +4399,6 @@ __hoisted_g_gemm_bf16_32x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -4213,7 +4415,6 @@ __hoisted_g_gemm_bf16_32x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4228,7 +4429,6 @@ __hoisted_g_gemm_bf16_32x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4243,30 +4443,34 @@ __hoisted_g_gemm_bf16_32x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 32U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -4338,17 +4542,25 @@ __hoisted_g_gemm_f32_64x32x32_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -4374,7 +4586,6 @@ __hoisted_g_gemm_bf16_64x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -4391,7 +4602,6 @@ __hoisted_g_gemm_bf16_64x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4406,7 +4616,6 @@ __hoisted_g_gemm_bf16_64x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4421,28 +4630,34 @@ __hoisted_g_gemm_bf16_64x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -4514,18 +4729,25 @@ __hoisted_g_gemm_f32_64x32x32_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -4551,7 +4773,6 @@ __hoisted_g_gemm_bf16_64x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -4568,7 +4789,6 @@ __hoisted_g_gemm_bf16_64x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4583,7 +4803,6 @@ __hoisted_g_gemm_bf16_64x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4598,29 +4817,34 @@ __hoisted_g_gemm_bf16_64x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -4692,18 +4916,25 @@ __hoisted_g_gemm_f32_64x32x32_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -4729,7 +4960,6 @@ __hoisted_g_gemm_bf16_64x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -4746,7 +4976,6 @@ __hoisted_g_gemm_bf16_64x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4761,7 +4990,6 @@ __hoisted_g_gemm_bf16_64x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4776,29 +5004,34 @@ __hoisted_g_gemm_bf16_64x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -4870,19 +5103,25 @@ __hoisted_g_gemm_f32_64x32x32_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -4908,7 +5147,6 @@ __hoisted_g_gemm_bf16_64x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -4925,7 +5163,6 @@ __hoisted_g_gemm_bf16_64x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4940,7 +5177,6 @@ __hoisted_g_gemm_bf16_64x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4955,30 +5191,34 @@ __hoisted_g_gemm_bf16_64x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -5050,17 +5290,25 @@ __hoisted_g_gemm_f32_64x32x64_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -5086,7 +5334,6 @@ __hoisted_g_gemm_bf16_64x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -5103,7 +5350,6 @@ __hoisted_g_gemm_bf16_64x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5118,7 +5364,6 @@ __hoisted_g_gemm_bf16_64x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5133,28 +5378,34 @@ __hoisted_g_gemm_bf16_64x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -5226,18 +5477,25 @@ __hoisted_g_gemm_f32_64x32x64_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -5263,7 +5521,6 @@ __hoisted_g_gemm_bf16_64x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -5280,7 +5537,6 @@ __hoisted_g_gemm_bf16_64x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5295,7 +5551,6 @@ __hoisted_g_gemm_bf16_64x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5310,29 +5565,34 @@ __hoisted_g_gemm_bf16_64x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -5404,18 +5664,25 @@ __hoisted_g_gemm_f32_64x32x64_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -5441,7 +5708,6 @@ __hoisted_g_gemm_bf16_64x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -5458,7 +5724,6 @@ __hoisted_g_gemm_bf16_64x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5473,7 +5738,6 @@ __hoisted_g_gemm_bf16_64x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5488,29 +5752,34 @@ __hoisted_g_gemm_bf16_64x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -5582,19 +5851,25 @@ __hoisted_g_gemm_f32_64x32x64_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -5620,7 +5895,6 @@ __hoisted_g_gemm_bf16_64x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -5637,7 +5911,6 @@ __hoisted_g_gemm_bf16_64x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5652,7 +5925,6 @@ __hoisted_g_gemm_bf16_64x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 64U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5667,30 +5939,34 @@ __hoisted_g_gemm_bf16_64x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -5762,17 +6038,25 @@ __hoisted_g_gemm_f32_64x64x32_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -5798,7 +6082,6 @@ __hoisted_g_gemm_bf16_64x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -5815,7 +6098,6 @@ __hoisted_g_gemm_bf16_64x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5830,7 +6112,6 @@ __hoisted_g_gemm_bf16_64x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5845,28 +6126,34 @@ __hoisted_g_gemm_bf16_64x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -5938,18 +6225,25 @@ __hoisted_g_gemm_f32_64x64x32_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -5975,7 +6269,6 @@ __hoisted_g_gemm_bf16_64x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -5992,7 +6285,6 @@ __hoisted_g_gemm_bf16_64x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6007,7 +6299,6 @@ __hoisted_g_gemm_bf16_64x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6022,29 +6313,34 @@ __hoisted_g_gemm_bf16_64x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -6116,18 +6412,25 @@ __hoisted_g_gemm_f32_64x64x32_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -6153,7 +6456,6 @@ __hoisted_g_gemm_bf16_64x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -6170,7 +6472,6 @@ __hoisted_g_gemm_bf16_64x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6185,7 +6486,6 @@ __hoisted_g_gemm_bf16_64x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6200,29 +6500,34 @@ __hoisted_g_gemm_bf16_64x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -6294,19 +6599,25 @@ __hoisted_g_gemm_f32_64x64x32_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -6332,7 +6643,6 @@ __hoisted_g_gemm_bf16_64x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -6349,7 +6659,6 @@ __hoisted_g_gemm_bf16_64x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6364,7 +6673,6 @@ __hoisted_g_gemm_bf16_64x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6379,30 +6687,34 @@ __hoisted_g_gemm_bf16_64x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -6474,17 +6786,25 @@ __hoisted_g_gemm_f32_64x64x64_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -6510,7 +6830,6 @@ __hoisted_g_gemm_bf16_64x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -6527,7 +6846,6 @@ __hoisted_g_gemm_bf16_64x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6542,7 +6860,6 @@ __hoisted_g_gemm_bf16_64x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6557,28 +6874,34 @@ __hoisted_g_gemm_bf16_64x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -6650,18 +6973,25 @@ __hoisted_g_gemm_f32_64x64x64_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -6687,7 +7017,6 @@ __hoisted_g_gemm_bf16_64x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -6704,7 +7033,6 @@ __hoisted_g_gemm_bf16_64x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6719,7 +7047,6 @@ __hoisted_g_gemm_bf16_64x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6734,29 +7061,34 @@ __hoisted_g_gemm_bf16_64x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -6828,18 +7160,25 @@ __hoisted_g_gemm_f32_64x64x64_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -6865,7 +7204,6 @@ __hoisted_g_gemm_bf16_64x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -6882,7 +7220,6 @@ __hoisted_g_gemm_bf16_64x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6897,7 +7234,6 @@ __hoisted_g_gemm_bf16_64x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6912,29 +7248,34 @@ __hoisted_g_gemm_bf16_64x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -7006,19 +7347,25 @@ __hoisted_g_gemm_f32_64x64x64_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -7044,7 +7391,6 @@ __hoisted_g_gemm_bf16_64x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -7061,7 +7407,6 @@ __hoisted_g_gemm_bf16_64x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7076,7 +7421,6 @@ __hoisted_g_gemm_bf16_64x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7091,30 +7435,34 @@ __hoisted_g_gemm_bf16_64x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -7186,19 +7534,25 @@ __hoisted_g_gemm_f32_64x128x32_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -7224,7 +7578,6 @@ __hoisted_g_gemm_bf16_64x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -7241,7 +7594,6 @@ __hoisted_g_gemm_bf16_64x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7256,7 +7608,6 @@ __hoisted_g_gemm_bf16_64x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7271,30 +7622,34 @@ __hoisted_g_gemm_bf16_64x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -7366,18 +7721,25 @@ __hoisted_g_gemm_f32_64x128x32_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -7403,7 +7765,6 @@ __hoisted_g_gemm_bf16_64x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -7420,7 +7781,6 @@ __hoisted_g_gemm_bf16_64x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7435,7 +7795,6 @@ __hoisted_g_gemm_bf16_64x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7450,29 +7809,34 @@ __hoisted_g_gemm_bf16_64x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -7544,19 +7908,25 @@ __hoisted_g_gemm_f32_64x128x32_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -7582,7 +7952,6 @@ __hoisted_g_gemm_bf16_64x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -7599,7 +7968,6 @@ __hoisted_g_gemm_bf16_64x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7614,7 +7982,6 @@ __hoisted_g_gemm_bf16_64x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7629,30 +7996,34 @@ __hoisted_g_gemm_bf16_64x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -7724,19 +8095,25 @@ __hoisted_g_gemm_f32_64x128x32_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -7762,7 +8139,6 @@ __hoisted_g_gemm_bf16_64x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -7779,7 +8155,6 @@ __hoisted_g_gemm_bf16_64x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7794,7 +8169,6 @@ __hoisted_g_gemm_bf16_64x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7809,30 +8183,34 @@ __hoisted_g_gemm_bf16_64x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -7904,19 +8282,25 @@ __hoisted_g_gemm_f32_64x128x64_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -7942,7 +8326,6 @@ __hoisted_g_gemm_bf16_64x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -7959,7 +8342,6 @@ __hoisted_g_gemm_bf16_64x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7974,7 +8356,6 @@ __hoisted_g_gemm_bf16_64x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7989,30 +8370,34 @@ __hoisted_g_gemm_bf16_64x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -8084,18 +8469,25 @@ __hoisted_g_gemm_f32_64x128x64_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -8121,7 +8513,6 @@ __hoisted_g_gemm_bf16_64x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -8138,7 +8529,6 @@ __hoisted_g_gemm_bf16_64x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8153,7 +8543,6 @@ __hoisted_g_gemm_bf16_64x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8168,29 +8557,34 @@ __hoisted_g_gemm_bf16_64x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] = sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -8262,19 +8656,25 @@ __hoisted_g_gemm_f32_64x128x64_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -8300,7 +8700,6 @@ __hoisted_g_gemm_bf16_64x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -8317,7 +8716,6 @@ __hoisted_g_gemm_bf16_64x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8332,7 +8730,6 @@ __hoisted_g_gemm_bf16_64x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8347,30 +8744,34 @@ __hoisted_g_gemm_bf16_64x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -8442,19 +8843,25 @@ __hoisted_g_gemm_f32_64x128x64_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -8480,7 +8887,6 @@ __hoisted_g_gemm_bf16_64x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -8497,7 +8903,6 @@ __hoisted_g_gemm_bf16_64x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8512,7 +8917,6 @@ __hoisted_g_gemm_bf16_64x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8527,30 +8931,34 @@ __hoisted_g_gemm_bf16_64x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 64U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -8622,18 +9030,25 @@ __hoisted_g_gemm_f32_128x32x32_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -8659,7 +9074,6 @@ __hoisted_g_gemm_bf16_128x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -8676,7 +9090,6 @@ __hoisted_g_gemm_bf16_128x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8691,7 +9104,6 @@ __hoisted_g_gemm_bf16_128x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8706,29 +9118,34 @@ __hoisted_g_gemm_bf16_128x32x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -8800,19 +9217,25 @@ __hoisted_g_gemm_f32_128x32x32_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -8838,7 +9261,6 @@ __hoisted_g_gemm_bf16_128x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -8855,7 +9277,6 @@ __hoisted_g_gemm_bf16_128x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8870,7 +9291,6 @@ __hoisted_g_gemm_bf16_128x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8885,30 +9305,34 @@ __hoisted_g_gemm_bf16_128x32x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -8980,18 +9404,25 @@ __hoisted_g_gemm_f32_128x32x32_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -9017,7 +9448,6 @@ __hoisted_g_gemm_bf16_128x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -9034,7 +9464,6 @@ __hoisted_g_gemm_bf16_128x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -9049,7 +9478,6 @@ __hoisted_g_gemm_bf16_128x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -9064,29 +9492,34 @@ __hoisted_g_gemm_bf16_128x32x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -9158,19 +9591,25 @@ __hoisted_g_gemm_f32_128x32x32_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -9196,7 +9635,6 @@ __hoisted_g_gemm_bf16_128x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -9213,7 +9651,6 @@ __hoisted_g_gemm_bf16_128x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -9228,7 +9665,6 @@ __hoisted_g_gemm_bf16_128x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -9243,30 +9679,34 @@ __hoisted_g_gemm_bf16_128x32x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -9338,18 +9778,25 @@ __hoisted_g_gemm_f32_128x32x64_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -9375,7 +9822,6 @@ __hoisted_g_gemm_bf16_128x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -9392,7 +9838,6 @@ __hoisted_g_gemm_bf16_128x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -9407,7 +9852,6 @@ __hoisted_g_gemm_bf16_128x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -9422,29 +9866,34 @@ __hoisted_g_gemm_bf16_128x32x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -9516,19 +9965,25 @@ __hoisted_g_gemm_f32_128x32x64_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -9554,7 +10009,6 @@ __hoisted_g_gemm_bf16_128x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -9571,7 +10025,6 @@ __hoisted_g_gemm_bf16_128x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 8192U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -9586,7 +10039,6 @@ __hoisted_g_gemm_bf16_128x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -9601,30 +10053,34 @@ __hoisted_g_gemm_bf16_128x32x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -9696,18 +10152,25 @@ __hoisted_g_gemm_f32_128x32x64_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -9733,7 +10196,6 @@ __hoisted_g_gemm_bf16_128x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -9750,7 +10212,6 @@ __hoisted_g_gemm_bf16_128x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 8192U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -9765,7 +10226,6 @@ __hoisted_g_gemm_bf16_128x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -9780,29 +10240,34 @@ __hoisted_g_gemm_bf16_128x32x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (8U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -9874,19 +10339,25 @@ __hoisted_g_gemm_f32_128x32x64_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -9912,7 +10383,6 @@ __hoisted_g_gemm_bf16_128x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -9929,7 +10399,6 @@ __hoisted_g_gemm_bf16_128x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 8192U; i += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -9944,7 +10413,6 @@ __hoisted_g_gemm_bf16_128x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 128U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -9959,30 +10427,34 @@ __hoisted_g_gemm_bf16_128x32x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 2U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 2U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 32U + (16U * (threadIdx.x % 2U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -10054,18 +10526,25 @@ __hoisted_g_gemm_f32_128x64x32_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -10091,7 +10570,6 @@ __hoisted_g_gemm_bf16_128x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -10108,7 +10586,6 @@ __hoisted_g_gemm_bf16_128x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -10123,7 +10600,6 @@ __hoisted_g_gemm_bf16_128x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -10138,29 +10614,34 @@ __hoisted_g_gemm_bf16_128x64x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -10232,19 +10713,25 @@ __hoisted_g_gemm_f32_128x64x32_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -10270,7 +10757,6 @@ __hoisted_g_gemm_bf16_128x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -10287,7 +10773,6 @@ __hoisted_g_gemm_bf16_128x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -10302,7 +10787,6 @@ __hoisted_g_gemm_bf16_128x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -10317,30 +10801,34 @@ __hoisted_g_gemm_bf16_128x64x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -10412,18 +10900,25 @@ __hoisted_g_gemm_f32_128x64x32_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -10449,7 +10944,6 @@ __hoisted_g_gemm_bf16_128x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -10466,7 +10960,6 @@ __hoisted_g_gemm_bf16_128x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -10481,7 +10974,6 @@ __hoisted_g_gemm_bf16_128x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -10496,29 +10988,34 @@ __hoisted_g_gemm_bf16_128x64x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -10590,19 +11087,25 @@ __hoisted_g_gemm_f32_128x64x32_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -10628,7 +11131,6 @@ __hoisted_g_gemm_bf16_128x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -10645,7 +11147,6 @@ __hoisted_g_gemm_bf16_128x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -10660,7 +11161,6 @@ __hoisted_g_gemm_bf16_128x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -10675,30 +11175,34 @@ __hoisted_g_gemm_bf16_128x64x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -10770,18 +11274,25 @@ __hoisted_g_gemm_f32_128x64x64_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -10807,7 +11318,6 @@ __hoisted_g_gemm_bf16_128x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -10824,7 +11334,6 @@ __hoisted_g_gemm_bf16_128x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -10839,7 +11348,6 @@ __hoisted_g_gemm_bf16_128x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -10854,29 +11362,34 @@ __hoisted_g_gemm_bf16_128x64x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -10948,19 +11461,25 @@ __hoisted_g_gemm_f32_128x64x64_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -10986,7 +11505,6 @@ __hoisted_g_gemm_bf16_128x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -11003,7 +11521,6 @@ __hoisted_g_gemm_bf16_128x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -11018,7 +11535,6 @@ __hoisted_g_gemm_bf16_128x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -11033,30 +11549,34 @@ __hoisted_g_gemm_bf16_128x64x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -11128,18 +11648,25 @@ __hoisted_g_gemm_f32_128x64x64_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -11165,7 +11692,6 @@ __hoisted_g_gemm_bf16_128x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -11182,7 +11708,6 @@ __hoisted_g_gemm_bf16_128x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -11197,7 +11722,6 @@ __hoisted_g_gemm_bf16_128x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -11212,29 +11736,34 @@ __hoisted_g_gemm_bf16_128x64x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] = sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (8U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -11306,19 +11835,25 @@ __hoisted_g_gemm_f32_128x64x64_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -11344,7 +11879,6 @@ __hoisted_g_gemm_bf16_128x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -11361,7 +11895,6 @@ __hoisted_g_gemm_bf16_128x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 8192U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -11376,7 +11909,6 @@ __hoisted_g_gemm_bf16_128x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -11391,30 +11923,34 @@ __hoisted_g_gemm_bf16_128x64x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 4U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 64U + (16U * (threadIdx.x % 4U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -11486,19 +12022,25 @@ __hoisted_g_gemm_f32_128x128x32_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -11524,7 +12066,6 @@ __hoisted_g_gemm_bf16_128x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -11541,7 +12082,6 @@ __hoisted_g_gemm_bf16_128x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -11556,7 +12096,6 @@ __hoisted_g_gemm_bf16_128x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -11571,30 +12110,34 @@ __hoisted_g_gemm_bf16_128x128x32_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -11666,19 +12209,25 @@ __hoisted_g_gemm_f32_128x128x32_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -11704,7 +12253,6 @@ __hoisted_g_gemm_bf16_128x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -11721,7 +12269,6 @@ __hoisted_g_gemm_bf16_128x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -11736,7 +12283,6 @@ __hoisted_g_gemm_bf16_128x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -11751,30 +12297,34 @@ __hoisted_g_gemm_bf16_128x128x32_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -11846,19 +12396,25 @@ __hoisted_g_gemm_f32_128x128x32_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -11884,7 +12440,6 @@ __hoisted_g_gemm_bf16_128x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -11901,7 +12456,6 @@ __hoisted_g_gemm_bf16_128x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -11916,7 +12470,6 @@ __hoisted_g_gemm_bf16_128x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -11931,30 +12484,34 @@ __hoisted_g_gemm_bf16_128x128x32_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -12026,19 +12583,25 @@ __hoisted_g_gemm_f32_128x128x32_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -12064,7 +12627,6 @@ __hoisted_g_gemm_bf16_128x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -12081,7 +12643,6 @@ __hoisted_g_gemm_bf16_128x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -12096,7 +12657,6 @@ __hoisted_g_gemm_bf16_128x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -12111,30 +12671,34 @@ __hoisted_g_gemm_bf16_128x128x32_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 32U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -12206,19 +12770,25 @@ __hoisted_g_gemm_f32_128x128x64_8x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -12244,7 +12814,6 @@ __hoisted_g_gemm_bf16_128x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 64U);
     __nv_bfloat16 rchProd[64U];
     for (uint32_t _i = 0U; _i < 64U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -12261,7 +12830,6 @@ __hoisted_g_gemm_bf16_128x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 8192U; i += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -12276,7 +12844,6 @@ __hoisted_g_gemm_bf16_128x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -12291,30 +12858,34 @@ __hoisted_g_gemm_bf16_128x128x64_8x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -12386,19 +12957,25 @@ __hoisted_g_gemm_f32_128x128x64_8x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -12424,7 +13001,6 @@ __hoisted_g_gemm_bf16_128x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -12441,7 +13017,6 @@ __hoisted_g_gemm_bf16_128x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -12456,7 +13031,6 @@ __hoisted_g_gemm_bf16_128x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -12471,30 +13045,34 @@ __hoisted_g_gemm_bf16_128x128x64_8x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rAcol[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 8U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 8U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (8U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -12566,19 +13144,25 @@ __hoisted_g_gemm_f32_128x128x64_16x8_0(float *gA, float *gB, uint32_t k,
             float rBrow[8U];
             memset(rBrow, 0U, 8U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -12604,7 +13188,6 @@ __hoisted_g_gemm_bf16_128x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 128U);
     __nv_bfloat16 rchProd[128U];
     for (uint32_t _i = 0U; _i < 128U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -12621,7 +13204,6 @@ __hoisted_g_gemm_bf16_128x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -12636,7 +13218,6 @@ __hoisted_g_gemm_bf16_128x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -12651,30 +13232,34 @@ __hoisted_g_gemm_bf16_128x128x64_16x8_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 rBrow[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 16U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 16U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 8U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + j1)];
+            for (; j1 < 8U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (8U * (threadIdx.x % 16U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 8U; resIdxN++) {
-                    uint32_t idx = resIdxM * 8U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 8U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }
@@ -12746,19 +13331,25 @@ __hoisted_g_gemm_f32_128x128x64_16x16_0(float *gA, float *gB, uint32_t k,
             float rBrow[16U];
             memset(rBrow, 0U, 16U * sizeof(float));
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
-                    rchProd[idx] += rAcol[resIdxM] * rBrow[resIdxN];
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
+                    rchProd[idx] += rAcol[vm] * rBrow[vn];
                 }
             }
         }
@@ -12784,7 +13375,6 @@ __hoisted_g_gemm_bf16_128x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
     uint32_t k, uint32_t n, __nv_bfloat16 *gC, __nv_bfloat16 beta,
     __nv_bfloat16 alpha)
 {
-    KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 256U);
     __nv_bfloat16 rchProd[256U];
     for (uint32_t _i = 0U; _i < 256U; ++_i)
         rchProd[_i] = __float2bfloat16(0.0f);
@@ -12801,7 +13391,6 @@ __hoisted_g_gemm_bf16_128x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -12816,7 +13405,6 @@ __hoisted_g_gemm_bf16_128x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         uint32_t __anf01 = bkIdx;
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -12831,30 +13419,34 @@ __hoisted_g_gemm_bf16_128x128x64_16x16_0(__nv_bfloat16 *gA, __nv_bfloat16 *gB,
         __syncthreads();
         uint32_t dotIdx = 0U;
         for (; dotIdx < 64U; dotIdx++) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rAcol[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rAcol[_i] = __float2bfloat16(0.0f);
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 16U);
             __nv_bfloat16 rBrow[16U];
             for (uint32_t _i = 0U; _i < 16U; ++_i)
                 rBrow[_i] = __float2bfloat16(0.0f);
             uint32_t j0 = 0U;
-            for (; j0 < 16U; j0++)
-                rAcol[j0] =
-                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + j0)];
+            for (; j0 < 16U; j0++) {
+                uint32_t vj0r = j0;
+                rAcol[vj0r] =
+                    sarA[dotIdx * 128U + (16U * (threadIdx.x / 8U) + vj0r)];
+            }
             uint32_t j1 = 0U;
-            for (; j1 < 16U; j1++)
-                rBrow[j1] =
-                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + j1)];
+            for (; j1 < 16U; j1++) {
+                uint32_t vj1r = j1;
+                rBrow[vj1r] =
+                    sarB[dotIdx * 128U + (16U * (threadIdx.x % 8U) + vj1r)];
+            }
             uint32_t resIdxM = 0U;
             for (; resIdxM < 16U; resIdxM++) {
                 uint32_t resIdxN = 0U;
                 for (; resIdxN < 16U; resIdxN++) {
-                    uint32_t idx = resIdxM * 16U + resIdxN;
+                    uint32_t vm = resIdxM;
+                    uint32_t vn = resIdxN;
+                    uint32_t idx = vm * 16U + vn;
                     __nv_bfloat16 old = rchProd[idx];
-                    rchProd[idx] = kpr_bf16add(
-                        old, kpr_bf16mul(rAcol[resIdxM], rBrow[resIdxN]));
+                    rchProd[idx] =
+                        kpr_bf16add(old, kpr_bf16mul(rAcol[vm], rBrow[vn]));
                 }
             }
         }

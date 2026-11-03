@@ -33,7 +33,6 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_0(
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -47,7 +46,6 @@ __hoisted_g_gemm_f16_f16_64x64x16_16x16x16_0(
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -112,7 +110,6 @@ __hoisted_g_gemm_f16_f16_32x32x32_32x8x16_0(
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -126,7 +123,6 @@ __hoisted_g_gemm_f16_f16_32x32x32_32x8x16_0(
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -190,7 +186,6 @@ __hoisted_g_gemm_f16_f16_32x32x32_8x32x16_0(
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -204,7 +199,6 @@ __hoisted_g_gemm_f16_f16_32x32x32_8x32x16_0(
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -264,7 +258,6 @@ __hoisted_g_gemm_f16_f16_32x8x16_32x8x16_0(
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 512U; i += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -278,7 +271,6 @@ __hoisted_g_gemm_f16_f16_32x8x16_32x8x16_0(
         }
         uint32_t i1 = 0U;
         for (; i1 < 128U; i1 += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -338,7 +330,6 @@ __hoisted_g_gemm_f16_f16_8x32x16_8x32x16_0(
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -352,7 +343,6 @@ __hoisted_g_gemm_f16_f16_8x32x16_8x32x16_0(
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -413,7 +403,6 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_0(
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -427,7 +416,6 @@ __hoisted_g_gemm_f16_f16_64x64x64_16x16x16_0(
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -492,7 +480,6 @@ __hoisted_g_gemm_f16_f16_64x64x64_32x8x16_0(
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -506,7 +493,6 @@ __hoisted_g_gemm_f16_f16_64x64x64_32x8x16_0(
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -571,7 +557,6 @@ __hoisted_g_gemm_f16_f16_64x64x64_8x32x16_0(
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 4096U; i += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -585,7 +570,6 @@ __hoisted_g_gemm_f16_f16_64x64x64_8x32x16_0(
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -650,7 +634,6 @@ __hoisted_g_gemm_f16_f16_32x32x32_16x16x16_0(
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -664,7 +647,6 @@ __hoisted_g_gemm_f16_f16_32x32x32_16x16x16_0(
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -728,7 +710,6 @@ __hoisted_g_gemm_f16_f16_16x16x16_16x16x16_0(
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 256U; i += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -742,7 +723,6 @@ __hoisted_g_gemm_f16_f16_16x16x16_16x16x16_0(
         }
         uint32_t i1 = 0U;
         for (; i1 < 256U; i1 += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -803,7 +783,6 @@ __hoisted_g_gemm_f16_f32_32x32x32_16x16x16_0(uint32_t shared, uint32_t cols,
         uint32_t __anf0 = bkIdx;
         uint32_t i = 0U;
         for (; i < 1024U; i += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);
@@ -817,7 +796,6 @@ __hoisted_g_gemm_f16_f32_32x32x32_16x16x16_0(uint32_t shared, uint32_t cols,
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += nthr * 8U) {
-            KRML_CHECK_SIZE(sizeof(half), 8U);
             half local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2half_rn(0.0f);

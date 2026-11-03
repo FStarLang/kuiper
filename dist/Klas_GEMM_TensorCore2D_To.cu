@@ -11,15 +11,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -38,7 +35,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 1024U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -48,11 +44,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -62,7 +57,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -71,15 +66,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U * 32U) +
-                               __anf01 * 16U + 16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U / 2U * 32U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -96,7 +91,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -109,7 +107,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -127,15 +125,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -154,7 +149,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 1024U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -164,11 +158,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -178,7 +171,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -187,14 +180,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
-                               16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -210,7 +203,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -222,7 +218,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 64U + threadIdx.x / 32U * 32U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -240,15 +236,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -267,7 +260,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 1024U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -277,11 +269,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -291,7 +282,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -300,15 +291,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U * 64U) +
-                               __anf01 * 16U + 16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U / 2U * 64U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -325,7 +316,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -338,7 +332,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -356,15 +350,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -383,7 +374,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 1024U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -393,11 +383,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -407,7 +396,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -416,14 +405,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
-                               16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -439,7 +428,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -451,7 +443,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 64U + threadIdx.x / 32U * 64U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -469,15 +461,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -496,7 +485,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -506,11 +494,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -520,7 +507,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -529,15 +516,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U * 32U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 2U * 32U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -554,7 +541,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -567,7 +557,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -585,15 +575,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -612,7 +599,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -622,11 +608,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -636,7 +621,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -645,14 +630,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
-                               32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -668,7 +653,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -680,7 +668,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 64U + threadIdx.x / 32U * 32U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -698,15 +686,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -725,7 +710,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -735,11 +719,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -749,7 +732,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -758,15 +741,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U * 64U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 2U * 64U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -783,7 +766,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -796,7 +782,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -814,15 +800,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -841,7 +824,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -851,11 +833,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -865,7 +846,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -874,14 +855,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
-                               32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -897,7 +878,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -909,7 +893,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 64U + threadIdx.x / 32U * 64U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -927,15 +911,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -954,7 +935,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -964,11 +944,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -978,7 +957,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -987,15 +966,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U * 32U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 2U * 32U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -1012,7 +991,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1025,7 +1007,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -1043,15 +1025,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -1070,7 +1049,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1080,11 +1058,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1094,7 +1071,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1103,14 +1080,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
-                               64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1126,7 +1103,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1138,7 +1118,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 64U + threadIdx.x / 32U * 32U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -1156,15 +1136,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -1183,7 +1160,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1193,11 +1169,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1207,7 +1182,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1216,15 +1191,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U * 64U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 2U * 64U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -1241,7 +1216,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1254,7 +1232,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -1272,15 +1250,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -1299,7 +1274,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1309,11 +1283,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1323,7 +1296,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1332,14 +1305,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
-                               64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1355,7 +1328,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1367,7 +1343,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x64x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 64U + threadIdx.x / 32U * 64U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -1385,15 +1361,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -1412,7 +1385,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 1024U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1422,11 +1394,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1436,7 +1407,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1445,15 +1416,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U * 32U) +
-                               __anf01 * 16U + 16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U / 2U * 32U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -1470,7 +1441,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1483,7 +1457,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -1501,15 +1475,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -1528,7 +1499,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 1024U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1538,11 +1508,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1552,7 +1521,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1561,14 +1530,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
-                               16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1584,7 +1553,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1596,7 +1568,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_2x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 64U + threadIdx.x / 32U * 32U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -1614,15 +1586,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -1641,7 +1610,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 1024U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1651,11 +1619,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1665,7 +1632,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1674,15 +1641,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 4U * 64U) +
-                               __anf01 * 16U + 16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U / 4U * 64U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 4U * 32U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -1699,7 +1666,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1712,7 +1682,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 4U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -1730,15 +1700,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -1757,7 +1724,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 1024U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1767,11 +1733,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1781,7 +1746,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1790,15 +1755,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U * 64U) +
-                               __anf01 * 16U + 16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U / 2U * 64U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -1815,7 +1780,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1828,7 +1796,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -1846,15 +1814,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -1873,7 +1838,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 1024U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1883,11 +1847,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1897,7 +1860,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -1906,14 +1869,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
-                               16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -1929,7 +1892,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 1024U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -1941,7 +1907,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x16_16x16x16_4x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 64U + threadIdx.x / 32U * 64U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -1959,15 +1925,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -1986,7 +1949,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -1996,11 +1958,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2010,7 +1971,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2019,15 +1980,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 4U * 32U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 4U * 32U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 4U * 32U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -2044,7 +2005,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2057,7 +2021,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 4U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -2075,15 +2039,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -2102,7 +2063,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2112,11 +2072,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2126,7 +2085,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2135,15 +2094,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U * 32U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 2U * 32U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -2160,7 +2119,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2173,7 +2135,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -2191,15 +2153,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -2218,7 +2177,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2228,11 +2186,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2242,7 +2199,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2251,14 +2208,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
-                               32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2274,7 +2231,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2286,7 +2246,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_2x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 64U + threadIdx.x / 32U * 32U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -2304,15 +2264,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -2331,7 +2288,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2341,11 +2297,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2355,7 +2310,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2364,15 +2319,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 4U * 64U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 4U * 64U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 4U * 32U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -2389,7 +2344,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2402,7 +2360,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 4U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -2420,15 +2378,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -2447,7 +2402,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2457,11 +2411,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2471,7 +2424,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2480,15 +2433,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U * 64U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 2U * 64U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -2505,7 +2458,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2518,7 +2474,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -2536,15 +2492,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -2563,7 +2516,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2573,11 +2525,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2587,7 +2538,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2596,14 +2547,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
-                               32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2619,7 +2570,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2631,7 +2585,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x32_16x16x16_4x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 64U + threadIdx.x / 32U * 64U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -2649,15 +2603,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -2676,7 +2627,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2686,11 +2636,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2700,7 +2649,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2709,15 +2658,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 4U * 32U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 4U * 32U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 4U * 32U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -2734,7 +2683,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2747,7 +2699,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 4U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -2765,15 +2717,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -2792,7 +2741,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2802,11 +2750,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2816,7 +2763,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2825,15 +2772,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U * 32U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 2U * 32U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -2850,7 +2797,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2863,7 +2813,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -2881,15 +2831,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -2908,7 +2855,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2918,11 +2864,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -2932,7 +2877,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -2941,14 +2886,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
-                               64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -2964,7 +2909,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -2976,7 +2924,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_2x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 64U + threadIdx.x / 32U * 32U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -2994,15 +2942,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -3021,7 +2966,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3031,11 +2975,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3045,7 +2988,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3054,15 +2997,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 4U * 64U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 4U * 64U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 4U * 32U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -3079,7 +3022,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3092,7 +3038,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 4U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -3110,15 +3056,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -3137,7 +3080,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3147,11 +3089,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3161,7 +3102,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3170,15 +3111,15 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U * 64U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 2U * 64U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -3195,7 +3136,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3208,7 +3152,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -3226,15 +3170,12 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -3253,7 +3194,6 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3263,11 +3203,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3277,7 +3216,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3286,14 +3225,14 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
-                               64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3309,7 +3248,10 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3321,7 +3263,7 @@ __hoisted_g_gemm_bf16_f32_bf16_64x128x64_16x16x16_4x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 64U + threadIdx.x / 32U * 64U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -3339,15 +3281,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -3366,7 +3305,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3376,11 +3314,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3390,7 +3327,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3399,14 +3336,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
-                               16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3422,7 +3359,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3434,7 +3374,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 32U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -3452,15 +3392,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -3479,7 +3416,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3489,11 +3425,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3503,7 +3438,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3512,15 +3447,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U * 64U) +
-                               __anf01 * 16U + 16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U / 2U * 64U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -3537,7 +3472,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3550,7 +3488,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -3568,15 +3506,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -3595,7 +3530,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3605,11 +3539,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3619,7 +3552,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3628,14 +3561,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
-                               16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3651,7 +3584,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3663,7 +3599,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 64U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -3681,15 +3617,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -3708,7 +3641,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3718,11 +3650,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3732,7 +3663,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3741,15 +3672,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U * 128U) +
-                               __anf01 * 16U + 16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U / 2U * 128U) +
+                             __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
@@ -3766,7 +3697,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3779,7 +3713,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -3797,15 +3731,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 1024U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -3824,7 +3755,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3834,11 +3764,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 1024U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3848,7 +3777,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3857,14 +3786,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
-                               16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -3880,7 +3809,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 1024U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -3892,7 +3824,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x16_16x16x16_8x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 128U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -3910,15 +3842,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -3937,7 +3866,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3947,11 +3875,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -3961,7 +3888,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -3970,15 +3897,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U * 32U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 2U * 32U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -3995,7 +3922,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4008,7 +3938,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -4026,15 +3956,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -4053,7 +3980,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4063,11 +3989,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4077,7 +4002,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4086,14 +4011,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
-                               32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4109,7 +4034,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4121,7 +4049,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 32U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -4139,15 +4067,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -4166,7 +4091,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4176,11 +4100,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4190,7 +4113,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4199,15 +4122,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U * 64U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 2U * 64U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -4224,7 +4147,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4237,7 +4163,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -4255,15 +4181,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -4282,7 +4205,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4292,11 +4214,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4306,7 +4227,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4315,14 +4236,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
-                               32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4338,7 +4259,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4350,7 +4274,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 64U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -4368,15 +4292,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -4395,7 +4316,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4405,11 +4325,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4419,7 +4338,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4428,15 +4347,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U * 128U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 2U * 128U) +
+                             __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
@@ -4453,7 +4372,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4466,7 +4388,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -4484,15 +4406,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -4511,7 +4430,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4521,11 +4439,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4535,7 +4452,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4544,14 +4461,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
-                               32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4567,7 +4484,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4579,7 +4499,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x32_16x16x16_8x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 128U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -4597,15 +4517,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -4624,7 +4541,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4634,11 +4550,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4648,7 +4563,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4657,15 +4572,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U * 32U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 2U * 32U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -4682,7 +4597,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4695,7 +4613,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -4713,15 +4631,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -4740,7 +4655,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4750,11 +4664,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4764,7 +4677,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4773,14 +4686,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
-                               64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -4796,7 +4709,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4808,7 +4724,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 32U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -4826,15 +4742,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -4853,7 +4766,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4863,11 +4775,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4877,7 +4788,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -4886,15 +4797,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U * 64U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 2U * 64U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -4911,7 +4822,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -4924,7 +4838,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -4942,15 +4856,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -4969,7 +4880,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4979,11 +4889,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -4993,7 +4902,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5002,14 +4911,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
-                               64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5025,7 +4934,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5037,7 +4949,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 64U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -5055,15 +4967,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -5082,7 +4991,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5092,11 +5000,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5106,7 +5013,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5115,15 +5022,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U * 128U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 2U * 128U) +
+                             __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 32U + i11 * 16U),
+                    sB + (64U * (__anf02 * 16U) + threadIdx.x / 32U % 2U * 32U +
+                             i11 * 16U),
                     64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
@@ -5140,7 +5047,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5153,7 +5063,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + threadIdx.x / 32U % 2U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -5171,15 +5081,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 64U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -5198,7 +5105,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5208,11 +5114,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5222,7 +5127,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 64U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 64U + (col + k)] = local[k];
+                sB[row * 64U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5231,14 +5136,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
-                               64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
-                wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
+                wmma::load_matrix_sync(
+                    bFrags[i11], sB + (64U * (__anf02 * 16U) + i11 * 16U), 64U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5254,7 +5159,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 64U);
         uint32_t mcol1 = blockIdx.x % (cols / 64U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5266,7 +5174,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x64x64_16x16x16_8x4_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 128U +
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 64U + __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -5284,15 +5192,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -5311,7 +5216,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5321,11 +5225,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5335,7 +5238,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5344,15 +5247,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U * 32U) +
-                               __anf01 * 16U + 16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U / 2U * 32U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -5369,7 +5272,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5382,7 +5288,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -5400,15 +5306,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -5427,7 +5330,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5437,11 +5339,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5451,7 +5352,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5460,14 +5361,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
-                               16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5483,7 +5384,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5495,7 +5399,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_2x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 32U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -5513,15 +5417,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -5540,7 +5441,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5550,11 +5450,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5564,7 +5463,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5573,15 +5472,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 4U * 64U) +
-                               __anf01 * 16U + 16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U / 4U * 64U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 4U * 32U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -5598,7 +5497,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5611,7 +5513,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 4U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -5629,15 +5531,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -5656,7 +5555,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5666,11 +5564,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5680,7 +5577,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5689,15 +5586,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U * 64U) +
-                               __anf01 * 16U + 16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U / 2U * 64U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -5714,7 +5611,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5727,7 +5627,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -5745,15 +5645,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -5772,7 +5669,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5782,11 +5678,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5796,7 +5691,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5805,14 +5700,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
-                               16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -5828,7 +5723,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5840,7 +5738,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_4x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 64U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -5858,15 +5756,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -5885,7 +5780,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5895,11 +5789,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -5909,7 +5802,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -5918,15 +5811,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 4U * 128U) +
-                               __anf01 * 16U + 16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U / 4U * 128U) +
+                             __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 4U * 32U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
@@ -5943,7 +5836,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -5956,7 +5852,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 4U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -5974,15 +5870,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -6001,7 +5894,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6011,11 +5903,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6025,7 +5916,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6034,15 +5925,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U / 2U * 128U) +
-                               __anf01 * 16U + 16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U / 2U * 128U) +
+                             __anf01 * 16U + 16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
@@ -6059,7 +5950,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6072,7 +5966,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -6090,15 +5984,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 2048U);
     uint32_t num_k_tiles = shared / 16U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -6117,7 +6008,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 2048U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6127,11 +6017,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 16U + (col + k)] = local[k];
+                sA[row * 16U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 2048U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6141,7 +6030,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 16U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6150,14 +6039,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (16U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
-                               16U * (i0 * 16U)),
+                    sA + (16U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
+                             16U * (i0 * 16U)),
                     16U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6173,7 +6062,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0(uint32_t cols,
     for (; idx < 64U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 2048U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 2048U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6185,7 +6077,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x16_16x16x16_8x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 128U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -6203,15 +6095,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -6230,7 +6119,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 4096U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6240,11 +6128,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 4096U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6254,7 +6141,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6263,15 +6150,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 4U * 32U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 4U * 32U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 4U * 32U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -6288,7 +6175,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6301,7 +6191,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 4U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -6319,15 +6209,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -6346,7 +6233,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6356,11 +6242,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6370,7 +6255,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6379,15 +6264,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U * 32U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 2U * 32U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -6404,7 +6289,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6417,7 +6305,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -6435,15 +6323,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -6462,7 +6347,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6472,11 +6356,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6486,7 +6369,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6495,14 +6378,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
-                               32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6518,7 +6401,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6530,7 +6416,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_2x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 32U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -6548,15 +6434,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -6575,7 +6458,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6585,11 +6467,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6599,7 +6480,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6608,15 +6489,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 4U * 64U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 4U * 64U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 4U * 32U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -6633,7 +6514,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6646,7 +6530,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 4U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -6664,15 +6548,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -6691,7 +6572,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6701,11 +6581,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6715,7 +6594,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6724,15 +6603,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U * 64U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 2U * 64U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -6749,7 +6628,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6762,7 +6644,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -6780,15 +6662,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -6807,7 +6686,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6817,11 +6695,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6831,7 +6708,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6840,14 +6717,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
-                               32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -6863,7 +6740,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6875,7 +6755,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_4x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 64U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -6893,15 +6773,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -6920,7 +6797,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6930,11 +6806,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -6944,7 +6819,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -6953,15 +6828,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 4U * 128U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 4U * 128U) +
+                             __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 4U * 32U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
@@ -6978,7 +6853,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -6991,7 +6869,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 4U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -7009,15 +6887,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -7036,7 +6911,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7046,11 +6920,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7060,7 +6933,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7069,15 +6942,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U / 2U * 128U) +
-                               __anf01 * 16U + 32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U / 2U * 128U) +
+                             __anf01 * 16U + 32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
@@ -7094,7 +6967,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7107,7 +6983,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -7125,15 +7001,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 4096U);
     uint32_t num_k_tiles = shared / 32U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -7152,7 +7025,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 4096U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7162,11 +7034,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 32U + (col + k)] = local[k];
+                sA[row * 32U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 4096U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7176,7 +7047,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 32U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7185,14 +7056,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (32U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
-                               32U * (i0 * 16U)),
+                    sA + (32U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
+                             32U * (i0 * 16U)),
                     32U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7208,7 +7079,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0(uint32_t cols,
     for (; idx < 64U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 4096U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 4096U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7220,7 +7094,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x32_16x16x16_8x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 128U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -7238,15 +7112,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -7265,7 +7136,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 4096U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7275,11 +7145,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 4096U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7289,7 +7158,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7298,15 +7167,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 4U * 32U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 4U * 32U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 4U * 32U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -7323,7 +7192,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0(uint32_t cols,
     for (; idx < 4U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7336,7 +7208,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 4U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -7354,15 +7226,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -7381,7 +7250,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7391,11 +7259,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7405,7 +7272,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7414,15 +7281,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U * 32U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 2U * 32U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
@@ -7439,7 +7306,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7452,7 +7322,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -7470,15 +7340,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -7497,7 +7364,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7507,11 +7373,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7521,7 +7386,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7530,14 +7395,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 2U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
-                               64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U * 32U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 2U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7553,7 +7418,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7565,7 +7433,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_2x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 32U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -7583,15 +7451,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -7610,7 +7475,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7620,11 +7484,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 2048U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7634,7 +7497,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7643,15 +7506,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 4U * 64U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 4U * 64U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 4U * 32U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -7668,7 +7531,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0(uint32_t cols,
     for (; idx < 8U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7681,7 +7547,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 4U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -7699,15 +7565,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -7726,7 +7589,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7736,11 +7598,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7750,7 +7611,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7759,15 +7620,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U * 64U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 2U * 64U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
@@ -7784,7 +7645,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7797,7 +7661,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -7815,15 +7679,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -7842,7 +7703,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7852,11 +7712,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7866,7 +7725,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7875,14 +7734,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 4U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
-                               64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U * 64U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 4U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -7898,7 +7757,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -7910,7 +7772,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_4x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 64U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -7928,15 +7790,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -7955,7 +7814,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7965,11 +7823,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 1024U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -7979,7 +7836,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -7988,15 +7845,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 4U * 128U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 4U * 128U) +
+                             __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 2U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 4U * 32U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 4U * 32U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
@@ -8013,7 +7870,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0(uint32_t cols,
     for (; idx < 16U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -8026,7 +7886,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x2_0(uint32_t cols,
                                  __anf01 / 2U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 4U * 32U +
                                  __anf01 % 2U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -8044,15 +7904,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -8071,7 +7928,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8081,11 +7937,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 512U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8095,7 +7950,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8104,15 +7959,15 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U / 2U * 128U) +
-                               __anf01 * 16U + 64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U / 2U * 128U) +
+                             __anf01 * 16U + 64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 4U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) +
-                               threadIdx.x / 32U % 2U * 64U + i11 * 16U),
+                    sB + (128U * (__anf02 * 16U) +
+                             threadIdx.x / 32U % 2U * 64U + i11 * 16U),
                     128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
@@ -8129,7 +7984,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0(uint32_t cols,
     for (; idx < 32U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -8142,7 +8000,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x4_0(uint32_t cols,
                                  __anf01 / 4U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + threadIdx.x / 32U % 2U * 64U +
                                  __anf01 % 4U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);
@@ -8160,15 +8018,12 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0(uint32_t cols,
     __nv_bfloat16 *gC, float beta, float alpha, __nv_bfloat16 *gD)
 {
     KRML_MAYBE_UNUSED_VAR(nthr);
-    __nv_bfloat16 *sarA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
-    __nv_bfloat16 *sarB = (__nv_bfloat16 *) KPR_SHMEM_AT(
-        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
-    float *sarAcc =
-        (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
-                               (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_n_tiles = cols / 128U;
     uint32_t mrow = blockIdx.x / num_n_tiles;
     uint32_t mcol = blockIdx.x % num_n_tiles;
+    __nv_bfloat16 *sA = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
+    __nv_bfloat16 *sB = (__nv_bfloat16 *) KPR_SHMEM_AT(
+        (uint32_t) sizeof(__nv_bfloat16) * 8192U);
     uint32_t num_k_tiles = shared / 64U;
     auto &aFrags = KPR_INIT_ARR(kpr_fragment(wmma::matrix_a, 16U, 16U, 16U,
                                     __nv_bfloat16, wmma::row_major),
@@ -8187,7 +8042,6 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0(uint32_t cols,
         __syncthreads();
         uint32_t i = 0U;
         for (; i < 8192U; i += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8197,11 +8051,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0(uint32_t cols,
                                        shared * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarA[row * 64U + (col + k)] = local[k];
+                sA[row * 64U + (col + k)] = local[k];
         }
         uint32_t i1 = 0U;
         for (; i1 < 8192U; i1 += 256U) {
-            KRML_CHECK_SIZE(sizeof(__nv_bfloat16), 8U);
             __nv_bfloat16 local[8U];
             for (uint32_t _i = 0U; _i < 8U; ++_i)
                 local[_i] = __float2bfloat16(0.0f);
@@ -8211,7 +8064,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0(uint32_t cols,
                 gB + (cols * (__anf0 * 64U) + mcol * 128U + cols * row + col));
             uint32_t k = 0U;
             for (; k < 8U; k++)
-                sarB[row * 128U + (col + k)] = local[k];
+                sB[row * 128U + (col + k)] = local[k];
         }
         __syncthreads();
         uint32_t dotIdx = 0U;
@@ -8220,14 +8073,14 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0(uint32_t cols,
             uint32_t i0 = 0U;
             for (; i0 < 8U; i0++)
                 wmma::load_matrix_sync(aFrags[i0],
-                    sarA + (64U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
-                               64U * (i0 * 16U)),
+                    sA + (64U * (threadIdx.x / 32U * 128U) + __anf01 * 16U +
+                             64U * (i0 * 16U)),
                     64U);
             uint32_t __anf02 = dotIdx;
             uint32_t i11 = 0U;
             for (; i11 < 8U; i11++)
                 wmma::load_matrix_sync(bFrags[i11],
-                    sarB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
+                    sB + (128U * (__anf02 * 16U) + i11 * 16U), 128U);
             uint32_t resIdxM = 0U;
             for (; resIdxM < 8U; resIdxM++) {
                 uint32_t resIdxN = 0U;
@@ -8243,7 +8096,10 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0(uint32_t cols,
     for (; idx < 64U; idx++) {
         uint32_t mrow1 = blockIdx.x / (cols / 128U);
         uint32_t mcol1 = blockIdx.x % (cols / 128U);
-        wmma::store_matrix_sync(sarAcc + 16U * (threadIdx.x / 32U * 16U),
+        float *sTile =
+            (float *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 8192U +
+                                   (uint32_t) sizeof(__nv_bfloat16) * 8192U);
+        wmma::store_matrix_sync(sTile + 16U * (threadIdx.x / 32U * 16U),
             accFrags[idx], 16U, wmma::mem_row_major);
         __syncwarp();
         uint32_t __anf01 = idx;
@@ -8255,7 +8111,7 @@ __hoisted_g_gemm_bf16_f32_bf16_128x128x64_16x16x16_8x8_0(uint32_t cols,
             uint32_t globalRow = mrow1 * 128U + threadIdx.x / 32U * 128U +
                                  __anf01 / 8U * 16U + row;
             uint32_t globalCol = mcol1 * 128U + __anf01 % 8U * 16U + col;
-            float av = sarAcc[(16U * (threadIdx.x / 32U) + row) * 16U + col];
+            float av = sTile[(16U * (threadIdx.x / 32U) + row) * 16U + col];
             gD[globalRow * cols + globalCol] = __float2bfloat16(
                 beta * __bfloat162float(gC[globalRow * cols + globalCol]) +
                 alpha * av);

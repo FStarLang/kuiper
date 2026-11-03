@@ -60,12 +60,12 @@ __hoisted_softmax_gpu_n_f16_2(uint32_t lena, half *a_, uint32_t nth, half *sums)
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
-        uint32_t __anf0 = n;
+        uint32_t vn = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
         if (nextid < nth)
-            if ((threadIdx.x &
-                    (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) - 1U) == 0U)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
+                0U)
                 gsa[threadIdx.x] = __hadd(gsa[threadIdx.x], gsa[nextid]);
     }
     if (threadIdx.x == 0U)
@@ -145,12 +145,12 @@ __hoisted_softmax_gpu_n_f32_2(
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
-        uint32_t __anf0 = n;
+        uint32_t vn = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
         if (nextid < nth)
-            if ((threadIdx.x &
-                    (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) - 1U) == 0U)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
+                0U)
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
@@ -230,12 +230,12 @@ __hoisted_softmax_gpu_n_f64_2(
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
-        uint32_t __anf0 = n;
+        uint32_t vn = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
         if (nextid < nth)
-            if ((threadIdx.x &
-                    (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) - 1U) == 0U)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
+                0U)
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
@@ -314,12 +314,12 @@ __hoisted_softmax_gpu_f16_2(uint32_t lena, half *a_, half *sums)
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
-        uint32_t __anf0 = n;
+        uint32_t vn = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
         if (nextid < 1024U)
-            if ((threadIdx.x &
-                    (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) - 1U) == 0U)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
+                0U)
                 gsa[threadIdx.x] = __hadd(gsa[threadIdx.x], gsa[nextid]);
     }
     if (threadIdx.x == 0U)
@@ -398,12 +398,12 @@ __hoisted_softmax_gpu_f32_2(uint32_t lena, float *a_, float *sums)
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
-        uint32_t __anf0 = n;
+        uint32_t vn = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
         if (nextid < 1024U)
-            if ((threadIdx.x &
-                    (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) - 1U) == 0U)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
+                0U)
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
@@ -482,12 +482,12 @@ __hoisted_softmax_gpu_f64_2(uint32_t lena, double *a_, double *sums)
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
-        uint32_t __anf0 = n;
+        uint32_t vn = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
         if (nextid < 1024U)
-            if ((threadIdx.x &
-                    (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) - 1U) == 0U)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
+                0U)
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
@@ -566,12 +566,12 @@ __hoisted_softmax_n_f16_2(uint32_t lena, half *a_, uint32_t nth, half *sums)
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
-        uint32_t __anf0 = n;
+        uint32_t vn = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
         if (nextid < nth)
-            if ((threadIdx.x &
-                    (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) - 1U) == 0U)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
+                0U)
                 gsa[threadIdx.x] = __hadd(gsa[threadIdx.x], gsa[nextid]);
     }
     if (threadIdx.x == 0U)
@@ -649,12 +649,12 @@ __hoisted_softmax_n_f32_2(uint32_t lena, float *a_, uint32_t nth, float *sums)
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
-        uint32_t __anf0 = n;
+        uint32_t vn = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
         if (nextid < nth)
-            if ((threadIdx.x &
-                    (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) - 1U) == 0U)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
+                0U)
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
@@ -733,12 +733,12 @@ __hoisted_softmax_n_f64_2(uint32_t lena, double *a_, uint32_t nth, double *sums)
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < nth; n++) {
-        uint32_t __anf0 = n;
+        uint32_t vn = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
         if (nextid < nth)
-            if ((threadIdx.x &
-                    (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) - 1U) == 0U)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
+                0U)
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
@@ -817,12 +817,12 @@ __hoisted_softmax_f16_2(uint32_t lena, half *a_, half *sums)
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
-        uint32_t __anf0 = n;
+        uint32_t vn = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
         if (nextid < 1024U)
-            if ((threadIdx.x &
-                    (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) - 1U) == 0U)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
+                0U)
                 gsa[threadIdx.x] = __hadd(gsa[threadIdx.x], gsa[nextid]);
     }
     if (threadIdx.x == 0U)
@@ -900,12 +900,12 @@ __hoisted_softmax_f32_2(uint32_t lena, float *a_, float *sums)
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
-        uint32_t __anf0 = n;
+        uint32_t vn = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
         if (nextid < 1024U)
-            if ((threadIdx.x &
-                    (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) - 1U) == 0U)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
+                0U)
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)
@@ -983,12 +983,12 @@ __hoisted_softmax_f64_2(uint32_t lena, double *a_, double *sums)
     gsa[threadIdx.x] = acc;
     uint32_t n = 0U;
     for (; (uint32_t) (1U << (uint32_t) n) < 1024U; n++) {
-        uint32_t __anf0 = n;
+        uint32_t vn = n;
         __syncthreads();
-        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) __anf0);
+        uint32_t nextid = threadIdx.x + (uint32_t) (1U << (uint32_t) vn);
         if (nextid < 1024U)
-            if ((threadIdx.x &
-                    (uint32_t) (1U << (uint32_t) (__anf0 + 1U)) - 1U) == 0U)
+            if ((threadIdx.x & (uint32_t) (1U << (uint32_t) (vn + 1U)) - 1U) ==
+                0U)
                 gsa[threadIdx.x] += gsa[nextid];
     }
     if (threadIdx.x == 0U)

@@ -9,6 +9,6 @@ void Kuiper_Example_UnusedLocal_unused_zero(void)
 
 void Kuiper_Example_UnusedLocal_unused_negative_infinity(void)
 {
-    float buf = 0.0f - INFINITY;
+    float buf = -INFINITY;
     KRML_HOST_IGNORE(&buf);
 }

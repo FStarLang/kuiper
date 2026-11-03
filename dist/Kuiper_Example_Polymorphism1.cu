@@ -1,8 +1,7 @@
 
 #include "Kuiper_Example_Polymorphism1.h"
 
-__device__ void Kuiper_Example_Polymorphism1_kswap__uint64_t(
-    uint64_t *r1, uint64_t *r2)
+__device__ static void kswap__uint64_t(uint64_t *r1, uint64_t *r2)
 {
     uint64_t v1 = *r1;
     *r1 = *r2;
@@ -16,10 +15,10 @@ __global__ __launch_bounds__(1)
 static void
 __hoisted_swap_U64_0(uint64_t *gr1, uint64_t *gr2)
 {
-    Kuiper_Example_Polymorphism1_kswap__uint64_t(gr1, gr2);
+    kswap__uint64_t(gr1, gr2);
 }
 
-__device__ void Kuiper_Example_Polymorphism1_kswap__float(float *r1, float *r2)
+__device__ static void kswap__float(float *r1, float *r2)
 {
     float v1 = *r1;
     *r1 = *r2;
@@ -33,18 +32,7 @@ __global__ __launch_bounds__(1)
 static void
 __hoisted_swap_F32_0(float *gr1, float *gr2)
 {
-    Kuiper_Example_Polymorphism1_kswap__float(gr1, gr2);
-}
-
-__device__ void Kuiper_Example_Polymorphism1_kswap_U64(
-    uint64_t *r1, uint64_t *r2)
-{
-    Kuiper_Example_Polymorphism1_kswap__uint64_t(r1, r2);
-}
-
-__device__ void Kuiper_Example_Polymorphism1_kswap_F32(float *r1, float *r2)
-{
-    Kuiper_Example_Polymorphism1_kswap__float(r1, r2);
+    kswap__float(gr1, gr2);
 }
 
 void Kuiper_Example_Polymorphism1_swap_U64(uint64_t *r1, uint64_t *r2)

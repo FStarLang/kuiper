@@ -14,9 +14,8 @@ __hoisted_run_0(uint32_t n, float *inputs, float *outputs)
         float base = inputs[3U * j];
         float coordinate = inputs[3U * j + 1U];
         float position = inputs[3U * j + 2U];
-        float power = powf(base, coordinate / (float) 64LL);
-        float angle =
-            position * ((float) 1LL / powf(base, coordinate / (float) 64LL));
+        float power = powf(base, coordinate / 64.0f);
+        float angle = position * (1.0f / powf(base, coordinate / 64.0f));
         float sn = sinf(angle);
         float cs = cosf(angle);
         __nv_bfloat16 bsn = __float2bfloat16(sn);
