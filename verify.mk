@@ -250,7 +250,7 @@ depend.pdf: .depend .force
 CUSTARD_FLAGS :=
 CUSTARD_FLAGS += --codegen KrmlC
 CUSTARD_FLAGS += --custard_sizet_width 32 # SizeT.t is uint32_t
-CUSTARD_FLAGS += --custard_norm_budget 200000000
+CUSTARD_FLAGS += --custard_norm_budget 1000000000
 CUSTARD_FLAGS += --warn_error @381 # a rule with the wrong arity
 CUSTARD_FLAGS += --load_cmxs $(PLUGIN)
 

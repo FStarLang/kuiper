@@ -254,9 +254,9 @@ let fresh (base:string) : ML string =
 (* Types                                                                *)
 (* -------------------------------------------------------------------- *)
 
-(* karamel has no 16-bit float width, so the CUDA types are named. *)
-let half_t : cty = ctype "half"
-let bf16_t : cty = ctype "__nv_bfloat16"
+(* Kuiper's karamel prints these widths as [half] and [__nv_bfloat16]. *)
+let half_t : cty = TFloat Float16
+let bf16_t : cty = TFloat BFloat16
 (* Fragments are spelled [auto&] (scripts/fixup.sed): their C++ type is a
    template instantiation karamel cannot express. *)
 let auto_t : cty = ctype "auto_AMP"
@@ -266,6 +266,8 @@ let stream_t : cty = ctype "cudaStream_t"
 let c_type_name (t:cty) : ML string =
   match t with
   | TApp ({ ns = []; id = id }, []) -> id
+  | TFloat Float16 -> "half"
+  | TFloat BFloat16 -> "__nv_bfloat16"
   | TFloat Float32 -> "float"
   | TFloat Float64 -> "double"
   | _ -> fail ("unexpected fragment element type " ^ show t)
@@ -378,6 +380,8 @@ let rw_shmems (sh:string) (offs:list (expr & cty)) (tailv:expr) (e:expr) : ML ex
     if f = "_1" || f = "fst" then Some 0
     else if f = "_2" || f = "snd" then Some 1
     else None in
+  let unbind (env:list (string & list int)) (xs:list string) : ML (list (string & list int)) =
+    List.filter (fun (y, _) -> not (List.mem y xs)) env in
   let rec resolve (env:list (string & list int)) (e:expr) : ML (option (list int)) =
     match e.e with
     | ECoerce (x, _) -> resolve env x
@@ -396,9 +400,32 @@ let rw_shmems (sh:string) (offs:list (expr & cty)) (tailv:expr) (e:expr) : ML ex
           | Some p, Some i -> Some (p @ [i])
           | _ -> None)
        | _ -> None)
+    (* A projection, as Custard inlines [fst]/[snd]. *)
+    | EMatch (sc, [(p, None, body)]) ->
+      (match resolve env sc with
+       | Some path ->
+         (match pathpat env p path with
+          | Some env' -> resolve env' body
+          | None -> None)
+       | None -> None)
+    | _ -> None
+  (* Map the variables of [p], a pattern matched against [path], to their
+     paths. *)
+  and pathpat (env:list (string & list int)) (p:pat) (path:list int)
+      : ML (option (list (string & list int))) =
+    match p with
+    | PWild -> Some env
+    | PVar x -> Some ((x, path) :: unbind env [x])
+    | PCtor (_, [p1; p2]) | PTuple [p1; p2] ->
+      (match pathpat env p1 (path @ [0]) with
+       | Some env -> pathpat env p2 (path @ [1])
+       | None -> None)
+    | PRecord (_, fs) ->
+      List.fold_left (fun acc (f, fp) ->
+        match acc, proj_index f with
+        | Some env, Some i -> pathpat env fp (path @ [i])
+        | _ -> None) (Some env) fs
     | _ -> None in
-  let unbind (env:list (string & list int)) (xs:list string) : ML (list (string & list int)) =
-    List.filter (fun (y, _) -> not (List.mem y xs)) env in
   (* Bind the variables of [p], a pattern matched against [path]. *)
   let rec bindpat (env:list (string & list int)) (p:pat) (path:list int)
       (lets:list (string & expr)) : ML (option (list (string & list int) & list (string & expr))) =
@@ -578,6 +605,64 @@ let for_loop (_tys:list cty) (args:list expr) : ML expr =
                     (TRef (RManual, usize)) E_Impure in
       mk (ELet (i, TRef (RManual, usize), cell, loop)) TUnit E_Impure)
   | _ -> fail "for_loop: expected 3 arguments"
+
+(* karamel's [-fauto-for-loops] turns [while (c) { ..; x = e; }] into
+   [for (; c; x = e) { .. }] even when [e] mentions a variable declared in the
+   body, which then does not compile.  Pulse loops typically read their
+   counter into a local, [let vi = !i], and end with [i := vi +^ 1sz]; when
+   the counter is otherwise only read, the final write may re-read it
+   instead, which keeps the step closed. *)
+let counter_uses (r:string) (e:expr) : ML (int & int) =
+  let nuses = mk_ref 0 in
+  let reads = mk_ref 0 in
+  let rec go (e:expr) : ML expr =
+    (match e.e with
+     | EVar y -> if y = r then nuses := !nuses + 1
+     | EOp ({ po_op = BufRead }, [{ e = EVar y }; _]) -> if y = r then reads := !reads + 1
+     | _ -> ());
+    emap go e in
+  ignore (go e);
+  (!nuses, !reads)
+
+let rec map_tail (f:expr -> ML (option expr)) (e:expr) : ML (option expr) =
+  let re (e':expr') : expr = { e with e = e' } in
+  match e.e with
+  | ELet (y, t, d, b) ->
+    (match map_tail f b with Some b -> Some (re (ELet (y, t, d, b))) | None -> None)
+  | ESeq (a, b) ->
+    (match map_tail f b with Some b -> Some (re (ESeq (a, b))) | None -> None)
+  | _ -> f e
+
+let rec reread_counter (body:expr) : ML expr =
+  let re (e':expr') : expr = { body with e = e' } in
+  match body.e with
+  | ELet (v, t, d, rest) ->
+    let rewritten : option expr =
+      match d.e with
+      | EOp ({ po_op = BufRead }, [{ e = EVar r }; { e = EConst (CInt (k, _, _)) }]) ->
+        let nuses, reads = counter_uses r rest in
+        if nuses <> reads + 1 then None else
+        map_tail (fun tl ->
+          match tl.e with
+          | EOp (o, [rv; kv; x]) ->
+            (match o.po_op, rv.e, kv.e with
+             | BufWrite, EVar r', EConst (CInt (k', _, _))
+                 when r' = r && k' = k && occurs v x ->
+               Some { tl with e = EOp (o, [rv; kv; subst v d x]) }
+             | _ -> None)
+          | _ -> None) rest
+      | _ -> None in
+    (match rewritten with
+     | Some rest -> re (ELet (v, t, d, rest))
+     | None -> re (ELet (v, t, d, reread_counter rest)))
+  | ESeq (a, b) -> re (ESeq (a, reread_counter b))
+  | _ -> body
+
+let while_ (_tys:list cty) (args:list expr) : ML expr =
+  match args with
+  | [{ e = EFun (_, cond) }; { e = EFun (_, body) }] ->
+    mk (EWhile (cond, reread_counter body)) TUnit E_Impure
+  | _ -> fail "while_: expected two thunks"
 
 (* -------------------------------------------------------------------- *)
 (* Memory                                                               *)
@@ -1075,4 +1160,5 @@ let _ =
 
   (* For loops *)
   prim "Kuiper.For.for_loop" 3 for_loop;
+  prim "Pulse.Lib.Dv.while_" 2 while_;
   prim "Kuiper.For.for_loop'" 3 for_loop
