@@ -145,7 +145,7 @@ is included. Use `Ctrl+.` to verify the file at the cursor position.
 
 ### Requirements
 - OCaml 5.4.0, OPAM, and some packages. (Other OCaml versions may work, but this is the one we test, YMMV.)
-- Z3 version 4.13.3
+- Z3 version 5.3.0 (pinned in `.z3-version`)
 - `curl` and Python 3 (to install the pinned `clang-format`)
 - NVCC (if you wish to _compile_ the kernels)
 - An Nvidia GPU (if you wish to _run_ the kernels)
@@ -163,9 +163,9 @@ You can use a script provided by F* to set up Z3 in your system:
 ```
 sudo ./FStar/.scripts/get_fstar_z3.sh /usr/local/bin
 ```
-otherwise, you can grab Z3 4.13.3 from [its
-releases](https://github.com/Z3Prover/z3/releases/tag/z3-4.13.3) and make it
-available in your PATH (as `z3` or `z3-4.13.3`).
+otherwise, you can grab Z3 5.3.0 from [its
+releases](https://github.com/Z3Prover/z3/releases/tag/z3-5.3.0) and make it
+available in your PATH (as `z3` or `z3-5.3.0`).
 
 If you do not have OCaml 5.4.0 installed, you can run the following commands
 to set it up.

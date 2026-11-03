@@ -149,4 +149,4 @@ These are forked/branched versions with GPU-specific extensions:
 - A spec-only `nat`/index *function argument* (used only to compute a ghost layout/spec, not needed at runtime) MUST be `erased` or extraction fails; supply the runtime value via a `{| concrete_sz x |}` typeclass instance instead of a concrete `nat` parameter (e.g. `Kuiper.Array2.Strided.Slice.slice_of_3`'s `page`)
 - Module naming: `Kuiper.Foo.Bar` maps to file `Kuiper.Foo.Bar.fst` (dots in filenames, not directories)
 - `.fst` = implementation, `.fsti` = interface; some `.fst` files are auto-generated from `.fst.sh` scripts
-- F\* flags include `--ext kuiper` (Kuiper-specific compiler extension) and `--z3version 4.13.3`
+- F\* flags include `--ext kuiper` (Kuiper-specific compiler extension) and the Z3 version pinned in `.z3-version` (currently 5.3.0)

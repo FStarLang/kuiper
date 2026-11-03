@@ -28,15 +28,22 @@ echo ">>> Extracting $PKG"
 tar xzf "$PKG" -C "$WORK"
 cd "$WORK/kuiper"
 
+z3_version="$(cat .z3-version)"
+bundled_z3="$PWD/inst/lib/fstar/z3-$z3_version/bin/z3"
+[ -x "$bundled_z3" ] || { echo "error: bundled Z3 $z3_version not found" >&2; exit 1; }
+# Do not let the builder's library or solver installation mask an incomplete package.
+unset FSTAR_LIB
+
 # Deliberately run without opam: a proper package must be self-contained.
 echo ">>> (1) Checking bundled executables"
 ./inst/bin/fstar.exe --version
 ./inst/bin/krml -version || true
 ./inst/bin/clang-format --version
 test -f ./inst/share/licenses/clang-format/LICENSE.md
+"$bundled_z3" -version
 
 echo ">>> (2) Verifying a bundled example"
-./fstar.sh src/examples/Kuiper.Example.Add.fst
+./fstar.sh --smt "$bundled_z3" src/examples/Kuiper.Example.Add.fst
 
 echo ">>> (3) Verifying a brand-new kernel"
 cat > src/examples/Kuiper.Smoke.Test.fst <<'EOF'
@@ -48,7 +55,7 @@ fn smoke_incr (x : f32) returns f32 {
   add x one;
 }
 EOF
-./fstar.sh src/examples/Kuiper.Smoke.Test.fst
+./fstar.sh --smt "$bundled_z3" src/examples/Kuiper.Smoke.Test.fst
 
 # macOS needs GNU make (as gmake) since the system make is 3.81. See
 # setup-mac.sh.
@@ -59,7 +66,7 @@ else
 fi
 
 echo ">>> (4) Extracting a kernel to CUDA"
-"$MAKE" obj/Kuiper_Example_Add.cu
+"$MAKE" -j"${JOBS:-$(getconf _NPROCESSORS_ONLN)}" obj/Kuiper_Example_Add.cu
 test -f obj/Kuiper_Example_Add.cu
 echo ">>> Generated CUDA:"
 head -n 20 obj/Kuiper_Example_Add.cu
