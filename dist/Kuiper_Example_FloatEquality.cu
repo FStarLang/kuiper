@@ -1,24 +1,18 @@
 
 #include "Kuiper_Example_FloatEquality.h"
 
-bool Kuiper_Example_FloatEquality_ieee_f16(half x, half y)
-{
-    return kpr_f16_eq(x, y);
-}
+bool Kuiper_Example_FloatEquality_ieee_f16(half x, half y) { return x == y; }
 
 bool Kuiper_Example_FloatEquality_bits_f16(half x, half y)
 {
     return kpr_f16_bit_eq(x, y);
 }
 
-bool Kuiper_Example_FloatEquality_eq_f16(half x, half y)
-{
-    return kpr_f16_eq(x, y);
-}
+bool Kuiper_Example_FloatEquality_eq_f16(half x, half y) { return x == y; }
 
 bool Kuiper_Example_FloatEquality_ieee_bf16(__nv_bfloat16 x, __nv_bfloat16 y)
 {
-    return kpr_bf16_eq(x, y);
+    return x == y;
 }
 
 bool Kuiper_Example_FloatEquality_bits_bf16(__nv_bfloat16 x, __nv_bfloat16 y)
@@ -28,7 +22,7 @@ bool Kuiper_Example_FloatEquality_bits_bf16(__nv_bfloat16 x, __nv_bfloat16 y)
 
 bool Kuiper_Example_FloatEquality_eq_bf16(__nv_bfloat16 x, __nv_bfloat16 y)
 {
-    return kpr_bf16_eq(x, y);
+    return x == y;
 }
 
 bool Kuiper_Example_FloatEquality_ieee_f32(float x, float y) { return x == y; }

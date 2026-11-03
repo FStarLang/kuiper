@@ -895,20 +895,17 @@ let math_fns : list (string & int & string & string & string & string) = [
   ("fma",   3, "kpr_hfma",   "kpr_bf16fma",   "fmaf",   "fma");
 ]
 
-(* Negation is karamel's own [Neg] operator at the float's width, which
-   prints as C's unary minus (and is defined on [half]/[__nv_bfloat16]). *)
-let fneg (fw:fwidth) (t:cty) (_tys:list cty) (args:list expr) : ML expr =
-  match args with
-  | [x] -> mk (EOp ({ po_op = Neg; po_ty = Some (PFloat fw) }, [x])) t E_Pure
-  | _ -> fail "neg: expected 1 argument"
+(* Carry the float width so karamel uses floating-point operator semantics. *)
+let fop (fw:fwidth) (o:op) (t:cty) (_tys:list cty) (args:list expr) : ML expr =
+  mk (EOp ({ po_op = o; po_ty = Some (PFloat fw) }, args)) t E_Pure
 
 let register_floats () : ML unit =
   let f32t = TFloat Float32 in
   let f64t = TFloat Float64 in
-  prim (f16 ^ "neg") 1 (fneg Float16 half_t);
-  prim (bf16 ^ "neg") 1 (fneg BFloat16 bf16_t);
-  prim (f32 ^ "neg") 1 (fneg Float32 f32t);
-  prim (f64 ^ "neg") 1 (fneg Float64 f64t);
+  prim (f16 ^ "neg") 1 (fop Float16 Neg half_t);
+  prim (bf16 ^ "neg") 1 (fop BFloat16 Neg bf16_t);
+  prim (f32 ^ "neg") 1 (fop Float32 Neg f32t);
+  prim (f64 ^ "neg") 1 (fop Float64 Neg f64t);
   List.iter (fun (nm, n, h, b, f, d) ->
     cfun (f16 ^ nm) n h half_t;
     cfun (bf16 ^ nm) n b bf16_t;
@@ -921,9 +918,9 @@ let register_floats () : ML unit =
   cfun (f16 ^ "mul") 2 "__hmul" half_t;
   cfun (f16 ^ "sub") 2 "__hsub" half_t;
   cfun (f16 ^ "div") 2 "__hdiv" half_t;
-  cfun (f16 ^ "eq")  2 "kpr_f16_eq"  tbool;
-  cfun (f16 ^ "lt")  2 "kpr_f16_lt"  tbool;
-  cfun (f16 ^ "lte") 2 "kpr_f16_lte" tbool;
+  prim (f16 ^ "eq")  2 (fop Float16 Eq tbool);
+  prim (f16 ^ "lt")  2 (fop Float16 Lt tbool);
+  prim (f16 ^ "lte") 2 (fop Float16 Lte tbool);
   cfun (f16 ^ "bit_eq") 2 "kpr_f16_bit_eq" tbool;
   cfun (f16 ^ "of_int") 1 "__ll2half_rn" half_t;
   prim (f16 ^ "of_literal") 1 (of_literal "__float2half_rn" half_t);
@@ -936,9 +933,9 @@ let register_floats () : ML unit =
   cfun (bf16 ^ "mul") 2 "kpr_bf16mul" bf16_t;
   cfun (bf16 ^ "sub") 2 "kpr_bf16sub" bf16_t;
   cfun (bf16 ^ "div") 2 "kpr_bf16div" bf16_t;
-  cfun (bf16 ^ "eq")  2 "kpr_bf16_eq"  tbool;
-  cfun (bf16 ^ "lt")  2 "kpr_bf16_lt"  tbool;
-  cfun (bf16 ^ "lte") 2 "kpr_bf16_lte" tbool;
+  prim (bf16 ^ "eq")  2 (fop BFloat16 Eq tbool);
+  prim (bf16 ^ "lt")  2 (fop BFloat16 Lt tbool);
+  prim (bf16 ^ "lte") 2 (fop BFloat16 Lte tbool);
   cfun (bf16 ^ "bit_eq") 2 "kpr_bf16_bit_eq" tbool;
   cfun (bf16 ^ "of_int") 1 "__ll2bfloat16_rn" bf16_t;
   prim (bf16 ^ "of_literal") 1 (of_literal "__float2bfloat16" bf16_t);
