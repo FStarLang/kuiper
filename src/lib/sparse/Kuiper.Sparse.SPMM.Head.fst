@@ -449,7 +449,7 @@ let masked_row
 (* Loading and masking the first tile needs bounds, but not column sortedness.
    Expanding sorted_slice here causes costly quantifier instantiations even
    for sequence-length and slice-bound queries. *)
-#push-options "--z3rlimit 60 --using_facts_from '* -Kuiper.Sparse.Common.sorted_slice'"
+#push-options "--z3rlimit 60 --z3refresh --using_facts_from '* -Kuiper.Sparse.Common.sorted_slice'"
 inline_for_extraction noextract
 fn kf_head
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et, real_like et |}
