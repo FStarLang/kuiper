@@ -109,7 +109,7 @@ let is_const_zero (e:expr) : ML bool =
 
 let pointee (t:cty) : ML cty =
   match t with
-  | TBuf e | TRef e -> e
+  | TBuf e | TRef (_, e) -> e
   | _ -> fail ("expected a buffer or reference type, got " ^ show t)
 
 let bufsub (b:expr) (o:expr) : ML expr =
@@ -526,9 +526,10 @@ let launch (_tys:list cty) (args:list expr) : ML expr =
                    [Comment ("  hoisted when extracting " ^ parent);
                     Private;
                     Prologue (kernel_qualifier nthr);
-                    (* Anything the kernel reaches is device code; a helper
-                       shared with host code needs both qualifiers. *)
-                    ClosurePrologue ("__device__", "__device__ __host__")]
+                    (* Anything the kernel reaches is device code; Custard
+                       gives it a [__device__] copy of every helper it
+                       reaches, and leaves the originals for host code. *)
+                    ClosurePrologue "__device__"]
                    closed in
     let cap_args = List.map (fun (v, t) -> mk (EVar v) t E_Pure) caps in
     let kcall = call "KPR_KCALL" ([kernel; nblk; nthr; smem; stream] @ cap_args) TUnit in
@@ -556,7 +557,7 @@ let for_loop (_tys:list cty) (args:list expr) : ML expr =
   match args with
   | [lo; hi; f] ->
     let i = fresh "i" in
-    let iv = mk (EVar i) (TRef usize) E_Pure in
+    let iv = mk (EVar i) (TRef (RManual, usize)) E_Pure in
     let rd () = mk (EOp ({ po_op = BufRead; po_ty = None }, [iv; uconst 0])) usize E_Impure in
     let with_hi (k:expr -> ML expr) : ML expr =
       match (strip hi).e with
@@ -574,8 +575,8 @@ let for_loop (_tys:list cty) (args:list expr) : ML expr =
       let body = mk (ELet (j, usize, rd (), seq (apply f [jv] TUnit) step)) TUnit E_Impure in
       let loop = mk (EWhile (cond, body)) TUnit E_Impure in
       let cell = mk (EOp ({ po_op = BufCreate LStack; po_ty = None }, [lo; uconst 1]))
-                    (TRef usize) E_Impure in
-      mk (ELet (i, TRef usize, cell, loop)) TUnit E_Impure)
+                    (TRef (RManual, usize)) E_Impure in
+      mk (ELet (i, TRef (RManual, usize), cell, loop)) TUnit E_Impure)
   | _ -> fail "for_loop: expected 3 arguments"
 
 (* -------------------------------------------------------------------- *)
@@ -635,7 +636,7 @@ let get_ref_of_cell (_tys:list cty) (args:list expr) : ML expr =
   match args with
   | [a; i] ->
     let r = mk (EOp ({ po_op = BufSub; po_ty = None }, [a; i])) a.ty E_Pure in
-    mk (ECoerce (r, TRef (pointee a.ty))) (TRef (pointee a.ty)) E_Pure
+    mk (ECoerce (r, TRef (RManual, pointee a.ty))) (TRef (RManual, pointee a.ty)) E_Pure
   | _ -> fail "get_ref_of_cell: expected 2 arguments"
 
 let array_vec_cpy (_tys:list cty) (args:list expr) : ML expr =
@@ -850,9 +851,20 @@ let math_fns : list (string & int & string & string & string & string) = [
   ("fma",   3, "kpr_hfma",   "kpr_bf16fma",   "fmaf",   "fma");
 ]
 
+(* Negation is karamel's own [Neg] operator at the float's width, which
+   prints as C's unary minus (and is defined on [half]/[__nv_bfloat16]). *)
+let fneg (fw:fwidth) (t:cty) (_tys:list cty) (args:list expr) : ML expr =
+  match args with
+  | [x] -> mk (EOp ({ po_op = Neg; po_ty = Some (PFloat fw) }, [x])) t E_Pure
+  | _ -> fail "neg: expected 1 argument"
+
 let register_floats () : ML unit =
   let f32t = TFloat Float32 in
   let f64t = TFloat Float64 in
+  prim (f16 ^ "neg") 1 (fneg Float16 half_t);
+  prim (bf16 ^ "neg") 1 (fneg BFloat16 bf16_t);
+  prim (f32 ^ "neg") 1 (fneg Float32 f32t);
+  prim (f64 ^ "neg") 1 (fneg Float64 f64t);
   List.iter (fun (nm, n, h, b, f, d) ->
     cfun (f16 ^ nm) n h half_t;
     cfun (bf16 ^ nm) n b bf16_t;

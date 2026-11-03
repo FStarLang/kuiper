@@ -230,10 +230,7 @@ echo-krml:
 
 .depend: $(ROOTS) .fstar.touch
 	$(call msg,"DEPEND",$@)
-	$(Q)$(FSTAR) --codegen KrmlC --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' --dep full $(ROOTS) -o $@.tmp
-	# HUGE HACK: append (not prepend!) a .plugin.touch dependency for every krml file.
-	$(sed) ':outer; /krml: \\$$/{n;:inner;/[^\\]$$/{s/.*/& .plugin.touch/; b outer};n;b inner}' < $@.tmp > $@
-	rm -f $@.tmp
+	$(Q)$(FSTAR) --codegen KrmlC --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' --dep full $(ROOTS) -o $@
 
 depgraph: depend.pdf
 depend.pdf: .depend .force
@@ -245,23 +242,24 @@ depend.pdf: .depend .force
 	dot -Tpdf -o $@ .depend.simpl
 	echo "Wrote $@"
 
-# Does not work. See hack in .depend
-# $(OUTDIR)/%.krml: .plugin.touch
-
 # Extraction goes through Custard, F*'s whole-program extractor, with its
 # karamel backend: the program reachable from $(MOD) is written to a single
 # .krml file (whose module is called Custard), with Kuiper's own primitives
 # (kernel launches, CUDA memory operations, floats, tensor cores...)
 # translated by the rules in the plugin.
 CUSTARD_FLAGS :=
-CUSTARD_FLAGS += --codegen Custard --custard_backend KrmlC
+CUSTARD_FLAGS += --codegen KrmlC
 CUSTARD_FLAGS += --custard_sizet_width 32 # SizeT.t is uint32_t
 CUSTARD_FLAGS += --custard_norm_budget 200000000
 CUSTARD_FLAGS += --warn_error @381 # a rule with the wrong arity
 CUSTARD_FLAGS += --load_cmxs $(PLUGIN)
 
+# F*'s dependency analysis has no rules for Custard's output, so a .krml
+# depends on its entry module's checked file (found by the same renaming as
+# MOD) and on the plugin.
+.SECONDEXPANSION:
 $(OUTDIR)/%.krml: MOD=$(subst _,.,$(basename $(notdir $@)))
-$(OUTDIR)/%.krml: | .fstar.touch
+$(OUTDIR)/%.krml: $(CACHEDIR)/$$(subst _,.,$$*).fst.checked .plugin.touch | .fstar.touch
 	@# Stupid renaming!
 	$(call msg,"EXTRACT")
 	$(Q)$(FSTAR) $(CUSTARD_FLAGS) --already_cached '*' --custard_entry_module $(MOD) -o $@ $<
