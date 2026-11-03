@@ -127,7 +127,8 @@ FSTAR_FLAGS += --warn_error -274 # shadowing when opening, bogus
 FSTAR_FLAGS += --warn_error -291 # inspect_ln warnings, benign
 FSTAR_FLAGS += --warn_error -249-321
 FSTAR_FLAGS += --warn_error @242@250 # 242, 250: abort if could not extract something
-FSTAR_FLAGS += --z3version 4.13.3
+Z3_VERSION ?= $(shell cat .z3-version)
+FSTAR_FLAGS += --z3version $(Z3_VERSION)
 FSTAR_FLAGS += --ext kuiper
 FSTAR_FLAGS += --ext __unrefine
 FSTAR_FLAGS += --ext no_krml_private
@@ -229,37 +230,51 @@ echo-krml:
 
 .depend: $(ROOTS) .fstar.touch
 	$(call msg,"DEPEND",$@)
-	$(Q)$(FSTAR) --codegen krml --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' --dep full $(ROOTS) -o $@.tmp
-	# HUGE HACK: append (not prepend!) a .plugin.touch dependency for every krml file.
-	$(sed) ':outer; /krml: \\$$/{n;:inner;/[^\\]$$/{s/.*/& .plugin.touch/; b outer};n;b inner}' < $@.tmp > $@
-	rm -f $@.tmp
+	$(Q)$(FSTAR) --codegen KrmlC --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' --dep full $(ROOTS) -o $@
 
 depgraph: depend.pdf
 depend.pdf: .depend .force
 	$(call msg, "DEPEND GRAPH", $(SRC))
-	$(FSTAR) --dep graph --codegen krml --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' $(ROOTS) $(DEPFLAGS) -o .depend.graph
+	$(FSTAR) --dep graph --codegen KrmlC --already_cached 'FStar,LowStar,Prims,Pulse,PulseCore' $(ROOTS) $(DEPFLAGS) -o .depend.graph
 	./FStar/.scripts/simpl_graph.py .depend.graph > .depend.simpl
 	# Tweak ratio
 	$(sed) -i 's/^digraph{/& ratio=1;/' .depend.simpl
 	dot -Tpdf -o $@ .depend.simpl
 	echo "Wrote $@"
 
-# Does not work. See hack in .depend
-# $(OUTDIR)/%.krml: .plugin.touch
+# Extraction goes through Custard, F*'s whole-program extractor, with its
+# karamel backend: the program reachable from $(MOD) is written to a single
+# .krml file (whose module is called Custard), with Kuiper's own primitives
+# (kernel launches, CUDA memory operations, floats, tensor cores...)
+# translated by the rules in the plugin.
+CUSTARD_FLAGS :=
+CUSTARD_FLAGS += --codegen KrmlC
+CUSTARD_FLAGS += --custard_sizet_width 32 # SizeT.t is uint32_t
+CUSTARD_FLAGS += --custard_norm_budget 1000000000
+CUSTARD_FLAGS += --warn_error @381 # a rule with the wrong arity
+CUSTARD_FLAGS += --load_cmxs $(PLUGIN)
 
+# F*'s dependency analysis has no rules for Custard's output.  A .krml
+# depends on its entry module's checked file (found by the same renaming as
+# MOD), on the plugin, and, since Custard inlines across modules and so reads
+# the implementation of everything reachable (not just the interfaces the
+# entry module's checked file depends on), on every implementation's checked
+# file.  (The filter must live in a variable: a % in a pattern rule's
+# prerequisites would be replaced by the stem.)
+ALL_IMPL_CHECKED_FILES = $(filter $(CACHEDIR)/%.fst.checked,$(ALL_CHECKED_FILES))
+.SECONDEXPANSION:
 $(OUTDIR)/%.krml: MOD=$(subst _,.,$(basename $(notdir $@)))
-$(OUTDIR)/%.krml: | .fstar.touch
+$(OUTDIR)/%.krml: $(CACHEDIR)/$$(subst _,.,$$*).fst.checked $$(ALL_IMPL_CHECKED_FILES) .plugin.touch | .fstar.touch
 	@# Stupid renaming!
 	$(call msg,"EXTRACT")
-	$(Q)$(FSTAR) --codegen krml --load_cmxs $(PLUGIN) --extract "-*,+$(MOD),+Kuiper" -o $@ $<
+	$(Q)$(FSTAR) $(CUSTARD_FLAGS) --already_cached '*' --custard_entry_module $(MOD) -o $@ $<
 
-# Turning something like obj/Kuiper_DotProduct2.krml into Kuiper.DotProduct2
-$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: MOD=$(subst _,.,$(basename $(notdir $<)))
-$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: PRE=$(subst $(OUTDIR),$(OUTDIR)/pre,$@)
+# Turning something like obj/Kuiper_DotProduct2.krml into Kuiper_DotProduct2.{cu,h}
+$(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: NAME=$(basename $(notdir $<))
 $(OUTDIR)/pre/%.cu $(OUTDIR)/pre/%.h &: $(OUTDIR)/%.krml .krml.touch
 	$(call msg,"KRML")
 	# Output into pre/
-	$(KRML) -bundle "$(MOD)=*" -tmpdir $(OUTDIR)/pre/ $<
+	$(KRML) -bundle "Custard=*[rename=$(NAME)]" -tmpdir $(OUTDIR)/pre/ $<
 
 # Postprocess via sed and generate the actual target
 # Do NOT use a wildcard without an extension or this can match

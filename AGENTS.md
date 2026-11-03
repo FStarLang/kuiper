@@ -112,7 +112,7 @@ make lint-c         # clang-format test/*.cu and test/*.c.inc files
 ### Pipeline
 
 1. **Verify**: F\*/Pulse source in `src/` is type-checked and verified (`obj/*.checked`)
-2. **Extract**: Verified modules are extracted to KreMLin IR (`obj/*.krml`) using an extraction plugin from `extraction/`
+2. **Extract**: Each module is extracted to KreMLin IR (`obj/*.krml`) by F\*'s whole-program extractor, Custard (`--codegen KrmlC`). Kuiper primitives such as kernel launches, CUDA memory operations, floats and tensor cores are translated by the Custard rules of the plugin in `extraction/ExtractKuiper.fst`
 3. **Compile to CUDA**: KreMLin (Karamel) translates `.krml` → `.cu`/`.h`, post-processed by `scripts/fixup.sed` and the pinned `clang-format`
 4. **Build**: `nvcc` compiles the generated CUDA code (`nvcc.mk`)
 
@@ -149,4 +149,4 @@ These are forked/branched versions with GPU-specific extensions:
 - A spec-only `nat`/index *function argument* (used only to compute a ghost layout/spec, not needed at runtime) MUST be `erased` or extraction fails; supply the runtime value via a `{| concrete_sz x |}` typeclass instance instead of a concrete `nat` parameter (e.g. `Kuiper.Array2.Strided.Slice.slice_of_3`'s `page`)
 - Module naming: `Kuiper.Foo.Bar` maps to file `Kuiper.Foo.Bar.fst` (dots in filenames, not directories)
 - `.fst` = implementation, `.fsti` = interface; some `.fst` files are auto-generated from `.fst.sh` scripts
-- F\* flags include `--ext kuiper` (Kuiper-specific compiler extension) and `--z3version 4.13.3`
+- F\* flags include `--ext kuiper` (Kuiper-specific compiler extension) and the Z3 version pinned in `.z3-version` (currently 5.3.0)

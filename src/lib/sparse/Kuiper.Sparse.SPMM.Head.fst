@@ -71,6 +71,7 @@ fn sparse_load_main
       (Seq.slice col_ind
         (ri + idx * p.blockItemsK) (ri + idx * p.blockItemsK + p.blockItemsK))
 {
+  assert pure (1.0R /. p.blockWidth >. 0.0R);
   let off : (o:sz{SZ.v o == SZ.v ri + SZ.v idx * SZ.v p.blockItemsK})
     = ri +^ idx *^ p.blockItemsK;
 
@@ -411,7 +412,24 @@ let tcol_fits
 =
   FStar.Math.Lemmas.lemma_mult_lt_right (chunk et) tid p.blockWidth;
   assert (bcol p bid < p.cols);
-  assert (p.blockWidth * chunk et <= p.blockItemsX)
+  Kuiper.Divides.lemma_divides_le (p.blockWidth * chunk et) p.blockItemsX;
+  assert (p.blockWidth * chunk et <= p.blockItemsX);
+  FStar.Math.Lemmas.multiply_fractions p.blockItemsX p.blockWidth;
+  assert (tcol p bid tid + p.blockItemsX / p.blockWidth * p.blockWidth < 30000);
+  assert_norm (pow2 16 == 65536);
+  FStar.SizeT.fits_at_least_16 (tcol p bid tid + p.blockItemsX / p.blockWidth * p.blockWidth)
+
+(* The masked first tile: zero-padding followed by the in-row prefix is the
+   [k]-prefix of the padded row. *)
+let masked_tile_prefix
+  (#a : Type0) (z : a) (s : Seq.seq a) (ri' ri re k : nat)
+: Lemma
+  (requires ri' <= ri /\ ri <= ri' + k /\ ri' + k <= re /\ re <= Seq.length s)
+  (ensures
+    Seq.equal
+      (Seq.create (ri - ri') z @+ Seq.slice s ri (ri' + k))
+      (Seq.slice (Seq.create (ri - ri') z @+ Seq.slice s ri re) 0 k))
+= ()
 
 (* Check the length of a padded row without the kernel's approximation facts. *)
 let padded_row
@@ -431,7 +449,7 @@ let masked_row
 (* Loading and masking the first tile needs bounds, but not column sortedness.
    Expanding sorted_slice here causes costly quantifier instantiations even
    for sequence-length and slice-bound queries. *)
-#push-options "--z3rlimit 60 --using_facts_from '* -Kuiper.Sparse.Common.sorted_slice'"
+#push-options "--z3rlimit 60 --z3refresh --using_facts_from '* -Kuiper.Sparse.Common.sorted_slice'"
 inline_for_extraction noextract
 fn kf_head
   (#et : Type0) {| d : scalar et, sized et, hvc : has_vec_cpy et, real_like et |}
@@ -581,6 +599,8 @@ fn kf_head
       out0
   );
 
+  masked_tile_prefix #et zero elems ri' ri re p.blockItemsK;
+  masked_tile_prefix #real 0.0R relems ri' ri re p.blockItemsK;
   assert pure (
     Seq.equal
       (Seq.create (ri - ri') zero @+ Seq.slice elems ri (ri' + p.blockItemsK))

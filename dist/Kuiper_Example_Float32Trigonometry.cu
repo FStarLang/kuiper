@@ -12,9 +12,9 @@ __hoisted_run_0(uint32_t n, float *inputs, float *outputs)
     for (; i < n; i++) {
         uint32_t j = i;
         float x = inputs[j];
-        float s1 = __sinf(x);
+        float s = __sinf(x);
         float c = __cosf(x);
-        outputs[2U * j] = s1;
+        outputs[2U * j] = s;
         outputs[2U * j + 1U] = c;
     }
 }

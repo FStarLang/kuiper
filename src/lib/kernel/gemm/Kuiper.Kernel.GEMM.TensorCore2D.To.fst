@@ -35,6 +35,28 @@ open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelDesc.Teardown
 open Kuiper.Kernel.GEMM.TensorCore2D.To.BaseSendable
 open Kuiper.Kernel.GEMM.TensorCore2D.To.KernelBody
 
+(* [q1 * q2 * tm * tn <= (wm * tm * q1) * (wn * tn * q2)], by explicit
+   monotonicity steps (nonlinear; flaky when left to Z3 in context). *)
+let scratch_le_block_lemma (q1 q2 tm tn wm wn : pos)
+  : Lemma (q1 * q2 * tm * tn <= (wm * tm * q1) * (wn * tn * q2))
+=
+  FStar.Math.Lemmas.paren_mul_right q1 q2 tm;
+  assert (q1 * q2 * tm * tn == (tm * q1) * (tn * q2));
+  FStar.Math.Lemmas.lemma_mult_le_right (tm * q1) 1 wm;
+  FStar.Math.Lemmas.paren_mul_right wm tm q1;
+  FStar.Math.Lemmas.lemma_mult_le_right (tn * q2) 1 wn;
+  FStar.Math.Lemmas.paren_mul_right wn tn q2;
+  FStar.Math.Lemmas.lemma_mult_le_right (tn * q2) (tm * q1) (wm * tm * q1);
+  FStar.Math.Lemmas.lemma_mult_le_left (wm * tm * q1) (tn * q2) (wn * tn * q2)
+
+(* [a * b <= c * d] from [a <= c] and [b <= d], by explicit monotonicity
+   steps (nonlinear; flaky when left to Z3 in context). *)
+let mul_le_mul_lemma (a b c d : nat)
+  : Lemma (requires a <= c /\ b <= d) (ensures a * b <= c * d)
+=
+  FStar.Math.Lemmas.lemma_mult_le_right b a c;
+  FStar.Math.Lemmas.lemma_mult_le_left c b d
+
 let scratch_fits_of_kernel_constraints
   (m n : szp)
   (bm bn bk tm tn tk wm wn : szp{
@@ -63,6 +85,9 @@ let scratch_fits_of_kernel_constraints
   assert (
     SZ.v wn * SZ.v tn *
     (SZ.v bn / (SZ.v wn * SZ.v tn)) == SZ.v bn);
+  scratch_le_block_lemma
+    (SZ.v bm / (SZ.v wm * SZ.v tm)) (SZ.v bn / (SZ.v wn * SZ.v tn))
+    (SZ.v tm) (SZ.v tn) (SZ.v wm) (SZ.v wn);
   assert (
     (SZ.v nthr / SZ.v warp_size) * SZ.v tm * SZ.v tn <=
     SZ.v bm * SZ.v bn);
@@ -70,6 +95,7 @@ let scratch_fits_of_kernel_constraints
   Kuiper.Divides.lemma_divides_le (SZ.v bm) (SZ.v m);
   Kuiper.Divides.lemma_nat_divides_pos_divides (SZ.v bn) (SZ.v n);
   Kuiper.Divides.lemma_divides_le (SZ.v bn) (SZ.v n);
+  mul_le_mul_lemma (SZ.v bm) (SZ.v bn) (SZ.v m) (SZ.v n);
   assert (SZ.v bm * SZ.v bn <= SZ.v m * SZ.v n);
   ()
 
@@ -92,6 +118,19 @@ let warp_divides_thread_count
     (SZ.v warp_size);
   ()
 
+(* [teardown_to] needs [tm /?+ (wm * tm) /\ tn /?+ (wn * tn)]; inferring it
+   in the large context of [kernel_desc_to] times out, so it is supplied
+   explicitly. *)
+let tile_divides_warp_tile (tm tn wm wn : szp)
+  : squash (tm /?+ (wm * tm) /\ tn /?+ (wn * tn))
+=
+  FStar.Math.Lemmas.cancel_mul_mod (SZ.v wm) (SZ.v tm);
+  FStar.Math.Lemmas.cancel_mul_mod (SZ.v wn) (SZ.v tn)
+
+(* Unfolding [c_shmems_block_inv] / [c_shmems] (and, below, relating the
+   scratch tile's visibility to [c_shmem_inv]) needs fuel; give it up front
+   instead of relying on the fuel-0 attempt failing and being retried. *)
+#push-options "--fuel 1"
 let shmem_inv_components_to
   (#et_ab #et_acc : Type0)
   {| sized et_ab, sized et_acc |}
@@ -132,6 +171,7 @@ let scratch_tile_sendable_to
 = is_send_across_tensor
     (scratch_tile bm bn bk tm tn nthr sh (tid / warp_size))
     block_of #_ #(1.0R /. warp_size) eAcc
+#pop-options
 
 let scratch_tile_live_sendable_to
   (#et_ab #et_acc : Type0)
@@ -329,7 +369,8 @@ let mk_kernel
     fA fB fC rA rB rC;
   teardown = teardown_to comb_r
     gA eA gB eB gC eC gD #mn_fits
-    bm bn bk tm tn tk wm wn #block_divides nblk nthr
+    bm bn bk tm tn tk wm wn #block_divides
+    #_ #(tile_divides_warp_tile tm tn wm wn) nblk nthr
     fA fB fC rA rB rC;
 
   block_frame    = (fun _ar _bid -> emp);

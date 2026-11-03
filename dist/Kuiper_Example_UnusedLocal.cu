@@ -3,7 +3,7 @@
 
 void Kuiper_Example_UnusedLocal_unused_zero(void)
 {
-    float buf = (float) 0LL;
+    float buf = 0.0f;
     KRML_HOST_IGNORE(&buf);
 }
 

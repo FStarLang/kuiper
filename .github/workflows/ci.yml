@@ -66,6 +66,12 @@ jobs:
         run: |
           git submodule update --depth 1 --init --recursive
 
+      # The container image only ships Z3 4.13.3.
+      - name: Install Z3
+        run: |
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          ./FStar/.scripts/get_fstar_z3.sh "$HOME/bin"
+
       - name: Set debug mode
         if: ${{ inputs.debug }}
         run: |

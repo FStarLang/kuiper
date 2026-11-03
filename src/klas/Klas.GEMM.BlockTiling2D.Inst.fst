@@ -14,6 +14,15 @@ module SZ = Kuiper.SizeT
 
 #set-options "--z3rlimit 100" // ridiculuous, try to improve
 
+let div_mul_le (m n a b : pos)
+  : Lemma ((m / a) * (n / b) <= m * n)
+  = FStar.Math.Lemmas.lemma_div_le m (m * a) a;
+    FStar.Math.Lemmas.cancel_mul_div m a;
+    FStar.Math.Lemmas.lemma_div_le n (n * b) b;
+    FStar.Math.Lemmas.cancel_mul_div n b;
+    FStar.Math.Lemmas.lemma_mult_le_right (n / b) (m / a) m;
+    FStar.Math.Lemmas.lemma_mult_le_left m (n / b) n
+
 inline_for_extraction noextract
 fn spec
   (bm bn bk : szp)
@@ -83,6 +92,7 @@ fn spec
 
   assert pure (m / bm <= m);
   assert pure (n / bn <= n);
+  div_mul_le (SZ.v m) (SZ.v n) (SZ.v bm) (SZ.v bn);
   assert pure ((m / bm) * (n / bn) <= m * n);
   assert pure ((m / bm) * (n / bn) <= max_blocks);
 

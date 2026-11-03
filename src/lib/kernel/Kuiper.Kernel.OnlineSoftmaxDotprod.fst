@@ -120,10 +120,56 @@ let exp_sub_mul (a b : real)
     }
 #pop-options
 
+(* One step of [online_softmax_dotprod_real_iter], multiplied back by
+   [exp m], adds the unshifted contribution of [(x, y)]. *)
 #push-options "--z3rlimit 20"
+let iter_step_correct (m0 dn0 dd0: real) (xy: real & real)
+  : Lemma (ensures (
+      let r = reveal (online_softmax_dotprod_real_iter (hide (m0, dn0, dd0)) xy) in
+      (Mktuple3?._2 r) *. exp (Mktuple3?._1 r) == dn0 *. exp m0 +. exp_x_y xy /\
+      (Mktuple3?._3 r) *. exp (Mktuple3?._1 r) == dd0 *. exp m0 +. exp_x xy))
+  = let (x, y) = xy in
+    let m1 = rmax m0 x in
+    let dn1 = dn0 *. exp (m0 -. m1) +. exp (x -. m1) *. y in
+    let dd1 = dd0 *. exp (m0 -. m1) +. exp (x -. m1) in
+    assert (reveal (online_softmax_dotprod_real_iter (hide (m0, dn0, dd0)) xy) == (m1, dn1, dd1));
+    calc (==) {
+      dn1 *. exp m1;
+      == { r_distrib (dn0 *. exp (m0 -. m1)) (exp (x -. m1) *. y) (exp m1) }
+      dn0 *. exp (m0 -. m1) *. exp m1 +. exp (x -. m1) *. y *. exp m1;
+      == { r_assoc dn0 (exp (m0 -. m1)) (exp m1); r_swap (exp (x -. m1)) y (exp m1) }
+      dn0 *. (exp (m0 -. m1) *. exp m1) +. (exp (x -. m1) *. exp m1) *. y;
+      == { exp_sub_mul m0 m1; exp_sub_mul x m1 }
+      dn0 *. exp m0 +. exp x *. y;
+    };
+    calc (==) {
+      dd1 *. exp m1;
+      == { r_distrib (dd0 *. exp (m0 -. m1)) (exp (x -. m1)) (exp m1) }
+      dd0 *. exp (m0 -. m1) *. exp m1 +. exp (x -. m1) *. exp m1;
+      == { r_assoc dd0 (exp (m0 -. m1)) (exp m1) }
+      dd0 *. (exp (m0 -. m1) *. exp m1) +. (exp (x -. m1) *. exp m1);
+      == { exp_sub_mul m0 m1; exp_sub_mul x m1 }
+      dd0 *. exp m0 +. exp x;
+    }
+#pop-options
+
+(* Unfold [seq_fold_left] once on a non-empty sequence. *)
+let fold_left_cons (#a #b: Type) (f: b -> a -> b) (acc: b) (s: Seq.seq a) (x: a) (t: Seq.seq a)
+  : Lemma (requires view_seq s == SCons x t)
+          (ensures seq_fold_left f acc s == seq_fold_left f (f acc x) t)
+  = ()
+
+(* Linear glue for the inductive step of [fold_correct_dotprod]. *)
+let fold_correct_glue (a1 e1 e0 c rt rs : real)
+  : Lemma (requires a1 == e1 +. rt /\ e1 == e0 +. c /\ rs == c +. rt)
+          (ensures a1 == e0 +. rs)
+  = ()
+
 (* Theorem 1 from the Online Softmax paper, generalised to dot-product.
    Both numerator and denominator accumulators, multiplied by [exp m],
-   recover the "unshifted" running sums. *)
+   recover the "unshifted" running sums. The inductive step is split into
+   [iter_step_correct], [fold_left_cons] and [fold_correct_glue] so that
+   each query stays small (it was seed-fragile as one monolithic proof). *)
 let rec fold_correct_dotprod (m0 dn0 dd0: real) (s: Seq.seq (real & real))
   : Lemma (ensures (
       let r = reveal (seq_fold_left online_softmax_dotprod_real_iter
@@ -132,44 +178,26 @@ let rec fold_correct_dotprod (m0 dn0 dd0: real) (s: Seq.seq (real & real))
       dn' *. exp m' == dn0 *. exp m0 +. rsum (seq_map exp_x_y s) /\
       dd' *. exp m' == dd0 *. exp m0 +. rsum (seq_map exp_x   s)))
     (decreases Seq.length s)
-  = exp_base ();
-    match view_seq s with
-    | SNil -> ()
+  = match view_seq s with
+    | SNil ->
+        assert (Seq.equal (seq_map exp_x_y s) Seq.empty);
+        assert (Seq.equal (seq_map exp_x s) Seq.empty)
     | SCons xy t ->
-        let (x, y) = xy in
-        let m1 = rmax m0 x in
-        let dn1 = dn0 *. exp (m0 -. m1) +. exp (x -. m1) *. y in
-        let dd1 = dd0 *. exp (m0 -. m1) +. exp (x -. m1) in
-        // dn1 * exp(m1) = (dn0 * exp(m0-m1) + exp(x-m1)*y) * exp(m1)
-        //               = dn0 * exp(m0) + exp(x) * y
-        exp_sub_mul m0 m1;
-        assert (exp (m0 -. m1) *. exp m1 == exp m0);
-        assert (dn1 *. exp m1 == (dn0 *. exp (m0 -. m1) +. exp (x -. m1) *. y) *. exp m1);
-        calc (==) {
-          (dn0 *. exp (m0 -. m1) +. exp (x -. m1) *. y) *. exp m1;
-          == { r_distrib (dn0 *. exp (m0 -. m1)) (exp (x -. m1) *. y) (exp m1) }
-          dn0 *. exp (m0 -. m1) *. exp m1 +. exp (x -. m1) *. y *. exp m1;
-          == { r_assoc dn0 (exp (m0 -. m1)) (exp m1); r_swap (exp (x -. m1)) y (exp m1) }
-          dn0 *. (exp (m0 -. m1) *. exp m1) +. (exp (x -. m1) *. exp m1) *. y;
-          == { exp_sub_mul m0 m1; exp_sub_mul x m1 }
-          dn0 *. exp m0 +. exp x *. y;
-        };
-        assert (dn1 *. exp m1 == dn0 *. exp m0 +. exp x *. y);
-        assert (dd1 *. exp m1 == (dd0 *. exp (m0 -. m1) +. exp (x -. m1)) *. exp m1);
-        calc (==) {
-          (dd0 *. exp (m0 -. m1) +. exp (x -. m1)) *. exp m1;
-          == { r_distrib (dd0 *. exp (m0 -. m1)) (exp (x -. m1)) (exp m1) }
-          dd0 *. exp (m0 -. m1) *. exp m1 +. exp (x -. m1) *. exp m1;
-          == { r_assoc dd0 (exp (m0 -. m1)) (exp m1) }
-          dd0 *. (exp (m0 -. m1) *. exp m1) +. (exp (x -. m1) *. exp m1);
-          == { exp_sub_mul m0 m1; exp_sub_mul x m1 }
-          dd0 *. exp m0 +. exp x;
-        };
-        assert (dd1 *. exp m1 == dd0 *. exp m0 +. exp x);
+        let r1 = reveal (online_softmax_dotprod_real_iter (hide (m0, dn0, dd0)) xy) in
+        let m1 = (Mktuple3?._1 r1) in
+        let dn1 = (Mktuple3?._2 r1) in
+        let dd1 = (Mktuple3?._3 r1) in
+        iter_step_correct m0 dn0 dd0 xy;
+        fold_left_cons online_softmax_dotprod_real_iter (hide (m0, dn0, dd0)) s xy t;
+        assert (hide (m1, dn1, dd1) == online_softmax_dotprod_real_iter (hide (m0, dn0, dd0)) xy);
         fold_correct_dotprod m1 dn1 dd1 t;
+        let r = reveal (seq_fold_left online_softmax_dotprod_real_iter (hide (m1, dn1, dd1)) t) in
         rsum_map_cons exp_x_y xy t;
-        rsum_map_cons exp_x   xy t
-#pop-options
+        rsum_map_cons exp_x   xy t;
+        fold_correct_glue ((Mktuple3?._2 r) *. exp (Mktuple3?._1 r)) (dn1 *. exp m1) (dn0 *. exp m0) (exp_x_y xy)
+          (rsum (seq_map exp_x_y t)) (rsum (seq_map exp_x_y s));
+        fold_correct_glue ((Mktuple3?._3 r) *. exp (Mktuple3?._1 r)) (dd1 *. exp m1) (dd0 *. exp m0) (exp_x xy)
+          (rsum (seq_map exp_x t)) (rsum (seq_map exp_x s))
 
 (* [rsum] of an initialised sequence equals the recursive [seq_dotprod]
    of the corresponding mapped/index pair, expanded one step at a time. *)

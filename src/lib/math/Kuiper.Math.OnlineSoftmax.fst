@@ -92,9 +92,16 @@ let l_distr_r' (a b c: real) : ((a +. b) *. c == (a *. c) +. (b *. c)) = ()
 
 let cancel_md (a : real) (b : real{b =!= 0.0R}) : Lemma (a *. b /. b == a) = ()
 let cancel_dm (a : real) (b : real{b =!= 0.0R}) : Lemma (a /. b *. b == a) = ()
+(* Small steps for [abcd_adcb]: proving it in one shot is seed-sensitive. *)
+let div_mul_swap (x c : real) (b : real{b =!= 0.0R}) : Lemma (x /. b *. c == (x *. c) /. b) = ()
+let div_div_swap (y : real) (b d : real{b =!= 0.0R /\ d =!= 0.0R}) : Lemma (y /. b /. d == y /. d /. b) = ()
+
 let abcd_adcb (a b c d : real)
   : Lemma (requires b =!= 0.0R /\ d =!= 0.0R)
-          (ensures a /. b *. c /. d == a /. d *. c /. b) = ()
+          (ensures a /. b *. c /. d == a /. d *. c /. b)
+  = div_mul_swap a c b;
+    div_mul_swap a c d;
+    div_div_swap (a *. c) b d
 
 let assoc_mul (a b c: real) : Lemma ((a *. b) *. c == a *. (b *. c)) = ()
 
@@ -109,6 +116,16 @@ let assoc_mul_div (a b c : real{c =!= 0.0R}) : Lemma ((a *. b) /. c == a *. (b /
 
 let mul_one_div (a : real) (b : real{b =!= 0.0R}) : Lemma (a *. (1.0R /. b) == a /. b) = ()
 
+(* 0 is a left zero of real multiplication, as a standalone fact. *)
+let zero_mul (a : real) : Lemma (0.0R *. a == 0.0R) = ()
+
+(* Stated in a clean context: proving this inline in [softmax_step] makes Z3
+   diverge (exp SMT patterns introduce many nonlinear terms). *)
+let pos_mul_add_pos (a b c : real)
+  : Lemma (requires a >. 0.0R /\ b >. 0.0R /\ c >. 0.0R)
+          (ensures a *. b +. c >. 0.0R)
+  = ()
+
 #push-options "--z3rlimit 10"
 let softmax_step #x (xst : st x) (xi : real) :
   res:(real & st (x @+ seq![xi]) & real)
@@ -118,12 +135,17 @@ let softmax_step #x (xst : st x) (xi : real) :
   =
   let m' = rmax xst.m xi in
   seq_max_cons_lem x xi;
+  lem_rmax_comm xst.m xi;
+  assert (xst.m == seq_max x);
   assert m' == seq_max (x @+ seq![xi]);
   let fxi = exp (xi -. m') in
   let adj = exp (xst.m -. m') in
   exp_sum_snoc_lem x xi;
   assert xst.d == exp_sum x /. exp xst.m;
   let d' = xst.d *. adj +. fxi in
+  exp_positive (xst.m -. m');
+  exp_positive (xi -. m');
+  pos_mul_add_pos xst.d adj fxi;
   assert (d' >. 0.0R);
   (* Prove d' is correct. *)
   calc (==) {
@@ -220,23 +242,27 @@ let rec lemma_seq_fold_left_distrib_mul
         seq_fold_left op acc s *. r;
       }
 
+(* The body works on explicit [fxi], [xst'], [adj] rather than on a match
+   of [softmax_stepi]: re-matching the result in the final postcondition
+   query (with all the real-arithmetic facts of the body in context) made
+   Z3 diverge without consuming its rlimit. *)
 #push-options "--z3rlimit 30"
-let lem_online_softmax_adj
+let lem_online_softmax_adj_aux
   (#n : pos)
   (x : lseq real n)
   (i: pos {i < n})
   (xst : st (seq_take i x))
   (k: real -> natlt (Seq.length x) -> real)  (* continuation: what to do with e^xi *)
-  (#k_comm_div: (nr: real) -> (dr: real { dr =!= 0.0R } ) -> (j: natlt n) -> (k nr j) /. dr == k (nr /. dr) j)
+  (k_comm_div: (nr: real) -> (dr: real { dr =!= 0.0R } ) -> (j: natlt n) -> (k nr j) /. dr == k (nr /. dr) j)
   (op: real -> real -> real)
-  (#op_distrib_mul: (a: real) -> (b: real) -> (r: real) -> (a `op` b) *. r == (a *. r) `op` (b *. r))
-  (#r : real):
-  Lemma
-        (requires r /. xst.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real_seq (seq_take i x)) k)))
+  (op_distrib_mul: (a: real) -> (b: real) -> (r: real) -> (a `op` b) *. r == (a *. r) `op` (b *. r))
+  (r : real)
+  (fxi : real) (xst' : st (seq_take (i+1) x)) (adj : real)
+  : Lemma
+        (requires r /. xst.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real_seq (seq_take i x)) k)) /\
+                  softmax_stepi #n x i xst == (fxi, xst', adj))
         (ensures
-          (let (fxi,xst',adj) = softmax_stepi #n x i xst in
-          ((r *. adj) `op` (k fxi i)) /. xst'.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real_seq (seq_take (i+1) x)) k)))) =
-    let (fxi,xst',adj) = softmax_stepi #n x i xst in
+          ((r *. adj) `op` (k fxi i)) /. xst'.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real_seq (seq_take (i+1) x)) k))) =
     let x_upto_i = seq_take i x in
     let x_upto_i' = seq_take (i+1) x in
     let v1 = seq_fold_left op 0.0R (seq_mapi (softmax_real_seq x_upto_i) k) in
@@ -323,7 +349,7 @@ let lem_online_softmax_adj
        0.0R *. r2 == 0.0R, so the helper's rescaled initial accumulator
        matches our initial 0.0R. *)
     lemma_seq_fold_left_distrib_mul op op_distrib_mul 0.0R r2 s1;
-    assert (0.0R *. r2 == 0.0R);
+    zero_mul r2;
     assert (seq_fold_left op 0.0R s1_scaled == v1 *. r2);
     assert (seq_fold_left op 0.0R s2_prefix == v1 *. r2);
 
@@ -360,6 +386,24 @@ let lem_online_softmax_adj
     (* Conclude using Step C. *)
     assert (((r *. adj) `op` (k fxi i)) /. xst'.d == seq_fold_left op 0.0R s2)
 #pop-options
+
+let lem_online_softmax_adj
+  (#n : pos)
+  (x : lseq real n)
+  (i: pos {i < n})
+  (xst : st (seq_take i x))
+  (k: real -> natlt (Seq.length x) -> real)  (* continuation: what to do with e^xi *)
+  (#k_comm_div: (nr: real) -> (dr: real { dr =!= 0.0R } ) -> (j: natlt n) -> (k nr j) /. dr == k (nr /. dr) j)
+  (op: real -> real -> real)
+  (#op_distrib_mul: (a: real) -> (b: real) -> (r: real) -> (a `op` b) *. r == (a *. r) `op` (b *. r))
+  (#r : real):
+  Lemma
+        (requires r /. xst.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real_seq (seq_take i x)) k)))
+        (ensures
+          (let (fxi,xst',adj) = softmax_stepi #n x i xst in
+          ((r *. adj) `op` (k fxi i)) /. xst'.d == (seq_fold_left op 0.0R (seq_mapi (softmax_real_seq (seq_take (i+1) x)) k)))) =
+    let (fxi,xst',adj) = softmax_stepi #n x i xst in
+    lem_online_softmax_adj_aux #n x i xst k k_comm_div op op_distrib_mul r fxi xst' adj
 
 (*
 

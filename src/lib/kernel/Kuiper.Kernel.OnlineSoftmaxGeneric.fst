@@ -139,6 +139,9 @@ let cancel_mid (a b c : real{b =!= 0.0R /\ c =!= 0.0R})
 let r_distr_l (a b c : real{c =!= 0.0R})
   : Lemma ((a +. b) /. c == a /. c +. b /. c) = ()
 let self_div (a : real{a =!= 0.0R}) : Lemma (a /. a == 1.0R) = ()
+let pos_mul_add_pos (a b c : real)
+  : Lemma (requires a >. 0.0R /\ b >. 0.0R /\ c >. 0.0R)
+          (ensures a *. b +. c >. 0.0R) = ()
 
 let lemma_osmx_rstep (s : osmx_rst) (x : real)
   : Lemma (requires ok_rst s)
@@ -162,9 +165,22 @@ let lemma_osmx_rstep (s : osmx_rst) (x : real)
       (* New denominator: s.d *. exp(m-m') +. exp(x-m'), with exp(m-m') and
          exp(x-m') rewritten by exp_sub (SMTPat). *)
       assert (s.d == exp_sum s.s /. exp m);
+      assert (s'.s == s.s @+ seq![x]);
+      assert (get s'.m == m');
+      assert (s'.d == s.d *. exp (m -. m') +. exp (x -. m'));
+      (* positivity of the new denominator, in a clean context *)
+      exp_positive (m -. m');
+      exp_positive (x -. m');
+      pos_mul_add_pos s.d (exp (m -. m')) (exp (x -. m'));
+      assert (s'.d >. 0.0R);
+      (* value of the new denominator *)
+      exp_sub m m';
+      exp_sub x m';
       cancel_mid (exp_sum s.s) (exp m) (exp m');     // s.d *. exp(m-m') == exp_sum s.s /. exp m'
+      assert (s.d *. exp (m -. m') == exp_sum s.s /. exp m');
       exp_sum_snoc s.s x;                            // exp_sum s'.s == exp_sum s.s +. exp x
-      r_distr_l (exp_sum s.s) (exp x) (exp m')       // splits the combined quotient
+      r_distr_l (exp_sum s.s) (exp x) (exp m');      // splits the combined quotient
+      assert (s'.d == exp_sum s'.s /. exp m')
 
 
 (*

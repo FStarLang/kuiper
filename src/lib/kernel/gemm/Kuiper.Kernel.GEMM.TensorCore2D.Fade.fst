@@ -67,6 +67,31 @@ let tile_flat_index_bound (tm tn wm wn : pos)
     FStar.Math.Lemmas.lemma_mult_le_right wn (i/tm + 1) wm
   end
 
+(* Pointwise version of [em_fade_comb_tiles_full], with the tile
+   coordinate arithmetic spelled out: proving it inline under the
+   quantifier no longer goes through.  The goal needs fuel 1; start there. *)
+#push-options "--fuel 1"
+let em_fade_comb_tiles_full_at
+  (comb : real -> real -> real)
+  (tm tn wm wn : pos)
+  (idxJ : natle wn)
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
+  (i : natlt (wm*tm))
+  (j : natlt (wn*tn))
+: Lemma (Chest.acc2 (em_fade_comb_tiles comb tm tn wm wn wm idxJ rm1 rm2) i j
+         == Chest.acc2 (Chest.chest_comb comb rm1 rm2) i j)
+= FStar.Math.Lemmas.cancel_mul_div wm tm;
+  FStar.Math.Lemmas.cancel_mul_div wn tn;
+  div_lt_pos i tm wm;
+  div_lt_pos j tn wn;
+  FStar.Math.Lemmas.lemma_mult_le_right wn (i/tm + 1) wm;
+  assert (i/tm*wn + j/tn < wm*wn);
+  FStar.Math.Lemmas.euclidean_division_definition i tm;
+  FStar.Math.Lemmas.euclidean_division_definition j tn;
+  subtile_acc2 rm1 tm tn (i/tm) (j/tn) (i%tm) (j%tn);
+  subtile_acc2 rm2 tm tn (i/tm) (j/tn) (i%tm) (j%tn)
+#pop-options
+
 #push-options "--z3rlimit 20"
 let em_fade_comb_tiles_full
   (comb : real -> real -> real)
@@ -78,9 +103,7 @@ let em_fade_comb_tiles_full
   introduce forall (i : natlt (wm*tm)) (j : natlt (wn*tn)).
     Chest.acc2 (em_fade_comb_tiles comb tm tn wm wn wm idxJ rm1 rm2) i j
     == Chest.acc2 (Chest.chest_comb comb rm1 rm2) i j
-  with begin
-    assert (i/tm*wn + j/tn < wm*wn)
-  end;
+  with em_fade_comb_tiles_full_at comb tm tn wm wn idxJ rm1 rm2 i j;
   Kuiper.EMatrix.lemma_equal_intro
     (em_fade_comb_tiles comb tm tn wm wn wm idxJ rm1 rm2)
     (Chest.chest_comb comb rm1 rm2);
@@ -111,7 +134,8 @@ let em_fade_comb_current_subtile_approximates
 
 (* [%~] on a [chest2] quantifies over the *flat* index, so bridging a
    per-tile approximation up to a whole-matrix one (or vice versa) needs an
-   explicit hop through that flat quantifier. *)
+   explicit hop through that flat quantifier.  Needs fuel 1 to unfold [%~]. *)
+#push-options "--fuel 1"
 let approximates_elim
   (#et : Type0) {| scalar et, real_like et |}
   (#rows #cols : nat)
@@ -120,6 +144,7 @@ let approximates_elim
   (i : natlt rows) (j : natlt cols)
   : Lemma (requires m1 %~ m2) (ensures Chest.acc2 m1 i j %~ Chest.acc2 m2 i j)
 = ()
+#pop-options
 
 let ematrix_subtile_approximates_forall
   (#et : Type0) {| scalar et, real_like et |}
@@ -135,10 +160,20 @@ let ematrix_subtile_approximates_forall
 = introduce forall (i:natlt rows) (j:natlt cols).
     Chest.acc2 m1 i j %~ Chest.acc2 m2 i j
   with begin
+    (* Tile coordinates of (i, j), stated explicitly rather than left to
+       Z3's nonlinear reasoning. *)
+    FStar.Math.Lemmas.lemma_div_exact rows trows;
+    FStar.Math.Lemmas.lemma_div_exact cols tcols;
+    div_lt_pos i trows (rows/trows);
+    div_lt_pos j tcols (cols/tcols);
+    FStar.Math.Lemmas.euclidean_division_definition i trows;
+    FStar.Math.Lemmas.euclidean_division_definition j tcols;
     approximates_elim
       (ematrix_subtile m1 trows tcols (i/trows) (j/tcols))
       (ematrix_subtile m2 trows tcols (i/trows) (j/tcols))
-      (i%trows) (j%tcols)
+      (i%trows) (j%tcols);
+    subtile_acc2 m1 trows tcols (i/trows) (j/tcols) (i%trows) (j%tcols);
+    subtile_acc2 m2 trows tcols (i/trows) (j/tcols) (i%trows) (j%tcols)
   end;
   lemma_approximates_intro m1 m2
 #pop-options

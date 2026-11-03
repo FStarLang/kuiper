@@ -4,7 +4,7 @@
 #
 # The package is a ready-to-use Kuiper tree bundling:
 #   - the F* + Karamel toolchain (inst/), prebuilt
-#   - Z3 4.13.3, bundled where F* expects it (inst/lib/fstar/z3-4.13.3/bin/z3)
+#   - Z3, bundled where F* expects it (inst/lib/fstar/z3-<version>/bin/z3)
 #   - a pinned clang-format executable (inst/bin/clang-format)
 #   - the verified Kuiper library (obj/*.checked) and its extraction plugin
 #   - all sources, headers, scripts and makefiles needed to write, verify,
@@ -27,7 +27,7 @@
 # Environment:
 #   KUIPER_TAG            Suffix for the default basename (default -<kernel>-<arch>)
 #   KUIPER_PACKAGE_Z3     If "false", do not bundle Z3.
-#   Z3_VERSION            Z3 version to bundle (default 4.13.3)
+#   Z3_VERSION            Z3 version to bundle (default from .z3-version)
 #   CLANG_FORMAT_VERSION  clang-format version to bundle (default 19.1.7)
 
 set -euo pipefail
@@ -37,7 +37,7 @@ cd "$ROOT"
 
 KERNEL="$(uname -s)"
 ARCH="$(uname -m)"
-Z3_VERSION="${Z3_VERSION:-4.13.3}"
+Z3_VERSION="${Z3_VERSION:-$(cat .z3-version)}"
 CLANG_FORMAT_VERSION="${CLANG_FORMAT_VERSION:-19.1.7}"
 
 # Default tag and basename
@@ -89,6 +89,13 @@ bundle_z3() {
     Darwin-x86_64-4.13.3)  url="https://github.com/Z3Prover/z3/releases/download/z3-4.13.3/z3-4.13.3-x64-osx-13.7.zip" ;;
     Darwin-arm64-4.13.3|Darwin-aarch64-4.13.3)
                            url="https://github.com/Z3Prover/z3/releases/download/z3-4.13.3/z3-4.13.3-arm64-osx-13.7.zip" ;;
+    # The wheel's standalone executable also supports Ubuntu 22.04.
+    Linux-x86_64-5.3.0)   url="https://github.com/Z3Prover/z3/releases/download/z3-5.3.0/z3_solver-5.3.0.0-py3-none-manylinux_2_27_x86_64.whl" ;;
+    Linux-aarch64-5.3.0|Linux-arm64-5.3.0)
+                           url="https://github.com/Z3Prover/z3/releases/download/z3-5.3.0/z3-5.3.0-arm64-glibc-2.38.zip" ;;
+    Darwin-x86_64-5.3.0)  url="https://github.com/Z3Prover/z3/releases/download/z3-5.3.0/z3-5.3.0-x64-osx-13.3.zip" ;;
+    Darwin-arm64-5.3.0|Darwin-aarch64-5.3.0)
+                           url="https://github.com/Z3Prover/z3/releases/download/z3-5.3.0/z3-5.3.0-arm64-osx-13.3.zip" ;;
     *) die "no known Z3 $ver download for $KERNEL-$ARCH. Set KUIPER_PACKAGE_Z3=false to skip." ;;
   esac
 
@@ -96,9 +103,19 @@ bundle_z3() {
   local tmp; tmp="$(mktemp -d)"
   base="$(basename "$url")"
   $CURL "$url" -o "$tmp/$base"
-  ( cd "$tmp" && unzip -q "$base" )
   mkdir -p "$dest/z3-$ver"
-  cp -a "$tmp/${base%.zip}"/* "$dest/z3-$ver/"
+  case "$base" in
+    *.whl)
+      mkdir -p "$dest/z3-$ver/bin"
+      unzip -p "$tmp/$base" "z3_solver-$ver.0.data/data/bin/z3" > "$dest/z3-$ver/bin/z3"
+      chmod +x "$dest/z3-$ver/bin/z3"
+      $CURL "https://raw.githubusercontent.com/Z3Prover/z3/z3-$ver/LICENSE.txt" -o "$dest/z3-$ver/LICENSE.txt"
+      ;;
+    *)
+      ( cd "$tmp" && unzip -q "$base" )
+      cp -a "$tmp/${base%.zip}"/* "$dest/z3-$ver/"
+      ;;
+  esac
   # Also expose it next to the binaries for PATH-based discovery.
   install -m0755 "$dest/z3-$ver/bin/z3" "$PKG/inst/bin/z3-$ver"
   rm -rf "$tmp"
@@ -134,6 +151,8 @@ cp -a "$PLUGIN" "$PKG/extraction/dune/_build/default/"
 # Build system and helpers.
 cp -a Makefile verify.mk nvcc.mk .common.mk .configure.mk .clang-format configure \
       fstar.sh krml.sh "$PKG/"
+# Keep an explicitly selected solver version consistent with verification.
+printf '%s\n' "$Z3_VERSION" > "$PKG/.z3-version"
 # Referenced by README.md for macOS packages; harmless on Linux ones.
 cp -a setup-mac.sh "$PKG/" 2>/dev/null || true
 cp -a Cfg.fst.config.json "$PKG/" 2>/dev/null || true

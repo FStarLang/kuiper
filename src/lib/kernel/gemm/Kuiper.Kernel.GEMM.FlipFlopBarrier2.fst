@@ -295,6 +295,14 @@ fn even_barrier_p_to_q
       live_strided_chunks (from_array l1 sar1) nthr tid) _;
 }
 
+(* [it < 2 * n ==> it / 2 < n].  Triggered, because it is needed to typecheck
+   [it/2] as an index in the specs below, where no explicit call can be made;
+   Z3 no longer finds this division bound on its own there. *)
+let half_lt_pat (it n : nat)
+  : Lemma (requires it < 2 * n) (ensures 0 <= it / 2 /\ it / 2 < n)
+          [SMTPat (it / 2); SMTPat (2 * n)]
+  = ()
+
 #push-options "--z3rlimit 80"
 ghost
 fn odd_barrier_p_to_q
@@ -328,6 +336,7 @@ fn odd_barrier_p_to_q
       bp_sharing (from_array l1 sar1) (ematrix_subtile eA bm bk (bid/(cols/bn)) (it/2)) nthr **
       bp_sharing (from_array l2 sar2) (ematrix_subtile eB bk bn (it/2) (bid%(cols/bn))) nthr
 {
+  half_lt_pat it (shared / bk);
   forevery_unzip _ _;
   own_strided_chunks_to_bp_sharing l1 sar1 _ nthr;
   own_strided_chunks_to_bp_sharing l2 sar2 _ nthr;
@@ -339,6 +348,17 @@ fn odd_barrier_p_to_q
 #pop-options
 
 (* ---- Main barrier_p_to_q_transform ---- *)
+
+(* The barrier guard [2 * shared / bk] equals [2 * (shared / bk)] when bk divides shared. *)
+#push-options "--fuel 0 --ifuel 0"
+let two_mul_div_exact (shared : nat) (bk : pos)
+  : Lemma (requires shared % bk = 0) (ensures 2 * shared / bk == 2 * (shared / bk))
+  = FStar.Math.Lemmas.lemma_div_exact shared bk;
+    FStar.Math.Lemmas.paren_mul_right 2 (shared / bk) bk;
+    FStar.Math.Lemmas.swap_mul bk (shared / bk);
+    FStar.Math.Lemmas.multiple_division_lemma (2 * (shared / bk)) bk
+#pop-options
+
 
 ghost
 fn barrier_p_to_q_transform
@@ -370,6 +390,8 @@ fn barrier_p_to_q_transform
     forall+ (tid : natlt nthr).
       barrier_q eA eB (from_array l1 sar1) (from_array l2 sar2) nthr bid it tid
 {
+  two_mul_div_exact shared bk;
+  div_lt_mul_pat bid (rows/bm) (cols/bn);
   if (it >= 2 * (shared / bk)) {
     forevery_map
       (fun (tid : natlt nthr) ->

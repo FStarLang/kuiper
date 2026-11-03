@@ -396,6 +396,8 @@ let rec seq_load_vmprod_row_cell_lemma0
 =
   if k = 0 then ()
   else (
+    FStar.Math.Lemmas.lemma_mult_le_right ch (k - 1) k;
+    FStar.Math.Lemmas.distributivity_sub_left k 1 ch;
     Math.lineal_divides ch j ch ((k - 1) * step);
     seq_load_vmprod_row_cell_lemma0 ch y0 x row j step (k - 1) i;
     seq_fma_lemma0' ch x row
@@ -444,6 +446,8 @@ let rec seq_load_vmprod_row_cell_lemma_
     if ik < k - 1
       then (
         seq_load_vmprod_row_cell_lemma_ ch y0 x row j step (k - 1) ik ix;
+        FStar.Math.Lemmas.lemma_mult_le_right ch (ik + 1) (k - 1);
+        FStar.Math.Lemmas.distributivity_add_left ik 1 ch;
         assert ik * ch + ix < (k - 1) * ch;
         seq_fma_lemma0' ch x row
           (seq_load_vmprod_row ch y0 x row j step (k - 1))

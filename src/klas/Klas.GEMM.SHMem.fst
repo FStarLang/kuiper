@@ -9,6 +9,21 @@ open Kuiper.EMatrix
 module MS = Kuiper.Spec.GEMM
 module K = Kuiper.Kernel.GEMM.SHMem
 
+let div_mul_le (m n t : pos)
+  : Lemma ((m / t) * (n / t) <= m * n)
+  = FStar.Math.Lemmas.lemma_div_le m (m * t) t;
+    FStar.Math.Lemmas.cancel_mul_div m t;
+    FStar.Math.Lemmas.lemma_div_le n (n * t) t;
+    FStar.Math.Lemmas.cancel_mul_div n t;
+    FStar.Math.Lemmas.lemma_mult_le_right (n / t) (m / t) m;
+    FStar.Math.Lemmas.lemma_mult_le_left m (n / t) n
+
+(* Nonlinear facts about splitting a size into whole tiles, proved apart from [spec]. *)
+let tile_split (x tile : szp)
+  : Lemma (requires tile /? FStar.SizeT.v x)
+          (ensures FStar.SizeT.v (x /^ tile) > 0 /\ FStar.SizeT.v (x /^ tile) * FStar.SizeT.v tile == FStar.SizeT.v x)
+  = ()
+
 inline_for_extraction noextract
 fn spec
   (tile : valid_tile)
@@ -43,6 +58,10 @@ fn spec
   let mm = m /^ tile;
   let nn = n /^ tile;
   let kk = k /^ tile;
+  tile_split m tile;
+  tile_split n tile;
+  tile_split k tile;
+  div_mul_le (FStar.SizeT.v m) (FStar.SizeT.v n) (FStar.SizeT.v tile);
 
   K.mmcomb_gpu_approx tile
     comb comb_r

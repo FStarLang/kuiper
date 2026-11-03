@@ -5,11 +5,19 @@ open Kuiper
 open Kuiper.Chest
 open Kuiper.Seq.Common
 
+(* The softmax denominator is strictly positive (helper for [softmax_real]). *)
+let chest1_rsum_exp_pos (#n : pos) (s : chest1 real n)
+  : Lemma (chest1_rsum (chest_map exp s) >. 0.0R)
+  = let sq = chest1_to_seq (chest_map exp s) in
+    assert (forall (j : natlt n). Seq.index sq j == exp (acc1 s j));
+    Kuiper.Real.sum_non_zero sq 0.0R
+
 (* Real-value spec for softmax. *)
 let softmax_real #n (s : chest1 real n) : chest1 real n =
   chest1_mapi (fun i x ->
     let exps = chest_map exp s in
     let summ : real = chest1_rsum exps in
+    chest1_rsum_exp_pos s;
     exp x /. summ) s
 
 (* Seq-level mirror of softmax_real, for the lseq-based numeric proofs. *)
