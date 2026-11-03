@@ -259,10 +259,12 @@ CUSTARD_FLAGS += --load_cmxs $(PLUGIN)
 # MOD), on the plugin, and, since Custard inlines across modules and so reads
 # the implementation of everything reachable (not just the interfaces the
 # entry module's checked file depends on), on every implementation's checked
-# file.
+# file.  (The filter must live in a variable: a % in a pattern rule's
+# prerequisites would be replaced by the stem.)
+ALL_IMPL_CHECKED_FILES = $(filter $(CACHEDIR)/%.fst.checked,$(ALL_CHECKED_FILES))
 .SECONDEXPANSION:
 $(OUTDIR)/%.krml: MOD=$(subst _,.,$(basename $(notdir $@)))
-$(OUTDIR)/%.krml: $(CACHEDIR)/$$(subst _,.,$$*).fst.checked $$(filter $(CACHEDIR)/%.fst.checked,$$(ALL_CHECKED_FILES)) .plugin.touch | .fstar.touch
+$(OUTDIR)/%.krml: $(CACHEDIR)/$$(subst _,.,$$*).fst.checked $$(ALL_IMPL_CHECKED_FILES) .plugin.touch | .fstar.touch
 	@# Stupid renaming!
 	$(call msg,"EXTRACT")
 	$(Q)$(FSTAR) $(CUSTARD_FLAGS) --already_cached '*' --custard_entry_module $(MOD) -o $@ $<
