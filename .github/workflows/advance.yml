@@ -92,6 +92,11 @@ jobs:
             echo MOVED=0 >>$GITHUB_ENV
           fi
 
+      # The container image only ships Z3 4.13.3.
+      - name: Install Z3
+        if: ${{ env.MOVED == '1' }}
+        run: ./FStar/.scripts/get_fstar_z3.sh "$HOME/bin"
+
       - name: Build and regenerate dist/
         if: ${{ env.MOVED == '1' }}
         run: |
