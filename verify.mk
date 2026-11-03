@@ -254,12 +254,15 @@ CUSTARD_FLAGS += --custard_norm_budget 1000000000
 CUSTARD_FLAGS += --warn_error @381 # a rule with the wrong arity
 CUSTARD_FLAGS += --load_cmxs $(PLUGIN)
 
-# F*'s dependency analysis has no rules for Custard's output, so a .krml
+# F*'s dependency analysis has no rules for Custard's output.  A .krml
 # depends on its entry module's checked file (found by the same renaming as
-# MOD) and on the plugin.
+# MOD), on the plugin, and, since Custard inlines across modules and so reads
+# the implementation of everything reachable (not just the interfaces the
+# entry module's checked file depends on), on every implementation's checked
+# file.
 .SECONDEXPANSION:
 $(OUTDIR)/%.krml: MOD=$(subst _,.,$(basename $(notdir $@)))
-$(OUTDIR)/%.krml: $(CACHEDIR)/$$(subst _,.,$$*).fst.checked .plugin.touch | .fstar.touch
+$(OUTDIR)/%.krml: $(CACHEDIR)/$$(subst _,.,$$*).fst.checked $$(filter $(CACHEDIR)/%.fst.checked,$$(ALL_CHECKED_FILES)) .plugin.touch | .fstar.touch
 	@# Stupid renaming!
 	$(call msg,"EXTRACT")
 	$(Q)$(FSTAR) $(CUSTARD_FLAGS) --already_cached '*' --custard_entry_module $(MOD) -o $@ $<
