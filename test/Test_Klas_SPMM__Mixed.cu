@@ -24,9 +24,10 @@ static bool run_case(const char *label, uint32_t cols, bool asynchronous,
     bool mapped = false, bool wide_accumulator = false)
 {
     using TA = typename std::remove_pointer<decltype(CSR{}.elems)>::type;
-    const uint32_t rows = 8, shared = 80, guard = 32;
+    const uint32_t rows = 20, shared = 1100, guard = 32;
     // Empty rows, misaligned starts, complete tiles, and partial tiles.
-    const uint32_t lengths[rows] = {0, 1, 7, 8, 31, 32, 33, 65};
+    const uint32_t lengths[rows] = {0, 1, 2, 3, 4, 7, 8, 31, 32, 33, 63, 64, 65,
+        255, 256, 257, 511, 512, 513, 1024};
     std::vector<TA> values;
     std::vector<uint32_t> indices, offsets(1, 0), order(rows);
     std::iota(order.rbegin(), order.rend(), 0);
@@ -153,10 +154,17 @@ int main()
             ++count;
         }
     }
-    CHECK_VARIANT(f16_f16_f32_f32, 12u, false);
-    CHECK_VARIANT(bf16_bf16_f32_f32, 12u, false);
-    CHECK_VARIANT(f16_bf16_f32_f64, 12u, true);
-    CHECK_VARIANT(f16_f32_f32_f64, 12u, true);
+    // Partial final tiles containing complete eight-element working groups.
+    for (uint32_t cols : {24u, 48u, 56u}) {
+        CHECK_VARIANT(f16_f16_f32_f32, cols, false);
+        CHECK_VARIANT(bf16_bf16_f32_f32, cols, false);
+        CHECK_VARIANT(f16_bf16_f32_f64, cols, true);
+        CHECK_VARIANT(f16_f32_f32_f64, cols, true);
+    }
+    // The float-B/float-C control retains its four-element N alignment.
+    for (uint32_t cols : {4u, 12u, 36u}) {
+        CHECK_VARIANT(f16_f32_f32_f64, cols, true);
+    }
 #undef CHECK_VARIANT
     if (!ok)
         return 1;

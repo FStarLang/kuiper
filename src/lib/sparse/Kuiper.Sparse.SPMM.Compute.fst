@@ -57,8 +57,6 @@ let ematrix_col_is_chest (#et : Type0) (#rows #cols : nat)
   : Lemma (ematrix_col em j == chest1_to_seq (chest2_col em j))
   = Seq.lemma_eq_elim (ematrix_col em j) (chest1_to_seq (chest2_col em j))
 
-open Kuiper.Sparse.LoadStore { array_cpy_chunk }
-
 let chunk_end_bound (n k : nat) (ch : pos)
   : Lemma (requires ch /? n /\ ch /? k /\ k < n)
           (ensures k + ch <= n)
@@ -67,41 +65,6 @@ let chunk_end_bound (n k : nat) (ch : pos)
   Math.block_lemma n ch (k / ch)
 
 #push-options "--z3rlimit 20"
-inline_for_extraction noextract
-fn load_scalar_chunk
-  (#tb : Type0)
-  (ch : szp)
-  (dst : larray tb ch)
-  (#n : sz)
-  (#lrow : layout1 n) {| ctlayout lrow |}
-  (row : array1 tb lrow)
-  (#frow : perm) (#vrow : chest1 tb n)
-  (off : sz { off + ch <= n })
-  preserves gpu ** row |-> Frac frow vrow
-  requires live dst
-  ensures dst |-> Seq.slice (chest1_to_seq vrow) off (off + ch)
-{
-  Pulse.Lib.Array.pts_to_len dst;
-  with initial. assert dst |-> initial;
-  let mut lane = 0sz;
-  while (!lane <^ ch)
-    invariant exists* vl (values : lseq tb ch).
-      lane |-> vl ** dst |-> values **
-      pure (vl <= ch /\
-        (forall (i : natlt ch). i < vl ==>
-          values @! i == acc1 vrow (off + i)))
-    decreases (ch - !lane)
-  {
-    let b = Kuiper.Tensor.read row (cidx1 (off +^ !lane));
-    open Pulse.Lib.Array;
-    dst.(!lane) <- b;
-    lane := !lane +^ 1sz;
-  };
-  with values. assert dst |-> values;
-  assert pure (Seq.equal values
-    (Seq.slice (chest1_to_seq vrow) off (off + ch)));
-}
-
 inline_for_extraction noextract
 fn load_vmprod_chunk
   (#ta #tb #et : Type0)
@@ -129,8 +92,9 @@ fn load_vmprod_chunk
   (bounds_checked : bool)
   preserves gpu
   preserves row |-> Frac frow vrow
+  requires  pure (chunk tb /? ch)
   requires  pure (aligned 16 (core row))
-  requires  pure (aligned_cont_layout ch clrow)
+  requires  pure (aligned_cont_layout (chunk tb) clrow)
   requires  pure (bounds_checked ==> k2 < n2)
   requires  pure (x %~ rx /\ vrow %~ rrow /\ vy %~ ry)
   requires  y |-> vy
@@ -141,17 +105,12 @@ fn load_vmprod_chunk
     let mut lchunk = [| zero #tb #_; ch |];
     assume pure (aligned 16 lchunk);
     chunk_end_bound n2 k2 ch;
-    // Retain vector loads when the input and output vector widths agree.
-    // Otherwise, read exactly the output lanes owned by this thread.
-    if (FStar.SizeT.eq ch (chunk tb)) {
-      rewrite (row |-> Frac frow vrow)
-           as (row |-> Frac frow (seq_to_chest1 (chest1_to_seq vrow)));
-      array_cpy_chunk lchunk #_ #lrow #_ #clrow row k2;
-      rewrite (row |-> Frac frow (seq_to_chest1 (chest1_to_seq vrow)))
-           as (row |-> Frac frow vrow);
-    } else {
-      load_scalar_chunk ch lchunk row k2;
-    };
+    Math.divides_chain (chunk tb) ch k2;
+    rewrite (row |-> Frac frow vrow)
+         as (row |-> Frac frow (seq_to_chest1 (chest1_to_seq vrow)));
+    Kuiper.Sparse.LoadStore.array_cpy_chunks ch lchunk row k2;
+    rewrite (row |-> Frac frow (seq_to_chest1 (chest1_to_seq vrow)))
+         as (row |-> Frac frow vrow);
     Kuiper.Chest1.Helpers.chest1_to_seq_approx vrow rrow;
     assert pure (Seq.slice (chest1_to_seq vrow) k2 (k2 + ch) %~
                  Seq.slice (chest1_to_seq rrow) k2 (k2 + ch));
@@ -219,8 +178,9 @@ fn load_vmprod_row
   (bounds_checked : bool)
   preserves gpu
   preserves row |-> Frac frow vrow
+  requires  pure (chunk tb /? ch)
   requires  pure (aligned 16 (core row))
-  requires  pure (aligned_cont_layout ch clrow)
+  requires  pure (aligned_cont_layout (chunk tb) clrow)
   requires  pure (fits (j + n1 * step))
   requires  pure (bounds_checked ==> n1 == ch /\ j < n2)
   requires  pure (x %~ rx /\ vrow %~ rrow /\ vy %~ ry)
@@ -290,7 +250,8 @@ fn tile_mm_
   preserves pts_to_slice elems   #fx 0 to velems
   preserves pts_to_slice row_ind #fx 0 to vrow_ind
   preserves m |-> Frac fm em
-  requires  pure (aligned 16 (core m) /\ aligned_strided_row_major ch srm)
+  requires  pure (chunk tb /? ch)
+  requires  pure (aligned 16 (core m) /\ aligned_strided_row_major (chunk tb) srm)
   requires  pure (fits (j + n1 * step))
   requires  pure (vy %~ ry /\ velems %~ relems /\ em %~ rm)
   requires  y |-> vy
@@ -324,7 +285,7 @@ fn tile_mm_
       assert pure (v kr == cast_pos vrow_ind @! kv);
 
       tensor_extract_row_ro m (v kr);
-      aligned_cont_strided_row_major lm ch kr;
+      aligned_cont_strided_row_major lm (chunk tb) kr;
 
       load_vmprod_row mapA mapB rmapA rmapB ch
         y kx #(relems @! kv) #(Spec.seq_load_vmprod ch #to #n1 ry (Seq.map_seq rmapA relems) (cast_pos vrow_ind) (Kuiper.Chest.chest_map rmapB rm) j step kv)
@@ -342,7 +303,7 @@ fn tile_mm_
   }
 }
 
-let tile_mm_lemma0
+let intro_tile_mm_result
   (#et : Type0) {| scalar et, real_like et |}
   (rmapA rmapB : real -> real)
   (ch : pos)
@@ -357,7 +318,7 @@ let tile_mm_lemma0
         (ensures tile_mm_result rmapA rmapB ch y0 (Seq.empty <: lseq real 0) Seq.empty eB j step y)
 = ()
 
-let tile_mm_mask_lemma
+let mask_tile_mm_result
   (#et : Type0) {| scalar et, real_like et |}
   (rmapA rmapB : real -> real)
   (ch : pos)
@@ -490,7 +451,8 @@ fn tile_mm
   preserves pts_to_slice elems   #fA 0 cant (Seq.slice velems from to <: lseq ta cant)
   preserves pts_to_slice row_ind #fA 0 cant (Seq.slice vrow_ind from to <: lseq sz cant)
   preserves mB |-> Frac fB eB
-  requires  pure (aligned 16 (core mB) /\ aligned_strided_row_major ch srm)
+  requires  pure (chunk tb /? ch)
+  requires  pure (aligned 16 (core mB) /\ aligned_strided_row_major (chunk tb) srm)
   requires  pure (fits (j + ly * step))
   requires  pure (velems %~ relems /\ eB %~ rB)
   requires

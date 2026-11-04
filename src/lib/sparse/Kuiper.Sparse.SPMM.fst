@@ -68,7 +68,7 @@ fn kf_residue
   (mapB : tb -> tacc)
   (rmapA : real -> real { MU.approx1 mapA rmapA /\ rmapA 0.0R == 0.0R })
   (rmapB : real -> real { MU.approx1 mapB rmapB })
-  (p : parameters et)
+  (p : parameters et { chunk tb /? p.workChunk })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols) {| ctlayout lB, srm : strided_row_major lB |}
   (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
@@ -108,7 +108,7 @@ fn kf_residue
   requires  pure (aligned 16 gA.col_ind)
   preserves gB |-> Frac (fB /. allthreads p) eB
   requires  pure (aligned 16 (core gB))
-  requires  pure (aligned_strided_row_major (p.outputChunk) srm)
+  requires  pure (aligned_strided_row_major (chunk tb) srm)
   preserves
     B.barrier_tok (
       barrier_contract p row_perm elems col_ind row_off
@@ -123,7 +123,7 @@ fn kf_residue
   requires exists* (vout : lseq tacc (threadItemsX p)).
     out |-> (vout <: seq tacc) **
     pure (
-      Compute.tile_mm_result rmapA rmapB p.outputChunk
+      Compute.tile_mm_result rmapA rmapB p.workChunk
         #p.shared #p.cols
         #(threadItemsX p)
         (Seq.create (p.blockItemsX / p.blockWidth) 0.0R)
@@ -138,7 +138,7 @@ fn kf_residue
   ensures exists* (vout : lseq tacc (threadItemsX p)).
     out |-> (vout <: seq tacc) **
     pure (
-      Compute.tile_mm_result rmapA rmapB p.outputChunk
+      Compute.tile_mm_result rmapA rmapB p.workChunk
         #p.shared #p.cols
         #(threadItemsX p)
         (Seq.create (p.blockItemsX / p.blockWidth) 0.0R)
@@ -190,7 +190,7 @@ fn kf_residue
 
   with vout. assert out |-> vout;
   assert pure (
-    Compute.tile_mm_result rmapA rmapB p.outputChunk
+    Compute.tile_mm_result rmapA rmapB p.workChunk
       rout0
       #(re - ri - residue)
       (Seq.slice row_relems 0 (re - ri - residue))
@@ -224,7 +224,7 @@ fn kf_residue
   assert pure (threadItemsX p == p.blockItemsX / p.blockWidth);
   tcol_fits p bid tid;
 
-  Compute.tile_mm mapA mapB rmapA rmapB p.outputChunk
+  Compute.tile_mm mapA mapB rmapA rmapB p.workChunk
     out rout0
     #vout #p.blockItemsK elems_tile col_ind_tile
     #(1.0R /. p.blockWidth) #(re - ri)
@@ -291,7 +291,7 @@ fn kf
   (rmapB : real -> real { MU.approx1 mapB rmapB })
   (comb : tc -> tacc -> tc)
   (rcomb : real -> real -> real { approx2 comb rcomb })
-  (p : parameters et { p.outputChunk == chunk tc })
+  (p : parameters et { chunk tb /? p.workChunk /\ chunk tc /? p.workChunk })
   (row_perm : permutation (natlt p.rows))
   (blockChunks : sz{
     SZ.v blockChunks == SZ.v p.blockItemsX / SZ.v p.blockWidth
@@ -305,11 +305,11 @@ fn kf
   (gB : array2 tb lB)
   // TODO esto tiene que estar acá? podria estar en block_pre?
   (#_ : squash (aligned 16 (core gB)))
-  (#_ : squash (aligned_strided_row_major (p.outputChunk) srmB))
+  (#_ : squash (aligned_strided_row_major (chunk tb) srmB))
   (gC : array2 tc lC)
   // TODO esto tiene que estar acá? podria estar en block_pre?
   (#_ : squash (aligned 16 (core gC)))
-  (#_ : squash (aligned_strided_row_major (p.outputChunk) srmC))
+  (#_ : squash (aligned_strided_row_major (chunk tc) srmC))
   // matriz sparse ga
   (#elems : erased (lseq et gA.nnz))
   (#col_ind : erased (lseq sz gA.nnz))
@@ -451,7 +451,7 @@ fn kf
       (Seq.slice (cast_pos col_ind) ri re)
   );
 
-  Compute.tile_mm_result_lemma rmapA rmapB p.outputChunk
+  Compute.tile_mm_result_lemma rmapA rmapB p.workChunk
     rA m_idx
     #(re - ri)
     (Seq.slice relems ri re) (Seq.slice (cast_pos col_ind) ri re)
@@ -464,7 +464,8 @@ fn kf
   as (SizeT.v (Seq.Base.index (ordering row_perm) (SizeT.v (brow_ p bid))));
 
   // TODO renombrar y usar modulo calificado
-  Epilogue.combine_store comb rcomb
+  Math.divides_chain (chunk tc) p.workChunk p.cols;
+  Epilogue.combine_store (p.workChunk) comb rcomb
     gC m_idx n_idx rC
     (MS.matmul (Kuiper.Chest.chest_map rmapA rA) (Kuiper.Chest.chest_map rmapB rB))
     (p.blockItemsX /^ p.blockWidth) out p.blockWidth;
@@ -507,7 +508,7 @@ let kdesc
   (rmapB : real -> real { MU.approx1 mapB rmapB })
   (comb : tc -> tacc -> tc)
   (rcomb : real -> real -> real { approx2 comb rcomb })
-  (p : parameters et { p.outputChunk == chunk tc })
+  (p : parameters et { chunk tb /? p.workChunk /\ chunk tc /? p.workChunk })
   (row_perm : permutation (natlt p.rows))
   (blockChunks : sz{
     SZ.v blockChunks == SZ.v p.blockItemsX / SZ.v p.blockWidth
@@ -519,10 +520,10 @@ let kdesc
   (row_indices : larray sz p.rows)
   (gB : array2 tb lB {is_global gB})
   (#_ : squash (aligned 16 (core gB)))
-  (#_ : squash (aligned_strided_row_major (p.outputChunk) srmB))
+  (#_ : squash (aligned_strided_row_major (chunk tb) srmB))
   (gC : array2 tc lC {is_global gC})
   (#_ : squash (aligned 16 (core gC)))
-  (#_ : squash (aligned_strided_row_major (p.outputChunk) srmC))
+  (#_ : squash (aligned_strided_row_major (chunk tc) srmC))
   // matriz sparse gA
   (elems : erased (lseq et gA.nnz))
   (col_ind : erased (lseq sz gA.nnz))
@@ -663,12 +664,12 @@ fn gspmm_on
   (rmapB : real -> real { MU.approx1 mapB rmapB })
   (comb : tc -> tacc -> tc)
   (rcomb : real -> real -> real { approx2 comb rcomb })
-  (rows shared cols : szp { chunk tc /? cols })
+  (rows shared cols : szp { working_chunk tb tc /? cols })
   (blockItemsK blockItemsX : szp)
   (blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\
-    (k * chunk tc) /? blockItemsX
+    (k * working_chunk tb tc) /? blockItemsX
   }))
   (blockChunks : sz{
     SZ.v blockChunks == SZ.v blockItemsX / SZ.v blockWidth
@@ -682,7 +683,7 @@ fn gspmm_on
   (fri : perm)
   (gB : array2 tb lB{is_global gB})
   (#_ : squash (aligned 16 (core gB)))
-  (#_ : squash (aligned_strided_row_major (chunk tc) srmB))
+  (#_ : squash (aligned_strided_row_major (chunk tb) srmB))
   (#fB : perm)
   (gC : array2 tc lC{is_global gC})
   (#_ : squash (aligned 16 (core gC)))
@@ -717,10 +718,9 @@ fn gspmm_on
       matrix_approx gC (MS.gmmcomb rmapA rmapB rcomb rC rA rB)
     ))
 {
-  chunk_le_16 (chunk tc) (size #tc);
-  Math.prod_cancel_divides blockItemsX (chunk tc) blockWidth;
+  Math.prod_cancel_divides blockItemsX (working_chunk tb tc) blockWidth;
   lemma_aligned_strided_row_major_l2_row_major
-    #(SZ.v blockItemsK) #(SZ.v blockChunks) (chunk tc);
+    #(SZ.v blockItemsK) #(SZ.v blockChunks) (working_chunk tb tc);
 
   map_loc gpu_loc
     #(csr_matrix_approx gA #fA eA rA)
@@ -740,7 +740,7 @@ fn gspmm_on
 
   launch (
     kdesc mapA mapB rmapA rmapB comb rcomb
-      ({ outputChunk = chunk tc; rows; shared; cols; blockItemsK; blockItemsX; blockWidth; sz_req = () })
+      ({ workChunk = working_chunk tb tc; rows; shared; cols; blockItemsK; blockItemsX; blockWidth; sz_req = () })
       row_perm blockChunks #lB #_ #_ #lC
       gA row_indices gB gC elems col_ind row_off #relems rA
       #eB #rB #rC #fA #fri #fB
@@ -785,12 +785,12 @@ fn gspmm
   (rmapB : real -> real { MU.approx1 mapB rmapB })
   (comb : tc -> tacc -> tc)
   (rcomb : real -> real -> real { approx2 comb rcomb })
-  (rows shared cols : szp { chunk tc /? cols })
+  (rows shared cols : szp { working_chunk tb tc /? cols })
   (blockItemsK blockItemsX : szp)
   (blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\
-    (k * chunk tc) /? blockItemsX
+    (k * working_chunk tb tc) /? blockItemsX
   }))
   (blockChunks : sz{
     SZ.v blockChunks == SZ.v blockItemsX / SZ.v blockWidth
@@ -804,7 +804,7 @@ fn gspmm
   (fri : perm)
   (gB : array2 tb lB{is_global gB})
   (#_ : squash (aligned 16 (core gB)))
-  (#_ : squash (aligned_strided_row_major (chunk tc) srmB))
+  (#_ : squash (aligned_strided_row_major (chunk tb) srmB))
   (#fB : perm)
   (gC : array2 tc lC{is_global gC})
   (#_ : squash (aligned 16 (core gC)))

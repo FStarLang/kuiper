@@ -9,7 +9,7 @@ module SZ = Kuiper.SizeT
 open Kuiper.Tensor
 open Kuiper.Sparse
 open Kuiper.Sparse.Approx
-open Kuiper.Sparse.SPMM.Defs { size_req }
+open Kuiper.Sparse.SPMM.Defs { size_req, working_chunk }
 open Kuiper.EMatrix
 open Kuiper.Array.Vectorized
 open Kuiper.Array2.Strided { strided_row_major, aligned_strided_row_major }
@@ -29,8 +29,10 @@ open Kuiper.Kernel.Base
    multiplication; [comb] combines the initial C value with the completed sum.
    [rmapA], [rmapB], and [rcomb] specify those operations over the reals.
    The sparse map must preserve real zero, including implicit zeros and padding.
-   Sparse tiles use the input vector width; output tiles and column alignment
-   use [chunk tc]. The result approximates [MS.gmmcomb rmapA rmapB rcomb rC rA rB].
+   Sparse tiles use the input vector width. Column groups use
+   [working_chunk tb tc]; each operand keeps its own stride alignment.
+   Partial final tiles remain supported; blockItemsX need not divide cols.
+   The result approximates [MS.gmmcomb rmapA rmapB rcomb rC rA rB].
    The single-type [spmm_on]/[spmm] wrappers use identity input maps and replace C. *)
 
 (* Asynchronous, stream-parametric SpMM.
@@ -57,12 +59,12 @@ fn gspmm_on
   (rmapB : real -> real { MU.approx1 mapB rmapB })
   (comb : tc -> tacc -> tc)
   (rcomb : real -> real -> real { approx2 comb rcomb })
-  (rows shared cols : szp { chunk tc /? cols })
+  (rows shared cols : szp { working_chunk tb tc /? cols })
   (blockItemsK blockItemsX : szp)
   (blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\
-    (k * chunk tc) /? blockItemsX
+    (k * working_chunk tb tc) /? blockItemsX
   }))
   (blockChunks : sz{
     SZ.v blockChunks == SZ.v blockItemsX / SZ.v blockWidth
@@ -76,7 +78,7 @@ fn gspmm_on
   (fri : perm)
   (gB : array2 tb lB{is_global gB})
   (#_ : squash (aligned 16 (core gB)))
-  (#_ : squash (aligned_strided_row_major (chunk tc) srmB))
+  (#_ : squash (aligned_strided_row_major (chunk tb) srmB))
   (#fB : perm)
   (gC : array2 tc lC{is_global gC})
   (#_ : squash (aligned 16 (core gC)))
@@ -125,12 +127,12 @@ fn gspmm
   (rmapB : real -> real { MU.approx1 mapB rmapB })
   (comb : tc -> tacc -> tc)
   (rcomb : real -> real -> real { approx2 comb rcomb })
-  (rows shared cols : szp { chunk tc /? cols })
+  (rows shared cols : szp { working_chunk tb tc /? cols })
   (blockItemsK blockItemsX : szp)
   (blockWidth : (k : szp {
     (k * chunk et) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\
-    (k * chunk tc) /? blockItemsX
+    (k * working_chunk tb tc) /? blockItemsX
   }))
   (blockChunks : sz{
     SZ.v blockChunks == SZ.v blockItemsX / SZ.v blockWidth
@@ -144,7 +146,7 @@ fn gspmm
   (fri : perm)
   (gB : array2 tb lB{is_global gB})
   (#_ : squash (aligned 16 (core gB)))
-  (#_ : squash (aligned_strided_row_major (chunk tc) srmB))
+  (#_ : squash (aligned_strided_row_major (chunk tb) srmB))
   (#fB : perm)
   (gC : array2 tc lC{is_global gC})
   (#_ : squash (aligned 16 (core gC)))

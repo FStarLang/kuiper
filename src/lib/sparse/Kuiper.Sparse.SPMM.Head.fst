@@ -411,10 +411,10 @@ let tcol_fits
   (tid : natlt p.blockWidth)
 : Lemma (fits (tcol p bid tid + p.blockItemsX / p.blockWidth * p.blockWidth))
 =
-  FStar.Math.Lemmas.lemma_mult_lt_right (p.outputChunk) tid p.blockWidth;
+  FStar.Math.Lemmas.lemma_mult_lt_right (p.workChunk) tid p.blockWidth;
   assert (bcol p bid < p.cols);
-  Kuiper.Divides.lemma_divides_le (p.blockWidth * p.outputChunk) p.blockItemsX;
-  assert (p.blockWidth * p.outputChunk <= p.blockItemsX);
+  Kuiper.Divides.lemma_divides_le (p.blockWidth * p.workChunk) p.blockItemsX;
+  assert (p.blockWidth * p.workChunk <= p.blockItemsX);
   FStar.Math.Lemmas.multiply_fractions p.blockItemsX p.blockWidth;
   assert (tcol p bid tid + p.blockItemsX / p.blockWidth * p.blockWidth < 30000);
   assert_norm (pow2 16 == 65536);
@@ -461,7 +461,7 @@ fn kf_head
   (mapB : tb -> tacc)
   (rmapA : real -> real { MU.approx1 mapA rmapA /\ rmapA 0.0R == 0.0R })
   (rmapB : real -> real { MU.approx1 mapB rmapB })
-  (p : parameters et)
+  (p : parameters et { chunk tb /? p.workChunk })
   (row_perm : permutation (natlt p.rows))
   (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (#lB : layout2 p.shared p.cols) {| ctlB : ctlayout lB, srmB : strided_row_major lB |}
@@ -499,7 +499,7 @@ fn kf_head
   requires  pure (aligned 16 gA.col_ind)
   preserves gB |-> Frac (fB /. allthreads p) eB
   requires  pure (aligned 16 (core gB))
-  requires  pure (aligned_strided_row_major (p.outputChunk) srmB)
+  requires  pure (aligned_strided_row_major (chunk tb) srmB)
   preserves
     B.barrier_tok (
       barrier_contract p row_perm elems col_ind row_off
@@ -516,7 +516,7 @@ fn kf_head
   ensures   exists* vout.
     out |-> (vout <: seq tacc) **
     pure (
-      Compute.tile_mm_result rmapA rmapB p.outputChunk
+      Compute.tile_mm_result rmapA rmapB p.workChunk
         (Seq.create (threadItemsX p) 0.0R <: lseq real (threadItemsX p))
         (Seq.create (ri - ri') zero @+ Seq.slice relems ri (ri' + p.blockItemsK))
         (lslice (cast_pos col_ind) ri' p.blockItemsK)
@@ -585,9 +585,9 @@ fn kf_head
   let rout0 : erased (lseq real (p.blockItemsX / p.blockWidth)) =
     Seq.create (p.blockItemsX / p.blockWidth) zero;
 
-  Math.prod_cancel_divides p.blockItemsX p.outputChunk (p.blockWidth);
+  Math.prod_cancel_divides p.blockItemsX p.workChunk (p.blockWidth);
 
-  Compute.tile_mm_lemma0 rmapA rmapB p.outputChunk
+  Compute.intro_tile_mm_result rmapA rmapB p.workChunk
     // #_ #_ #_ #_
     // #(p.blockItemsX / p.blockWidth)
     rout0
@@ -598,7 +598,7 @@ fn kf_head
   Seq.lemma_empty (Seq.slice col_ind' 0 0);
 
   assert pure (
-    Compute.tile_mm_result rmapA rmapB p.outputChunk
+    Compute.tile_mm_result rmapA rmapB p.workChunk
       rout0
       (Seq.slice relems' 0 0 <: lseq real 0)
       (Seq.slice (cast_pos col_ind') 0 0)
@@ -627,7 +627,7 @@ fn kf_head
 
   tcol_fits p bid tid;
 
-  Compute.tile_mm mapA mapB rmapA rmapB p.outputChunk
+  Compute.tile_mm mapA mapB rmapA rmapB p.workChunk
     out
     rout0
     elems_tile col_ind_tile #(1.0R /. p.blockWidth)

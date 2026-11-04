@@ -36,7 +36,7 @@ let tile_mm_result
       col < cols ==> (y @! i) %~
         sparse_dprod_acc (y0 @! i) (Seq.map_seq rmapA elems) row_ind (ematrix_col (Kuiper.Chest.chest_map rmapB eB) col)
 
-val tile_mm_lemma0
+val intro_tile_mm_result
   (#et : Type0) {| scalar et, real_like et |}
   (rmapA rmapB : real -> real)
   (ch : pos)
@@ -50,7 +50,7 @@ val tile_mm_lemma0
 : Lemma (requires y %~ y0)
         (ensures tile_mm_result rmapA rmapB ch y0 (Seq.empty <: lseq real 0) Seq.empty eB j step y)
 
-val tile_mm_mask_lemma
+val mask_tile_mm_result
   (#et : Type0) {| scalar et, real_like et |}
   (rmapA rmapB : real -> real)
   (ch : pos)
@@ -132,7 +132,8 @@ fn tile_mm
   preserves pts_to_slice elems   #fA 0 cant (Seq.slice velems from to <: lseq ta cant)
   preserves pts_to_slice row_ind #fA 0 cant (Seq.slice vrow_ind from to <: lseq sz cant)
   preserves mB |-> Frac fB eB
-  requires  pure (aligned 16 (core mB) /\ aligned_strided_row_major (ch) srm)
+  requires  pure (chunk tb /? ch)
+  requires  pure (aligned 16 (core mB) /\ aligned_strided_row_major (chunk tb) srm)
   requires  pure (fits (j + ly * step))
   requires  pure (velems %~ relems /\ eB %~ rB)
   requires

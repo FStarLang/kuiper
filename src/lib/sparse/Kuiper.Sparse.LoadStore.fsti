@@ -98,6 +98,26 @@ fn array_cpy_chunk
   requires  pure (aligned 16 (core src_arr))
   requires  pure (aligned_cont_layout (chunk et) src_cl)
   ensures   dst_arr |-> Seq.slice ss src_off (src_off + chunk et)
+
+// Copy a contiguous array slice using one or more native vectors.
+// Source offsets and destination size need only be multiples of the native chunk.
+inline_for_extraction noextract
+fn array_cpy_chunks
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (dst_sz : szp { chunk et /? dst_sz })
+  (dst_arr : larray et dst_sz)
+  (#src_sz : szp)
+  (#src_l : layout1 src_sz) {| ctlayout src_l, src_cl : cont_layout src_l |}
+  (src_arr : array1 et src_l)
+  (#f : perm)
+  (#ss : erased (lseq et src_sz))
+  (src_off : sz { chunk et /? src_off /\ src_off + dst_sz <= src_sz })
+  preserves gpu ** src_arr |-> Frac f (seq_to_chest1 ss)
+  requires live dst_arr
+  requires pure (aligned 16 dst_arr /\ aligned 16 (core src_arr))
+  requires pure (aligned_cont_layout (chunk et) src_cl)
+  ensures dst_arr |-> Seq.slice ss src_off (src_off + dst_sz)
+
 inline_for_extraction noextract
 fn matrix_store_tile_vec_approx
   (#et:Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}

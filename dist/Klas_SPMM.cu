@@ -51,8 +51,14 @@ __hoisted_spmm_u32_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf1 = k1;
                     uint32_t __anf01 = k1;
                     uint32_t lchunk[4U] = {0U};
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -88,8 +94,14 @@ __hoisted_spmm_u32_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf1 = k1;
                         uint32_t __anf03 = k1;
                         uint32_t lchunk[4U] = {0U};
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -125,26 +137,37 @@ __hoisted_spmm_u32_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf1 = k1;
                 uint32_t __anf02 = k1;
                 uint32_t lchunk[4U] = {0U};
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr13 = 0U;
-    for (; i_kpr13 < 1U; i_kpr13++) {
-        uint32_t j_kpr14 = i_kpr13;
-        uint32_t off = n_idx + j_kpr14 * 32U * 4U;
+    uint32_t i_kpr15 = 0U;
+    for (; i_kpr15 < 1U; i_kpr15++) {
+        uint32_t j_kpr16 = i_kpr15;
+        uint32_t off = n_idx + j_kpr16 * 32U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            uint32_t combined[4U] = {0U};
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr14 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr13 = 0U;
+            for (; i_kpr13 < 1U; i_kpr13++) {
+                uint32_t j_kpr14 = i_kpr13;
+                uint32_t start = j_kpr16 * 4U + j_kpr14 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr14 * 4U);
+                uint32_t combined[4U] = {0U};
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -171,23 +194,23 @@ __hoisted_spmm_f32_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr15 = 0U;
-        for (; i_kpr15 < 2U; i_kpr15++) {
-            uint32_t j_kpr16 = i_kpr15;
-            vec_memcpy(elems_tile0 + (j_kpr16 * 64U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr16 * 64U + threadIdx.x) * 4U));
-        }
         uint32_t i_kpr17 = 0U;
         for (; i_kpr17 < 2U; i_kpr17++) {
             uint32_t j_kpr18 = i_kpr17;
-            vec_memcpy(col_ind_tile0 + (j_kpr18 * 64U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr18 * 64U + threadIdx.x) * 4U));
+            vec_memcpy(elems_tile0 + (j_kpr18 * 64U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr18 * 64U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr19 = 0U;
+        for (; i_kpr19 < 2U; i_kpr19++) {
+            uint32_t j_kpr20 = i_kpr19;
+            vec_memcpy(col_ind_tile0 + (j_kpr20 * 64U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr20 * 64U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
-        uint32_t i_kpr19 = 0U;
-        for (; i_kpr19 < to_; i_kpr19++)
-            elems_tile0[i_kpr19 * 64U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr21 = 0U;
+        for (; i_kpr21 < to_; i_kpr21++)
+            elems_tile0[i_kpr21 * 64U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -202,8 +225,14 @@ __hoisted_spmm_f32_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 64U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -216,17 +245,17 @@ __hoisted_spmm_f32_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr21 = 0U;
-            for (; i_kpr21 < 2U; i_kpr21++) {
-                uint32_t j_kpr22 = i_kpr21;
-                vec_memcpy(elems_tile0 + (j_kpr22 * 64U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr22 * 64U + threadIdx.x) * 4U));
-            }
             uint32_t i_kpr23 = 0U;
             for (; i_kpr23 < 2U; i_kpr23++) {
                 uint32_t j_kpr24 = i_kpr23;
-                vec_memcpy(col_ind_tile0 + (j_kpr24 * 64U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr24 * 64U + threadIdx.x) * 4U));
+                vec_memcpy(elems_tile0 + (j_kpr24 * 64U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr24 * 64U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr25 = 0U;
+            for (; i_kpr25 < 2U; i_kpr25++) {
+                uint32_t j_kpr26 = i_kpr25;
+                vec_memcpy(col_ind_tile0 + (j_kpr26 * 64U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr26 * 64U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -242,9 +271,15 @@ __hoisted_spmm_f32_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 64U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 64U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 64U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -260,14 +295,14 @@ __hoisted_spmm_f32_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr26 = (__anf01 + 63U - threadIdx.x) / 64U;
-    uint32_t i_kpr25 = 0U;
-    for (; i_kpr25 < hi_kpr26; i_kpr25++) {
-        uint32_t j_kpr27 = i_kpr25;
-        elems_tile0[j_kpr27 * 64U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr27 * 64U + threadIdx.x];
-        col_ind_tile0[j_kpr27 * 64U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr27 * 64U + threadIdx.x];
+    uint32_t hi_kpr28 = (__anf01 + 63U - threadIdx.x) / 64U;
+    uint32_t i_kpr27 = 0U;
+    for (; i_kpr27 < hi_kpr28; i_kpr27++) {
+        uint32_t j_kpr29 = i_kpr27;
+        elems_tile0[j_kpr29 * 64U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr29 * 64U + threadIdx.x];
+        col_ind_tile0[j_kpr29 * 64U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr29 * 64U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -283,8 +318,14 @@ __hoisted_spmm_f32_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 64U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -292,19 +333,24 @@ __hoisted_spmm_f32_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr28 = 0U;
-    for (; i_kpr28 < 2U; i_kpr28++) {
-        uint32_t j_kpr29 = i_kpr28;
-        uint32_t off = n_idx + j_kpr29 * 64U * 4U;
+    uint32_t i_kpr32 = 0U;
+    for (; i_kpr32 < 2U; i_kpr32++) {
+        uint32_t j_kpr33 = i_kpr32;
+        uint32_t off = n_idx + j_kpr33 * 64U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr29 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr30 = 0U;
+            for (; i_kpr30 < 1U; i_kpr30++) {
+                uint32_t j_kpr31 = i_kpr30;
+                uint32_t start = j_kpr33 * 4U + j_kpr31 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr31 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -319,7 +365,7 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
     float *gC)
 {
     uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 4U;
+    uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 8U;
     half *elems_tile0 = (half *) KPR_SHMEM_AT(0U);
     uint32_t *col_ind_tile0 =
         (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(half) * 32U);
@@ -331,24 +377,24 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr30 = 0U;
-        for (; i_kpr30 < 1U; i_kpr30++) {
-            uint32_t j_kpr31 = i_kpr30;
-            vec_memcpy(elems_tile0 + (j_kpr31 * 4U + threadIdx.x) * 8U,
-                gA.elems + (ri_ + (j_kpr31 * 4U + threadIdx.x) * 8U));
+        uint32_t i_kpr34 = 0U;
+        for (; i_kpr34 < 1U; i_kpr34++) {
+            uint32_t j_kpr35 = i_kpr34;
+            vec_memcpy(elems_tile0 + (j_kpr35 * 4U + threadIdx.x) * 8U,
+                gA.elems + (ri_ + (j_kpr35 * 4U + threadIdx.x) * 8U));
         }
-        uint32_t i_kpr32 = 0U;
-        for (; i_kpr32 < 2U; i_kpr32++) {
-            uint32_t j_kpr33 = i_kpr32;
-            vec_memcpy(col_ind_tile0 + (j_kpr33 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr33 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr36 = 0U;
+        for (; i_kpr36 < 2U; i_kpr36++) {
+            uint32_t j_kpr37 = i_kpr36;
+            vec_memcpy(col_ind_tile0 + (j_kpr37 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr37 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr34 = 0U;
-        for (; i_kpr34 < to_; i_kpr34++) {
-            uint32_t j_kpr35 = i_kpr34;
-            elems_tile0[j_kpr35 * 4U + threadIdx.x] = __float2half_rn(0.0f);
+        uint32_t i_kpr38 = 0U;
+        for (; i_kpr38 < to_; i_kpr38++) {
+            uint32_t j_kpr39 = i_kpr38;
+            elems_tile0[j_kpr39 * 4U + threadIdx.x] = __float2half_rn(0.0f);
         }
         __syncthreads();
         if (n_idx < cols) {
@@ -358,27 +404,27 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t kr = col_ind_tile0[kv];
                 half kx = elems_tile0[kv];
                 uint32_t k1 = 0U;
-                for (; k1 < 2U; k1++) {
+                for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
                     uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 4U * 4U < cols) {
-                        half lchunk[4U];
-                        for (uint32_t _i = 0U; _i < 4U; ++_i)
-                            lchunk[_i] = __float2half_rn(0.0f);
-                        uint32_t lane = 0U;
-                        for (; lane < 4U; lane++)
-                            lchunk[lane] =
-                                gB[kr * cols +
-                                    (n_idx + __anf01 * 4U * 4U + lane)];
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++) {
-                            uint32_t __anf4 = ix;
-                            float __anf3 = out[__anf1 * 4U + ix];
-                            half __anf11 = lchunk[ix];
-                            out[__anf1 * 4U + __anf4] =
-                                __anf3 +
-                                __half2float(kx) * __half2float(__anf11);
-                        }
+                    half lchunk[8U];
+                    for (uint32_t _i = 0U; _i < 8U; ++_i)
+                        lchunk[_i] = __float2half_rn(0.0f);
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 8U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U * 8U) +
+                                     kv1 * 8U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 8U; ix++) {
+                        uint32_t __anf4 = ix;
+                        float __anf3 = out[__anf1 * 8U + ix];
+                        half __anf11 = lchunk[ix];
+                        out[__anf1 * 8U + __anf4] =
+                            __anf3 + __half2float(kx) * __half2float(__anf11);
                     }
                 }
             }
@@ -388,17 +434,17 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr36 = 0U;
-            for (; i_kpr36 < 1U; i_kpr36++) {
-                uint32_t j_kpr37 = i_kpr36;
-                vec_memcpy(elems_tile0 + (j_kpr37 * 4U + threadIdx.x) * 8U,
-                    gA.elems + (off + (j_kpr37 * 4U + threadIdx.x) * 8U));
+            uint32_t i_kpr40 = 0U;
+            for (; i_kpr40 < 1U; i_kpr40++) {
+                uint32_t j_kpr41 = i_kpr40;
+                vec_memcpy(elems_tile0 + (j_kpr41 * 4U + threadIdx.x) * 8U,
+                    gA.elems + (off + (j_kpr41 * 4U + threadIdx.x) * 8U));
             }
-            uint32_t i_kpr38 = 0U;
-            for (; i_kpr38 < 2U; i_kpr38++) {
-                uint32_t j_kpr39 = i_kpr38;
-                vec_memcpy(col_ind_tile0 + (j_kpr39 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr39 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr42 = 0U;
+            for (; i_kpr42 < 2U; i_kpr42++) {
+                uint32_t j_kpr43 = i_kpr42;
+                vec_memcpy(col_ind_tile0 + (j_kpr43 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr43 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -408,27 +454,28 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t kr = col_ind_tile0[kv];
                     half kx = elems_tile0[kv];
                     uint32_t k1 = 0U;
-                    for (; k1 < 2U; k1++) {
+                    for (; k1 < 1U; k1++) {
                         uint32_t __anf1 = k1;
                         uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 4U * 4U < cols) {
-                            half lchunk[4U];
-                            for (uint32_t _i = 0U; _i < 4U; ++_i)
-                                lchunk[_i] = __float2half_rn(0.0f);
-                            uint32_t lane = 0U;
-                            for (; lane < 4U; lane++)
-                                lchunk[lane] =
-                                    gB[kr * cols +
-                                        (n_idx + __anf03 * 4U * 4U + lane)];
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++) {
-                                uint32_t __anf4 = ix;
-                                float __anf3 = out[__anf1 * 4U + ix];
-                                half __anf11 = lchunk[ix];
-                                out[__anf1 * 4U + __anf4] =
-                                    __anf3 +
-                                    __half2float(kx) * __half2float(__anf11);
-                            }
+                        half lchunk[8U];
+                        for (uint32_t _i = 0U; _i < 8U; ++_i)
+                            lchunk[_i] = __float2half_rn(0.0f);
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 8U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U * 8U) +
+                                         kv1 * 8U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 8U; ix++) {
+                            uint32_t __anf4 = ix;
+                            float __anf3 = out[__anf1 * 8U + ix];
+                            half __anf11 = lchunk[ix];
+                            out[__anf1 * 8U + __anf4] =
+                                __anf3 +
+                                __half2float(kx) * __half2float(__anf11);
                         }
                     }
                 }
@@ -441,14 +488,14 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr41 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr40 = 0U;
-    for (; i_kpr40 < hi_kpr41; i_kpr40++) {
-        uint32_t j_kpr42 = i_kpr40;
-        elems_tile0[j_kpr42 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr42 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr42 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr42 * 4U + threadIdx.x];
+    uint32_t hi_kpr45 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr44 = 0U;
+    for (; i_kpr44 < hi_kpr45; i_kpr44++) {
+        uint32_t j_kpr46 = i_kpr44;
+        elems_tile0[j_kpr46 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr46 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr46 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr46 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -458,42 +505,49 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
             uint32_t kr = col_ind_tile0[kv];
             half kx = elems_tile0[kv];
             uint32_t k1 = 0U;
-            for (; k1 < 2U; k1++) {
+            for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
                 uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 4U * 4U < cols) {
-                    half lchunk[4U];
-                    for (uint32_t _i = 0U; _i < 4U; ++_i)
-                        lchunk[_i] = __float2half_rn(0.0f);
-                    uint32_t lane = 0U;
-                    for (; lane < 4U; lane++)
-                        lchunk[lane] =
-                            gB[kr * cols + (n_idx + __anf02 * 4U * 4U + lane)];
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++) {
-                        uint32_t __anf4 = ix;
-                        float __anf3 = out[__anf1 * 4U + ix];
-                        half __anf11 = lchunk[ix];
-                        out[__anf1 * 4U + __anf4] =
-                            __anf3 + __half2float(kx) * __half2float(__anf11);
-                    }
+                half lchunk[8U];
+                for (uint32_t _i = 0U; _i < 8U; ++_i)
+                    lchunk[_i] = __float2half_rn(0.0f);
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 8U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U * 8U) +
+                                 kv1 * 8U));
+                    k2 = kv1 + 1U;
+                }
+                uint32_t ix = 0U;
+                for (; ix < 8U; ix++) {
+                    uint32_t __anf4 = ix;
+                    float __anf3 = out[__anf1 * 8U + ix];
+                    half __anf11 = lchunk[ix];
+                    out[__anf1 * 8U + __anf4] =
+                        __anf3 + __half2float(kx) * __half2float(__anf11);
                 }
             }
         }
     }
-    uint32_t i_kpr43 = 0U;
-    for (; i_kpr43 < 2U; i_kpr43++) {
-        uint32_t j_kpr44 = i_kpr43;
-        uint32_t off = n_idx + j_kpr44 * 4U * 4U;
+    uint32_t i_kpr49 = 0U;
+    for (; i_kpr49 < 1U; i_kpr49++) {
+        uint32_t j_kpr50 = i_kpr49;
+        uint32_t off = n_idx + j_kpr50 * 4U * 8U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr44 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr47 = 0U;
+            for (; i_kpr47 < 2U; i_kpr47++) {
+                uint32_t j_kpr48 = i_kpr47;
+                uint32_t start = j_kpr50 * 8U + j_kpr48 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr48 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -508,7 +562,7 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
     half *gB, float *gC)
 {
     uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 4U;
+    uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 8U;
     half *elems_tile0 = (half *) KPR_SHMEM_AT(0U);
     uint32_t *col_ind_tile0 =
         (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(half) * 32U);
@@ -520,24 +574,24 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr45 = 0U;
-        for (; i_kpr45 < 1U; i_kpr45++) {
-            uint32_t j_kpr46 = i_kpr45;
-            vec_memcpy(elems_tile0 + (j_kpr46 * 4U + threadIdx.x) * 8U,
-                gA.elems + (ri_ + (j_kpr46 * 4U + threadIdx.x) * 8U));
+        uint32_t i_kpr51 = 0U;
+        for (; i_kpr51 < 1U; i_kpr51++) {
+            uint32_t j_kpr52 = i_kpr51;
+            vec_memcpy(elems_tile0 + (j_kpr52 * 4U + threadIdx.x) * 8U,
+                gA.elems + (ri_ + (j_kpr52 * 4U + threadIdx.x) * 8U));
         }
-        uint32_t i_kpr47 = 0U;
-        for (; i_kpr47 < 2U; i_kpr47++) {
-            uint32_t j_kpr48 = i_kpr47;
-            vec_memcpy(col_ind_tile0 + (j_kpr48 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr48 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr53 = 0U;
+        for (; i_kpr53 < 2U; i_kpr53++) {
+            uint32_t j_kpr54 = i_kpr53;
+            vec_memcpy(col_ind_tile0 + (j_kpr54 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr54 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr49 = 0U;
-        for (; i_kpr49 < to_; i_kpr49++) {
-            uint32_t j_kpr50 = i_kpr49;
-            elems_tile0[j_kpr50 * 4U + threadIdx.x] = __float2half_rn(0.0f);
+        uint32_t i_kpr55 = 0U;
+        for (; i_kpr55 < to_; i_kpr55++) {
+            uint32_t j_kpr56 = i_kpr55;
+            elems_tile0[j_kpr56 * 4U + threadIdx.x] = __float2half_rn(0.0f);
         }
         __syncthreads();
         if (n_idx < cols) {
@@ -547,27 +601,27 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
                 uint32_t kr = col_ind_tile0[kv];
                 half kx = elems_tile0[kv];
                 uint32_t k1 = 0U;
-                for (; k1 < 2U; k1++) {
+                for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
                     uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 4U * 4U < cols) {
-                        half lchunk[4U];
-                        for (uint32_t _i = 0U; _i < 4U; ++_i)
-                            lchunk[_i] = __float2half_rn(0.0f);
-                        uint32_t lane = 0U;
-                        for (; lane < 4U; lane++)
-                            lchunk[lane] =
-                                gB[kr * cols +
-                                    (n_idx + __anf01 * 4U * 4U + lane)];
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++) {
-                            uint32_t __anf4 = ix;
-                            float __anf3 = out[__anf1 * 4U + ix];
-                            half __anf11 = lchunk[ix];
-                            out[__anf1 * 4U + __anf4] =
-                                __anf3 +
-                                __half2float(kx) * __half2float(__anf11);
-                        }
+                    half lchunk[8U];
+                    for (uint32_t _i = 0U; _i < 8U; ++_i)
+                        lchunk[_i] = __float2half_rn(0.0f);
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 8U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U * 8U) +
+                                     kv1 * 8U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 8U; ix++) {
+                        uint32_t __anf4 = ix;
+                        float __anf3 = out[__anf1 * 8U + ix];
+                        half __anf11 = lchunk[ix];
+                        out[__anf1 * 8U + __anf4] =
+                            __anf3 + __half2float(kx) * __half2float(__anf11);
                     }
                 }
             }
@@ -577,17 +631,17 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr51 = 0U;
-            for (; i_kpr51 < 1U; i_kpr51++) {
-                uint32_t j_kpr52 = i_kpr51;
-                vec_memcpy(elems_tile0 + (j_kpr52 * 4U + threadIdx.x) * 8U,
-                    gA.elems + (off + (j_kpr52 * 4U + threadIdx.x) * 8U));
+            uint32_t i_kpr57 = 0U;
+            for (; i_kpr57 < 1U; i_kpr57++) {
+                uint32_t j_kpr58 = i_kpr57;
+                vec_memcpy(elems_tile0 + (j_kpr58 * 4U + threadIdx.x) * 8U,
+                    gA.elems + (off + (j_kpr58 * 4U + threadIdx.x) * 8U));
             }
-            uint32_t i_kpr53 = 0U;
-            for (; i_kpr53 < 2U; i_kpr53++) {
-                uint32_t j_kpr54 = i_kpr53;
-                vec_memcpy(col_ind_tile0 + (j_kpr54 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr54 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr59 = 0U;
+            for (; i_kpr59 < 2U; i_kpr59++) {
+                uint32_t j_kpr60 = i_kpr59;
+                vec_memcpy(col_ind_tile0 + (j_kpr60 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr60 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -597,27 +651,28 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
                     uint32_t kr = col_ind_tile0[kv];
                     half kx = elems_tile0[kv];
                     uint32_t k1 = 0U;
-                    for (; k1 < 2U; k1++) {
+                    for (; k1 < 1U; k1++) {
                         uint32_t __anf1 = k1;
                         uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 4U * 4U < cols) {
-                            half lchunk[4U];
-                            for (uint32_t _i = 0U; _i < 4U; ++_i)
-                                lchunk[_i] = __float2half_rn(0.0f);
-                            uint32_t lane = 0U;
-                            for (; lane < 4U; lane++)
-                                lchunk[lane] =
-                                    gB[kr * cols +
-                                        (n_idx + __anf03 * 4U * 4U + lane)];
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++) {
-                                uint32_t __anf4 = ix;
-                                float __anf3 = out[__anf1 * 4U + ix];
-                                half __anf11 = lchunk[ix];
-                                out[__anf1 * 4U + __anf4] =
-                                    __anf3 +
-                                    __half2float(kx) * __half2float(__anf11);
-                            }
+                        half lchunk[8U];
+                        for (uint32_t _i = 0U; _i < 8U; ++_i)
+                            lchunk[_i] = __float2half_rn(0.0f);
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 8U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U * 8U) +
+                                         kv1 * 8U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 8U; ix++) {
+                            uint32_t __anf4 = ix;
+                            float __anf3 = out[__anf1 * 8U + ix];
+                            half __anf11 = lchunk[ix];
+                            out[__anf1 * 8U + __anf4] =
+                                __anf3 +
+                                __half2float(kx) * __half2float(__anf11);
                         }
                     }
                 }
@@ -630,14 +685,14 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr56 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr55 = 0U;
-    for (; i_kpr55 < hi_kpr56; i_kpr55++) {
-        uint32_t j_kpr57 = i_kpr55;
-        elems_tile0[j_kpr57 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr57 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr57 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr57 * 4U + threadIdx.x];
+    uint32_t hi_kpr62 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr61 = 0U;
+    for (; i_kpr61 < hi_kpr62; i_kpr61++) {
+        uint32_t j_kpr63 = i_kpr61;
+        elems_tile0[j_kpr63 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr63 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr63 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr63 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -647,42 +702,49 @@ __hoisted_g_spmm_f16_f16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
             uint32_t kr = col_ind_tile0[kv];
             half kx = elems_tile0[kv];
             uint32_t k1 = 0U;
-            for (; k1 < 2U; k1++) {
+            for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
                 uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 4U * 4U < cols) {
-                    half lchunk[4U];
-                    for (uint32_t _i = 0U; _i < 4U; ++_i)
-                        lchunk[_i] = __float2half_rn(0.0f);
-                    uint32_t lane = 0U;
-                    for (; lane < 4U; lane++)
-                        lchunk[lane] =
-                            gB[kr * cols + (n_idx + __anf02 * 4U * 4U + lane)];
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++) {
-                        uint32_t __anf4 = ix;
-                        float __anf3 = out[__anf1 * 4U + ix];
-                        half __anf11 = lchunk[ix];
-                        out[__anf1 * 4U + __anf4] =
-                            __anf3 + __half2float(kx) * __half2float(__anf11);
-                    }
+                half lchunk[8U];
+                for (uint32_t _i = 0U; _i < 8U; ++_i)
+                    lchunk[_i] = __float2half_rn(0.0f);
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 8U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U * 8U) +
+                                 kv1 * 8U));
+                    k2 = kv1 + 1U;
+                }
+                uint32_t ix = 0U;
+                for (; ix < 8U; ix++) {
+                    uint32_t __anf4 = ix;
+                    float __anf3 = out[__anf1 * 8U + ix];
+                    half __anf11 = lchunk[ix];
+                    out[__anf1 * 8U + __anf4] =
+                        __anf3 + __half2float(kx) * __half2float(__anf11);
                 }
             }
         }
     }
-    uint32_t i_kpr58 = 0U;
-    for (; i_kpr58 < 2U; i_kpr58++) {
-        uint32_t j_kpr59 = i_kpr58;
-        uint32_t off = n_idx + j_kpr59 * 4U * 4U;
+    uint32_t i_kpr66 = 0U;
+    for (; i_kpr66 < 1U; i_kpr66++) {
+        uint32_t j_kpr67 = i_kpr66;
+        uint32_t off = n_idx + j_kpr67 * 4U * 8U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr59 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr64 = 0U;
+            for (; i_kpr64 < 2U; i_kpr64++) {
+                uint32_t j_kpr65 = i_kpr64;
+                uint32_t start = j_kpr67 * 8U + j_kpr65 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr65 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -697,7 +759,7 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_0(uint32_t *row_indices,
     uint32_t cols, __nv_bfloat16 *gB, float *gC)
 {
     uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 4U;
+    uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 8U;
     __nv_bfloat16 *elems_tile0 = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
     uint32_t *col_ind_tile0 =
         (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 32U);
@@ -709,24 +771,24 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_0(uint32_t *row_indices,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr60 = 0U;
-        for (; i_kpr60 < 1U; i_kpr60++) {
-            uint32_t j_kpr61 = i_kpr60;
-            vec_memcpy(elems_tile0 + (j_kpr61 * 4U + threadIdx.x) * 8U,
-                gA.elems + (ri_ + (j_kpr61 * 4U + threadIdx.x) * 8U));
+        uint32_t i_kpr68 = 0U;
+        for (; i_kpr68 < 1U; i_kpr68++) {
+            uint32_t j_kpr69 = i_kpr68;
+            vec_memcpy(elems_tile0 + (j_kpr69 * 4U + threadIdx.x) * 8U,
+                gA.elems + (ri_ + (j_kpr69 * 4U + threadIdx.x) * 8U));
         }
-        uint32_t i_kpr62 = 0U;
-        for (; i_kpr62 < 2U; i_kpr62++) {
-            uint32_t j_kpr63 = i_kpr62;
-            vec_memcpy(col_ind_tile0 + (j_kpr63 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr63 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr70 = 0U;
+        for (; i_kpr70 < 2U; i_kpr70++) {
+            uint32_t j_kpr71 = i_kpr70;
+            vec_memcpy(col_ind_tile0 + (j_kpr71 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr71 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr64 = 0U;
-        for (; i_kpr64 < to_; i_kpr64++) {
-            uint32_t j_kpr65 = i_kpr64;
-            elems_tile0[j_kpr65 * 4U + threadIdx.x] = __float2bfloat16(0.0f);
+        uint32_t i_kpr72 = 0U;
+        for (; i_kpr72 < to_; i_kpr72++) {
+            uint32_t j_kpr73 = i_kpr72;
+            elems_tile0[j_kpr73 * 4U + threadIdx.x] = __float2bfloat16(0.0f);
         }
         __syncthreads();
         if (n_idx < cols) {
@@ -736,27 +798,28 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_0(uint32_t *row_indices,
                 uint32_t kr = col_ind_tile0[kv];
                 __nv_bfloat16 kx = elems_tile0[kv];
                 uint32_t k1 = 0U;
-                for (; k1 < 2U; k1++) {
+                for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
                     uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 4U * 4U < cols) {
-                        __nv_bfloat16 lchunk[4U];
-                        for (uint32_t _i = 0U; _i < 4U; ++_i)
-                            lchunk[_i] = __float2bfloat16(0.0f);
-                        uint32_t lane = 0U;
-                        for (; lane < 4U; lane++)
-                            lchunk[lane] =
-                                gB[kr * cols +
-                                    (n_idx + __anf01 * 4U * 4U + lane)];
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++) {
-                            uint32_t __anf4 = ix;
-                            float __anf3 = out[__anf1 * 4U + ix];
-                            __nv_bfloat16 __anf11 = lchunk[ix];
-                            out[__anf1 * 4U + __anf4] =
-                                __anf3 + __bfloat162float(kx) *
-                                             __bfloat162float(__anf11);
-                        }
+                    __nv_bfloat16 lchunk[8U];
+                    for (uint32_t _i = 0U; _i < 8U; ++_i)
+                        lchunk[_i] = __float2bfloat16(0.0f);
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 8U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U * 8U) +
+                                     kv1 * 8U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 8U; ix++) {
+                        uint32_t __anf4 = ix;
+                        float __anf3 = out[__anf1 * 8U + ix];
+                        __nv_bfloat16 __anf11 = lchunk[ix];
+                        out[__anf1 * 8U + __anf4] =
+                            __anf3 +
+                            __bfloat162float(kx) * __bfloat162float(__anf11);
                     }
                 }
             }
@@ -766,17 +829,17 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_0(uint32_t *row_indices,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr66 = 0U;
-            for (; i_kpr66 < 1U; i_kpr66++) {
-                uint32_t j_kpr67 = i_kpr66;
-                vec_memcpy(elems_tile0 + (j_kpr67 * 4U + threadIdx.x) * 8U,
-                    gA.elems + (off + (j_kpr67 * 4U + threadIdx.x) * 8U));
+            uint32_t i_kpr74 = 0U;
+            for (; i_kpr74 < 1U; i_kpr74++) {
+                uint32_t j_kpr75 = i_kpr74;
+                vec_memcpy(elems_tile0 + (j_kpr75 * 4U + threadIdx.x) * 8U,
+                    gA.elems + (off + (j_kpr75 * 4U + threadIdx.x) * 8U));
             }
-            uint32_t i_kpr68 = 0U;
-            for (; i_kpr68 < 2U; i_kpr68++) {
-                uint32_t j_kpr69 = i_kpr68;
-                vec_memcpy(col_ind_tile0 + (j_kpr69 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr69 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr76 = 0U;
+            for (; i_kpr76 < 2U; i_kpr76++) {
+                uint32_t j_kpr77 = i_kpr76;
+                vec_memcpy(col_ind_tile0 + (j_kpr77 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr77 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -786,27 +849,28 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_0(uint32_t *row_indices,
                     uint32_t kr = col_ind_tile0[kv];
                     __nv_bfloat16 kx = elems_tile0[kv];
                     uint32_t k1 = 0U;
-                    for (; k1 < 2U; k1++) {
+                    for (; k1 < 1U; k1++) {
                         uint32_t __anf1 = k1;
                         uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 4U * 4U < cols) {
-                            __nv_bfloat16 lchunk[4U];
-                            for (uint32_t _i = 0U; _i < 4U; ++_i)
-                                lchunk[_i] = __float2bfloat16(0.0f);
-                            uint32_t lane = 0U;
-                            for (; lane < 4U; lane++)
-                                lchunk[lane] =
-                                    gB[kr * cols +
-                                        (n_idx + __anf03 * 4U * 4U + lane)];
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++) {
-                                uint32_t __anf4 = ix;
-                                float __anf3 = out[__anf1 * 4U + ix];
-                                __nv_bfloat16 __anf11 = lchunk[ix];
-                                out[__anf1 * 4U + __anf4] =
-                                    __anf3 + __bfloat162float(kx) *
-                                                 __bfloat162float(__anf11);
-                            }
+                        __nv_bfloat16 lchunk[8U];
+                        for (uint32_t _i = 0U; _i < 8U; ++_i)
+                            lchunk[_i] = __float2bfloat16(0.0f);
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 8U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U * 8U) +
+                                         kv1 * 8U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 8U; ix++) {
+                            uint32_t __anf4 = ix;
+                            float __anf3 = out[__anf1 * 8U + ix];
+                            __nv_bfloat16 __anf11 = lchunk[ix];
+                            out[__anf1 * 8U + __anf4] =
+                                __anf3 + __bfloat162float(kx) *
+                                             __bfloat162float(__anf11);
                         }
                     }
                 }
@@ -819,14 +883,14 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_0(uint32_t *row_indices,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr71 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr70 = 0U;
-    for (; i_kpr70 < hi_kpr71; i_kpr70++) {
-        uint32_t j_kpr72 = i_kpr70;
-        elems_tile0[j_kpr72 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr72 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr72 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr72 * 4U + threadIdx.x];
+    uint32_t hi_kpr79 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr78 = 0U;
+    for (; i_kpr78 < hi_kpr79; i_kpr78++) {
+        uint32_t j_kpr80 = i_kpr78;
+        elems_tile0[j_kpr80 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr80 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr80 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr80 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -836,43 +900,50 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_0(uint32_t *row_indices,
             uint32_t kr = col_ind_tile0[kv];
             __nv_bfloat16 kx = elems_tile0[kv];
             uint32_t k1 = 0U;
-            for (; k1 < 2U; k1++) {
+            for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
                 uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 4U * 4U < cols) {
-                    __nv_bfloat16 lchunk[4U];
-                    for (uint32_t _i = 0U; _i < 4U; ++_i)
-                        lchunk[_i] = __float2bfloat16(0.0f);
-                    uint32_t lane = 0U;
-                    for (; lane < 4U; lane++)
-                        lchunk[lane] =
-                            gB[kr * cols + (n_idx + __anf02 * 4U * 4U + lane)];
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++) {
-                        uint32_t __anf4 = ix;
-                        float __anf3 = out[__anf1 * 4U + ix];
-                        __nv_bfloat16 __anf11 = lchunk[ix];
-                        out[__anf1 * 4U + __anf4] =
-                            __anf3 +
-                            __bfloat162float(kx) * __bfloat162float(__anf11);
-                    }
+                __nv_bfloat16 lchunk[8U];
+                for (uint32_t _i = 0U; _i < 8U; ++_i)
+                    lchunk[_i] = __float2bfloat16(0.0f);
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 8U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U * 8U) +
+                                 kv1 * 8U));
+                    k2 = kv1 + 1U;
+                }
+                uint32_t ix = 0U;
+                for (; ix < 8U; ix++) {
+                    uint32_t __anf4 = ix;
+                    float __anf3 = out[__anf1 * 8U + ix];
+                    __nv_bfloat16 __anf11 = lchunk[ix];
+                    out[__anf1 * 8U + __anf4] =
+                        __anf3 +
+                        __bfloat162float(kx) * __bfloat162float(__anf11);
                 }
             }
         }
     }
-    uint32_t i_kpr73 = 0U;
-    for (; i_kpr73 < 2U; i_kpr73++) {
-        uint32_t j_kpr74 = i_kpr73;
-        uint32_t off = n_idx + j_kpr74 * 4U * 4U;
+    uint32_t i_kpr83 = 0U;
+    for (; i_kpr83 < 1U; i_kpr83++) {
+        uint32_t j_kpr84 = i_kpr83;
+        uint32_t off = n_idx + j_kpr84 * 4U * 8U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr74 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr81 = 0U;
+            for (; i_kpr81 < 2U; i_kpr81++) {
+                uint32_t j_kpr82 = i_kpr81;
+                uint32_t start = j_kpr84 * 8U + j_kpr82 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr82 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -887,7 +958,7 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
     uint32_t cols, __nv_bfloat16 *gB, float *gC)
 {
     uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 4U;
+    uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 8U;
     __nv_bfloat16 *elems_tile0 = (__nv_bfloat16 *) KPR_SHMEM_AT(0U);
     uint32_t *col_ind_tile0 =
         (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(__nv_bfloat16) * 32U);
@@ -899,24 +970,24 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr75 = 0U;
-        for (; i_kpr75 < 1U; i_kpr75++) {
-            uint32_t j_kpr76 = i_kpr75;
-            vec_memcpy(elems_tile0 + (j_kpr76 * 4U + threadIdx.x) * 8U,
-                gA.elems + (ri_ + (j_kpr76 * 4U + threadIdx.x) * 8U));
+        uint32_t i_kpr85 = 0U;
+        for (; i_kpr85 < 1U; i_kpr85++) {
+            uint32_t j_kpr86 = i_kpr85;
+            vec_memcpy(elems_tile0 + (j_kpr86 * 4U + threadIdx.x) * 8U,
+                gA.elems + (ri_ + (j_kpr86 * 4U + threadIdx.x) * 8U));
         }
-        uint32_t i_kpr77 = 0U;
-        for (; i_kpr77 < 2U; i_kpr77++) {
-            uint32_t j_kpr78 = i_kpr77;
-            vec_memcpy(col_ind_tile0 + (j_kpr78 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr78 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr87 = 0U;
+        for (; i_kpr87 < 2U; i_kpr87++) {
+            uint32_t j_kpr88 = i_kpr87;
+            vec_memcpy(col_ind_tile0 + (j_kpr88 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr88 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr79 = 0U;
-        for (; i_kpr79 < to_; i_kpr79++) {
-            uint32_t j_kpr80 = i_kpr79;
-            elems_tile0[j_kpr80 * 4U + threadIdx.x] = __float2bfloat16(0.0f);
+        uint32_t i_kpr89 = 0U;
+        for (; i_kpr89 < to_; i_kpr89++) {
+            uint32_t j_kpr90 = i_kpr89;
+            elems_tile0[j_kpr90 * 4U + threadIdx.x] = __float2bfloat16(0.0f);
         }
         __syncthreads();
         if (n_idx < cols) {
@@ -926,27 +997,28 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
                 uint32_t kr = col_ind_tile0[kv];
                 __nv_bfloat16 kx = elems_tile0[kv];
                 uint32_t k1 = 0U;
-                for (; k1 < 2U; k1++) {
+                for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
                     uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 4U * 4U < cols) {
-                        __nv_bfloat16 lchunk[4U];
-                        for (uint32_t _i = 0U; _i < 4U; ++_i)
-                            lchunk[_i] = __float2bfloat16(0.0f);
-                        uint32_t lane = 0U;
-                        for (; lane < 4U; lane++)
-                            lchunk[lane] =
-                                gB[kr * cols +
-                                    (n_idx + __anf01 * 4U * 4U + lane)];
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++) {
-                            uint32_t __anf4 = ix;
-                            float __anf3 = out[__anf1 * 4U + ix];
-                            __nv_bfloat16 __anf11 = lchunk[ix];
-                            out[__anf1 * 4U + __anf4] =
-                                __anf3 + __bfloat162float(kx) *
-                                             __bfloat162float(__anf11);
-                        }
+                    __nv_bfloat16 lchunk[8U];
+                    for (uint32_t _i = 0U; _i < 8U; ++_i)
+                        lchunk[_i] = __float2bfloat16(0.0f);
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 8U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U * 8U) +
+                                     kv1 * 8U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 8U; ix++) {
+                        uint32_t __anf4 = ix;
+                        float __anf3 = out[__anf1 * 8U + ix];
+                        __nv_bfloat16 __anf11 = lchunk[ix];
+                        out[__anf1 * 8U + __anf4] =
+                            __anf3 +
+                            __bfloat162float(kx) * __bfloat162float(__anf11);
                     }
                 }
             }
@@ -956,17 +1028,17 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr81 = 0U;
-            for (; i_kpr81 < 1U; i_kpr81++) {
-                uint32_t j_kpr82 = i_kpr81;
-                vec_memcpy(elems_tile0 + (j_kpr82 * 4U + threadIdx.x) * 8U,
-                    gA.elems + (off + (j_kpr82 * 4U + threadIdx.x) * 8U));
+            uint32_t i_kpr91 = 0U;
+            for (; i_kpr91 < 1U; i_kpr91++) {
+                uint32_t j_kpr92 = i_kpr91;
+                vec_memcpy(elems_tile0 + (j_kpr92 * 4U + threadIdx.x) * 8U,
+                    gA.elems + (off + (j_kpr92 * 4U + threadIdx.x) * 8U));
             }
-            uint32_t i_kpr83 = 0U;
-            for (; i_kpr83 < 2U; i_kpr83++) {
-                uint32_t j_kpr84 = i_kpr83;
-                vec_memcpy(col_ind_tile0 + (j_kpr84 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr84 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr93 = 0U;
+            for (; i_kpr93 < 2U; i_kpr93++) {
+                uint32_t j_kpr94 = i_kpr93;
+                vec_memcpy(col_ind_tile0 + (j_kpr94 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr94 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -976,27 +1048,28 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
                     uint32_t kr = col_ind_tile0[kv];
                     __nv_bfloat16 kx = elems_tile0[kv];
                     uint32_t k1 = 0U;
-                    for (; k1 < 2U; k1++) {
+                    for (; k1 < 1U; k1++) {
                         uint32_t __anf1 = k1;
                         uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 4U * 4U < cols) {
-                            __nv_bfloat16 lchunk[4U];
-                            for (uint32_t _i = 0U; _i < 4U; ++_i)
-                                lchunk[_i] = __float2bfloat16(0.0f);
-                            uint32_t lane = 0U;
-                            for (; lane < 4U; lane++)
-                                lchunk[lane] =
-                                    gB[kr * cols +
-                                        (n_idx + __anf03 * 4U * 4U + lane)];
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++) {
-                                uint32_t __anf4 = ix;
-                                float __anf3 = out[__anf1 * 4U + ix];
-                                __nv_bfloat16 __anf11 = lchunk[ix];
-                                out[__anf1 * 4U + __anf4] =
-                                    __anf3 + __bfloat162float(kx) *
-                                                 __bfloat162float(__anf11);
-                            }
+                        __nv_bfloat16 lchunk[8U];
+                        for (uint32_t _i = 0U; _i < 8U; ++_i)
+                            lchunk[_i] = __float2bfloat16(0.0f);
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 8U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U * 8U) +
+                                         kv1 * 8U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 8U; ix++) {
+                            uint32_t __anf4 = ix;
+                            float __anf3 = out[__anf1 * 8U + ix];
+                            __nv_bfloat16 __anf11 = lchunk[ix];
+                            out[__anf1 * 8U + __anf4] =
+                                __anf3 + __bfloat162float(kx) *
+                                             __bfloat162float(__anf11);
                         }
                     }
                 }
@@ -1009,14 +1082,14 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr86 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr85 = 0U;
-    for (; i_kpr85 < hi_kpr86; i_kpr85++) {
-        uint32_t j_kpr87 = i_kpr85;
-        elems_tile0[j_kpr87 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr87 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr87 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr87 * 4U + threadIdx.x];
+    uint32_t hi_kpr96 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr95 = 0U;
+    for (; i_kpr95 < hi_kpr96; i_kpr95++) {
+        uint32_t j_kpr97 = i_kpr95;
+        elems_tile0[j_kpr97 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr97 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr97 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr97 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -1026,43 +1099,50 @@ __hoisted_g_spmm_bf16_bf16_f32_f32_32x32x4_on_0(uint32_t *row_indices,
             uint32_t kr = col_ind_tile0[kv];
             __nv_bfloat16 kx = elems_tile0[kv];
             uint32_t k1 = 0U;
-            for (; k1 < 2U; k1++) {
+            for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
                 uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 4U * 4U < cols) {
-                    __nv_bfloat16 lchunk[4U];
-                    for (uint32_t _i = 0U; _i < 4U; ++_i)
-                        lchunk[_i] = __float2bfloat16(0.0f);
-                    uint32_t lane = 0U;
-                    for (; lane < 4U; lane++)
-                        lchunk[lane] =
-                            gB[kr * cols + (n_idx + __anf02 * 4U * 4U + lane)];
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++) {
-                        uint32_t __anf4 = ix;
-                        float __anf3 = out[__anf1 * 4U + ix];
-                        __nv_bfloat16 __anf11 = lchunk[ix];
-                        out[__anf1 * 4U + __anf4] =
-                            __anf3 +
-                            __bfloat162float(kx) * __bfloat162float(__anf11);
-                    }
+                __nv_bfloat16 lchunk[8U];
+                for (uint32_t _i = 0U; _i < 8U; ++_i)
+                    lchunk[_i] = __float2bfloat16(0.0f);
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 8U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U * 8U) +
+                                 kv1 * 8U));
+                    k2 = kv1 + 1U;
+                }
+                uint32_t ix = 0U;
+                for (; ix < 8U; ix++) {
+                    uint32_t __anf4 = ix;
+                    float __anf3 = out[__anf1 * 8U + ix];
+                    __nv_bfloat16 __anf11 = lchunk[ix];
+                    out[__anf1 * 8U + __anf4] =
+                        __anf3 +
+                        __bfloat162float(kx) * __bfloat162float(__anf11);
                 }
             }
         }
     }
-    uint32_t i_kpr88 = 0U;
-    for (; i_kpr88 < 2U; i_kpr88++) {
-        uint32_t j_kpr89 = i_kpr88;
-        uint32_t off = n_idx + j_kpr89 * 4U * 4U;
+    uint32_t i_kpr100 = 0U;
+    for (; i_kpr100 < 1U; i_kpr100++) {
+        uint32_t j_kpr101 = i_kpr100;
+        uint32_t off = n_idx + j_kpr101 * 4U * 8U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr89 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr98 = 0U;
+            for (; i_kpr98 < 2U; i_kpr98++) {
+                uint32_t j_kpr99 = i_kpr98;
+                uint32_t start = j_kpr101 * 8U + j_kpr99 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr99 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -1089,24 +1169,24 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr90 = 0U;
-        for (; i_kpr90 < 1U; i_kpr90++) {
-            uint32_t j_kpr91 = i_kpr90;
-            vec_memcpy(elems_tile0 + (j_kpr91 * 4U + threadIdx.x) * 8U,
-                gA.elems + (ri_ + (j_kpr91 * 4U + threadIdx.x) * 8U));
+        uint32_t i_kpr102 = 0U;
+        for (; i_kpr102 < 1U; i_kpr102++) {
+            uint32_t j_kpr103 = i_kpr102;
+            vec_memcpy(elems_tile0 + (j_kpr103 * 4U + threadIdx.x) * 8U,
+                gA.elems + (ri_ + (j_kpr103 * 4U + threadIdx.x) * 8U));
         }
-        uint32_t i_kpr92 = 0U;
-        for (; i_kpr92 < 2U; i_kpr92++) {
-            uint32_t j_kpr93 = i_kpr92;
-            vec_memcpy(col_ind_tile0 + (j_kpr93 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr93 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr104 = 0U;
+        for (; i_kpr104 < 2U; i_kpr104++) {
+            uint32_t j_kpr105 = i_kpr104;
+            vec_memcpy(col_ind_tile0 + (j_kpr105 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr105 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr94 = 0U;
-        for (; i_kpr94 < to_; i_kpr94++) {
-            uint32_t j_kpr95 = i_kpr94;
-            elems_tile0[j_kpr95 * 4U + threadIdx.x] = __float2half_rn(0.0f);
+        uint32_t i_kpr106 = 0U;
+        for (; i_kpr106 < to_; i_kpr106++) {
+            uint32_t j_kpr107 = i_kpr106;
+            elems_tile0[j_kpr107 * 4U + threadIdx.x] = __float2half_rn(0.0f);
         }
         __syncthreads();
         if (n_idx < cols) {
@@ -1121,10 +1201,14 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[8U];
                     memset(lchunk, 0U, 8U * sizeof(float));
-                    uint32_t lane = 0U;
-                    for (; lane < 8U; lane++)
-                        lchunk[lane] =
-                            gB[kr * cols + (n_idx + __anf01 * 4U * 8U + lane)];
+                    uint32_t k2 = 0U;
+                    while (k2 < 2U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U * 8U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 8U; ix++) {
                         uint32_t __anf4 = ix;
@@ -1141,17 +1225,17 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr96 = 0U;
-            for (; i_kpr96 < 1U; i_kpr96++) {
-                uint32_t j_kpr97 = i_kpr96;
-                vec_memcpy(elems_tile0 + (j_kpr97 * 4U + threadIdx.x) * 8U,
-                    gA.elems + (off + (j_kpr97 * 4U + threadIdx.x) * 8U));
+            uint32_t i_kpr108 = 0U;
+            for (; i_kpr108 < 1U; i_kpr108++) {
+                uint32_t j_kpr109 = i_kpr108;
+                vec_memcpy(elems_tile0 + (j_kpr109 * 4U + threadIdx.x) * 8U,
+                    gA.elems + (off + (j_kpr109 * 4U + threadIdx.x) * 8U));
             }
-            uint32_t i_kpr98 = 0U;
-            for (; i_kpr98 < 2U; i_kpr98++) {
-                uint32_t j_kpr99 = i_kpr98;
-                vec_memcpy(col_ind_tile0 + (j_kpr99 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr99 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr110 = 0U;
+            for (; i_kpr110 < 2U; i_kpr110++) {
+                uint32_t j_kpr111 = i_kpr110;
+                vec_memcpy(col_ind_tile0 + (j_kpr111 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr111 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -1166,11 +1250,14 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[8U];
                         memset(lchunk, 0U, 8U * sizeof(float));
-                        uint32_t lane = 0U;
-                        for (; lane < 8U; lane++)
-                            lchunk[lane] =
-                                gB[kr * cols +
-                                    (n_idx + __anf03 * 4U * 8U + lane)];
+                        uint32_t k2 = 0U;
+                        while (k2 < 2U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U * 8U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 8U; ix++) {
                             uint32_t __anf4 = ix;
@@ -1190,14 +1277,14 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr101 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr100 = 0U;
-    for (; i_kpr100 < hi_kpr101; i_kpr100++) {
-        uint32_t j_kpr102 = i_kpr100;
-        elems_tile0[j_kpr102 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr102 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr102 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr102 * 4U + threadIdx.x];
+    uint32_t hi_kpr113 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr112 = 0U;
+    for (; i_kpr112 < hi_kpr113; i_kpr112++) {
+        uint32_t j_kpr114 = i_kpr112;
+        elems_tile0[j_kpr114 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr114 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr114 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr114 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -1212,10 +1299,14 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[8U];
                 memset(lchunk, 0U, 8U * sizeof(float));
-                uint32_t lane = 0U;
-                for (; lane < 8U; lane++)
-                    lchunk[lane] =
-                        gB[kr * cols + (n_idx + __anf02 * 4U * 8U + lane)];
+                uint32_t k2 = 0U;
+                while (k2 < 2U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U * 8U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 8U; ix++) {
                     uint32_t __anf4 = ix;
@@ -1227,22 +1318,27 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr103 = 0U;
-    for (; i_kpr103 < 1U; i_kpr103++) {
-        uint32_t j_kpr104 = i_kpr103;
-        uint32_t off = n_idx + j_kpr104 * 4U * 8U;
+    uint32_t i_kpr117 = 0U;
+    for (; i_kpr117 < 1U; i_kpr117++) {
+        uint32_t j_kpr118 = i_kpr117;
+        uint32_t off = n_idx + j_kpr118 * 4U * 8U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            half combined[8U];
-            for (uint32_t _i = 0U; _i < 8U; ++_i)
-                combined[_i] = __float2half_rn(0.0f);
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 8U; lane++) {
-                uint32_t __anf4 = lane;
-                combined[__anf4] = __float2half_rn(out[j_kpr104 * 8U + lane]);
+            uint32_t i_kpr115 = 0U;
+            for (; i_kpr115 < 1U; i_kpr115++) {
+                uint32_t j_kpr116 = i_kpr115;
+                uint32_t start = j_kpr118 * 8U + j_kpr116 * 8U;
+                uint32_t address = cols * m_idx + (off + j_kpr116 * 8U);
+                half combined[8U];
+                for (uint32_t _i = 0U; _i < 8U; ++_i)
+                    combined[_i] = __float2half_rn(0.0f);
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 8U; lane++) {
+                    uint32_t __anf4 = lane;
+                    combined[__anf4] = __float2half_rn(out[start + lane]);
+                }
+                vec_memcpy(gC + address, combined);
             }
-            vec_memcpy(gC + address, combined);
         }
     }
 }
@@ -1269,24 +1365,24 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr105 = 0U;
-        for (; i_kpr105 < 1U; i_kpr105++) {
-            uint32_t j_kpr106 = i_kpr105;
-            vec_memcpy(elems_tile0 + (j_kpr106 * 4U + threadIdx.x) * 8U,
-                gA.elems + (ri_ + (j_kpr106 * 4U + threadIdx.x) * 8U));
+        uint32_t i_kpr119 = 0U;
+        for (; i_kpr119 < 1U; i_kpr119++) {
+            uint32_t j_kpr120 = i_kpr119;
+            vec_memcpy(elems_tile0 + (j_kpr120 * 4U + threadIdx.x) * 8U,
+                gA.elems + (ri_ + (j_kpr120 * 4U + threadIdx.x) * 8U));
         }
-        uint32_t i_kpr107 = 0U;
-        for (; i_kpr107 < 2U; i_kpr107++) {
-            uint32_t j_kpr108 = i_kpr107;
-            vec_memcpy(col_ind_tile0 + (j_kpr108 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr108 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr121 = 0U;
+        for (; i_kpr121 < 2U; i_kpr121++) {
+            uint32_t j_kpr122 = i_kpr121;
+            vec_memcpy(col_ind_tile0 + (j_kpr122 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr122 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr109 = 0U;
-        for (; i_kpr109 < to_; i_kpr109++) {
-            uint32_t j_kpr110 = i_kpr109;
-            elems_tile0[j_kpr110 * 4U + threadIdx.x] = __float2half_rn(0.0f);
+        uint32_t i_kpr123 = 0U;
+        for (; i_kpr123 < to_; i_kpr123++) {
+            uint32_t j_kpr124 = i_kpr123;
+            elems_tile0[j_kpr124 * 4U + threadIdx.x] = __float2half_rn(0.0f);
         }
         __syncthreads();
         if (n_idx < cols) {
@@ -1301,10 +1397,14 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
                     uint32_t __anf01 = k1;
                     float lchunk[8U];
                     memset(lchunk, 0U, 8U * sizeof(float));
-                    uint32_t lane = 0U;
-                    for (; lane < 8U; lane++)
-                        lchunk[lane] =
-                            gB[kr * cols + (n_idx + __anf01 * 4U * 8U + lane)];
+                    uint32_t k2 = 0U;
+                    while (k2 < 2U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U * 8U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 8U; ix++) {
                         uint32_t __anf4 = ix;
@@ -1321,17 +1421,17 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr111 = 0U;
-            for (; i_kpr111 < 1U; i_kpr111++) {
-                uint32_t j_kpr112 = i_kpr111;
-                vec_memcpy(elems_tile0 + (j_kpr112 * 4U + threadIdx.x) * 8U,
-                    gA.elems + (off + (j_kpr112 * 4U + threadIdx.x) * 8U));
+            uint32_t i_kpr125 = 0U;
+            for (; i_kpr125 < 1U; i_kpr125++) {
+                uint32_t j_kpr126 = i_kpr125;
+                vec_memcpy(elems_tile0 + (j_kpr126 * 4U + threadIdx.x) * 8U,
+                    gA.elems + (off + (j_kpr126 * 4U + threadIdx.x) * 8U));
             }
-            uint32_t i_kpr113 = 0U;
-            for (; i_kpr113 < 2U; i_kpr113++) {
-                uint32_t j_kpr114 = i_kpr113;
-                vec_memcpy(col_ind_tile0 + (j_kpr114 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr114 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr127 = 0U;
+            for (; i_kpr127 < 2U; i_kpr127++) {
+                uint32_t j_kpr128 = i_kpr127;
+                vec_memcpy(col_ind_tile0 + (j_kpr128 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr128 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -1346,11 +1446,14 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
                         uint32_t __anf03 = k1;
                         float lchunk[8U];
                         memset(lchunk, 0U, 8U * sizeof(float));
-                        uint32_t lane = 0U;
-                        for (; lane < 8U; lane++)
-                            lchunk[lane] =
-                                gB[kr * cols +
-                                    (n_idx + __anf03 * 4U * 8U + lane)];
+                        uint32_t k2 = 0U;
+                        while (k2 < 2U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U * 8U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 8U; ix++) {
                             uint32_t __anf4 = ix;
@@ -1370,14 +1473,14 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr116 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr115 = 0U;
-    for (; i_kpr115 < hi_kpr116; i_kpr115++) {
-        uint32_t j_kpr117 = i_kpr115;
-        elems_tile0[j_kpr117 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr117 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr117 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr117 * 4U + threadIdx.x];
+    uint32_t hi_kpr130 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr129 = 0U;
+    for (; i_kpr129 < hi_kpr130; i_kpr129++) {
+        uint32_t j_kpr131 = i_kpr129;
+        elems_tile0[j_kpr131 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr131 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr131 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr131 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -1392,10 +1495,14 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
                 uint32_t __anf02 = k1;
                 float lchunk[8U];
                 memset(lchunk, 0U, 8U * sizeof(float));
-                uint32_t lane = 0U;
-                for (; lane < 8U; lane++)
-                    lchunk[lane] =
-                        gB[kr * cols + (n_idx + __anf02 * 4U * 8U + lane)];
+                uint32_t k2 = 0U;
+                while (k2 < 2U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U * 8U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 8U; ix++) {
                     uint32_t __anf4 = ix;
@@ -1407,22 +1514,27 @@ __hoisted_g_spmm_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
             }
         }
     }
-    uint32_t i_kpr118 = 0U;
-    for (; i_kpr118 < 1U; i_kpr118++) {
-        uint32_t j_kpr119 = i_kpr118;
-        uint32_t off = n_idx + j_kpr119 * 4U * 8U;
+    uint32_t i_kpr134 = 0U;
+    for (; i_kpr134 < 1U; i_kpr134++) {
+        uint32_t j_kpr135 = i_kpr134;
+        uint32_t off = n_idx + j_kpr135 * 4U * 8U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            half combined[8U];
-            for (uint32_t _i = 0U; _i < 8U; ++_i)
-                combined[_i] = __float2half_rn(0.0f);
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 8U; lane++) {
-                uint32_t __anf4 = lane;
-                combined[__anf4] = __float2half_rn(out[j_kpr119 * 8U + lane]);
+            uint32_t i_kpr132 = 0U;
+            for (; i_kpr132 < 1U; i_kpr132++) {
+                uint32_t j_kpr133 = i_kpr132;
+                uint32_t start = j_kpr135 * 8U + j_kpr133 * 8U;
+                uint32_t address = cols * m_idx + (off + j_kpr133 * 8U);
+                half combined[8U];
+                for (uint32_t _i = 0U; _i < 8U; ++_i)
+                    combined[_i] = __float2half_rn(0.0f);
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 8U; lane++) {
+                    uint32_t __anf4 = lane;
+                    combined[__anf4] = __float2half_rn(out[start + lane]);
+                }
+                vec_memcpy(gC + address, combined);
             }
-            vec_memcpy(gC + address, combined);
         }
     }
 }
@@ -1437,7 +1549,7 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_0(uint32_t *row_indices,
     __nv_bfloat16 *gB, float *gC)
 {
     uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 4U;
+    uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 8U;
     half *elems_tile0 = (half *) KPR_SHMEM_AT(0U);
     uint32_t *col_ind_tile0 =
         (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(half) * 32U);
@@ -1449,24 +1561,24 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_0(uint32_t *row_indices,
     double out[8U];
     memset(out, 0U, 8U * sizeof(double));
     if (nnz >= 32U) {
-        uint32_t i_kpr120 = 0U;
-        for (; i_kpr120 < 1U; i_kpr120++) {
-            uint32_t j_kpr121 = i_kpr120;
-            vec_memcpy(elems_tile0 + (j_kpr121 * 4U + threadIdx.x) * 8U,
-                gA.elems + (ri_ + (j_kpr121 * 4U + threadIdx.x) * 8U));
+        uint32_t i_kpr136 = 0U;
+        for (; i_kpr136 < 1U; i_kpr136++) {
+            uint32_t j_kpr137 = i_kpr136;
+            vec_memcpy(elems_tile0 + (j_kpr137 * 4U + threadIdx.x) * 8U,
+                gA.elems + (ri_ + (j_kpr137 * 4U + threadIdx.x) * 8U));
         }
-        uint32_t i_kpr122 = 0U;
-        for (; i_kpr122 < 2U; i_kpr122++) {
-            uint32_t j_kpr123 = i_kpr122;
-            vec_memcpy(col_ind_tile0 + (j_kpr123 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr123 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr138 = 0U;
+        for (; i_kpr138 < 2U; i_kpr138++) {
+            uint32_t j_kpr139 = i_kpr138;
+            vec_memcpy(col_ind_tile0 + (j_kpr139 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr139 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr124 = 0U;
-        for (; i_kpr124 < to_; i_kpr124++) {
-            uint32_t j_kpr125 = i_kpr124;
-            elems_tile0[j_kpr125 * 4U + threadIdx.x] = __float2half_rn(0.0f);
+        uint32_t i_kpr140 = 0U;
+        for (; i_kpr140 < to_; i_kpr140++) {
+            uint32_t j_kpr141 = i_kpr140;
+            elems_tile0[j_kpr141 * 4U + threadIdx.x] = __float2half_rn(0.0f);
         }
         __syncthreads();
         if (n_idx < cols) {
@@ -1476,27 +1588,28 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_0(uint32_t *row_indices,
                 uint32_t kr = col_ind_tile0[kv];
                 half kx = elems_tile0[kv];
                 uint32_t k1 = 0U;
-                for (; k1 < 2U; k1++) {
+                for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
                     uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 4U * 4U < cols) {
-                        __nv_bfloat16 lchunk[4U];
-                        for (uint32_t _i = 0U; _i < 4U; ++_i)
-                            lchunk[_i] = __float2bfloat16(0.0f);
-                        uint32_t lane = 0U;
-                        for (; lane < 4U; lane++)
-                            lchunk[lane] =
-                                gB[kr * cols +
-                                    (n_idx + __anf01 * 4U * 4U + lane)];
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++) {
-                            uint32_t __anf4 = ix;
-                            double __anf3 = out[__anf1 * 4U + ix];
-                            __nv_bfloat16 __anf11 = lchunk[ix];
-                            out[__anf1 * 4U + __anf4] =
-                                __anf3 + (double) __half2float(kx) *
-                                             (double) __bfloat162float(__anf11);
-                        }
+                    __nv_bfloat16 lchunk[8U];
+                    for (uint32_t _i = 0U; _i < 8U; ++_i)
+                        lchunk[_i] = __float2bfloat16(0.0f);
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 8U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U * 8U) +
+                                     kv1 * 8U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 8U; ix++) {
+                        uint32_t __anf4 = ix;
+                        double __anf3 = out[__anf1 * 8U + ix];
+                        __nv_bfloat16 __anf11 = lchunk[ix];
+                        out[__anf1 * 8U + __anf4] =
+                            __anf3 + (double) __half2float(kx) *
+                                         (double) __bfloat162float(__anf11);
                     }
                 }
             }
@@ -1506,17 +1619,17 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_0(uint32_t *row_indices,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr126 = 0U;
-            for (; i_kpr126 < 1U; i_kpr126++) {
-                uint32_t j_kpr127 = i_kpr126;
-                vec_memcpy(elems_tile0 + (j_kpr127 * 4U + threadIdx.x) * 8U,
-                    gA.elems + (off + (j_kpr127 * 4U + threadIdx.x) * 8U));
+            uint32_t i_kpr142 = 0U;
+            for (; i_kpr142 < 1U; i_kpr142++) {
+                uint32_t j_kpr143 = i_kpr142;
+                vec_memcpy(elems_tile0 + (j_kpr143 * 4U + threadIdx.x) * 8U,
+                    gA.elems + (off + (j_kpr143 * 4U + threadIdx.x) * 8U));
             }
-            uint32_t i_kpr128 = 0U;
-            for (; i_kpr128 < 2U; i_kpr128++) {
-                uint32_t j_kpr129 = i_kpr128;
-                vec_memcpy(col_ind_tile0 + (j_kpr129 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr129 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr144 = 0U;
+            for (; i_kpr144 < 2U; i_kpr144++) {
+                uint32_t j_kpr145 = i_kpr144;
+                vec_memcpy(col_ind_tile0 + (j_kpr145 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr145 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -1526,28 +1639,28 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_0(uint32_t *row_indices,
                     uint32_t kr = col_ind_tile0[kv];
                     half kx = elems_tile0[kv];
                     uint32_t k1 = 0U;
-                    for (; k1 < 2U; k1++) {
+                    for (; k1 < 1U; k1++) {
                         uint32_t __anf1 = k1;
                         uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 4U * 4U < cols) {
-                            __nv_bfloat16 lchunk[4U];
-                            for (uint32_t _i = 0U; _i < 4U; ++_i)
-                                lchunk[_i] = __float2bfloat16(0.0f);
-                            uint32_t lane = 0U;
-                            for (; lane < 4U; lane++)
-                                lchunk[lane] =
-                                    gB[kr * cols +
-                                        (n_idx + __anf03 * 4U * 4U + lane)];
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++) {
-                                uint32_t __anf4 = ix;
-                                double __anf3 = out[__anf1 * 4U + ix];
-                                __nv_bfloat16 __anf11 = lchunk[ix];
-                                out[__anf1 * 4U + __anf4] =
-                                    __anf3 +
-                                    (double) __half2float(kx) *
-                                        (double) __bfloat162float(__anf11);
-                            }
+                        __nv_bfloat16 lchunk[8U];
+                        for (uint32_t _i = 0U; _i < 8U; ++_i)
+                            lchunk[_i] = __float2bfloat16(0.0f);
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 8U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U * 8U) +
+                                         kv1 * 8U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 8U; ix++) {
+                            uint32_t __anf4 = ix;
+                            double __anf3 = out[__anf1 * 8U + ix];
+                            __nv_bfloat16 __anf11 = lchunk[ix];
+                            out[__anf1 * 8U + __anf4] =
+                                __anf3 + (double) __half2float(kx) *
+                                             (double) __bfloat162float(__anf11);
                         }
                     }
                 }
@@ -1560,14 +1673,14 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_0(uint32_t *row_indices,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr131 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr130 = 0U;
-    for (; i_kpr130 < hi_kpr131; i_kpr130++) {
-        uint32_t j_kpr132 = i_kpr130;
-        elems_tile0[j_kpr132 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr132 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr132 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr132 * 4U + threadIdx.x];
+    uint32_t hi_kpr147 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr146 = 0U;
+    for (; i_kpr146 < hi_kpr147; i_kpr146++) {
+        uint32_t j_kpr148 = i_kpr146;
+        elems_tile0[j_kpr148 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr148 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr148 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr148 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -1577,43 +1690,50 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_0(uint32_t *row_indices,
             uint32_t kr = col_ind_tile0[kv];
             half kx = elems_tile0[kv];
             uint32_t k1 = 0U;
-            for (; k1 < 2U; k1++) {
+            for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
                 uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 4U * 4U < cols) {
-                    __nv_bfloat16 lchunk[4U];
-                    for (uint32_t _i = 0U; _i < 4U; ++_i)
-                        lchunk[_i] = __float2bfloat16(0.0f);
-                    uint32_t lane = 0U;
-                    for (; lane < 4U; lane++)
-                        lchunk[lane] =
-                            gB[kr * cols + (n_idx + __anf02 * 4U * 4U + lane)];
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++) {
-                        uint32_t __anf4 = ix;
-                        double __anf3 = out[__anf1 * 4U + ix];
-                        __nv_bfloat16 __anf11 = lchunk[ix];
-                        out[__anf1 * 4U + __anf4] =
-                            __anf3 + (double) __half2float(kx) *
-                                         (double) __bfloat162float(__anf11);
-                    }
+                __nv_bfloat16 lchunk[8U];
+                for (uint32_t _i = 0U; _i < 8U; ++_i)
+                    lchunk[_i] = __float2bfloat16(0.0f);
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 8U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U * 8U) +
+                                 kv1 * 8U));
+                    k2 = kv1 + 1U;
+                }
+                uint32_t ix = 0U;
+                for (; ix < 8U; ix++) {
+                    uint32_t __anf4 = ix;
+                    double __anf3 = out[__anf1 * 8U + ix];
+                    __nv_bfloat16 __anf11 = lchunk[ix];
+                    out[__anf1 * 8U + __anf4] =
+                        __anf3 + (double) __half2float(kx) *
+                                     (double) __bfloat162float(__anf11);
                 }
             }
         }
     }
-    uint32_t i_kpr133 = 0U;
-    for (; i_kpr133 < 2U; i_kpr133++) {
-        uint32_t j_kpr134 = i_kpr133;
-        uint32_t off = n_idx + j_kpr134 * 4U * 4U;
+    uint32_t i_kpr151 = 0U;
+    for (; i_kpr151 < 1U; i_kpr151++) {
+        uint32_t j_kpr152 = i_kpr151;
+        uint32_t off = n_idx + j_kpr152 * 4U * 8U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = (float) out[j_kpr134 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr149 = 0U;
+            for (; i_kpr149 < 2U; i_kpr149++) {
+                uint32_t j_kpr150 = i_kpr149;
+                uint32_t start = j_kpr152 * 8U + j_kpr150 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr150 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = (float) out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -1628,7 +1748,7 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_on_0(uint32_t *row_indices,
     __nv_bfloat16 *gB, float *gC)
 {
     uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 4U;
+    uint32_t n_idx = blockIdx.x / rows * 32U + threadIdx.x * 8U;
     half *elems_tile0 = (half *) KPR_SHMEM_AT(0U);
     uint32_t *col_ind_tile0 =
         (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(half) * 32U);
@@ -1640,24 +1760,24 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_on_0(uint32_t *row_indices,
     double out[8U];
     memset(out, 0U, 8U * sizeof(double));
     if (nnz >= 32U) {
-        uint32_t i_kpr135 = 0U;
-        for (; i_kpr135 < 1U; i_kpr135++) {
-            uint32_t j_kpr136 = i_kpr135;
-            vec_memcpy(elems_tile0 + (j_kpr136 * 4U + threadIdx.x) * 8U,
-                gA.elems + (ri_ + (j_kpr136 * 4U + threadIdx.x) * 8U));
+        uint32_t i_kpr153 = 0U;
+        for (; i_kpr153 < 1U; i_kpr153++) {
+            uint32_t j_kpr154 = i_kpr153;
+            vec_memcpy(elems_tile0 + (j_kpr154 * 4U + threadIdx.x) * 8U,
+                gA.elems + (ri_ + (j_kpr154 * 4U + threadIdx.x) * 8U));
         }
-        uint32_t i_kpr137 = 0U;
-        for (; i_kpr137 < 2U; i_kpr137++) {
-            uint32_t j_kpr138 = i_kpr137;
-            vec_memcpy(col_ind_tile0 + (j_kpr138 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr138 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr155 = 0U;
+        for (; i_kpr155 < 2U; i_kpr155++) {
+            uint32_t j_kpr156 = i_kpr155;
+            vec_memcpy(col_ind_tile0 + (j_kpr156 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr156 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr139 = 0U;
-        for (; i_kpr139 < to_; i_kpr139++) {
-            uint32_t j_kpr140 = i_kpr139;
-            elems_tile0[j_kpr140 * 4U + threadIdx.x] = __float2half_rn(0.0f);
+        uint32_t i_kpr157 = 0U;
+        for (; i_kpr157 < to_; i_kpr157++) {
+            uint32_t j_kpr158 = i_kpr157;
+            elems_tile0[j_kpr158 * 4U + threadIdx.x] = __float2half_rn(0.0f);
         }
         __syncthreads();
         if (n_idx < cols) {
@@ -1667,27 +1787,28 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_on_0(uint32_t *row_indices,
                 uint32_t kr = col_ind_tile0[kv];
                 half kx = elems_tile0[kv];
                 uint32_t k1 = 0U;
-                for (; k1 < 2U; k1++) {
+                for (; k1 < 1U; k1++) {
                     uint32_t __anf1 = k1;
                     uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 4U * 4U < cols) {
-                        __nv_bfloat16 lchunk[4U];
-                        for (uint32_t _i = 0U; _i < 4U; ++_i)
-                            lchunk[_i] = __float2bfloat16(0.0f);
-                        uint32_t lane = 0U;
-                        for (; lane < 4U; lane++)
-                            lchunk[lane] =
-                                gB[kr * cols +
-                                    (n_idx + __anf01 * 4U * 4U + lane)];
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++) {
-                            uint32_t __anf4 = ix;
-                            double __anf3 = out[__anf1 * 4U + ix];
-                            __nv_bfloat16 __anf11 = lchunk[ix];
-                            out[__anf1 * 4U + __anf4] =
-                                __anf3 + (double) __half2float(kx) *
-                                             (double) __bfloat162float(__anf11);
-                        }
+                    __nv_bfloat16 lchunk[8U];
+                    for (uint32_t _i = 0U; _i < 8U; ++_i)
+                        lchunk[_i] = __float2bfloat16(0.0f);
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 8U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U * 8U) +
+                                     kv1 * 8U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 8U; ix++) {
+                        uint32_t __anf4 = ix;
+                        double __anf3 = out[__anf1 * 8U + ix];
+                        __nv_bfloat16 __anf11 = lchunk[ix];
+                        out[__anf1 * 8U + __anf4] =
+                            __anf3 + (double) __half2float(kx) *
+                                         (double) __bfloat162float(__anf11);
                     }
                 }
             }
@@ -1697,17 +1818,17 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_on_0(uint32_t *row_indices,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr141 = 0U;
-            for (; i_kpr141 < 1U; i_kpr141++) {
-                uint32_t j_kpr142 = i_kpr141;
-                vec_memcpy(elems_tile0 + (j_kpr142 * 4U + threadIdx.x) * 8U,
-                    gA.elems + (off + (j_kpr142 * 4U + threadIdx.x) * 8U));
+            uint32_t i_kpr159 = 0U;
+            for (; i_kpr159 < 1U; i_kpr159++) {
+                uint32_t j_kpr160 = i_kpr159;
+                vec_memcpy(elems_tile0 + (j_kpr160 * 4U + threadIdx.x) * 8U,
+                    gA.elems + (off + (j_kpr160 * 4U + threadIdx.x) * 8U));
             }
-            uint32_t i_kpr143 = 0U;
-            for (; i_kpr143 < 2U; i_kpr143++) {
-                uint32_t j_kpr144 = i_kpr143;
-                vec_memcpy(col_ind_tile0 + (j_kpr144 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr144 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr161 = 0U;
+            for (; i_kpr161 < 2U; i_kpr161++) {
+                uint32_t j_kpr162 = i_kpr161;
+                vec_memcpy(col_ind_tile0 + (j_kpr162 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr162 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -1717,28 +1838,28 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_on_0(uint32_t *row_indices,
                     uint32_t kr = col_ind_tile0[kv];
                     half kx = elems_tile0[kv];
                     uint32_t k1 = 0U;
-                    for (; k1 < 2U; k1++) {
+                    for (; k1 < 1U; k1++) {
                         uint32_t __anf1 = k1;
                         uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 4U * 4U < cols) {
-                            __nv_bfloat16 lchunk[4U];
-                            for (uint32_t _i = 0U; _i < 4U; ++_i)
-                                lchunk[_i] = __float2bfloat16(0.0f);
-                            uint32_t lane = 0U;
-                            for (; lane < 4U; lane++)
-                                lchunk[lane] =
-                                    gB[kr * cols +
-                                        (n_idx + __anf03 * 4U * 4U + lane)];
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++) {
-                                uint32_t __anf4 = ix;
-                                double __anf3 = out[__anf1 * 4U + ix];
-                                __nv_bfloat16 __anf11 = lchunk[ix];
-                                out[__anf1 * 4U + __anf4] =
-                                    __anf3 +
-                                    (double) __half2float(kx) *
-                                        (double) __bfloat162float(__anf11);
-                            }
+                        __nv_bfloat16 lchunk[8U];
+                        for (uint32_t _i = 0U; _i < 8U; ++_i)
+                            lchunk[_i] = __float2bfloat16(0.0f);
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 8U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U * 8U) +
+                                         kv1 * 8U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 8U; ix++) {
+                            uint32_t __anf4 = ix;
+                            double __anf3 = out[__anf1 * 8U + ix];
+                            __nv_bfloat16 __anf11 = lchunk[ix];
+                            out[__anf1 * 8U + __anf4] =
+                                __anf3 + (double) __half2float(kx) *
+                                             (double) __bfloat162float(__anf11);
                         }
                     }
                 }
@@ -1751,14 +1872,14 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_on_0(uint32_t *row_indices,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr146 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr145 = 0U;
-    for (; i_kpr145 < hi_kpr146; i_kpr145++) {
-        uint32_t j_kpr147 = i_kpr145;
-        elems_tile0[j_kpr147 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr147 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr147 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr147 * 4U + threadIdx.x];
+    uint32_t hi_kpr164 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr163 = 0U;
+    for (; i_kpr163 < hi_kpr164; i_kpr163++) {
+        uint32_t j_kpr165 = i_kpr163;
+        elems_tile0[j_kpr165 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr165 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr165 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr165 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -1768,43 +1889,50 @@ __hoisted_g_spmm_f16_bf16_f32_f64_32x32x4_on_0(uint32_t *row_indices,
             uint32_t kr = col_ind_tile0[kv];
             half kx = elems_tile0[kv];
             uint32_t k1 = 0U;
-            for (; k1 < 2U; k1++) {
+            for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
                 uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 4U * 4U < cols) {
-                    __nv_bfloat16 lchunk[4U];
-                    for (uint32_t _i = 0U; _i < 4U; ++_i)
-                        lchunk[_i] = __float2bfloat16(0.0f);
-                    uint32_t lane = 0U;
-                    for (; lane < 4U; lane++)
-                        lchunk[lane] =
-                            gB[kr * cols + (n_idx + __anf02 * 4U * 4U + lane)];
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++) {
-                        uint32_t __anf4 = ix;
-                        double __anf3 = out[__anf1 * 4U + ix];
-                        __nv_bfloat16 __anf11 = lchunk[ix];
-                        out[__anf1 * 4U + __anf4] =
-                            __anf3 + (double) __half2float(kx) *
-                                         (double) __bfloat162float(__anf11);
-                    }
+                __nv_bfloat16 lchunk[8U];
+                for (uint32_t _i = 0U; _i < 8U; ++_i)
+                    lchunk[_i] = __float2bfloat16(0.0f);
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 8U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U * 8U) +
+                                 kv1 * 8U));
+                    k2 = kv1 + 1U;
+                }
+                uint32_t ix = 0U;
+                for (; ix < 8U; ix++) {
+                    uint32_t __anf4 = ix;
+                    double __anf3 = out[__anf1 * 8U + ix];
+                    __nv_bfloat16 __anf11 = lchunk[ix];
+                    out[__anf1 * 8U + __anf4] =
+                        __anf3 + (double) __half2float(kx) *
+                                     (double) __bfloat162float(__anf11);
                 }
             }
         }
     }
-    uint32_t i_kpr148 = 0U;
-    for (; i_kpr148 < 2U; i_kpr148++) {
-        uint32_t j_kpr149 = i_kpr148;
-        uint32_t off = n_idx + j_kpr149 * 4U * 4U;
+    uint32_t i_kpr168 = 0U;
+    for (; i_kpr168 < 1U; i_kpr168++) {
+        uint32_t j_kpr169 = i_kpr168;
+        uint32_t off = n_idx + j_kpr169 * 4U * 8U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = (float) out[j_kpr149 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr166 = 0U;
+            for (; i_kpr166 < 2U; i_kpr166++) {
+                uint32_t j_kpr167 = i_kpr166;
+                uint32_t start = j_kpr169 * 8U + j_kpr167 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr167 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = (float) out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -1831,24 +1959,24 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_0(uint32_t *row_indices, uint32_t rows,
     double out[8U];
     memset(out, 0U, 8U * sizeof(double));
     if (nnz >= 32U) {
-        uint32_t i_kpr150 = 0U;
-        for (; i_kpr150 < 1U; i_kpr150++) {
-            uint32_t j_kpr151 = i_kpr150;
-            vec_memcpy(elems_tile0 + (j_kpr151 * 4U + threadIdx.x) * 8U,
-                gA.elems + (ri_ + (j_kpr151 * 4U + threadIdx.x) * 8U));
+        uint32_t i_kpr170 = 0U;
+        for (; i_kpr170 < 1U; i_kpr170++) {
+            uint32_t j_kpr171 = i_kpr170;
+            vec_memcpy(elems_tile0 + (j_kpr171 * 4U + threadIdx.x) * 8U,
+                gA.elems + (ri_ + (j_kpr171 * 4U + threadIdx.x) * 8U));
         }
-        uint32_t i_kpr152 = 0U;
-        for (; i_kpr152 < 2U; i_kpr152++) {
-            uint32_t j_kpr153 = i_kpr152;
-            vec_memcpy(col_ind_tile0 + (j_kpr153 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr153 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr172 = 0U;
+        for (; i_kpr172 < 2U; i_kpr172++) {
+            uint32_t j_kpr173 = i_kpr172;
+            vec_memcpy(col_ind_tile0 + (j_kpr173 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr173 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr154 = 0U;
-        for (; i_kpr154 < to_; i_kpr154++) {
-            uint32_t j_kpr155 = i_kpr154;
-            elems_tile0[j_kpr155 * 4U + threadIdx.x] = __float2half_rn(0.0f);
+        uint32_t i_kpr174 = 0U;
+        for (; i_kpr174 < to_; i_kpr174++) {
+            uint32_t j_kpr175 = i_kpr174;
+            elems_tile0[j_kpr175 * 4U + threadIdx.x] = __float2half_rn(0.0f);
         }
         __syncthreads();
         if (n_idx < cols) {
@@ -1864,8 +1992,14 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 4U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 4U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 4U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t __anf4 = ix;
@@ -1884,17 +2018,17 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr156 = 0U;
-            for (; i_kpr156 < 1U; i_kpr156++) {
-                uint32_t j_kpr157 = i_kpr156;
-                vec_memcpy(elems_tile0 + (j_kpr157 * 4U + threadIdx.x) * 8U,
-                    gA.elems + (off + (j_kpr157 * 4U + threadIdx.x) * 8U));
+            uint32_t i_kpr176 = 0U;
+            for (; i_kpr176 < 1U; i_kpr176++) {
+                uint32_t j_kpr177 = i_kpr176;
+                vec_memcpy(elems_tile0 + (j_kpr177 * 4U + threadIdx.x) * 8U,
+                    gA.elems + (off + (j_kpr177 * 4U + threadIdx.x) * 8U));
             }
-            uint32_t i_kpr158 = 0U;
-            for (; i_kpr158 < 2U; i_kpr158++) {
-                uint32_t j_kpr159 = i_kpr158;
-                vec_memcpy(col_ind_tile0 + (j_kpr159 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr159 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr178 = 0U;
+            for (; i_kpr178 < 2U; i_kpr178++) {
+                uint32_t j_kpr179 = i_kpr178;
+                vec_memcpy(col_ind_tile0 + (j_kpr179 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr179 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -1910,8 +2044,15 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 4U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB + (cols * kr + (n_idx + __anf03 * 4U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 4U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t __anf4 = ix;
@@ -1933,14 +2074,14 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr161 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr160 = 0U;
-    for (; i_kpr160 < hi_kpr161; i_kpr160++) {
-        uint32_t j_kpr162 = i_kpr160;
-        elems_tile0[j_kpr162 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr162 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr162 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr162 * 4U + threadIdx.x];
+    uint32_t hi_kpr181 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr180 = 0U;
+    for (; i_kpr180 < hi_kpr181; i_kpr180++) {
+        uint32_t j_kpr182 = i_kpr180;
+        elems_tile0[j_kpr182 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr182 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr182 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr182 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -1956,8 +2097,14 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 4U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf02 * 4U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 4U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t __anf4 = ix;
@@ -1971,19 +2118,24 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr163 = 0U;
-    for (; i_kpr163 < 2U; i_kpr163++) {
-        uint32_t j_kpr164 = i_kpr163;
-        uint32_t off = n_idx + j_kpr164 * 4U * 4U;
+    uint32_t i_kpr185 = 0U;
+    for (; i_kpr185 < 2U; i_kpr185++) {
+        uint32_t j_kpr186 = i_kpr185;
+        uint32_t off = n_idx + j_kpr186 * 4U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = (float) out[j_kpr164 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr183 = 0U;
+            for (; i_kpr183 < 1U; i_kpr183++) {
+                uint32_t j_kpr184 = i_kpr183;
+                uint32_t start = j_kpr186 * 4U + j_kpr184 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr184 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = (float) out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -2010,24 +2162,24 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_on_0(uint32_t *row_indices,
     double out[8U];
     memset(out, 0U, 8U * sizeof(double));
     if (nnz >= 32U) {
-        uint32_t i_kpr165 = 0U;
-        for (; i_kpr165 < 1U; i_kpr165++) {
-            uint32_t j_kpr166 = i_kpr165;
-            vec_memcpy(elems_tile0 + (j_kpr166 * 4U + threadIdx.x) * 8U,
-                gA.elems + (ri_ + (j_kpr166 * 4U + threadIdx.x) * 8U));
+        uint32_t i_kpr187 = 0U;
+        for (; i_kpr187 < 1U; i_kpr187++) {
+            uint32_t j_kpr188 = i_kpr187;
+            vec_memcpy(elems_tile0 + (j_kpr188 * 4U + threadIdx.x) * 8U,
+                gA.elems + (ri_ + (j_kpr188 * 4U + threadIdx.x) * 8U));
         }
-        uint32_t i_kpr167 = 0U;
-        for (; i_kpr167 < 2U; i_kpr167++) {
-            uint32_t j_kpr168 = i_kpr167;
-            vec_memcpy(col_ind_tile0 + (j_kpr168 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr168 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr189 = 0U;
+        for (; i_kpr189 < 2U; i_kpr189++) {
+            uint32_t j_kpr190 = i_kpr189;
+            vec_memcpy(col_ind_tile0 + (j_kpr190 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr190 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr169 = 0U;
-        for (; i_kpr169 < to_; i_kpr169++) {
-            uint32_t j_kpr170 = i_kpr169;
-            elems_tile0[j_kpr170 * 4U + threadIdx.x] = __float2half_rn(0.0f);
+        uint32_t i_kpr191 = 0U;
+        for (; i_kpr191 < to_; i_kpr191++) {
+            uint32_t j_kpr192 = i_kpr191;
+            elems_tile0[j_kpr192 * 4U + threadIdx.x] = __float2half_rn(0.0f);
         }
         __syncthreads();
         if (n_idx < cols) {
@@ -2043,8 +2195,14 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_on_0(uint32_t *row_indices,
                     if (n_idx + __anf01 * 4U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 4U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 4U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++) {
                             uint32_t __anf4 = ix;
@@ -2063,17 +2221,17 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_on_0(uint32_t *row_indices,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr171 = 0U;
-            for (; i_kpr171 < 1U; i_kpr171++) {
-                uint32_t j_kpr172 = i_kpr171;
-                vec_memcpy(elems_tile0 + (j_kpr172 * 4U + threadIdx.x) * 8U,
-                    gA.elems + (off + (j_kpr172 * 4U + threadIdx.x) * 8U));
+            uint32_t i_kpr193 = 0U;
+            for (; i_kpr193 < 1U; i_kpr193++) {
+                uint32_t j_kpr194 = i_kpr193;
+                vec_memcpy(elems_tile0 + (j_kpr194 * 4U + threadIdx.x) * 8U,
+                    gA.elems + (off + (j_kpr194 * 4U + threadIdx.x) * 8U));
             }
-            uint32_t i_kpr173 = 0U;
-            for (; i_kpr173 < 2U; i_kpr173++) {
-                uint32_t j_kpr174 = i_kpr173;
-                vec_memcpy(col_ind_tile0 + (j_kpr174 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr174 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr195 = 0U;
+            for (; i_kpr195 < 2U; i_kpr195++) {
+                uint32_t j_kpr196 = i_kpr195;
+                vec_memcpy(col_ind_tile0 + (j_kpr196 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr196 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -2089,8 +2247,15 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_on_0(uint32_t *row_indices,
                         if (n_idx + __anf03 * 4U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB + (cols * kr + (n_idx + __anf03 * 4U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 4U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++) {
                                 uint32_t __anf4 = ix;
@@ -2112,14 +2277,14 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_on_0(uint32_t *row_indices,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr176 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr175 = 0U;
-    for (; i_kpr175 < hi_kpr176; i_kpr175++) {
-        uint32_t j_kpr177 = i_kpr175;
-        elems_tile0[j_kpr177 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr177 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr177 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr177 * 4U + threadIdx.x];
+    uint32_t hi_kpr198 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr197 = 0U;
+    for (; i_kpr197 < hi_kpr198; i_kpr197++) {
+        uint32_t j_kpr199 = i_kpr197;
+        elems_tile0[j_kpr199 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr199 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr199 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr199 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -2135,8 +2300,14 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_on_0(uint32_t *row_indices,
                 if (n_idx + __anf02 * 4U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf02 * 4U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 4U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++) {
                         uint32_t __anf4 = ix;
@@ -2150,19 +2321,24 @@ __hoisted_g_spmm_f16_f32_f32_f64_32x32x4_on_0(uint32_t *row_indices,
             }
         }
     }
-    uint32_t i_kpr178 = 0U;
-    for (; i_kpr178 < 2U; i_kpr178++) {
-        uint32_t j_kpr179 = i_kpr178;
-        uint32_t off = n_idx + j_kpr179 * 4U * 4U;
+    uint32_t i_kpr202 = 0U;
+    for (; i_kpr202 < 2U; i_kpr202++) {
+        uint32_t j_kpr203 = i_kpr202;
+        uint32_t off = n_idx + j_kpr203 * 4U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = (float) out[j_kpr179 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr200 = 0U;
+            for (; i_kpr200 < 1U; i_kpr200++) {
+                uint32_t j_kpr201 = i_kpr200;
+                uint32_t start = j_kpr203 * 4U + j_kpr201 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr201 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = (float) out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -2189,24 +2365,24 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr180 = 0U;
-        for (; i_kpr180 < 1U; i_kpr180++) {
-            uint32_t j_kpr181 = i_kpr180;
-            vec_memcpy(elems_tile0 + (j_kpr181 * 4U + threadIdx.x) * 8U,
-                gA.elems + (ri_ + (j_kpr181 * 4U + threadIdx.x) * 8U));
+        uint32_t i_kpr204 = 0U;
+        for (; i_kpr204 < 1U; i_kpr204++) {
+            uint32_t j_kpr205 = i_kpr204;
+            vec_memcpy(elems_tile0 + (j_kpr205 * 4U + threadIdx.x) * 8U,
+                gA.elems + (ri_ + (j_kpr205 * 4U + threadIdx.x) * 8U));
         }
-        uint32_t i_kpr182 = 0U;
-        for (; i_kpr182 < 2U; i_kpr182++) {
-            uint32_t j_kpr183 = i_kpr182;
-            vec_memcpy(col_ind_tile0 + (j_kpr183 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr183 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr206 = 0U;
+        for (; i_kpr206 < 2U; i_kpr206++) {
+            uint32_t j_kpr207 = i_kpr206;
+            vec_memcpy(col_ind_tile0 + (j_kpr207 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr207 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr184 = 0U;
-        for (; i_kpr184 < to_; i_kpr184++) {
-            uint32_t j_kpr185 = i_kpr184;
-            elems_tile0[j_kpr185 * 4U + threadIdx.x] = __float2half_rn(0.0f);
+        uint32_t i_kpr208 = 0U;
+        for (; i_kpr208 < to_; i_kpr208++) {
+            uint32_t j_kpr209 = i_kpr208;
+            elems_tile0[j_kpr209 * 4U + threadIdx.x] = __float2half_rn(0.0f);
         }
         __syncthreads();
         if (n_idx < cols) {
@@ -2221,10 +2397,14 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices,
                     uint32_t __anf01 = k1;
                     float lchunk[8U];
                     memset(lchunk, 0U, 8U * sizeof(float));
-                    uint32_t lane = 0U;
-                    for (; lane < 8U; lane++)
-                        lchunk[lane] =
-                            gB[kr * cols + (n_idx + __anf01 * 4U * 8U + lane)];
+                    uint32_t k2 = 0U;
+                    while (k2 < 2U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U * 8U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 8U; ix++) {
                         uint32_t __anf4 = ix;
@@ -2242,17 +2422,17 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr186 = 0U;
-            for (; i_kpr186 < 1U; i_kpr186++) {
-                uint32_t j_kpr187 = i_kpr186;
-                vec_memcpy(elems_tile0 + (j_kpr187 * 4U + threadIdx.x) * 8U,
-                    gA.elems + (off + (j_kpr187 * 4U + threadIdx.x) * 8U));
+            uint32_t i_kpr210 = 0U;
+            for (; i_kpr210 < 1U; i_kpr210++) {
+                uint32_t j_kpr211 = i_kpr210;
+                vec_memcpy(elems_tile0 + (j_kpr211 * 4U + threadIdx.x) * 8U,
+                    gA.elems + (off + (j_kpr211 * 4U + threadIdx.x) * 8U));
             }
-            uint32_t i_kpr188 = 0U;
-            for (; i_kpr188 < 2U; i_kpr188++) {
-                uint32_t j_kpr189 = i_kpr188;
-                vec_memcpy(col_ind_tile0 + (j_kpr189 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr189 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr212 = 0U;
+            for (; i_kpr212 < 2U; i_kpr212++) {
+                uint32_t j_kpr213 = i_kpr212;
+                vec_memcpy(col_ind_tile0 + (j_kpr213 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr213 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -2267,11 +2447,14 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices,
                         uint32_t __anf03 = k1;
                         float lchunk[8U];
                         memset(lchunk, 0U, 8U * sizeof(float));
-                        uint32_t lane = 0U;
-                        for (; lane < 8U; lane++)
-                            lchunk[lane] =
-                                gB[kr * cols +
-                                    (n_idx + __anf03 * 4U * 8U + lane)];
+                        uint32_t k2 = 0U;
+                        while (k2 < 2U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U * 8U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 8U; ix++) {
                             uint32_t __anf4 = ix;
@@ -2292,14 +2475,14 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr191 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr190 = 0U;
-    for (; i_kpr190 < hi_kpr191; i_kpr190++) {
-        uint32_t j_kpr192 = i_kpr190;
-        elems_tile0[j_kpr192 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr192 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr192 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr192 * 4U + threadIdx.x];
+    uint32_t hi_kpr215 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr214 = 0U;
+    for (; i_kpr214 < hi_kpr215; i_kpr214++) {
+        uint32_t j_kpr216 = i_kpr214;
+        elems_tile0[j_kpr216 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr216 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr216 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr216 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -2314,10 +2497,14 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices,
                 uint32_t __anf02 = k1;
                 float lchunk[8U];
                 memset(lchunk, 0U, 8U * sizeof(float));
-                uint32_t lane = 0U;
-                for (; lane < 8U; lane++)
-                    lchunk[lane] =
-                        gB[kr * cols + (n_idx + __anf02 * 4U * 8U + lane)];
+                uint32_t k2 = 0U;
+                while (k2 < 2U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U * 8U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 8U; ix++) {
                     uint32_t __anf4 = ix;
@@ -2330,24 +2517,29 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_0(uint32_t *row_indices,
             }
         }
     }
-    uint32_t i_kpr193 = 0U;
-    for (; i_kpr193 < 1U; i_kpr193++) {
-        uint32_t j_kpr194 = i_kpr193;
-        uint32_t off = n_idx + j_kpr194 * 4U * 8U;
+    uint32_t i_kpr219 = 0U;
+    for (; i_kpr219 < 1U; i_kpr219++) {
+        uint32_t j_kpr220 = i_kpr219;
+        uint32_t off = n_idx + j_kpr220 * 4U * 8U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            half combined[8U];
-            for (uint32_t _i = 0U; _i < 8U; ++_i)
-                combined[_i] = __float2half_rn(0.0f);
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 8U; lane++) {
-                uint32_t __anf4 = lane;
-                float __anf1 = out[j_kpr194 * 8U + lane];
-                combined[__anf4] = __float2half_rn(
-                    beta * __half2float(combined[lane]) + alpha * __anf1);
+            uint32_t i_kpr217 = 0U;
+            for (; i_kpr217 < 1U; i_kpr217++) {
+                uint32_t j_kpr218 = i_kpr217;
+                uint32_t start = j_kpr220 * 8U + j_kpr218 * 8U;
+                uint32_t address = cols * m_idx + (off + j_kpr218 * 8U);
+                half combined[8U];
+                for (uint32_t _i = 0U; _i < 8U; ++_i)
+                    combined[_i] = __float2half_rn(0.0f);
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 8U; lane++) {
+                    uint32_t __anf4 = lane;
+                    float __anf1 = out[start + lane];
+                    combined[__anf4] = __float2half_rn(
+                        beta * __half2float(combined[lane]) + alpha * __anf1);
+                }
+                vec_memcpy(gC + address, combined);
             }
-            vec_memcpy(gC + address, combined);
         }
     }
 }
@@ -2374,24 +2566,24 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr195 = 0U;
-        for (; i_kpr195 < 1U; i_kpr195++) {
-            uint32_t j_kpr196 = i_kpr195;
-            vec_memcpy(elems_tile0 + (j_kpr196 * 4U + threadIdx.x) * 8U,
-                gA.elems + (ri_ + (j_kpr196 * 4U + threadIdx.x) * 8U));
+        uint32_t i_kpr221 = 0U;
+        for (; i_kpr221 < 1U; i_kpr221++) {
+            uint32_t j_kpr222 = i_kpr221;
+            vec_memcpy(elems_tile0 + (j_kpr222 * 4U + threadIdx.x) * 8U,
+                gA.elems + (ri_ + (j_kpr222 * 4U + threadIdx.x) * 8U));
         }
-        uint32_t i_kpr197 = 0U;
-        for (; i_kpr197 < 2U; i_kpr197++) {
-            uint32_t j_kpr198 = i_kpr197;
-            vec_memcpy(col_ind_tile0 + (j_kpr198 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr198 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr223 = 0U;
+        for (; i_kpr223 < 2U; i_kpr223++) {
+            uint32_t j_kpr224 = i_kpr223;
+            vec_memcpy(col_ind_tile0 + (j_kpr224 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr224 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr199 = 0U;
-        for (; i_kpr199 < to_; i_kpr199++) {
-            uint32_t j_kpr200 = i_kpr199;
-            elems_tile0[j_kpr200 * 4U + threadIdx.x] = __float2half_rn(0.0f);
+        uint32_t i_kpr225 = 0U;
+        for (; i_kpr225 < to_; i_kpr225++) {
+            uint32_t j_kpr226 = i_kpr225;
+            elems_tile0[j_kpr226 * 4U + threadIdx.x] = __float2half_rn(0.0f);
         }
         __syncthreads();
         if (n_idx < cols) {
@@ -2406,10 +2598,14 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
                     uint32_t __anf01 = k1;
                     float lchunk[8U];
                     memset(lchunk, 0U, 8U * sizeof(float));
-                    uint32_t lane = 0U;
-                    for (; lane < 8U; lane++)
-                        lchunk[lane] =
-                            gB[kr * cols + (n_idx + __anf01 * 4U * 8U + lane)];
+                    uint32_t k2 = 0U;
+                    while (k2 < 2U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U * 8U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 8U; ix++) {
                         uint32_t __anf4 = ix;
@@ -2427,17 +2623,17 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr201 = 0U;
-            for (; i_kpr201 < 1U; i_kpr201++) {
-                uint32_t j_kpr202 = i_kpr201;
-                vec_memcpy(elems_tile0 + (j_kpr202 * 4U + threadIdx.x) * 8U,
-                    gA.elems + (off + (j_kpr202 * 4U + threadIdx.x) * 8U));
+            uint32_t i_kpr227 = 0U;
+            for (; i_kpr227 < 1U; i_kpr227++) {
+                uint32_t j_kpr228 = i_kpr227;
+                vec_memcpy(elems_tile0 + (j_kpr228 * 4U + threadIdx.x) * 8U,
+                    gA.elems + (off + (j_kpr228 * 4U + threadIdx.x) * 8U));
             }
-            uint32_t i_kpr203 = 0U;
-            for (; i_kpr203 < 2U; i_kpr203++) {
-                uint32_t j_kpr204 = i_kpr203;
-                vec_memcpy(col_ind_tile0 + (j_kpr204 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr204 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr229 = 0U;
+            for (; i_kpr229 < 2U; i_kpr229++) {
+                uint32_t j_kpr230 = i_kpr229;
+                vec_memcpy(col_ind_tile0 + (j_kpr230 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr230 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -2452,11 +2648,14 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
                         uint32_t __anf03 = k1;
                         float lchunk[8U];
                         memset(lchunk, 0U, 8U * sizeof(float));
-                        uint32_t lane = 0U;
-                        for (; lane < 8U; lane++)
-                            lchunk[lane] =
-                                gB[kr * cols +
-                                    (n_idx + __anf03 * 4U * 8U + lane)];
+                        uint32_t k2 = 0U;
+                        while (k2 < 2U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U * 8U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 8U; ix++) {
                             uint32_t __anf4 = ix;
@@ -2477,14 +2676,14 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr206 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr205 = 0U;
-    for (; i_kpr205 < hi_kpr206; i_kpr205++) {
-        uint32_t j_kpr207 = i_kpr205;
-        elems_tile0[j_kpr207 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr207 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr207 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr207 * 4U + threadIdx.x];
+    uint32_t hi_kpr232 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr231 = 0U;
+    for (; i_kpr231 < hi_kpr232; i_kpr231++) {
+        uint32_t j_kpr233 = i_kpr231;
+        elems_tile0[j_kpr233 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr233 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr233 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr233 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -2499,10 +2698,14 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
                 uint32_t __anf02 = k1;
                 float lchunk[8U];
                 memset(lchunk, 0U, 8U * sizeof(float));
-                uint32_t lane = 0U;
-                for (; lane < 8U; lane++)
-                    lchunk[lane] =
-                        gB[kr * cols + (n_idx + __anf02 * 4U * 8U + lane)];
+                uint32_t k2 = 0U;
+                while (k2 < 2U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U * 8U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 8U; ix++) {
                     uint32_t __anf4 = ix;
@@ -2515,24 +2718,29 @@ __hoisted_g_spmm_mapped_f16_f32_f16_f32_32x32x4_on_0(uint32_t *row_indices,
             }
         }
     }
-    uint32_t i_kpr208 = 0U;
-    for (; i_kpr208 < 1U; i_kpr208++) {
-        uint32_t j_kpr209 = i_kpr208;
-        uint32_t off = n_idx + j_kpr209 * 4U * 8U;
+    uint32_t i_kpr236 = 0U;
+    for (; i_kpr236 < 1U; i_kpr236++) {
+        uint32_t j_kpr237 = i_kpr236;
+        uint32_t off = n_idx + j_kpr237 * 4U * 8U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            half combined[8U];
-            for (uint32_t _i = 0U; _i < 8U; ++_i)
-                combined[_i] = __float2half_rn(0.0f);
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 8U; lane++) {
-                uint32_t __anf4 = lane;
-                float __anf1 = out[j_kpr209 * 8U + lane];
-                combined[__anf4] = __float2half_rn(
-                    beta * __half2float(combined[lane]) + alpha * __anf1);
+            uint32_t i_kpr234 = 0U;
+            for (; i_kpr234 < 1U; i_kpr234++) {
+                uint32_t j_kpr235 = i_kpr234;
+                uint32_t start = j_kpr237 * 8U + j_kpr235 * 8U;
+                uint32_t address = cols * m_idx + (off + j_kpr235 * 8U);
+                half combined[8U];
+                for (uint32_t _i = 0U; _i < 8U; ++_i)
+                    combined[_i] = __float2half_rn(0.0f);
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 8U; lane++) {
+                    uint32_t __anf4 = lane;
+                    float __anf1 = out[start + lane];
+                    combined[__anf4] = __float2half_rn(
+                        beta * __half2float(combined[lane]) + alpha * __anf1);
+                }
+                vec_memcpy(gC + address, combined);
             }
-            vec_memcpy(gC + address, combined);
         }
     }
 }
@@ -2559,23 +2767,23 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr210 = 0U;
-        for (; i_kpr210 < 8U; i_kpr210++) {
-            uint32_t j_kpr211 = i_kpr210;
-            vec_memcpy(elems_tile0 + (j_kpr211 + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr211 + threadIdx.x) * 4U));
+        uint32_t i_kpr238 = 0U;
+        for (; i_kpr238 < 8U; i_kpr238++) {
+            uint32_t j_kpr239 = i_kpr238;
+            vec_memcpy(elems_tile0 + (j_kpr239 + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr239 + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr212 = 0U;
-        for (; i_kpr212 < 8U; i_kpr212++) {
-            uint32_t j_kpr213 = i_kpr212;
-            vec_memcpy(col_ind_tile0 + (j_kpr213 + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr213 + threadIdx.x) * 4U));
+        uint32_t i_kpr240 = 0U;
+        for (; i_kpr240 < 8U; i_kpr240++) {
+            uint32_t j_kpr241 = i_kpr240;
+            vec_memcpy(col_ind_tile0 + (j_kpr241 + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr241 + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = ri - ri_ - threadIdx.x;
-        uint32_t i_kpr214 = 0U;
-        for (; i_kpr214 < to_; i_kpr214++)
-            elems_tile0[i_kpr214 + threadIdx.x] = 0.0f;
+        uint32_t i_kpr242 = 0U;
+        for (; i_kpr242 < to_; i_kpr242++)
+            elems_tile0[i_kpr242 + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -2589,8 +2797,14 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -2602,17 +2816,17 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr216 = 0U;
-            for (; i_kpr216 < 8U; i_kpr216++) {
-                uint32_t j_kpr217 = i_kpr216;
-                vec_memcpy(elems_tile0 + (j_kpr217 + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr217 + threadIdx.x) * 4U));
+            uint32_t i_kpr244 = 0U;
+            for (; i_kpr244 < 8U; i_kpr244++) {
+                uint32_t j_kpr245 = i_kpr244;
+                vec_memcpy(elems_tile0 + (j_kpr245 + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr245 + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr218 = 0U;
-            for (; i_kpr218 < 8U; i_kpr218++) {
-                uint32_t j_kpr219 = i_kpr218;
-                vec_memcpy(col_ind_tile0 + (j_kpr219 + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr219 + threadIdx.x) * 4U));
+            uint32_t i_kpr246 = 0U;
+            for (; i_kpr246 < 8U; i_kpr246++) {
+                uint32_t j_kpr247 = i_kpr246;
+                vec_memcpy(col_ind_tile0 + (j_kpr247 + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr247 + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -2627,8 +2841,14 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(
-                            lchunk, gB + (cols * kr + (n_idx + __anf03 * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -2643,14 +2863,14 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr221 = __anf01 - threadIdx.x;
-    uint32_t i_kpr220 = 0U;
-    for (; i_kpr220 < hi_kpr221; i_kpr220++) {
-        uint32_t j_kpr222 = i_kpr220;
-        elems_tile0[j_kpr222 + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr222 + threadIdx.x];
-        col_ind_tile0[j_kpr222 + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr222 + threadIdx.x];
+    uint32_t hi_kpr249 = __anf01 - threadIdx.x;
+    uint32_t i_kpr248 = 0U;
+    for (; i_kpr248 < hi_kpr249; i_kpr248++) {
+        uint32_t j_kpr250 = i_kpr248;
+        elems_tile0[j_kpr250 + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr250 + threadIdx.x];
+        col_ind_tile0[j_kpr250 + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr250 + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -2665,26 +2885,37 @@ __hoisted_g_spmm_f32_32x4x1_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(lchunk, gB + (cols * kr + (n_idx + __anf02 * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U) + kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr223 = 0U;
-    for (; i_kpr223 < 1U; i_kpr223++) {
-        uint32_t j_kpr224 = i_kpr223;
-        uint32_t off = n_idx + j_kpr224 * 4U;
+    uint32_t i_kpr253 = 0U;
+    for (; i_kpr253 < 1U; i_kpr253++) {
+        uint32_t j_kpr254 = i_kpr253;
+        uint32_t off = n_idx + j_kpr254 * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr224 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr251 = 0U;
+            for (; i_kpr251 < 1U; i_kpr251++) {
+                uint32_t j_kpr252 = i_kpr251;
+                uint32_t start = j_kpr254 * 4U + j_kpr252 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr252 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -2711,23 +2942,23 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr225 = 0U;
-        for (; i_kpr225 < 4U; i_kpr225++) {
-            uint32_t j_kpr226 = i_kpr225;
-            vec_memcpy(elems_tile0 + (j_kpr226 * 2U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr226 * 2U + threadIdx.x) * 4U));
+        uint32_t i_kpr255 = 0U;
+        for (; i_kpr255 < 4U; i_kpr255++) {
+            uint32_t j_kpr256 = i_kpr255;
+            vec_memcpy(elems_tile0 + (j_kpr256 * 2U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr256 * 2U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr227 = 0U;
-        for (; i_kpr227 < 4U; i_kpr227++) {
-            uint32_t j_kpr228 = i_kpr227;
-            vec_memcpy(col_ind_tile0 + (j_kpr228 * 2U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr228 * 2U + threadIdx.x) * 4U));
+        uint32_t i_kpr257 = 0U;
+        for (; i_kpr257 < 4U; i_kpr257++) {
+            uint32_t j_kpr258 = i_kpr257;
+            vec_memcpy(col_ind_tile0 + (j_kpr258 * 2U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr258 * 2U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 1U - threadIdx.x) / 2U;
-        uint32_t i_kpr229 = 0U;
-        for (; i_kpr229 < to_; i_kpr229++)
-            elems_tile0[i_kpr229 * 2U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr259 = 0U;
+        for (; i_kpr259 < to_; i_kpr259++)
+            elems_tile0[i_kpr259 * 2U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -2741,8 +2972,14 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 2U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 2U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -2754,17 +2991,17 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr231 = 0U;
-            for (; i_kpr231 < 4U; i_kpr231++) {
-                uint32_t j_kpr232 = i_kpr231;
-                vec_memcpy(elems_tile0 + (j_kpr232 * 2U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr232 * 2U + threadIdx.x) * 4U));
+            uint32_t i_kpr261 = 0U;
+            for (; i_kpr261 < 4U; i_kpr261++) {
+                uint32_t j_kpr262 = i_kpr261;
+                vec_memcpy(elems_tile0 + (j_kpr262 * 2U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr262 * 2U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr233 = 0U;
-            for (; i_kpr233 < 4U; i_kpr233++) {
-                uint32_t j_kpr234 = i_kpr233;
-                vec_memcpy(col_ind_tile0 + (j_kpr234 * 2U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr234 * 2U + threadIdx.x) * 4U));
+            uint32_t i_kpr263 = 0U;
+            for (; i_kpr263 < 4U; i_kpr263++) {
+                uint32_t j_kpr264 = i_kpr263;
+                vec_memcpy(col_ind_tile0 + (j_kpr264 * 2U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr264 * 2U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -2779,8 +3016,14 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 2U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 2U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -2795,14 +3038,14 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr236 = (__anf01 + 1U - threadIdx.x) / 2U;
-    uint32_t i_kpr235 = 0U;
-    for (; i_kpr235 < hi_kpr236; i_kpr235++) {
-        uint32_t j_kpr237 = i_kpr235;
-        elems_tile0[j_kpr237 * 2U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr237 * 2U + threadIdx.x];
-        col_ind_tile0[j_kpr237 * 2U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr237 * 2U + threadIdx.x];
+    uint32_t hi_kpr266 = (__anf01 + 1U - threadIdx.x) / 2U;
+    uint32_t i_kpr265 = 0U;
+    for (; i_kpr265 < hi_kpr266; i_kpr265++) {
+        uint32_t j_kpr267 = i_kpr265;
+        elems_tile0[j_kpr267 * 2U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr267 * 2U + threadIdx.x];
+        col_ind_tile0[j_kpr267 * 2U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr267 * 2U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -2817,27 +3060,38 @@ __hoisted_g_spmm_f32_32x8x2_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 2U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 2U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr238 = 0U;
-    for (; i_kpr238 < 1U; i_kpr238++) {
-        uint32_t j_kpr239 = i_kpr238;
-        uint32_t off = n_idx + j_kpr239 * 2U * 4U;
+    uint32_t i_kpr270 = 0U;
+    for (; i_kpr270 < 1U; i_kpr270++) {
+        uint32_t j_kpr271 = i_kpr270;
+        uint32_t off = n_idx + j_kpr271 * 2U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr239 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr268 = 0U;
+            for (; i_kpr268 < 1U; i_kpr268++) {
+                uint32_t j_kpr269 = i_kpr268;
+                uint32_t start = j_kpr271 * 4U + j_kpr269 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr269 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -2864,23 +3118,23 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr240 = 0U;
-        for (; i_kpr240 < 2U; i_kpr240++) {
-            uint32_t j_kpr241 = i_kpr240;
-            vec_memcpy(elems_tile0 + (j_kpr241 * 4U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr241 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr272 = 0U;
+        for (; i_kpr272 < 2U; i_kpr272++) {
+            uint32_t j_kpr273 = i_kpr272;
+            vec_memcpy(elems_tile0 + (j_kpr273 * 4U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr273 * 4U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr242 = 0U;
-        for (; i_kpr242 < 2U; i_kpr242++) {
-            uint32_t j_kpr243 = i_kpr242;
-            vec_memcpy(col_ind_tile0 + (j_kpr243 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr243 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr274 = 0U;
+        for (; i_kpr274 < 2U; i_kpr274++) {
+            uint32_t j_kpr275 = i_kpr274;
+            vec_memcpy(col_ind_tile0 + (j_kpr275 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr275 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr244 = 0U;
-        for (; i_kpr244 < to_; i_kpr244++)
-            elems_tile0[i_kpr244 * 4U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr276 = 0U;
+        for (; i_kpr276 < to_; i_kpr276++)
+            elems_tile0[i_kpr276 * 4U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -2894,8 +3148,14 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 4U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -2907,17 +3167,17 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr246 = 0U;
-            for (; i_kpr246 < 2U; i_kpr246++) {
-                uint32_t j_kpr247 = i_kpr246;
-                vec_memcpy(elems_tile0 + (j_kpr247 * 4U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr247 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr278 = 0U;
+            for (; i_kpr278 < 2U; i_kpr278++) {
+                uint32_t j_kpr279 = i_kpr278;
+                vec_memcpy(elems_tile0 + (j_kpr279 * 4U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr279 * 4U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr248 = 0U;
-            for (; i_kpr248 < 2U; i_kpr248++) {
-                uint32_t j_kpr249 = i_kpr248;
-                vec_memcpy(col_ind_tile0 + (j_kpr249 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr249 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr280 = 0U;
+            for (; i_kpr280 < 2U; i_kpr280++) {
+                uint32_t j_kpr281 = i_kpr280;
+                vec_memcpy(col_ind_tile0 + (j_kpr281 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr281 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -2932,8 +3192,14 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 4U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -2948,14 +3214,14 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr251 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr250 = 0U;
-    for (; i_kpr250 < hi_kpr251; i_kpr250++) {
-        uint32_t j_kpr252 = i_kpr250;
-        elems_tile0[j_kpr252 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr252 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr252 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr252 * 4U + threadIdx.x];
+    uint32_t hi_kpr283 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr282 = 0U;
+    for (; i_kpr282 < hi_kpr283; i_kpr282++) {
+        uint32_t j_kpr284 = i_kpr282;
+        elems_tile0[j_kpr284 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr284 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr284 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr284 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -2970,27 +3236,38 @@ __hoisted_g_spmm_f32_32x16x4_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 4U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr253 = 0U;
-    for (; i_kpr253 < 1U; i_kpr253++) {
-        uint32_t j_kpr254 = i_kpr253;
-        uint32_t off = n_idx + j_kpr254 * 4U * 4U;
+    uint32_t i_kpr287 = 0U;
+    for (; i_kpr287 < 1U; i_kpr287++) {
+        uint32_t j_kpr288 = i_kpr287;
+        uint32_t off = n_idx + j_kpr288 * 4U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr254 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr285 = 0U;
+            for (; i_kpr285 < 1U; i_kpr285++) {
+                uint32_t j_kpr286 = i_kpr285;
+                uint32_t start = j_kpr288 * 4U + j_kpr286 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr286 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -3017,23 +3294,23 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr255 = 0U;
-        for (; i_kpr255 < 1U; i_kpr255++) {
-            uint32_t j_kpr256 = i_kpr255;
-            vec_memcpy(elems_tile0 + (j_kpr256 * 8U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr256 * 8U + threadIdx.x) * 4U));
+        uint32_t i_kpr289 = 0U;
+        for (; i_kpr289 < 1U; i_kpr289++) {
+            uint32_t j_kpr290 = i_kpr289;
+            vec_memcpy(elems_tile0 + (j_kpr290 * 8U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr290 * 8U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr257 = 0U;
-        for (; i_kpr257 < 1U; i_kpr257++) {
-            uint32_t j_kpr258 = i_kpr257;
-            vec_memcpy(col_ind_tile0 + (j_kpr258 * 8U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr258 * 8U + threadIdx.x) * 4U));
+        uint32_t i_kpr291 = 0U;
+        for (; i_kpr291 < 1U; i_kpr291++) {
+            uint32_t j_kpr292 = i_kpr291;
+            vec_memcpy(col_ind_tile0 + (j_kpr292 * 8U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr292 * 8U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 7U - threadIdx.x) / 8U;
-        uint32_t i_kpr259 = 0U;
-        for (; i_kpr259 < to_; i_kpr259++)
-            elems_tile0[i_kpr259 * 8U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr293 = 0U;
+        for (; i_kpr293 < to_; i_kpr293++)
+            elems_tile0[i_kpr293 * 8U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -3047,8 +3324,14 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 8U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 8U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3060,17 +3343,17 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr261 = 0U;
-            for (; i_kpr261 < 1U; i_kpr261++) {
-                uint32_t j_kpr262 = i_kpr261;
-                vec_memcpy(elems_tile0 + (j_kpr262 * 8U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr262 * 8U + threadIdx.x) * 4U));
+            uint32_t i_kpr295 = 0U;
+            for (; i_kpr295 < 1U; i_kpr295++) {
+                uint32_t j_kpr296 = i_kpr295;
+                vec_memcpy(elems_tile0 + (j_kpr296 * 8U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr296 * 8U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr263 = 0U;
-            for (; i_kpr263 < 1U; i_kpr263++) {
-                uint32_t j_kpr264 = i_kpr263;
-                vec_memcpy(col_ind_tile0 + (j_kpr264 * 8U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr264 * 8U + threadIdx.x) * 4U));
+            uint32_t i_kpr297 = 0U;
+            for (; i_kpr297 < 1U; i_kpr297++) {
+                uint32_t j_kpr298 = i_kpr297;
+                vec_memcpy(col_ind_tile0 + (j_kpr298 * 8U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr298 * 8U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -3085,8 +3368,14 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 8U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 8U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3101,14 +3390,14 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr266 = (__anf01 + 7U - threadIdx.x) / 8U;
-    uint32_t i_kpr265 = 0U;
-    for (; i_kpr265 < hi_kpr266; i_kpr265++) {
-        uint32_t j_kpr267 = i_kpr265;
-        elems_tile0[j_kpr267 * 8U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr267 * 8U + threadIdx.x];
-        col_ind_tile0[j_kpr267 * 8U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr267 * 8U + threadIdx.x];
+    uint32_t hi_kpr300 = (__anf01 + 7U - threadIdx.x) / 8U;
+    uint32_t i_kpr299 = 0U;
+    for (; i_kpr299 < hi_kpr300; i_kpr299++) {
+        uint32_t j_kpr301 = i_kpr299;
+        elems_tile0[j_kpr301 * 8U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr301 * 8U + threadIdx.x];
+        col_ind_tile0[j_kpr301 * 8U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr301 * 8U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -3123,27 +3412,38 @@ __hoisted_g_spmm_f32_32x32x8_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 8U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 8U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr268 = 0U;
-    for (; i_kpr268 < 1U; i_kpr268++) {
-        uint32_t j_kpr269 = i_kpr268;
-        uint32_t off = n_idx + j_kpr269 * 8U * 4U;
+    uint32_t i_kpr304 = 0U;
+    for (; i_kpr304 < 1U; i_kpr304++) {
+        uint32_t j_kpr305 = i_kpr304;
+        uint32_t off = n_idx + j_kpr305 * 8U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr269 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr302 = 0U;
+            for (; i_kpr302 < 1U; i_kpr302++) {
+                uint32_t j_kpr303 = i_kpr302;
+                uint32_t start = j_kpr305 * 4U + j_kpr303 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr303 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -3170,23 +3470,23 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr270 = 0U;
-        for (; i_kpr270 < 1U; i_kpr270++) {
-            uint32_t j_kpr271 = i_kpr270;
-            vec_memcpy(elems_tile0 + (j_kpr271 * 8U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr271 * 8U + threadIdx.x) * 4U));
+        uint32_t i_kpr306 = 0U;
+        for (; i_kpr306 < 1U; i_kpr306++) {
+            uint32_t j_kpr307 = i_kpr306;
+            vec_memcpy(elems_tile0 + (j_kpr307 * 8U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr307 * 8U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr272 = 0U;
-        for (; i_kpr272 < 1U; i_kpr272++) {
-            uint32_t j_kpr273 = i_kpr272;
-            vec_memcpy(col_ind_tile0 + (j_kpr273 * 8U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr273 * 8U + threadIdx.x) * 4U));
+        uint32_t i_kpr308 = 0U;
+        for (; i_kpr308 < 1U; i_kpr308++) {
+            uint32_t j_kpr309 = i_kpr308;
+            vec_memcpy(col_ind_tile0 + (j_kpr309 * 8U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr309 * 8U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 7U - threadIdx.x) / 8U;
-        uint32_t i_kpr274 = 0U;
-        for (; i_kpr274 < to_; i_kpr274++)
-            elems_tile0[i_kpr274 * 8U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr310 = 0U;
+        for (; i_kpr310 < to_; i_kpr310++)
+            elems_tile0[i_kpr310 * 8U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -3201,8 +3501,14 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 8U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 8U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 8U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3215,17 +3521,17 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr276 = 0U;
-            for (; i_kpr276 < 1U; i_kpr276++) {
-                uint32_t j_kpr277 = i_kpr276;
-                vec_memcpy(elems_tile0 + (j_kpr277 * 8U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr277 * 8U + threadIdx.x) * 4U));
+            uint32_t i_kpr312 = 0U;
+            for (; i_kpr312 < 1U; i_kpr312++) {
+                uint32_t j_kpr313 = i_kpr312;
+                vec_memcpy(elems_tile0 + (j_kpr313 * 8U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr313 * 8U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr278 = 0U;
-            for (; i_kpr278 < 1U; i_kpr278++) {
-                uint32_t j_kpr279 = i_kpr278;
-                vec_memcpy(col_ind_tile0 + (j_kpr279 * 8U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr279 * 8U + threadIdx.x) * 4U));
+            uint32_t i_kpr314 = 0U;
+            for (; i_kpr314 < 1U; i_kpr314++) {
+                uint32_t j_kpr315 = i_kpr314;
+                vec_memcpy(col_ind_tile0 + (j_kpr315 * 8U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr315 * 8U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -3241,8 +3547,15 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 8U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB + (cols * kr + (n_idx + __anf03 * 8U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 8U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3258,14 +3571,14 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr281 = (__anf01 + 7U - threadIdx.x) / 8U;
-    uint32_t i_kpr280 = 0U;
-    for (; i_kpr280 < hi_kpr281; i_kpr280++) {
-        uint32_t j_kpr282 = i_kpr280;
-        elems_tile0[j_kpr282 * 8U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr282 * 8U + threadIdx.x];
-        col_ind_tile0[j_kpr282 * 8U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr282 * 8U + threadIdx.x];
+    uint32_t hi_kpr317 = (__anf01 + 7U - threadIdx.x) / 8U;
+    uint32_t i_kpr316 = 0U;
+    for (; i_kpr316 < hi_kpr317; i_kpr316++) {
+        uint32_t j_kpr318 = i_kpr316;
+        elems_tile0[j_kpr318 * 8U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr318 * 8U + threadIdx.x];
+        col_ind_tile0[j_kpr318 * 8U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr318 * 8U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -3281,8 +3594,14 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 8U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf02 * 8U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 8U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3290,19 +3609,24 @@ __hoisted_g_spmm_f32_32x64x8_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr283 = 0U;
-    for (; i_kpr283 < 2U; i_kpr283++) {
-        uint32_t j_kpr284 = i_kpr283;
-        uint32_t off = n_idx + j_kpr284 * 8U * 4U;
+    uint32_t i_kpr321 = 0U;
+    for (; i_kpr321 < 2U; i_kpr321++) {
+        uint32_t j_kpr322 = i_kpr321;
+        uint32_t off = n_idx + j_kpr322 * 8U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr284 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr319 = 0U;
+            for (; i_kpr319 < 1U; i_kpr319++) {
+                uint32_t j_kpr320 = i_kpr319;
+                uint32_t start = j_kpr322 * 4U + j_kpr320 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr320 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -3329,23 +3653,23 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr285 = 0U;
-        for (; i_kpr285 < 8U; i_kpr285++) {
-            uint32_t j_kpr286 = i_kpr285;
-            vec_memcpy(elems_tile0 + (j_kpr286 + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr286 + threadIdx.x) * 4U));
+        uint32_t i_kpr323 = 0U;
+        for (; i_kpr323 < 8U; i_kpr323++) {
+            uint32_t j_kpr324 = i_kpr323;
+            vec_memcpy(elems_tile0 + (j_kpr324 + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr324 + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr287 = 0U;
-        for (; i_kpr287 < 8U; i_kpr287++) {
-            uint32_t j_kpr288 = i_kpr287;
-            vec_memcpy(col_ind_tile0 + (j_kpr288 + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr288 + threadIdx.x) * 4U));
+        uint32_t i_kpr325 = 0U;
+        for (; i_kpr325 < 8U; i_kpr325++) {
+            uint32_t j_kpr326 = i_kpr325;
+            vec_memcpy(col_ind_tile0 + (j_kpr326 + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr326 + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = ri - ri_ - threadIdx.x;
-        uint32_t i_kpr289 = 0U;
-        for (; i_kpr289 < to_; i_kpr289++)
-            elems_tile0[i_kpr289 + threadIdx.x] = 0.0f;
+        uint32_t i_kpr327 = 0U;
+        for (; i_kpr327 < to_; i_kpr327++)
+            elems_tile0[i_kpr327 + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -3359,8 +3683,14 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3372,17 +3702,17 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr291 = 0U;
-            for (; i_kpr291 < 8U; i_kpr291++) {
-                uint32_t j_kpr292 = i_kpr291;
-                vec_memcpy(elems_tile0 + (j_kpr292 + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr292 + threadIdx.x) * 4U));
+            uint32_t i_kpr329 = 0U;
+            for (; i_kpr329 < 8U; i_kpr329++) {
+                uint32_t j_kpr330 = i_kpr329;
+                vec_memcpy(elems_tile0 + (j_kpr330 + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr330 + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr293 = 0U;
-            for (; i_kpr293 < 8U; i_kpr293++) {
-                uint32_t j_kpr294 = i_kpr293;
-                vec_memcpy(col_ind_tile0 + (j_kpr294 + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr294 + threadIdx.x) * 4U));
+            uint32_t i_kpr331 = 0U;
+            for (; i_kpr331 < 8U; i_kpr331++) {
+                uint32_t j_kpr332 = i_kpr331;
+                vec_memcpy(col_ind_tile0 + (j_kpr332 + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr332 + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -3397,8 +3727,14 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(
-                            lchunk, gB + (cols * kr + (n_idx + __anf03 * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3413,14 +3749,14 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr296 = __anf01 - threadIdx.x;
-    uint32_t i_kpr295 = 0U;
-    for (; i_kpr295 < hi_kpr296; i_kpr295++) {
-        uint32_t j_kpr297 = i_kpr295;
-        elems_tile0[j_kpr297 + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr297 + threadIdx.x];
-        col_ind_tile0[j_kpr297 + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr297 + threadIdx.x];
+    uint32_t hi_kpr334 = __anf01 - threadIdx.x;
+    uint32_t i_kpr333 = 0U;
+    for (; i_kpr333 < hi_kpr334; i_kpr333++) {
+        uint32_t j_kpr335 = i_kpr333;
+        elems_tile0[j_kpr335 + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr335 + threadIdx.x];
+        col_ind_tile0[j_kpr335 + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr335 + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -3435,26 +3771,37 @@ __hoisted_g_spmm_f32_32x4x1_on_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(lchunk, gB + (cols * kr + (n_idx + __anf02 * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U) + kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr298 = 0U;
-    for (; i_kpr298 < 1U; i_kpr298++) {
-        uint32_t j_kpr299 = i_kpr298;
-        uint32_t off = n_idx + j_kpr299 * 4U;
+    uint32_t i_kpr338 = 0U;
+    for (; i_kpr338 < 1U; i_kpr338++) {
+        uint32_t j_kpr339 = i_kpr338;
+        uint32_t off = n_idx + j_kpr339 * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr299 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr336 = 0U;
+            for (; i_kpr336 < 1U; i_kpr336++) {
+                uint32_t j_kpr337 = i_kpr336;
+                uint32_t start = j_kpr339 * 4U + j_kpr337 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr337 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -3481,23 +3828,23 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr300 = 0U;
-        for (; i_kpr300 < 4U; i_kpr300++) {
-            uint32_t j_kpr301 = i_kpr300;
-            vec_memcpy(elems_tile0 + (j_kpr301 * 2U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr301 * 2U + threadIdx.x) * 4U));
+        uint32_t i_kpr340 = 0U;
+        for (; i_kpr340 < 4U; i_kpr340++) {
+            uint32_t j_kpr341 = i_kpr340;
+            vec_memcpy(elems_tile0 + (j_kpr341 * 2U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr341 * 2U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr302 = 0U;
-        for (; i_kpr302 < 4U; i_kpr302++) {
-            uint32_t j_kpr303 = i_kpr302;
-            vec_memcpy(col_ind_tile0 + (j_kpr303 * 2U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr303 * 2U + threadIdx.x) * 4U));
+        uint32_t i_kpr342 = 0U;
+        for (; i_kpr342 < 4U; i_kpr342++) {
+            uint32_t j_kpr343 = i_kpr342;
+            vec_memcpy(col_ind_tile0 + (j_kpr343 * 2U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr343 * 2U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 1U - threadIdx.x) / 2U;
-        uint32_t i_kpr304 = 0U;
-        for (; i_kpr304 < to_; i_kpr304++)
-            elems_tile0[i_kpr304 * 2U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr344 = 0U;
+        for (; i_kpr344 < to_; i_kpr344++)
+            elems_tile0[i_kpr344 * 2U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -3511,8 +3858,14 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 2U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 2U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3524,17 +3877,17 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr306 = 0U;
-            for (; i_kpr306 < 4U; i_kpr306++) {
-                uint32_t j_kpr307 = i_kpr306;
-                vec_memcpy(elems_tile0 + (j_kpr307 * 2U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr307 * 2U + threadIdx.x) * 4U));
+            uint32_t i_kpr346 = 0U;
+            for (; i_kpr346 < 4U; i_kpr346++) {
+                uint32_t j_kpr347 = i_kpr346;
+                vec_memcpy(elems_tile0 + (j_kpr347 * 2U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr347 * 2U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr308 = 0U;
-            for (; i_kpr308 < 4U; i_kpr308++) {
-                uint32_t j_kpr309 = i_kpr308;
-                vec_memcpy(col_ind_tile0 + (j_kpr309 * 2U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr309 * 2U + threadIdx.x) * 4U));
+            uint32_t i_kpr348 = 0U;
+            for (; i_kpr348 < 4U; i_kpr348++) {
+                uint32_t j_kpr349 = i_kpr348;
+                vec_memcpy(col_ind_tile0 + (j_kpr349 * 2U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr349 * 2U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -3549,8 +3902,14 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 2U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 2U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3565,14 +3924,14 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr311 = (__anf01 + 1U - threadIdx.x) / 2U;
-    uint32_t i_kpr310 = 0U;
-    for (; i_kpr310 < hi_kpr311; i_kpr310++) {
-        uint32_t j_kpr312 = i_kpr310;
-        elems_tile0[j_kpr312 * 2U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr312 * 2U + threadIdx.x];
-        col_ind_tile0[j_kpr312 * 2U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr312 * 2U + threadIdx.x];
+    uint32_t hi_kpr351 = (__anf01 + 1U - threadIdx.x) / 2U;
+    uint32_t i_kpr350 = 0U;
+    for (; i_kpr350 < hi_kpr351; i_kpr350++) {
+        uint32_t j_kpr352 = i_kpr350;
+        elems_tile0[j_kpr352 * 2U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr352 * 2U + threadIdx.x];
+        col_ind_tile0[j_kpr352 * 2U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr352 * 2U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -3587,27 +3946,38 @@ __hoisted_g_spmm_f32_32x8x2_on_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 2U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 2U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr313 = 0U;
-    for (; i_kpr313 < 1U; i_kpr313++) {
-        uint32_t j_kpr314 = i_kpr313;
-        uint32_t off = n_idx + j_kpr314 * 2U * 4U;
+    uint32_t i_kpr355 = 0U;
+    for (; i_kpr355 < 1U; i_kpr355++) {
+        uint32_t j_kpr356 = i_kpr355;
+        uint32_t off = n_idx + j_kpr356 * 2U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr314 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr353 = 0U;
+            for (; i_kpr353 < 1U; i_kpr353++) {
+                uint32_t j_kpr354 = i_kpr353;
+                uint32_t start = j_kpr356 * 4U + j_kpr354 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr354 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -3634,23 +4004,23 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr315 = 0U;
-        for (; i_kpr315 < 2U; i_kpr315++) {
-            uint32_t j_kpr316 = i_kpr315;
-            vec_memcpy(elems_tile0 + (j_kpr316 * 4U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr316 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr357 = 0U;
+        for (; i_kpr357 < 2U; i_kpr357++) {
+            uint32_t j_kpr358 = i_kpr357;
+            vec_memcpy(elems_tile0 + (j_kpr358 * 4U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr358 * 4U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr317 = 0U;
-        for (; i_kpr317 < 2U; i_kpr317++) {
-            uint32_t j_kpr318 = i_kpr317;
-            vec_memcpy(col_ind_tile0 + (j_kpr318 * 4U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr318 * 4U + threadIdx.x) * 4U));
+        uint32_t i_kpr359 = 0U;
+        for (; i_kpr359 < 2U; i_kpr359++) {
+            uint32_t j_kpr360 = i_kpr359;
+            vec_memcpy(col_ind_tile0 + (j_kpr360 * 4U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr360 * 4U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 3U - threadIdx.x) / 4U;
-        uint32_t i_kpr319 = 0U;
-        for (; i_kpr319 < to_; i_kpr319++)
-            elems_tile0[i_kpr319 * 4U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr361 = 0U;
+        for (; i_kpr361 < to_; i_kpr361++)
+            elems_tile0[i_kpr361 * 4U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -3664,8 +4034,14 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 4U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 4U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3677,17 +4053,17 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr321 = 0U;
-            for (; i_kpr321 < 2U; i_kpr321++) {
-                uint32_t j_kpr322 = i_kpr321;
-                vec_memcpy(elems_tile0 + (j_kpr322 * 4U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr322 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr363 = 0U;
+            for (; i_kpr363 < 2U; i_kpr363++) {
+                uint32_t j_kpr364 = i_kpr363;
+                vec_memcpy(elems_tile0 + (j_kpr364 * 4U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr364 * 4U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr323 = 0U;
-            for (; i_kpr323 < 2U; i_kpr323++) {
-                uint32_t j_kpr324 = i_kpr323;
-                vec_memcpy(col_ind_tile0 + (j_kpr324 * 4U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr324 * 4U + threadIdx.x) * 4U));
+            uint32_t i_kpr365 = 0U;
+            for (; i_kpr365 < 2U; i_kpr365++) {
+                uint32_t j_kpr366 = i_kpr365;
+                vec_memcpy(col_ind_tile0 + (j_kpr366 * 4U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr366 * 4U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -3702,8 +4078,14 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 4U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 4U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3718,14 +4100,14 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr326 = (__anf01 + 3U - threadIdx.x) / 4U;
-    uint32_t i_kpr325 = 0U;
-    for (; i_kpr325 < hi_kpr326; i_kpr325++) {
-        uint32_t j_kpr327 = i_kpr325;
-        elems_tile0[j_kpr327 * 4U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr327 * 4U + threadIdx.x];
-        col_ind_tile0[j_kpr327 * 4U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr327 * 4U + threadIdx.x];
+    uint32_t hi_kpr368 = (__anf01 + 3U - threadIdx.x) / 4U;
+    uint32_t i_kpr367 = 0U;
+    for (; i_kpr367 < hi_kpr368; i_kpr367++) {
+        uint32_t j_kpr369 = i_kpr367;
+        elems_tile0[j_kpr369 * 4U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr369 * 4U + threadIdx.x];
+        col_ind_tile0[j_kpr369 * 4U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr369 * 4U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -3740,27 +4122,38 @@ __hoisted_g_spmm_f32_32x16x4_on_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 4U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 4U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr328 = 0U;
-    for (; i_kpr328 < 1U; i_kpr328++) {
-        uint32_t j_kpr329 = i_kpr328;
-        uint32_t off = n_idx + j_kpr329 * 4U * 4U;
+    uint32_t i_kpr372 = 0U;
+    for (; i_kpr372 < 1U; i_kpr372++) {
+        uint32_t j_kpr373 = i_kpr372;
+        uint32_t off = n_idx + j_kpr373 * 4U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr329 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr370 = 0U;
+            for (; i_kpr370 < 1U; i_kpr370++) {
+                uint32_t j_kpr371 = i_kpr370;
+                uint32_t start = j_kpr373 * 4U + j_kpr371 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr371 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -3787,23 +4180,23 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr330 = 0U;
-        for (; i_kpr330 < 1U; i_kpr330++) {
-            uint32_t j_kpr331 = i_kpr330;
-            vec_memcpy(elems_tile0 + (j_kpr331 * 8U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr331 * 8U + threadIdx.x) * 4U));
+        uint32_t i_kpr374 = 0U;
+        for (; i_kpr374 < 1U; i_kpr374++) {
+            uint32_t j_kpr375 = i_kpr374;
+            vec_memcpy(elems_tile0 + (j_kpr375 * 8U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr375 * 8U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr332 = 0U;
-        for (; i_kpr332 < 1U; i_kpr332++) {
-            uint32_t j_kpr333 = i_kpr332;
-            vec_memcpy(col_ind_tile0 + (j_kpr333 * 8U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr333 * 8U + threadIdx.x) * 4U));
+        uint32_t i_kpr376 = 0U;
+        for (; i_kpr376 < 1U; i_kpr376++) {
+            uint32_t j_kpr377 = i_kpr376;
+            vec_memcpy(col_ind_tile0 + (j_kpr377 * 8U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr377 * 8U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 7U - threadIdx.x) / 8U;
-        uint32_t i_kpr334 = 0U;
-        for (; i_kpr334 < to_; i_kpr334++)
-            elems_tile0[i_kpr334 * 8U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr378 = 0U;
+        for (; i_kpr378 < to_; i_kpr378++)
+            elems_tile0[i_kpr378 * 8U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -3817,8 +4210,14 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf01 * 8U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 8U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3830,17 +4229,17 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr336 = 0U;
-            for (; i_kpr336 < 1U; i_kpr336++) {
-                uint32_t j_kpr337 = i_kpr336;
-                vec_memcpy(elems_tile0 + (j_kpr337 * 8U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr337 * 8U + threadIdx.x) * 4U));
+            uint32_t i_kpr380 = 0U;
+            for (; i_kpr380 < 1U; i_kpr380++) {
+                uint32_t j_kpr381 = i_kpr380;
+                vec_memcpy(elems_tile0 + (j_kpr381 * 8U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr381 * 8U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr338 = 0U;
-            for (; i_kpr338 < 1U; i_kpr338++) {
-                uint32_t j_kpr339 = i_kpr338;
-                vec_memcpy(col_ind_tile0 + (j_kpr339 * 8U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr339 * 8U + threadIdx.x) * 4U));
+            uint32_t i_kpr382 = 0U;
+            for (; i_kpr382 < 1U; i_kpr382++) {
+                uint32_t j_kpr383 = i_kpr382;
+                vec_memcpy(col_ind_tile0 + (j_kpr383 * 8U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr383 * 8U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -3855,8 +4254,14 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 8U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 8U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3871,14 +4276,14 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr341 = (__anf01 + 7U - threadIdx.x) / 8U;
-    uint32_t i_kpr340 = 0U;
-    for (; i_kpr340 < hi_kpr341; i_kpr340++) {
-        uint32_t j_kpr342 = i_kpr340;
-        elems_tile0[j_kpr342 * 8U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr342 * 8U + threadIdx.x];
-        col_ind_tile0[j_kpr342 * 8U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr342 * 8U + threadIdx.x];
+    uint32_t hi_kpr385 = (__anf01 + 7U - threadIdx.x) / 8U;
+    uint32_t i_kpr384 = 0U;
+    for (; i_kpr384 < hi_kpr385; i_kpr384++) {
+        uint32_t j_kpr386 = i_kpr384;
+        elems_tile0[j_kpr386 * 8U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr386 * 8U + threadIdx.x];
+        col_ind_tile0[j_kpr386 * 8U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr386 * 8U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -3893,27 +4298,38 @@ __hoisted_g_spmm_f32_32x32x8_on_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 8U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 8U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr343 = 0U;
-    for (; i_kpr343 < 1U; i_kpr343++) {
-        uint32_t j_kpr344 = i_kpr343;
-        uint32_t off = n_idx + j_kpr344 * 8U * 4U;
+    uint32_t i_kpr389 = 0U;
+    for (; i_kpr389 < 1U; i_kpr389++) {
+        uint32_t j_kpr390 = i_kpr389;
+        uint32_t off = n_idx + j_kpr390 * 8U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr344 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr387 = 0U;
+            for (; i_kpr387 < 1U; i_kpr387++) {
+                uint32_t j_kpr388 = i_kpr387;
+                uint32_t start = j_kpr390 * 4U + j_kpr388 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr388 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -3940,23 +4356,23 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 32U) {
-        uint32_t i_kpr345 = 0U;
-        for (; i_kpr345 < 1U; i_kpr345++) {
-            uint32_t j_kpr346 = i_kpr345;
-            vec_memcpy(elems_tile0 + (j_kpr346 * 8U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr346 * 8U + threadIdx.x) * 4U));
+        uint32_t i_kpr391 = 0U;
+        for (; i_kpr391 < 1U; i_kpr391++) {
+            uint32_t j_kpr392 = i_kpr391;
+            vec_memcpy(elems_tile0 + (j_kpr392 * 8U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr392 * 8U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr347 = 0U;
-        for (; i_kpr347 < 1U; i_kpr347++) {
-            uint32_t j_kpr348 = i_kpr347;
-            vec_memcpy(col_ind_tile0 + (j_kpr348 * 8U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr348 * 8U + threadIdx.x) * 4U));
+        uint32_t i_kpr393 = 0U;
+        for (; i_kpr393 < 1U; i_kpr393++) {
+            uint32_t j_kpr394 = i_kpr393;
+            vec_memcpy(col_ind_tile0 + (j_kpr394 * 8U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr394 * 8U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 7U - threadIdx.x) / 8U;
-        uint32_t i_kpr349 = 0U;
-        for (; i_kpr349 < to_; i_kpr349++)
-            elems_tile0[i_kpr349 * 8U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr395 = 0U;
+        for (; i_kpr395 < to_; i_kpr395++)
+            elems_tile0[i_kpr395 * 8U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -3971,8 +4387,14 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 8U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 8U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 8U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -3985,17 +4407,17 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 32U; nnz -= 32U) {
             uint32_t off = ri_ + idx * 32U;
             __syncthreads();
-            uint32_t i_kpr351 = 0U;
-            for (; i_kpr351 < 1U; i_kpr351++) {
-                uint32_t j_kpr352 = i_kpr351;
-                vec_memcpy(elems_tile0 + (j_kpr352 * 8U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr352 * 8U + threadIdx.x) * 4U));
+            uint32_t i_kpr397 = 0U;
+            for (; i_kpr397 < 1U; i_kpr397++) {
+                uint32_t j_kpr398 = i_kpr397;
+                vec_memcpy(elems_tile0 + (j_kpr398 * 8U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr398 * 8U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr353 = 0U;
-            for (; i_kpr353 < 1U; i_kpr353++) {
-                uint32_t j_kpr354 = i_kpr353;
-                vec_memcpy(col_ind_tile0 + (j_kpr354 * 8U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr354 * 8U + threadIdx.x) * 4U));
+            uint32_t i_kpr399 = 0U;
+            for (; i_kpr399 < 1U; i_kpr399++) {
+                uint32_t j_kpr400 = i_kpr399;
+                vec_memcpy(col_ind_tile0 + (j_kpr400 * 8U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr400 * 8U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -4011,8 +4433,15 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 8U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB + (cols * kr + (n_idx + __anf03 * 8U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 8U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4028,14 +4457,14 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr356 = (__anf01 + 7U - threadIdx.x) / 8U;
-    uint32_t i_kpr355 = 0U;
-    for (; i_kpr355 < hi_kpr356; i_kpr355++) {
-        uint32_t j_kpr357 = i_kpr355;
-        elems_tile0[j_kpr357 * 8U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr357 * 8U + threadIdx.x];
-        col_ind_tile0[j_kpr357 * 8U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr357 * 8U + threadIdx.x];
+    uint32_t hi_kpr402 = (__anf01 + 7U - threadIdx.x) / 8U;
+    uint32_t i_kpr401 = 0U;
+    for (; i_kpr401 < hi_kpr402; i_kpr401++) {
+        uint32_t j_kpr403 = i_kpr401;
+        elems_tile0[j_kpr403 * 8U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr403 * 8U + threadIdx.x];
+        col_ind_tile0[j_kpr403 * 8U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr403 * 8U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -4051,8 +4480,14 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 8U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(
-                        lchunk, gB + (cols * kr + (n_idx + __anf02 * 8U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 8U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4060,19 +4495,24 @@ __hoisted_g_spmm_f32_32x64x8_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr358 = 0U;
-    for (; i_kpr358 < 2U; i_kpr358++) {
-        uint32_t j_kpr359 = i_kpr358;
-        uint32_t off = n_idx + j_kpr359 * 8U * 4U;
+    uint32_t i_kpr406 = 0U;
+    for (; i_kpr406 < 2U; i_kpr406++) {
+        uint32_t j_kpr407 = i_kpr406;
+        uint32_t off = n_idx + j_kpr407 * 8U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr359 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr404 = 0U;
+            for (; i_kpr404 < 1U; i_kpr404++) {
+                uint32_t j_kpr405 = i_kpr404;
+                uint32_t start = j_kpr407 * 4U + j_kpr405 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr405 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -4099,23 +4539,23 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 64U) {
-        uint32_t i_kpr360 = 0U;
-        for (; i_kpr360 < 1U; i_kpr360++) {
-            uint32_t j_kpr361 = i_kpr360;
-            vec_memcpy(elems_tile0 + (j_kpr361 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr361 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr408 = 0U;
+        for (; i_kpr408 < 1U; i_kpr408++) {
+            uint32_t j_kpr409 = i_kpr408;
+            vec_memcpy(elems_tile0 + (j_kpr409 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr409 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr362 = 0U;
-        for (; i_kpr362 < 1U; i_kpr362++) {
-            uint32_t j_kpr363 = i_kpr362;
-            vec_memcpy(col_ind_tile0 + (j_kpr363 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr363 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr410 = 0U;
+        for (; i_kpr410 < 1U; i_kpr410++) {
+            uint32_t j_kpr411 = i_kpr410;
+            vec_memcpy(col_ind_tile0 + (j_kpr411 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr411 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr364 = 0U;
-        for (; i_kpr364 < to_; i_kpr364++)
-            elems_tile0[i_kpr364 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr412 = 0U;
+        for (; i_kpr412 < to_; i_kpr412++)
+            elems_tile0[i_kpr412 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -4129,8 +4569,14 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4142,17 +4588,17 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 64U; nnz -= 64U) {
             uint32_t off = ri_ + idx * 64U;
             __syncthreads();
-            uint32_t i_kpr366 = 0U;
-            for (; i_kpr366 < 1U; i_kpr366++) {
-                uint32_t j_kpr367 = i_kpr366;
-                vec_memcpy(elems_tile0 + (j_kpr367 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr367 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr414 = 0U;
+            for (; i_kpr414 < 1U; i_kpr414++) {
+                uint32_t j_kpr415 = i_kpr414;
+                vec_memcpy(elems_tile0 + (j_kpr415 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr415 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr368 = 0U;
-            for (; i_kpr368 < 1U; i_kpr368++) {
-                uint32_t j_kpr369 = i_kpr368;
-                vec_memcpy(col_ind_tile0 + (j_kpr369 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr369 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr416 = 0U;
+            for (; i_kpr416 < 1U; i_kpr416++) {
+                uint32_t j_kpr417 = i_kpr416;
+                vec_memcpy(col_ind_tile0 + (j_kpr417 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr417 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -4167,8 +4613,14 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4183,14 +4635,14 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr371 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr370 = 0U;
-    for (; i_kpr370 < hi_kpr371; i_kpr370++) {
-        uint32_t j_kpr372 = i_kpr370;
-        elems_tile0[j_kpr372 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr372 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr372 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr372 * 16U + threadIdx.x];
+    uint32_t hi_kpr419 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr418 = 0U;
+    for (; i_kpr418 < hi_kpr419; i_kpr418++) {
+        uint32_t j_kpr420 = i_kpr418;
+        elems_tile0[j_kpr420 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr420 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr420 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr420 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -4205,27 +4657,38 @@ __hoisted_g_spmm_f32_64x64x16_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr373 = 0U;
-    for (; i_kpr373 < 1U; i_kpr373++) {
-        uint32_t j_kpr374 = i_kpr373;
-        uint32_t off = n_idx + j_kpr374 * 16U * 4U;
+    uint32_t i_kpr423 = 0U;
+    for (; i_kpr423 < 1U; i_kpr423++) {
+        uint32_t j_kpr424 = i_kpr423;
+        uint32_t off = n_idx + j_kpr424 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr374 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr421 = 0U;
+            for (; i_kpr421 < 1U; i_kpr421++) {
+                uint32_t j_kpr422 = i_kpr421;
+                uint32_t start = j_kpr424 * 4U + j_kpr422 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr422 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -4252,23 +4715,23 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 64U) {
-        uint32_t i_kpr375 = 0U;
-        for (; i_kpr375 < 1U; i_kpr375++) {
-            uint32_t j_kpr376 = i_kpr375;
-            vec_memcpy(elems_tile0 + (j_kpr376 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr376 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr425 = 0U;
+        for (; i_kpr425 < 1U; i_kpr425++) {
+            uint32_t j_kpr426 = i_kpr425;
+            vec_memcpy(elems_tile0 + (j_kpr426 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr426 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr377 = 0U;
-        for (; i_kpr377 < 1U; i_kpr377++) {
-            uint32_t j_kpr378 = i_kpr377;
-            vec_memcpy(col_ind_tile0 + (j_kpr378 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr378 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr427 = 0U;
+        for (; i_kpr427 < 1U; i_kpr427++) {
+            uint32_t j_kpr428 = i_kpr427;
+            vec_memcpy(col_ind_tile0 + (j_kpr428 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr428 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr379 = 0U;
-        for (; i_kpr379 < to_; i_kpr379++)
-            elems_tile0[i_kpr379 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr429 = 0U;
+        for (; i_kpr429 < to_; i_kpr429++)
+            elems_tile0[i_kpr429 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -4282,8 +4745,14 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4295,17 +4764,17 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 64U; nnz -= 64U) {
             uint32_t off = ri_ + idx * 64U;
             __syncthreads();
-            uint32_t i_kpr381 = 0U;
-            for (; i_kpr381 < 1U; i_kpr381++) {
-                uint32_t j_kpr382 = i_kpr381;
-                vec_memcpy(elems_tile0 + (j_kpr382 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr382 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr431 = 0U;
+            for (; i_kpr431 < 1U; i_kpr431++) {
+                uint32_t j_kpr432 = i_kpr431;
+                vec_memcpy(elems_tile0 + (j_kpr432 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr432 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr383 = 0U;
-            for (; i_kpr383 < 1U; i_kpr383++) {
-                uint32_t j_kpr384 = i_kpr383;
-                vec_memcpy(col_ind_tile0 + (j_kpr384 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr384 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr433 = 0U;
+            for (; i_kpr433 < 1U; i_kpr433++) {
+                uint32_t j_kpr434 = i_kpr433;
+                vec_memcpy(col_ind_tile0 + (j_kpr434 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr434 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -4320,8 +4789,14 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4336,14 +4811,14 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr386 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr385 = 0U;
-    for (; i_kpr385 < hi_kpr386; i_kpr385++) {
-        uint32_t j_kpr387 = i_kpr385;
-        elems_tile0[j_kpr387 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr387 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr387 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr387 * 16U + threadIdx.x];
+    uint32_t hi_kpr436 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr435 = 0U;
+    for (; i_kpr435 < hi_kpr436; i_kpr435++) {
+        uint32_t j_kpr437 = i_kpr435;
+        elems_tile0[j_kpr437 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr437 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr437 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr437 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -4358,27 +4833,38 @@ __hoisted_g_spmm_f32_64x64x16_on_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr388 = 0U;
-    for (; i_kpr388 < 1U; i_kpr388++) {
-        uint32_t j_kpr389 = i_kpr388;
-        uint32_t off = n_idx + j_kpr389 * 16U * 4U;
+    uint32_t i_kpr440 = 0U;
+    for (; i_kpr440 < 1U; i_kpr440++) {
+        uint32_t j_kpr441 = i_kpr440;
+        uint32_t off = n_idx + j_kpr441 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr389 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr438 = 0U;
+            for (; i_kpr438 < 1U; i_kpr438++) {
+                uint32_t j_kpr439 = i_kpr438;
+                uint32_t start = j_kpr441 * 4U + j_kpr439 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr439 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -4405,23 +4891,23 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 64U) {
-        uint32_t i_kpr390 = 0U;
-        for (; i_kpr390 < 1U; i_kpr390++) {
-            uint32_t j_kpr391 = i_kpr390;
-            vec_memcpy(elems_tile0 + (j_kpr391 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr391 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr442 = 0U;
+        for (; i_kpr442 < 1U; i_kpr442++) {
+            uint32_t j_kpr443 = i_kpr442;
+            vec_memcpy(elems_tile0 + (j_kpr443 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr443 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr392 = 0U;
-        for (; i_kpr392 < 1U; i_kpr392++) {
-            uint32_t j_kpr393 = i_kpr392;
-            vec_memcpy(col_ind_tile0 + (j_kpr393 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr393 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr444 = 0U;
+        for (; i_kpr444 < 1U; i_kpr444++) {
+            uint32_t j_kpr445 = i_kpr444;
+            vec_memcpy(col_ind_tile0 + (j_kpr445 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr445 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr394 = 0U;
-        for (; i_kpr394 < to_; i_kpr394++)
-            elems_tile0[i_kpr394 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr446 = 0U;
+        for (; i_kpr446 < to_; i_kpr446++)
+            elems_tile0[i_kpr446 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -4436,8 +4922,14 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4450,17 +4942,17 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 64U; nnz -= 64U) {
             uint32_t off = ri_ + idx * 64U;
             __syncthreads();
-            uint32_t i_kpr396 = 0U;
-            for (; i_kpr396 < 1U; i_kpr396++) {
-                uint32_t j_kpr397 = i_kpr396;
-                vec_memcpy(elems_tile0 + (j_kpr397 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr397 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr448 = 0U;
+            for (; i_kpr448 < 1U; i_kpr448++) {
+                uint32_t j_kpr449 = i_kpr448;
+                vec_memcpy(elems_tile0 + (j_kpr449 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr449 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr398 = 0U;
-            for (; i_kpr398 < 1U; i_kpr398++) {
-                uint32_t j_kpr399 = i_kpr398;
-                vec_memcpy(col_ind_tile0 + (j_kpr399 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr399 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr450 = 0U;
+            for (; i_kpr450 < 1U; i_kpr450++) {
+                uint32_t j_kpr451 = i_kpr450;
+                vec_memcpy(col_ind_tile0 + (j_kpr451 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr451 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -4476,9 +4968,15 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4494,14 +4992,14 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr401 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr400 = 0U;
-    for (; i_kpr400 < hi_kpr401; i_kpr400++) {
-        uint32_t j_kpr402 = i_kpr400;
-        elems_tile0[j_kpr402 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr402 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr402 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr402 * 16U + threadIdx.x];
+    uint32_t hi_kpr453 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr452 = 0U;
+    for (; i_kpr452 < hi_kpr453; i_kpr452++) {
+        uint32_t j_kpr454 = i_kpr452;
+        elems_tile0[j_kpr454 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr454 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr454 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr454 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -4517,8 +5015,14 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4526,19 +5030,24 @@ __hoisted_g_spmm_f32_64x128x16_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr403 = 0U;
-    for (; i_kpr403 < 2U; i_kpr403++) {
-        uint32_t j_kpr404 = i_kpr403;
-        uint32_t off = n_idx + j_kpr404 * 16U * 4U;
+    uint32_t i_kpr457 = 0U;
+    for (; i_kpr457 < 2U; i_kpr457++) {
+        uint32_t j_kpr458 = i_kpr457;
+        uint32_t off = n_idx + j_kpr458 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr404 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr455 = 0U;
+            for (; i_kpr455 < 1U; i_kpr455++) {
+                uint32_t j_kpr456 = i_kpr455;
+                uint32_t start = j_kpr458 * 4U + j_kpr456 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr456 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -4565,23 +5074,23 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 64U) {
-        uint32_t i_kpr405 = 0U;
-        for (; i_kpr405 < 1U; i_kpr405++) {
-            uint32_t j_kpr406 = i_kpr405;
-            vec_memcpy(elems_tile0 + (j_kpr406 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr406 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr459 = 0U;
+        for (; i_kpr459 < 1U; i_kpr459++) {
+            uint32_t j_kpr460 = i_kpr459;
+            vec_memcpy(elems_tile0 + (j_kpr460 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr460 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr407 = 0U;
-        for (; i_kpr407 < 1U; i_kpr407++) {
-            uint32_t j_kpr408 = i_kpr407;
-            vec_memcpy(col_ind_tile0 + (j_kpr408 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr408 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr461 = 0U;
+        for (; i_kpr461 < 1U; i_kpr461++) {
+            uint32_t j_kpr462 = i_kpr461;
+            vec_memcpy(col_ind_tile0 + (j_kpr462 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr462 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr409 = 0U;
-        for (; i_kpr409 < to_; i_kpr409++)
-            elems_tile0[i_kpr409 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr463 = 0U;
+        for (; i_kpr463 < to_; i_kpr463++)
+            elems_tile0[i_kpr463 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -4596,8 +5105,14 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4610,17 +5125,17 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 64U; nnz -= 64U) {
             uint32_t off = ri_ + idx * 64U;
             __syncthreads();
-            uint32_t i_kpr411 = 0U;
-            for (; i_kpr411 < 1U; i_kpr411++) {
-                uint32_t j_kpr412 = i_kpr411;
-                vec_memcpy(elems_tile0 + (j_kpr412 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr412 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr465 = 0U;
+            for (; i_kpr465 < 1U; i_kpr465++) {
+                uint32_t j_kpr466 = i_kpr465;
+                vec_memcpy(elems_tile0 + (j_kpr466 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr466 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr413 = 0U;
-            for (; i_kpr413 < 1U; i_kpr413++) {
-                uint32_t j_kpr414 = i_kpr413;
-                vec_memcpy(col_ind_tile0 + (j_kpr414 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr414 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr467 = 0U;
+            for (; i_kpr467 < 1U; i_kpr467++) {
+                uint32_t j_kpr468 = i_kpr467;
+                vec_memcpy(col_ind_tile0 + (j_kpr468 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr468 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -4636,9 +5151,15 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4654,14 +5175,14 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr416 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr415 = 0U;
-    for (; i_kpr415 < hi_kpr416; i_kpr415++) {
-        uint32_t j_kpr417 = i_kpr415;
-        elems_tile0[j_kpr417 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr417 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr417 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr417 * 16U + threadIdx.x];
+    uint32_t hi_kpr470 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr469 = 0U;
+    for (; i_kpr469 < hi_kpr470; i_kpr469++) {
+        uint32_t j_kpr471 = i_kpr469;
+        elems_tile0[j_kpr471 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr471 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr471 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr471 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -4677,8 +5198,14 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4686,19 +5213,24 @@ __hoisted_g_spmm_f32_64x128x16_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr418 = 0U;
-    for (; i_kpr418 < 2U; i_kpr418++) {
-        uint32_t j_kpr419 = i_kpr418;
-        uint32_t off = n_idx + j_kpr419 * 16U * 4U;
+    uint32_t i_kpr474 = 0U;
+    for (; i_kpr474 < 2U; i_kpr474++) {
+        uint32_t j_kpr475 = i_kpr474;
+        uint32_t off = n_idx + j_kpr475 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr419 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr472 = 0U;
+            for (; i_kpr472 < 1U; i_kpr472++) {
+                uint32_t j_kpr473 = i_kpr472;
+                uint32_t start = j_kpr475 * 4U + j_kpr473 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr473 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -4725,23 +5257,23 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t *row_indices, uint32_t rows,
     float out[16U];
     memset(out, 0U, 16U * sizeof(float));
     if (nnz >= 64U) {
-        uint32_t i_kpr420 = 0U;
-        for (; i_kpr420 < 1U; i_kpr420++) {
-            uint32_t j_kpr421 = i_kpr420;
-            vec_memcpy(elems_tile0 + (j_kpr421 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr421 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr476 = 0U;
+        for (; i_kpr476 < 1U; i_kpr476++) {
+            uint32_t j_kpr477 = i_kpr476;
+            vec_memcpy(elems_tile0 + (j_kpr477 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr477 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr422 = 0U;
-        for (; i_kpr422 < 1U; i_kpr422++) {
-            uint32_t j_kpr423 = i_kpr422;
-            vec_memcpy(col_ind_tile0 + (j_kpr423 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr423 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr478 = 0U;
+        for (; i_kpr478 < 1U; i_kpr478++) {
+            uint32_t j_kpr479 = i_kpr478;
+            vec_memcpy(col_ind_tile0 + (j_kpr479 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr479 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr424 = 0U;
-        for (; i_kpr424 < to_; i_kpr424++)
-            elems_tile0[i_kpr424 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr480 = 0U;
+        for (; i_kpr480 < to_; i_kpr480++)
+            elems_tile0[i_kpr480 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -4756,8 +5288,14 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4770,17 +5308,17 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 64U; nnz -= 64U) {
             uint32_t off = ri_ + idx * 64U;
             __syncthreads();
-            uint32_t i_kpr426 = 0U;
-            for (; i_kpr426 < 1U; i_kpr426++) {
-                uint32_t j_kpr427 = i_kpr426;
-                vec_memcpy(elems_tile0 + (j_kpr427 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr427 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr482 = 0U;
+            for (; i_kpr482 < 1U; i_kpr482++) {
+                uint32_t j_kpr483 = i_kpr482;
+                vec_memcpy(elems_tile0 + (j_kpr483 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr483 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr428 = 0U;
-            for (; i_kpr428 < 1U; i_kpr428++) {
-                uint32_t j_kpr429 = i_kpr428;
-                vec_memcpy(col_ind_tile0 + (j_kpr429 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr429 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr484 = 0U;
+            for (; i_kpr484 < 1U; i_kpr484++) {
+                uint32_t j_kpr485 = i_kpr484;
+                vec_memcpy(col_ind_tile0 + (j_kpr485 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr485 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -4796,9 +5334,15 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4814,14 +5358,14 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr431 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr430 = 0U;
-    for (; i_kpr430 < hi_kpr431; i_kpr430++) {
-        uint32_t j_kpr432 = i_kpr430;
-        elems_tile0[j_kpr432 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr432 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr432 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr432 * 16U + threadIdx.x];
+    uint32_t hi_kpr487 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr486 = 0U;
+    for (; i_kpr486 < hi_kpr487; i_kpr486++) {
+        uint32_t j_kpr488 = i_kpr486;
+        elems_tile0[j_kpr488 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr488 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr488 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr488 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -4837,8 +5381,14 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4846,19 +5396,24 @@ __hoisted_g_spmm_f32_64x256x16_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr433 = 0U;
-    for (; i_kpr433 < 4U; i_kpr433++) {
-        uint32_t j_kpr434 = i_kpr433;
-        uint32_t off = n_idx + j_kpr434 * 16U * 4U;
+    uint32_t i_kpr491 = 0U;
+    for (; i_kpr491 < 4U; i_kpr491++) {
+        uint32_t j_kpr492 = i_kpr491;
+        uint32_t off = n_idx + j_kpr492 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr434 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr489 = 0U;
+            for (; i_kpr489 < 1U; i_kpr489++) {
+                uint32_t j_kpr490 = i_kpr489;
+                uint32_t start = j_kpr492 * 4U + j_kpr490 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr490 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -4885,23 +5440,23 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t *row_indices, uint32_t rows,
     float out[16U];
     memset(out, 0U, 16U * sizeof(float));
     if (nnz >= 64U) {
-        uint32_t i_kpr435 = 0U;
-        for (; i_kpr435 < 1U; i_kpr435++) {
-            uint32_t j_kpr436 = i_kpr435;
-            vec_memcpy(elems_tile0 + (j_kpr436 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr436 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr493 = 0U;
+        for (; i_kpr493 < 1U; i_kpr493++) {
+            uint32_t j_kpr494 = i_kpr493;
+            vec_memcpy(elems_tile0 + (j_kpr494 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr494 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr437 = 0U;
-        for (; i_kpr437 < 1U; i_kpr437++) {
-            uint32_t j_kpr438 = i_kpr437;
-            vec_memcpy(col_ind_tile0 + (j_kpr438 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr438 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr495 = 0U;
+        for (; i_kpr495 < 1U; i_kpr495++) {
+            uint32_t j_kpr496 = i_kpr495;
+            vec_memcpy(col_ind_tile0 + (j_kpr496 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr496 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr439 = 0U;
-        for (; i_kpr439 < to_; i_kpr439++)
-            elems_tile0[i_kpr439 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr497 = 0U;
+        for (; i_kpr497 < to_; i_kpr497++)
+            elems_tile0[i_kpr497 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -4916,8 +5471,14 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4930,17 +5491,17 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 64U; nnz -= 64U) {
             uint32_t off = ri_ + idx * 64U;
             __syncthreads();
-            uint32_t i_kpr441 = 0U;
-            for (; i_kpr441 < 1U; i_kpr441++) {
-                uint32_t j_kpr442 = i_kpr441;
-                vec_memcpy(elems_tile0 + (j_kpr442 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr442 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr499 = 0U;
+            for (; i_kpr499 < 1U; i_kpr499++) {
+                uint32_t j_kpr500 = i_kpr499;
+                vec_memcpy(elems_tile0 + (j_kpr500 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr500 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr443 = 0U;
-            for (; i_kpr443 < 1U; i_kpr443++) {
-                uint32_t j_kpr444 = i_kpr443;
-                vec_memcpy(col_ind_tile0 + (j_kpr444 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr444 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr501 = 0U;
+            for (; i_kpr501 < 1U; i_kpr501++) {
+                uint32_t j_kpr502 = i_kpr501;
+                vec_memcpy(col_ind_tile0 + (j_kpr502 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr502 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -4956,9 +5517,15 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -4974,14 +5541,14 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr446 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr445 = 0U;
-    for (; i_kpr445 < hi_kpr446; i_kpr445++) {
-        uint32_t j_kpr447 = i_kpr445;
-        elems_tile0[j_kpr447 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr447 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr447 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr447 * 16U + threadIdx.x];
+    uint32_t hi_kpr504 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr503 = 0U;
+    for (; i_kpr503 < hi_kpr504; i_kpr503++) {
+        uint32_t j_kpr505 = i_kpr503;
+        elems_tile0[j_kpr505 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr505 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr505 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr505 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -4997,8 +5564,14 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5006,19 +5579,24 @@ __hoisted_g_spmm_f32_64x256x16_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr448 = 0U;
-    for (; i_kpr448 < 4U; i_kpr448++) {
-        uint32_t j_kpr449 = i_kpr448;
-        uint32_t off = n_idx + j_kpr449 * 16U * 4U;
+    uint32_t i_kpr508 = 0U;
+    for (; i_kpr508 < 4U; i_kpr508++) {
+        uint32_t j_kpr509 = i_kpr508;
+        uint32_t off = n_idx + j_kpr509 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr449 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr506 = 0U;
+            for (; i_kpr506 < 1U; i_kpr506++) {
+                uint32_t j_kpr507 = i_kpr506;
+                uint32_t start = j_kpr509 * 4U + j_kpr507 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr507 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -5045,640 +5623,14 @@ __hoisted_g_spmm_f32_64x512x16_0(uint32_t *row_indices, uint32_t rows,
     float out[32U];
     memset(out, 0U, 32U * sizeof(float));
     if (nnz >= 64U) {
-        uint32_t i_kpr450 = 0U;
-        for (; i_kpr450 < 1U; i_kpr450++) {
-            uint32_t j_kpr451 = i_kpr450;
-            vec_memcpy(elems_tile0 + (j_kpr451 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr451 * 16U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr452 = 0U;
-        for (; i_kpr452 < 1U; i_kpr452++) {
-            uint32_t j_kpr453 = i_kpr452;
-            vec_memcpy(col_ind_tile0 + (j_kpr453 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr453 * 16U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr454 = 0U;
-        for (; i_kpr454 < to_; i_kpr454++)
-            elems_tile0[i_kpr454 * 16U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 64U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 8U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 16U * 4U < cols) {
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 64U;
-        for (; nnz >= 64U; nnz -= 64U) {
-            uint32_t off = ri_ + idx * 64U;
-            __syncthreads();
-            uint32_t i_kpr456 = 0U;
-            for (; i_kpr456 < 1U; i_kpr456++) {
-                uint32_t j_kpr457 = i_kpr456;
-                vec_memcpy(elems_tile0 + (j_kpr457 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr457 * 16U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr458 = 0U;
-            for (; i_kpr458 < 1U; i_kpr458++) {
-                uint32_t j_kpr459 = i_kpr458;
-                vec_memcpy(col_ind_tile0 + (j_kpr459 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr459 * 16U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 64U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 8U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 16U * 4U < cols) {
-                            float lchunk[4U];
-                            memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++)
-                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                        }
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr461 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr460 = 0U;
-    for (; i_kpr460 < hi_kpr461; i_kpr460++) {
-        uint32_t j_kpr462 = i_kpr460;
-        elems_tile0[j_kpr462 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr462 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr462 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr462 * 16U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 8U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 16U * 4U < cols) {
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-    }
-    uint32_t i_kpr463 = 0U;
-    for (; i_kpr463 < 8U; i_kpr463++) {
-        uint32_t j_kpr464 = i_kpr463;
-        uint32_t off = n_idx + j_kpr464 * 16U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr464 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(16)
-/**
-  hoisted when extracting g_spmm_f32_64x512x16_on
-*/
-static void
-__hoisted_g_spmm_f32_64x512x16_on_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 64U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[32U];
-    memset(out, 0U, 32U * sizeof(float));
-    if (nnz >= 64U) {
-        uint32_t i_kpr465 = 0U;
-        for (; i_kpr465 < 1U; i_kpr465++) {
-            uint32_t j_kpr466 = i_kpr465;
-            vec_memcpy(elems_tile0 + (j_kpr466 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr466 * 16U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr467 = 0U;
-        for (; i_kpr467 < 1U; i_kpr467++) {
-            uint32_t j_kpr468 = i_kpr467;
-            vec_memcpy(col_ind_tile0 + (j_kpr468 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr468 * 16U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr469 = 0U;
-        for (; i_kpr469 < to_; i_kpr469++)
-            elems_tile0[i_kpr469 * 16U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 64U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 8U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 16U * 4U < cols) {
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 64U;
-        for (; nnz >= 64U; nnz -= 64U) {
-            uint32_t off = ri_ + idx * 64U;
-            __syncthreads();
-            uint32_t i_kpr471 = 0U;
-            for (; i_kpr471 < 1U; i_kpr471++) {
-                uint32_t j_kpr472 = i_kpr471;
-                vec_memcpy(elems_tile0 + (j_kpr472 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr472 * 16U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr473 = 0U;
-            for (; i_kpr473 < 1U; i_kpr473++) {
-                uint32_t j_kpr474 = i_kpr473;
-                vec_memcpy(col_ind_tile0 + (j_kpr474 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr474 * 16U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 64U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 8U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 16U * 4U < cols) {
-                            float lchunk[4U];
-                            memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++)
-                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                        }
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr476 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr475 = 0U;
-    for (; i_kpr475 < hi_kpr476; i_kpr475++) {
-        uint32_t j_kpr477 = i_kpr475;
-        elems_tile0[j_kpr477 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr477 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr477 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr477 * 16U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 8U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 16U * 4U < cols) {
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-    }
-    uint32_t i_kpr478 = 0U;
-    for (; i_kpr478 < 8U; i_kpr478++) {
-        uint32_t j_kpr479 = i_kpr478;
-        uint32_t off = n_idx + j_kpr479 * 16U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr479 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(16)
-/**
-  hoisted when extracting g_spmm_f32_128x64x16
-*/
-static void
-__hoisted_g_spmm_f32_128x64x16_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[4U];
-    memset(out, 0U, 4U * sizeof(float));
-    if (nnz >= 128U) {
-        uint32_t i_kpr480 = 0U;
-        for (; i_kpr480 < 2U; i_kpr480++) {
-            uint32_t j_kpr481 = i_kpr480;
-            vec_memcpy(elems_tile0 + (j_kpr481 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr481 * 16U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr482 = 0U;
-        for (; i_kpr482 < 2U; i_kpr482++) {
-            uint32_t j_kpr483 = i_kpr482;
-            vec_memcpy(col_ind_tile0 + (j_kpr483 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr483 * 16U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr484 = 0U;
-        for (; i_kpr484 < to_; i_kpr484++)
-            elems_tile0[i_kpr484 * 16U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 128U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 1U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 128U;
-        for (; nnz >= 128U; nnz -= 128U) {
-            uint32_t off = ri_ + idx * 128U;
-            __syncthreads();
-            uint32_t i_kpr486 = 0U;
-            for (; i_kpr486 < 2U; i_kpr486++) {
-                uint32_t j_kpr487 = i_kpr486;
-                vec_memcpy(elems_tile0 + (j_kpr487 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr487 * 16U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr488 = 0U;
-            for (; i_kpr488 < 2U; i_kpr488++) {
-                uint32_t j_kpr489 = i_kpr488;
-                vec_memcpy(col_ind_tile0 + (j_kpr489 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr489 * 16U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 128U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 1U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 16U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr491 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr490 = 0U;
-    for (; i_kpr490 < hi_kpr491; i_kpr490++) {
-        uint32_t j_kpr492 = i_kpr490;
-        elems_tile0[j_kpr492 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr492 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr492 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr492 * 16U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 1U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                float lchunk[4U];
-                memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
-                uint32_t ix = 0U;
-                for (; ix < 4U; ix++)
-                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
-            }
-        }
-    }
-    uint32_t i_kpr493 = 0U;
-    for (; i_kpr493 < 1U; i_kpr493++) {
-        uint32_t j_kpr494 = i_kpr493;
-        uint32_t off = n_idx + j_kpr494 * 16U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr494 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(16)
-/**
-  hoisted when extracting g_spmm_f32_128x64x16_on
-*/
-static void
-__hoisted_g_spmm_f32_128x64x16_on_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[4U];
-    memset(out, 0U, 4U * sizeof(float));
-    if (nnz >= 128U) {
-        uint32_t i_kpr495 = 0U;
-        for (; i_kpr495 < 2U; i_kpr495++) {
-            uint32_t j_kpr496 = i_kpr495;
-            vec_memcpy(elems_tile0 + (j_kpr496 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr496 * 16U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr497 = 0U;
-        for (; i_kpr497 < 2U; i_kpr497++) {
-            uint32_t j_kpr498 = i_kpr497;
-            vec_memcpy(col_ind_tile0 + (j_kpr498 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr498 * 16U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr499 = 0U;
-        for (; i_kpr499 < to_; i_kpr499++)
-            elems_tile0[i_kpr499 * 16U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 128U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 1U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 128U;
-        for (; nnz >= 128U; nnz -= 128U) {
-            uint32_t off = ri_ + idx * 128U;
-            __syncthreads();
-            uint32_t i_kpr501 = 0U;
-            for (; i_kpr501 < 2U; i_kpr501++) {
-                uint32_t j_kpr502 = i_kpr501;
-                vec_memcpy(elems_tile0 + (j_kpr502 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr502 * 16U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr503 = 0U;
-            for (; i_kpr503 < 2U; i_kpr503++) {
-                uint32_t j_kpr504 = i_kpr503;
-                vec_memcpy(col_ind_tile0 + (j_kpr504 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr504 * 16U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 128U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 1U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 16U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr506 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr505 = 0U;
-    for (; i_kpr505 < hi_kpr506; i_kpr505++) {
-        uint32_t j_kpr507 = i_kpr505;
-        elems_tile0[j_kpr507 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr507 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr507 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr507 * 16U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 1U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                float lchunk[4U];
-                memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
-                uint32_t ix = 0U;
-                for (; ix < 4U; ix++)
-                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
-            }
-        }
-    }
-    uint32_t i_kpr508 = 0U;
-    for (; i_kpr508 < 1U; i_kpr508++) {
-        uint32_t j_kpr509 = i_kpr508;
-        uint32_t off = n_idx + j_kpr509 * 16U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr509 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(16)
-/**
-  hoisted when extracting g_spmm_f32_128x128x16
-*/
-static void
-__hoisted_g_spmm_f32_128x128x16_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[8U];
-    memset(out, 0U, 8U * sizeof(float));
-    if (nnz >= 128U) {
         uint32_t i_kpr510 = 0U;
-        for (; i_kpr510 < 2U; i_kpr510++) {
+        for (; i_kpr510 < 1U; i_kpr510++) {
             uint32_t j_kpr511 = i_kpr510;
             vec_memcpy(elems_tile0 + (j_kpr511 * 16U + threadIdx.x) * 4U,
                 gA.elems + (ri_ + (j_kpr511 * 16U + threadIdx.x) * 4U));
         }
         uint32_t i_kpr512 = 0U;
-        for (; i_kpr512 < 2U; i_kpr512++) {
+        for (; i_kpr512 < 1U; i_kpr512++) {
             uint32_t j_kpr513 = i_kpr512;
             vec_memcpy(col_ind_tile0 + (j_kpr513 * 16U + threadIdx.x) * 4U,
                 gA.col_ind + (ri_ + (j_kpr513 * 16U + threadIdx.x) * 4U));
@@ -5691,19 +5643,25 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t *row_indices, uint32_t rows,
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
-            for (; k < 128U; k++) {
+            for (; k < 64U; k++) {
                 uint32_t kv = k;
                 uint32_t kr = col_ind_tile0[kv];
                 float kx = elems_tile0[kv];
                 uint32_t k1 = 0U;
-                for (; k1 < 2U; k1++) {
+                for (; k1 < 8U; k1++) {
                     uint32_t __anf1 = k1;
                     uint32_t __anf01 = k1;
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5712,18 +5670,18 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t *row_indices, uint32_t rows,
             }
         }
         idx = 1U;
-        nnz -= 128U;
-        for (; nnz >= 128U; nnz -= 128U) {
-            uint32_t off = ri_ + idx * 128U;
+        nnz -= 64U;
+        for (; nnz >= 64U; nnz -= 64U) {
+            uint32_t off = ri_ + idx * 64U;
             __syncthreads();
             uint32_t i_kpr516 = 0U;
-            for (; i_kpr516 < 2U; i_kpr516++) {
+            for (; i_kpr516 < 1U; i_kpr516++) {
                 uint32_t j_kpr517 = i_kpr516;
                 vec_memcpy(elems_tile0 + (j_kpr517 * 16U + threadIdx.x) * 4U,
                     gA.elems + (off + (j_kpr517 * 16U + threadIdx.x) * 4U));
             }
             uint32_t i_kpr518 = 0U;
-            for (; i_kpr518 < 2U; i_kpr518++) {
+            for (; i_kpr518 < 1U; i_kpr518++) {
                 uint32_t j_kpr519 = i_kpr518;
                 vec_memcpy(col_ind_tile0 + (j_kpr519 * 16U + threadIdx.x) * 4U,
                     gA.col_ind + (off + (j_kpr519 * 16U + threadIdx.x) * 4U));
@@ -5731,20 +5689,26 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t *row_indices, uint32_t rows,
             __syncthreads();
             if (n_idx < cols) {
                 uint32_t k = 0U;
-                for (; k < 128U; k++) {
+                for (; k < 64U; k++) {
                     uint32_t kv = k;
                     uint32_t kr = col_ind_tile0[kv];
                     float kx = elems_tile0[kv];
                     uint32_t k1 = 0U;
-                    for (; k1 < 2U; k1++) {
+                    for (; k1 < 8U; k1++) {
                         uint32_t __anf1 = k1;
                         uint32_t __anf03 = k1;
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5777,14 +5741,20 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t *row_indices, uint32_t rows,
             uint32_t kr = col_ind_tile0[kv];
             float kx = elems_tile0[kv];
             uint32_t k1 = 0U;
-            for (; k1 < 2U; k1++) {
+            for (; k1 < 8U; k1++) {
                 uint32_t __anf1 = k1;
                 uint32_t __anf02 = k1;
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5792,19 +5762,742 @@ __hoisted_g_spmm_f32_128x128x16_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr523 = 0U;
-    for (; i_kpr523 < 2U; i_kpr523++) {
-        uint32_t j_kpr524 = i_kpr523;
-        uint32_t off = n_idx + j_kpr524 * 16U * 4U;
+    uint32_t i_kpr525 = 0U;
+    for (; i_kpr525 < 8U; i_kpr525++) {
+        uint32_t j_kpr526 = i_kpr525;
+        uint32_t off = n_idx + j_kpr526 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr524 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr523 = 0U;
+            for (; i_kpr523 < 1U; i_kpr523++) {
+                uint32_t j_kpr524 = i_kpr523;
+                uint32_t start = j_kpr526 * 4U + j_kpr524 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr524 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(16)
+/**
+  hoisted when extracting g_spmm_f32_64x512x16_on
+*/
+static void
+__hoisted_g_spmm_f32_64x512x16_on_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 64U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[32U];
+    memset(out, 0U, 32U * sizeof(float));
+    if (nnz >= 64U) {
+        uint32_t i_kpr527 = 0U;
+        for (; i_kpr527 < 1U; i_kpr527++) {
+            uint32_t j_kpr528 = i_kpr527;
+            vec_memcpy(elems_tile0 + (j_kpr528 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr528 * 16U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr529 = 0U;
+        for (; i_kpr529 < 1U; i_kpr529++) {
+            uint32_t j_kpr530 = i_kpr529;
+            vec_memcpy(col_ind_tile0 + (j_kpr530 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr530 * 16U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
+        uint32_t i_kpr531 = 0U;
+        for (; i_kpr531 < to_; i_kpr531++)
+            elems_tile0[i_kpr531 * 16U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 64U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 8U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 64U;
+        for (; nnz >= 64U; nnz -= 64U) {
+            uint32_t off = ri_ + idx * 64U;
+            __syncthreads();
+            uint32_t i_kpr533 = 0U;
+            for (; i_kpr533 < 1U; i_kpr533++) {
+                uint32_t j_kpr534 = i_kpr533;
+                vec_memcpy(elems_tile0 + (j_kpr534 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr534 * 16U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr535 = 0U;
+            for (; i_kpr535 < 1U; i_kpr535++) {
+                uint32_t j_kpr536 = i_kpr535;
+                vec_memcpy(col_ind_tile0 + (j_kpr536 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr536 * 16U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 64U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 8U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        if (n_idx + __anf03 * 16U * 4U < cols) {
+                            float lchunk[4U];
+                            memset(lchunk, 0U, 4U * sizeof(float));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
+                            uint32_t ix = 0U;
+                            for (; ix < 4U; ix++)
+                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                        }
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr538 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr537 = 0U;
+    for (; i_kpr537 < hi_kpr538; i_kpr537++) {
+        uint32_t j_kpr539 = i_kpr537;
+        elems_tile0[j_kpr539 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr539 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr539 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr539 * 16U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 8U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+    }
+    uint32_t i_kpr542 = 0U;
+    for (; i_kpr542 < 8U; i_kpr542++) {
+        uint32_t j_kpr543 = i_kpr542;
+        uint32_t off = n_idx + j_kpr543 * 16U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr540 = 0U;
+            for (; i_kpr540 < 1U; i_kpr540++) {
+                uint32_t j_kpr541 = i_kpr540;
+                uint32_t start = j_kpr543 * 4U + j_kpr541 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr541 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(16)
+/**
+  hoisted when extracting g_spmm_f32_128x64x16
+*/
+static void
+__hoisted_g_spmm_f32_128x64x16_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[4U];
+    memset(out, 0U, 4U * sizeof(float));
+    if (nnz >= 128U) {
+        uint32_t i_kpr544 = 0U;
+        for (; i_kpr544 < 2U; i_kpr544++) {
+            uint32_t j_kpr545 = i_kpr544;
+            vec_memcpy(elems_tile0 + (j_kpr545 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr545 * 16U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr546 = 0U;
+        for (; i_kpr546 < 2U; i_kpr546++) {
+            uint32_t j_kpr547 = i_kpr546;
+            vec_memcpy(col_ind_tile0 + (j_kpr547 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr547 * 16U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
+        uint32_t i_kpr548 = 0U;
+        for (; i_kpr548 < to_; i_kpr548++)
+            elems_tile0[i_kpr548 * 16U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 128U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 1U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 128U;
+        for (; nnz >= 128U; nnz -= 128U) {
+            uint32_t off = ri_ + idx * 128U;
+            __syncthreads();
+            uint32_t i_kpr550 = 0U;
+            for (; i_kpr550 < 2U; i_kpr550++) {
+                uint32_t j_kpr551 = i_kpr550;
+                vec_memcpy(elems_tile0 + (j_kpr551 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr551 * 16U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr552 = 0U;
+            for (; i_kpr552 < 2U; i_kpr552++) {
+                uint32_t j_kpr553 = i_kpr552;
+                vec_memcpy(col_ind_tile0 + (j_kpr553 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr553 * 16U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 128U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 1U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr555 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr554 = 0U;
+    for (; i_kpr554 < hi_kpr555; i_kpr554++) {
+        uint32_t j_kpr556 = i_kpr554;
+        elems_tile0[j_kpr556 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr556 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr556 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr556 * 16U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 1U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                float lchunk[4U];
+                memset(lchunk, 0U, 4U * sizeof(float));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
+                uint32_t ix = 0U;
+                for (; ix < 4U; ix++)
+                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
+            }
+        }
+    }
+    uint32_t i_kpr559 = 0U;
+    for (; i_kpr559 < 1U; i_kpr559++) {
+        uint32_t j_kpr560 = i_kpr559;
+        uint32_t off = n_idx + j_kpr560 * 16U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr557 = 0U;
+            for (; i_kpr557 < 1U; i_kpr557++) {
+                uint32_t j_kpr558 = i_kpr557;
+                uint32_t start = j_kpr560 * 4U + j_kpr558 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr558 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(16)
+/**
+  hoisted when extracting g_spmm_f32_128x64x16_on
+*/
+static void
+__hoisted_g_spmm_f32_128x64x16_on_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[4U];
+    memset(out, 0U, 4U * sizeof(float));
+    if (nnz >= 128U) {
+        uint32_t i_kpr561 = 0U;
+        for (; i_kpr561 < 2U; i_kpr561++) {
+            uint32_t j_kpr562 = i_kpr561;
+            vec_memcpy(elems_tile0 + (j_kpr562 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr562 * 16U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr563 = 0U;
+        for (; i_kpr563 < 2U; i_kpr563++) {
+            uint32_t j_kpr564 = i_kpr563;
+            vec_memcpy(col_ind_tile0 + (j_kpr564 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr564 * 16U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
+        uint32_t i_kpr565 = 0U;
+        for (; i_kpr565 < to_; i_kpr565++)
+            elems_tile0[i_kpr565 * 16U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 128U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 1U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 128U;
+        for (; nnz >= 128U; nnz -= 128U) {
+            uint32_t off = ri_ + idx * 128U;
+            __syncthreads();
+            uint32_t i_kpr567 = 0U;
+            for (; i_kpr567 < 2U; i_kpr567++) {
+                uint32_t j_kpr568 = i_kpr567;
+                vec_memcpy(elems_tile0 + (j_kpr568 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr568 * 16U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr569 = 0U;
+            for (; i_kpr569 < 2U; i_kpr569++) {
+                uint32_t j_kpr570 = i_kpr569;
+                vec_memcpy(col_ind_tile0 + (j_kpr570 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr570 * 16U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 128U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 1U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr572 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr571 = 0U;
+    for (; i_kpr571 < hi_kpr572; i_kpr571++) {
+        uint32_t j_kpr573 = i_kpr571;
+        elems_tile0[j_kpr573 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr573 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr573 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr573 * 16U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 1U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                float lchunk[4U];
+                memset(lchunk, 0U, 4U * sizeof(float));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
+                uint32_t ix = 0U;
+                for (; ix < 4U; ix++)
+                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
+            }
+        }
+    }
+    uint32_t i_kpr576 = 0U;
+    for (; i_kpr576 < 1U; i_kpr576++) {
+        uint32_t j_kpr577 = i_kpr576;
+        uint32_t off = n_idx + j_kpr577 * 16U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr574 = 0U;
+            for (; i_kpr574 < 1U; i_kpr574++) {
+                uint32_t j_kpr575 = i_kpr574;
+                uint32_t start = j_kpr577 * 4U + j_kpr575 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr575 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(16)
+/**
+  hoisted when extracting g_spmm_f32_128x128x16
+*/
+static void
+__hoisted_g_spmm_f32_128x128x16_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 128U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[8U];
+    memset(out, 0U, 8U * sizeof(float));
+    if (nnz >= 128U) {
+        uint32_t i_kpr578 = 0U;
+        for (; i_kpr578 < 2U; i_kpr578++) {
+            uint32_t j_kpr579 = i_kpr578;
+            vec_memcpy(elems_tile0 + (j_kpr579 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr579 * 16U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr580 = 0U;
+        for (; i_kpr580 < 2U; i_kpr580++) {
+            uint32_t j_kpr581 = i_kpr580;
+            vec_memcpy(col_ind_tile0 + (j_kpr581 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr581 * 16U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
+        uint32_t i_kpr582 = 0U;
+        for (; i_kpr582 < to_; i_kpr582++)
+            elems_tile0[i_kpr582 * 16U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 128U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 2U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 128U;
+        for (; nnz >= 128U; nnz -= 128U) {
+            uint32_t off = ri_ + idx * 128U;
+            __syncthreads();
+            uint32_t i_kpr584 = 0U;
+            for (; i_kpr584 < 2U; i_kpr584++) {
+                uint32_t j_kpr585 = i_kpr584;
+                vec_memcpy(elems_tile0 + (j_kpr585 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr585 * 16U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr586 = 0U;
+            for (; i_kpr586 < 2U; i_kpr586++) {
+                uint32_t j_kpr587 = i_kpr586;
+                vec_memcpy(col_ind_tile0 + (j_kpr587 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr587 * 16U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 128U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 2U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        if (n_idx + __anf03 * 16U * 4U < cols) {
+                            float lchunk[4U];
+                            memset(lchunk, 0U, 4U * sizeof(float));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
+                            uint32_t ix = 0U;
+                            for (; ix < 4U; ix++)
+                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                        }
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr589 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr588 = 0U;
+    for (; i_kpr588 < hi_kpr589; i_kpr588++) {
+        uint32_t j_kpr590 = i_kpr588;
+        elems_tile0[j_kpr590 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr590 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr590 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr590 * 16U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 2U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+    }
+    uint32_t i_kpr593 = 0U;
+    for (; i_kpr593 < 2U; i_kpr593++) {
+        uint32_t j_kpr594 = i_kpr593;
+        uint32_t off = n_idx + j_kpr594 * 16U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr591 = 0U;
+            for (; i_kpr591 < 1U; i_kpr591++) {
+                uint32_t j_kpr592 = i_kpr591;
+                uint32_t start = j_kpr594 * 4U + j_kpr592 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr592 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -5831,23 +6524,23 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 128U) {
-        uint32_t i_kpr525 = 0U;
-        for (; i_kpr525 < 2U; i_kpr525++) {
-            uint32_t j_kpr526 = i_kpr525;
-            vec_memcpy(elems_tile0 + (j_kpr526 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr526 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr595 = 0U;
+        for (; i_kpr595 < 2U; i_kpr595++) {
+            uint32_t j_kpr596 = i_kpr595;
+            vec_memcpy(elems_tile0 + (j_kpr596 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr596 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr527 = 0U;
-        for (; i_kpr527 < 2U; i_kpr527++) {
-            uint32_t j_kpr528 = i_kpr527;
-            vec_memcpy(col_ind_tile0 + (j_kpr528 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr528 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr597 = 0U;
+        for (; i_kpr597 < 2U; i_kpr597++) {
+            uint32_t j_kpr598 = i_kpr597;
+            vec_memcpy(col_ind_tile0 + (j_kpr598 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr598 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr529 = 0U;
-        for (; i_kpr529 < to_; i_kpr529++)
-            elems_tile0[i_kpr529 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr599 = 0U;
+        for (; i_kpr599 < to_; i_kpr599++)
+            elems_tile0[i_kpr599 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -5862,8 +6555,14 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5876,17 +6575,17 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 128U; nnz -= 128U) {
             uint32_t off = ri_ + idx * 128U;
             __syncthreads();
-            uint32_t i_kpr531 = 0U;
-            for (; i_kpr531 < 2U; i_kpr531++) {
-                uint32_t j_kpr532 = i_kpr531;
-                vec_memcpy(elems_tile0 + (j_kpr532 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr532 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr601 = 0U;
+            for (; i_kpr601 < 2U; i_kpr601++) {
+                uint32_t j_kpr602 = i_kpr601;
+                vec_memcpy(elems_tile0 + (j_kpr602 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr602 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr533 = 0U;
-            for (; i_kpr533 < 2U; i_kpr533++) {
-                uint32_t j_kpr534 = i_kpr533;
-                vec_memcpy(col_ind_tile0 + (j_kpr534 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr534 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr603 = 0U;
+            for (; i_kpr603 < 2U; i_kpr603++) {
+                uint32_t j_kpr604 = i_kpr603;
+                vec_memcpy(col_ind_tile0 + (j_kpr604 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr604 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -5902,9 +6601,15 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5920,14 +6625,14 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr536 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr535 = 0U;
-    for (; i_kpr535 < hi_kpr536; i_kpr535++) {
-        uint32_t j_kpr537 = i_kpr535;
-        elems_tile0[j_kpr537 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr537 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr537 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr537 * 16U + threadIdx.x];
+    uint32_t hi_kpr606 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr605 = 0U;
+    for (; i_kpr605 < hi_kpr606; i_kpr605++) {
+        uint32_t j_kpr607 = i_kpr605;
+        elems_tile0[j_kpr607 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr607 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr607 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr607 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -5943,8 +6648,14 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -5952,19 +6663,24 @@ __hoisted_g_spmm_f32_128x128x16_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr538 = 0U;
-    for (; i_kpr538 < 2U; i_kpr538++) {
-        uint32_t j_kpr539 = i_kpr538;
-        uint32_t off = n_idx + j_kpr539 * 16U * 4U;
+    uint32_t i_kpr610 = 0U;
+    for (; i_kpr610 < 2U; i_kpr610++) {
+        uint32_t j_kpr611 = i_kpr610;
+        uint32_t off = n_idx + j_kpr611 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr539 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr608 = 0U;
+            for (; i_kpr608 < 1U; i_kpr608++) {
+                uint32_t j_kpr609 = i_kpr608;
+                uint32_t start = j_kpr611 * 4U + j_kpr609 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr609 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -5991,23 +6707,23 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 128U) {
-        uint32_t i_kpr540 = 0U;
-        for (; i_kpr540 < 1U; i_kpr540++) {
-            uint32_t j_kpr541 = i_kpr540;
-            vec_memcpy(elems_tile0 + (j_kpr541 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr541 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr612 = 0U;
+        for (; i_kpr612 < 1U; i_kpr612++) {
+            uint32_t j_kpr613 = i_kpr612;
+            vec_memcpy(elems_tile0 + (j_kpr613 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr613 * 32U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr542 = 0U;
-        for (; i_kpr542 < 1U; i_kpr542++) {
-            uint32_t j_kpr543 = i_kpr542;
-            vec_memcpy(col_ind_tile0 + (j_kpr543 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr543 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr614 = 0U;
+        for (; i_kpr614 < 1U; i_kpr614++) {
+            uint32_t j_kpr615 = i_kpr614;
+            vec_memcpy(col_ind_tile0 + (j_kpr615 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr615 * 32U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr544 = 0U;
-        for (; i_kpr544 < to_; i_kpr544++)
-            elems_tile0[i_kpr544 * 32U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr616 = 0U;
+        for (; i_kpr616 < to_; i_kpr616++)
+            elems_tile0[i_kpr616 * 32U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -6021,8 +6737,14 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6034,17 +6756,17 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 128U; nnz -= 128U) {
             uint32_t off = ri_ + idx * 128U;
             __syncthreads();
-            uint32_t i_kpr546 = 0U;
-            for (; i_kpr546 < 1U; i_kpr546++) {
-                uint32_t j_kpr547 = i_kpr546;
-                vec_memcpy(elems_tile0 + (j_kpr547 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr547 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr618 = 0U;
+            for (; i_kpr618 < 1U; i_kpr618++) {
+                uint32_t j_kpr619 = i_kpr618;
+                vec_memcpy(elems_tile0 + (j_kpr619 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr619 * 32U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr548 = 0U;
-            for (; i_kpr548 < 1U; i_kpr548++) {
-                uint32_t j_kpr549 = i_kpr548;
-                vec_memcpy(col_ind_tile0 + (j_kpr549 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr549 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr620 = 0U;
+            for (; i_kpr620 < 1U; i_kpr620++) {
+                uint32_t j_kpr621 = i_kpr620;
+                vec_memcpy(col_ind_tile0 + (j_kpr621 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr621 * 32U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -6059,8 +6781,14 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6075,14 +6803,14 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr551 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr550 = 0U;
-    for (; i_kpr550 < hi_kpr551; i_kpr550++) {
-        uint32_t j_kpr552 = i_kpr550;
-        elems_tile0[j_kpr552 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr552 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr552 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr552 * 32U + threadIdx.x];
+    uint32_t hi_kpr623 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr622 = 0U;
+    for (; i_kpr622 < hi_kpr623; i_kpr622++) {
+        uint32_t j_kpr624 = i_kpr622;
+        elems_tile0[j_kpr624 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr624 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr624 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr624 * 32U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -6097,27 +6825,38 @@ __hoisted_g_spmm_f32_128x128x32_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr553 = 0U;
-    for (; i_kpr553 < 1U; i_kpr553++) {
-        uint32_t j_kpr554 = i_kpr553;
-        uint32_t off = n_idx + j_kpr554 * 32U * 4U;
+    uint32_t i_kpr627 = 0U;
+    for (; i_kpr627 < 1U; i_kpr627++) {
+        uint32_t j_kpr628 = i_kpr627;
+        uint32_t off = n_idx + j_kpr628 * 32U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr554 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr625 = 0U;
+            for (; i_kpr625 < 1U; i_kpr625++) {
+                uint32_t j_kpr626 = i_kpr625;
+                uint32_t start = j_kpr628 * 4U + j_kpr626 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr626 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -6144,23 +6883,23 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 128U) {
-        uint32_t i_kpr555 = 0U;
-        for (; i_kpr555 < 1U; i_kpr555++) {
-            uint32_t j_kpr556 = i_kpr555;
-            vec_memcpy(elems_tile0 + (j_kpr556 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr556 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr629 = 0U;
+        for (; i_kpr629 < 1U; i_kpr629++) {
+            uint32_t j_kpr630 = i_kpr629;
+            vec_memcpy(elems_tile0 + (j_kpr630 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr630 * 32U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr557 = 0U;
-        for (; i_kpr557 < 1U; i_kpr557++) {
-            uint32_t j_kpr558 = i_kpr557;
-            vec_memcpy(col_ind_tile0 + (j_kpr558 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr558 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr631 = 0U;
+        for (; i_kpr631 < 1U; i_kpr631++) {
+            uint32_t j_kpr632 = i_kpr631;
+            vec_memcpy(col_ind_tile0 + (j_kpr632 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr632 * 32U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr559 = 0U;
-        for (; i_kpr559 < to_; i_kpr559++)
-            elems_tile0[i_kpr559 * 32U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr633 = 0U;
+        for (; i_kpr633 < to_; i_kpr633++)
+            elems_tile0[i_kpr633 * 32U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -6174,8 +6913,14 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6187,17 +6932,17 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 128U; nnz -= 128U) {
             uint32_t off = ri_ + idx * 128U;
             __syncthreads();
-            uint32_t i_kpr561 = 0U;
-            for (; i_kpr561 < 1U; i_kpr561++) {
-                uint32_t j_kpr562 = i_kpr561;
-                vec_memcpy(elems_tile0 + (j_kpr562 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr562 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr635 = 0U;
+            for (; i_kpr635 < 1U; i_kpr635++) {
+                uint32_t j_kpr636 = i_kpr635;
+                vec_memcpy(elems_tile0 + (j_kpr636 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr636 * 32U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr563 = 0U;
-            for (; i_kpr563 < 1U; i_kpr563++) {
-                uint32_t j_kpr564 = i_kpr563;
-                vec_memcpy(col_ind_tile0 + (j_kpr564 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr564 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr637 = 0U;
+            for (; i_kpr637 < 1U; i_kpr637++) {
+                uint32_t j_kpr638 = i_kpr637;
+                vec_memcpy(col_ind_tile0 + (j_kpr638 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr638 * 32U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -6212,8 +6957,14 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6228,14 +6979,14 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr566 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr565 = 0U;
-    for (; i_kpr565 < hi_kpr566; i_kpr565++) {
-        uint32_t j_kpr567 = i_kpr565;
-        elems_tile0[j_kpr567 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr567 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr567 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr567 * 32U + threadIdx.x];
+    uint32_t hi_kpr640 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr639 = 0U;
+    for (; i_kpr639 < hi_kpr640; i_kpr639++) {
+        uint32_t j_kpr641 = i_kpr639;
+        elems_tile0[j_kpr641 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr641 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr641 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr641 * 32U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -6250,27 +7001,38 @@ __hoisted_g_spmm_f32_128x128x32_on_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr568 = 0U;
-    for (; i_kpr568 < 1U; i_kpr568++) {
-        uint32_t j_kpr569 = i_kpr568;
-        uint32_t off = n_idx + j_kpr569 * 32U * 4U;
+    uint32_t i_kpr644 = 0U;
+    for (; i_kpr644 < 1U; i_kpr644++) {
+        uint32_t j_kpr645 = i_kpr644;
+        uint32_t off = n_idx + j_kpr645 * 32U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr569 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr642 = 0U;
+            for (; i_kpr642 < 1U; i_kpr642++) {
+                uint32_t j_kpr643 = i_kpr642;
+                uint32_t start = j_kpr645 * 4U + j_kpr643 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr643 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -6297,23 +7059,23 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t *row_indices, uint32_t rows,
     float out[16U];
     memset(out, 0U, 16U * sizeof(float));
     if (nnz >= 128U) {
-        uint32_t i_kpr570 = 0U;
-        for (; i_kpr570 < 2U; i_kpr570++) {
-            uint32_t j_kpr571 = i_kpr570;
-            vec_memcpy(elems_tile0 + (j_kpr571 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr571 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr646 = 0U;
+        for (; i_kpr646 < 2U; i_kpr646++) {
+            uint32_t j_kpr647 = i_kpr646;
+            vec_memcpy(elems_tile0 + (j_kpr647 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr647 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr572 = 0U;
-        for (; i_kpr572 < 2U; i_kpr572++) {
-            uint32_t j_kpr573 = i_kpr572;
-            vec_memcpy(col_ind_tile0 + (j_kpr573 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr573 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr648 = 0U;
+        for (; i_kpr648 < 2U; i_kpr648++) {
+            uint32_t j_kpr649 = i_kpr648;
+            vec_memcpy(col_ind_tile0 + (j_kpr649 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr649 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr574 = 0U;
-        for (; i_kpr574 < to_; i_kpr574++)
-            elems_tile0[i_kpr574 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr650 = 0U;
+        for (; i_kpr650 < to_; i_kpr650++)
+            elems_tile0[i_kpr650 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -6328,8 +7090,14 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6342,17 +7110,17 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 128U; nnz -= 128U) {
             uint32_t off = ri_ + idx * 128U;
             __syncthreads();
-            uint32_t i_kpr576 = 0U;
-            for (; i_kpr576 < 2U; i_kpr576++) {
-                uint32_t j_kpr577 = i_kpr576;
-                vec_memcpy(elems_tile0 + (j_kpr577 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr577 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr652 = 0U;
+            for (; i_kpr652 < 2U; i_kpr652++) {
+                uint32_t j_kpr653 = i_kpr652;
+                vec_memcpy(elems_tile0 + (j_kpr653 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr653 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr578 = 0U;
-            for (; i_kpr578 < 2U; i_kpr578++) {
-                uint32_t j_kpr579 = i_kpr578;
-                vec_memcpy(col_ind_tile0 + (j_kpr579 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr579 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr654 = 0U;
+            for (; i_kpr654 < 2U; i_kpr654++) {
+                uint32_t j_kpr655 = i_kpr654;
+                vec_memcpy(col_ind_tile0 + (j_kpr655 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr655 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -6368,9 +7136,15 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6386,14 +7160,14 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr581 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr580 = 0U;
-    for (; i_kpr580 < hi_kpr581; i_kpr580++) {
-        uint32_t j_kpr582 = i_kpr580;
-        elems_tile0[j_kpr582 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr582 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr582 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr582 * 16U + threadIdx.x];
+    uint32_t hi_kpr657 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr656 = 0U;
+    for (; i_kpr656 < hi_kpr657; i_kpr656++) {
+        uint32_t j_kpr658 = i_kpr656;
+        elems_tile0[j_kpr658 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr658 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr658 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr658 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -6409,8 +7183,14 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6418,19 +7198,24 @@ __hoisted_g_spmm_f32_128x256x16_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr583 = 0U;
-    for (; i_kpr583 < 4U; i_kpr583++) {
-        uint32_t j_kpr584 = i_kpr583;
-        uint32_t off = n_idx + j_kpr584 * 16U * 4U;
+    uint32_t i_kpr661 = 0U;
+    for (; i_kpr661 < 4U; i_kpr661++) {
+        uint32_t j_kpr662 = i_kpr661;
+        uint32_t off = n_idx + j_kpr662 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr584 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr659 = 0U;
+            for (; i_kpr659 < 1U; i_kpr659++) {
+                uint32_t j_kpr660 = i_kpr659;
+                uint32_t start = j_kpr662 * 4U + j_kpr660 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr660 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -6457,23 +7242,23 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t *row_indices, uint32_t rows,
     float out[16U];
     memset(out, 0U, 16U * sizeof(float));
     if (nnz >= 128U) {
-        uint32_t i_kpr585 = 0U;
-        for (; i_kpr585 < 2U; i_kpr585++) {
-            uint32_t j_kpr586 = i_kpr585;
-            vec_memcpy(elems_tile0 + (j_kpr586 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr586 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr663 = 0U;
+        for (; i_kpr663 < 2U; i_kpr663++) {
+            uint32_t j_kpr664 = i_kpr663;
+            vec_memcpy(elems_tile0 + (j_kpr664 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr664 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr587 = 0U;
-        for (; i_kpr587 < 2U; i_kpr587++) {
-            uint32_t j_kpr588 = i_kpr587;
-            vec_memcpy(col_ind_tile0 + (j_kpr588 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr588 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr665 = 0U;
+        for (; i_kpr665 < 2U; i_kpr665++) {
+            uint32_t j_kpr666 = i_kpr665;
+            vec_memcpy(col_ind_tile0 + (j_kpr666 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr666 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr589 = 0U;
-        for (; i_kpr589 < to_; i_kpr589++)
-            elems_tile0[i_kpr589 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr667 = 0U;
+        for (; i_kpr667 < to_; i_kpr667++)
+            elems_tile0[i_kpr667 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -6488,8 +7273,14 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6502,17 +7293,17 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 128U; nnz -= 128U) {
             uint32_t off = ri_ + idx * 128U;
             __syncthreads();
-            uint32_t i_kpr591 = 0U;
-            for (; i_kpr591 < 2U; i_kpr591++) {
-                uint32_t j_kpr592 = i_kpr591;
-                vec_memcpy(elems_tile0 + (j_kpr592 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr592 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr669 = 0U;
+            for (; i_kpr669 < 2U; i_kpr669++) {
+                uint32_t j_kpr670 = i_kpr669;
+                vec_memcpy(elems_tile0 + (j_kpr670 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr670 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr593 = 0U;
-            for (; i_kpr593 < 2U; i_kpr593++) {
-                uint32_t j_kpr594 = i_kpr593;
-                vec_memcpy(col_ind_tile0 + (j_kpr594 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr594 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr671 = 0U;
+            for (; i_kpr671 < 2U; i_kpr671++) {
+                uint32_t j_kpr672 = i_kpr671;
+                vec_memcpy(col_ind_tile0 + (j_kpr672 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr672 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -6528,9 +7319,15 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6546,14 +7343,14 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr596 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr595 = 0U;
-    for (; i_kpr595 < hi_kpr596; i_kpr595++) {
-        uint32_t j_kpr597 = i_kpr595;
-        elems_tile0[j_kpr597 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr597 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr597 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr597 * 16U + threadIdx.x];
+    uint32_t hi_kpr674 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr673 = 0U;
+    for (; i_kpr673 < hi_kpr674; i_kpr673++) {
+        uint32_t j_kpr675 = i_kpr673;
+        elems_tile0[j_kpr675 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr675 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr675 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr675 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -6569,8 +7366,14 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6578,19 +7381,24 @@ __hoisted_g_spmm_f32_128x256x16_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr598 = 0U;
-    for (; i_kpr598 < 4U; i_kpr598++) {
-        uint32_t j_kpr599 = i_kpr598;
-        uint32_t off = n_idx + j_kpr599 * 16U * 4U;
+    uint32_t i_kpr678 = 0U;
+    for (; i_kpr678 < 4U; i_kpr678++) {
+        uint32_t j_kpr679 = i_kpr678;
+        uint32_t off = n_idx + j_kpr679 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr599 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr676 = 0U;
+            for (; i_kpr676 < 1U; i_kpr676++) {
+                uint32_t j_kpr677 = i_kpr676;
+                uint32_t start = j_kpr679 * 4U + j_kpr677 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr677 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -6617,23 +7425,23 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 128U) {
-        uint32_t i_kpr600 = 0U;
-        for (; i_kpr600 < 1U; i_kpr600++) {
-            uint32_t j_kpr601 = i_kpr600;
-            vec_memcpy(elems_tile0 + (j_kpr601 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr601 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr680 = 0U;
+        for (; i_kpr680 < 1U; i_kpr680++) {
+            uint32_t j_kpr681 = i_kpr680;
+            vec_memcpy(elems_tile0 + (j_kpr681 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr681 * 32U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr602 = 0U;
-        for (; i_kpr602 < 1U; i_kpr602++) {
-            uint32_t j_kpr603 = i_kpr602;
-            vec_memcpy(col_ind_tile0 + (j_kpr603 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr603 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr682 = 0U;
+        for (; i_kpr682 < 1U; i_kpr682++) {
+            uint32_t j_kpr683 = i_kpr682;
+            vec_memcpy(col_ind_tile0 + (j_kpr683 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr683 * 32U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr604 = 0U;
-        for (; i_kpr604 < to_; i_kpr604++)
-            elems_tile0[i_kpr604 * 32U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr684 = 0U;
+        for (; i_kpr684 < to_; i_kpr684++)
+            elems_tile0[i_kpr684 * 32U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -6648,8 +7456,14 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6662,17 +7476,17 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 128U; nnz -= 128U) {
             uint32_t off = ri_ + idx * 128U;
             __syncthreads();
-            uint32_t i_kpr606 = 0U;
-            for (; i_kpr606 < 1U; i_kpr606++) {
-                uint32_t j_kpr607 = i_kpr606;
-                vec_memcpy(elems_tile0 + (j_kpr607 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr607 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr686 = 0U;
+            for (; i_kpr686 < 1U; i_kpr686++) {
+                uint32_t j_kpr687 = i_kpr686;
+                vec_memcpy(elems_tile0 + (j_kpr687 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr687 * 32U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr608 = 0U;
-            for (; i_kpr608 < 1U; i_kpr608++) {
-                uint32_t j_kpr609 = i_kpr608;
-                vec_memcpy(col_ind_tile0 + (j_kpr609 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr609 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr688 = 0U;
+            for (; i_kpr688 < 1U; i_kpr688++) {
+                uint32_t j_kpr689 = i_kpr688;
+                vec_memcpy(col_ind_tile0 + (j_kpr689 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr689 * 32U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -6688,9 +7502,15 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 32U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6706,14 +7526,14 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr611 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr610 = 0U;
-    for (; i_kpr610 < hi_kpr611; i_kpr610++) {
-        uint32_t j_kpr612 = i_kpr610;
-        elems_tile0[j_kpr612 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr612 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr612 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr612 * 32U + threadIdx.x];
+    uint32_t hi_kpr691 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr690 = 0U;
+    for (; i_kpr690 < hi_kpr691; i_kpr690++) {
+        uint32_t j_kpr692 = i_kpr690;
+        elems_tile0[j_kpr692 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr692 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr692 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr692 * 32U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -6729,8 +7549,14 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6738,19 +7564,24 @@ __hoisted_g_spmm_f32_128x256x32_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr613 = 0U;
-    for (; i_kpr613 < 2U; i_kpr613++) {
-        uint32_t j_kpr614 = i_kpr613;
-        uint32_t off = n_idx + j_kpr614 * 32U * 4U;
+    uint32_t i_kpr695 = 0U;
+    for (; i_kpr695 < 2U; i_kpr695++) {
+        uint32_t j_kpr696 = i_kpr695;
+        uint32_t off = n_idx + j_kpr696 * 32U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr614 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr693 = 0U;
+            for (; i_kpr693 < 1U; i_kpr693++) {
+                uint32_t j_kpr694 = i_kpr693;
+                uint32_t start = j_kpr696 * 4U + j_kpr694 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr694 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -6777,23 +7608,23 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 128U) {
-        uint32_t i_kpr615 = 0U;
-        for (; i_kpr615 < 1U; i_kpr615++) {
-            uint32_t j_kpr616 = i_kpr615;
-            vec_memcpy(elems_tile0 + (j_kpr616 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr616 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr697 = 0U;
+        for (; i_kpr697 < 1U; i_kpr697++) {
+            uint32_t j_kpr698 = i_kpr697;
+            vec_memcpy(elems_tile0 + (j_kpr698 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr698 * 32U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr617 = 0U;
-        for (; i_kpr617 < 1U; i_kpr617++) {
-            uint32_t j_kpr618 = i_kpr617;
-            vec_memcpy(col_ind_tile0 + (j_kpr618 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr618 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr699 = 0U;
+        for (; i_kpr699 < 1U; i_kpr699++) {
+            uint32_t j_kpr700 = i_kpr699;
+            vec_memcpy(col_ind_tile0 + (j_kpr700 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr700 * 32U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr619 = 0U;
-        for (; i_kpr619 < to_; i_kpr619++)
-            elems_tile0[i_kpr619 * 32U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr701 = 0U;
+        for (; i_kpr701 < to_; i_kpr701++)
+            elems_tile0[i_kpr701 * 32U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -6808,8 +7639,14 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6822,17 +7659,17 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 128U; nnz -= 128U) {
             uint32_t off = ri_ + idx * 128U;
             __syncthreads();
-            uint32_t i_kpr621 = 0U;
-            for (; i_kpr621 < 1U; i_kpr621++) {
-                uint32_t j_kpr622 = i_kpr621;
-                vec_memcpy(elems_tile0 + (j_kpr622 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr622 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr703 = 0U;
+            for (; i_kpr703 < 1U; i_kpr703++) {
+                uint32_t j_kpr704 = i_kpr703;
+                vec_memcpy(elems_tile0 + (j_kpr704 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr704 * 32U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr623 = 0U;
-            for (; i_kpr623 < 1U; i_kpr623++) {
-                uint32_t j_kpr624 = i_kpr623;
-                vec_memcpy(col_ind_tile0 + (j_kpr624 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr624 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr705 = 0U;
+            for (; i_kpr705 < 1U; i_kpr705++) {
+                uint32_t j_kpr706 = i_kpr705;
+                vec_memcpy(col_ind_tile0 + (j_kpr706 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr706 * 32U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -6848,9 +7685,15 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 32U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6866,14 +7709,14 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr626 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr625 = 0U;
-    for (; i_kpr625 < hi_kpr626; i_kpr625++) {
-        uint32_t j_kpr627 = i_kpr625;
-        elems_tile0[j_kpr627 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr627 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr627 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr627 * 32U + threadIdx.x];
+    uint32_t hi_kpr708 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr707 = 0U;
+    for (; i_kpr707 < hi_kpr708; i_kpr707++) {
+        uint32_t j_kpr709 = i_kpr707;
+        elems_tile0[j_kpr709 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr709 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr709 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr709 * 32U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -6889,8 +7732,14 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6898,19 +7747,24 @@ __hoisted_g_spmm_f32_128x256x32_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr628 = 0U;
-    for (; i_kpr628 < 2U; i_kpr628++) {
-        uint32_t j_kpr629 = i_kpr628;
-        uint32_t off = n_idx + j_kpr629 * 32U * 4U;
+    uint32_t i_kpr712 = 0U;
+    for (; i_kpr712 < 2U; i_kpr712++) {
+        uint32_t j_kpr713 = i_kpr712;
+        uint32_t off = n_idx + j_kpr713 * 32U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr629 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr710 = 0U;
+            for (; i_kpr710 < 1U; i_kpr710++) {
+                uint32_t j_kpr711 = i_kpr710;
+                uint32_t start = j_kpr713 * 4U + j_kpr711 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr711 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -6937,23 +7791,23 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t *row_indices, uint32_t rows,
     float out[32U];
     memset(out, 0U, 32U * sizeof(float));
     if (nnz >= 128U) {
-        uint32_t i_kpr630 = 0U;
-        for (; i_kpr630 < 2U; i_kpr630++) {
-            uint32_t j_kpr631 = i_kpr630;
-            vec_memcpy(elems_tile0 + (j_kpr631 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr631 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr714 = 0U;
+        for (; i_kpr714 < 2U; i_kpr714++) {
+            uint32_t j_kpr715 = i_kpr714;
+            vec_memcpy(elems_tile0 + (j_kpr715 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr715 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr632 = 0U;
-        for (; i_kpr632 < 2U; i_kpr632++) {
-            uint32_t j_kpr633 = i_kpr632;
-            vec_memcpy(col_ind_tile0 + (j_kpr633 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr633 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr716 = 0U;
+        for (; i_kpr716 < 2U; i_kpr716++) {
+            uint32_t j_kpr717 = i_kpr716;
+            vec_memcpy(col_ind_tile0 + (j_kpr717 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr717 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr634 = 0U;
-        for (; i_kpr634 < to_; i_kpr634++)
-            elems_tile0[i_kpr634 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr718 = 0U;
+        for (; i_kpr718 < to_; i_kpr718++)
+            elems_tile0[i_kpr718 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -6968,8 +7822,14 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -6982,17 +7842,17 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 128U; nnz -= 128U) {
             uint32_t off = ri_ + idx * 128U;
             __syncthreads();
-            uint32_t i_kpr636 = 0U;
-            for (; i_kpr636 < 2U; i_kpr636++) {
-                uint32_t j_kpr637 = i_kpr636;
-                vec_memcpy(elems_tile0 + (j_kpr637 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr637 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr720 = 0U;
+            for (; i_kpr720 < 2U; i_kpr720++) {
+                uint32_t j_kpr721 = i_kpr720;
+                vec_memcpy(elems_tile0 + (j_kpr721 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr721 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr638 = 0U;
-            for (; i_kpr638 < 2U; i_kpr638++) {
-                uint32_t j_kpr639 = i_kpr638;
-                vec_memcpy(col_ind_tile0 + (j_kpr639 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr639 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr722 = 0U;
+            for (; i_kpr722 < 2U; i_kpr722++) {
+                uint32_t j_kpr723 = i_kpr722;
+                vec_memcpy(col_ind_tile0 + (j_kpr723 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr723 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -7008,9 +7868,15 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7026,14 +7892,14 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr641 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr640 = 0U;
-    for (; i_kpr640 < hi_kpr641; i_kpr640++) {
-        uint32_t j_kpr642 = i_kpr640;
-        elems_tile0[j_kpr642 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr642 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr642 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr642 * 16U + threadIdx.x];
+    uint32_t hi_kpr725 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr724 = 0U;
+    for (; i_kpr724 < hi_kpr725; i_kpr724++) {
+        uint32_t j_kpr726 = i_kpr724;
+        elems_tile0[j_kpr726 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr726 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr726 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr726 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -7049,8 +7915,14 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7058,19 +7930,24 @@ __hoisted_g_spmm_f32_128x512x16_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr643 = 0U;
-    for (; i_kpr643 < 8U; i_kpr643++) {
-        uint32_t j_kpr644 = i_kpr643;
-        uint32_t off = n_idx + j_kpr644 * 16U * 4U;
+    uint32_t i_kpr729 = 0U;
+    for (; i_kpr729 < 8U; i_kpr729++) {
+        uint32_t j_kpr730 = i_kpr729;
+        uint32_t off = n_idx + j_kpr730 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr644 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr727 = 0U;
+            for (; i_kpr727 < 1U; i_kpr727++) {
+                uint32_t j_kpr728 = i_kpr727;
+                uint32_t start = j_kpr730 * 4U + j_kpr728 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr728 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -7097,23 +7974,23 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t *row_indices, uint32_t rows,
     float out[32U];
     memset(out, 0U, 32U * sizeof(float));
     if (nnz >= 128U) {
-        uint32_t i_kpr645 = 0U;
-        for (; i_kpr645 < 2U; i_kpr645++) {
-            uint32_t j_kpr646 = i_kpr645;
-            vec_memcpy(elems_tile0 + (j_kpr646 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr646 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr731 = 0U;
+        for (; i_kpr731 < 2U; i_kpr731++) {
+            uint32_t j_kpr732 = i_kpr731;
+            vec_memcpy(elems_tile0 + (j_kpr732 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr732 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr647 = 0U;
-        for (; i_kpr647 < 2U; i_kpr647++) {
-            uint32_t j_kpr648 = i_kpr647;
-            vec_memcpy(col_ind_tile0 + (j_kpr648 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr648 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr733 = 0U;
+        for (; i_kpr733 < 2U; i_kpr733++) {
+            uint32_t j_kpr734 = i_kpr733;
+            vec_memcpy(col_ind_tile0 + (j_kpr734 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr734 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr649 = 0U;
-        for (; i_kpr649 < to_; i_kpr649++)
-            elems_tile0[i_kpr649 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr735 = 0U;
+        for (; i_kpr735 < to_; i_kpr735++)
+            elems_tile0[i_kpr735 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -7128,8 +8005,14 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7142,17 +8025,17 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 128U; nnz -= 128U) {
             uint32_t off = ri_ + idx * 128U;
             __syncthreads();
-            uint32_t i_kpr651 = 0U;
-            for (; i_kpr651 < 2U; i_kpr651++) {
-                uint32_t j_kpr652 = i_kpr651;
-                vec_memcpy(elems_tile0 + (j_kpr652 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr652 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr737 = 0U;
+            for (; i_kpr737 < 2U; i_kpr737++) {
+                uint32_t j_kpr738 = i_kpr737;
+                vec_memcpy(elems_tile0 + (j_kpr738 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr738 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr653 = 0U;
-            for (; i_kpr653 < 2U; i_kpr653++) {
-                uint32_t j_kpr654 = i_kpr653;
-                vec_memcpy(col_ind_tile0 + (j_kpr654 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr654 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr739 = 0U;
+            for (; i_kpr739 < 2U; i_kpr739++) {
+                uint32_t j_kpr740 = i_kpr739;
+                vec_memcpy(col_ind_tile0 + (j_kpr740 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr740 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -7168,9 +8051,15 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7186,14 +8075,14 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr656 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr655 = 0U;
-    for (; i_kpr655 < hi_kpr656; i_kpr655++) {
-        uint32_t j_kpr657 = i_kpr655;
-        elems_tile0[j_kpr657 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr657 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr657 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr657 * 16U + threadIdx.x];
+    uint32_t hi_kpr742 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr741 = 0U;
+    for (; i_kpr741 < hi_kpr742; i_kpr741++) {
+        uint32_t j_kpr743 = i_kpr741;
+        elems_tile0[j_kpr743 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr743 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr743 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr743 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -7209,8 +8098,14 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7218,19 +8113,24 @@ __hoisted_g_spmm_f32_128x512x16_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr658 = 0U;
-    for (; i_kpr658 < 8U; i_kpr658++) {
-        uint32_t j_kpr659 = i_kpr658;
-        uint32_t off = n_idx + j_kpr659 * 16U * 4U;
+    uint32_t i_kpr746 = 0U;
+    for (; i_kpr746 < 8U; i_kpr746++) {
+        uint32_t j_kpr747 = i_kpr746;
+        uint32_t off = n_idx + j_kpr747 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr659 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr744 = 0U;
+            for (; i_kpr744 < 1U; i_kpr744++) {
+                uint32_t j_kpr745 = i_kpr744;
+                uint32_t start = j_kpr747 * 4U + j_kpr745 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr745 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -7257,23 +8157,23 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t *row_indices, uint32_t rows,
     float out[16U];
     memset(out, 0U, 16U * sizeof(float));
     if (nnz >= 128U) {
-        uint32_t i_kpr660 = 0U;
-        for (; i_kpr660 < 1U; i_kpr660++) {
-            uint32_t j_kpr661 = i_kpr660;
-            vec_memcpy(elems_tile0 + (j_kpr661 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr661 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr748 = 0U;
+        for (; i_kpr748 < 1U; i_kpr748++) {
+            uint32_t j_kpr749 = i_kpr748;
+            vec_memcpy(elems_tile0 + (j_kpr749 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr749 * 32U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr662 = 0U;
-        for (; i_kpr662 < 1U; i_kpr662++) {
-            uint32_t j_kpr663 = i_kpr662;
-            vec_memcpy(col_ind_tile0 + (j_kpr663 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr663 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr750 = 0U;
+        for (; i_kpr750 < 1U; i_kpr750++) {
+            uint32_t j_kpr751 = i_kpr750;
+            vec_memcpy(col_ind_tile0 + (j_kpr751 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr751 * 32U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr664 = 0U;
-        for (; i_kpr664 < to_; i_kpr664++)
-            elems_tile0[i_kpr664 * 32U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr752 = 0U;
+        for (; i_kpr752 < to_; i_kpr752++)
+            elems_tile0[i_kpr752 * 32U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -7288,8 +8188,14 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7302,17 +8208,17 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 128U; nnz -= 128U) {
             uint32_t off = ri_ + idx * 128U;
             __syncthreads();
-            uint32_t i_kpr666 = 0U;
-            for (; i_kpr666 < 1U; i_kpr666++) {
-                uint32_t j_kpr667 = i_kpr666;
-                vec_memcpy(elems_tile0 + (j_kpr667 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr667 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr754 = 0U;
+            for (; i_kpr754 < 1U; i_kpr754++) {
+                uint32_t j_kpr755 = i_kpr754;
+                vec_memcpy(elems_tile0 + (j_kpr755 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr755 * 32U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr668 = 0U;
-            for (; i_kpr668 < 1U; i_kpr668++) {
-                uint32_t j_kpr669 = i_kpr668;
-                vec_memcpy(col_ind_tile0 + (j_kpr669 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr669 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr756 = 0U;
+            for (; i_kpr756 < 1U; i_kpr756++) {
+                uint32_t j_kpr757 = i_kpr756;
+                vec_memcpy(col_ind_tile0 + (j_kpr757 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr757 * 32U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -7328,9 +8234,15 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 32U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7346,14 +8258,14 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr671 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr670 = 0U;
-    for (; i_kpr670 < hi_kpr671; i_kpr670++) {
-        uint32_t j_kpr672 = i_kpr670;
-        elems_tile0[j_kpr672 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr672 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr672 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr672 * 32U + threadIdx.x];
+    uint32_t hi_kpr759 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr758 = 0U;
+    for (; i_kpr758 < hi_kpr759; i_kpr758++) {
+        uint32_t j_kpr760 = i_kpr758;
+        elems_tile0[j_kpr760 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr760 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr760 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr760 * 32U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -7369,8 +8281,14 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7378,19 +8296,24 @@ __hoisted_g_spmm_f32_128x512x32_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr673 = 0U;
-    for (; i_kpr673 < 4U; i_kpr673++) {
-        uint32_t j_kpr674 = i_kpr673;
-        uint32_t off = n_idx + j_kpr674 * 32U * 4U;
+    uint32_t i_kpr763 = 0U;
+    for (; i_kpr763 < 4U; i_kpr763++) {
+        uint32_t j_kpr764 = i_kpr763;
+        uint32_t off = n_idx + j_kpr764 * 32U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr674 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr761 = 0U;
+            for (; i_kpr761 < 1U; i_kpr761++) {
+                uint32_t j_kpr762 = i_kpr761;
+                uint32_t start = j_kpr764 * 4U + j_kpr762 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr762 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -7417,23 +8340,23 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t *row_indices, uint32_t rows,
     float out[16U];
     memset(out, 0U, 16U * sizeof(float));
     if (nnz >= 128U) {
-        uint32_t i_kpr675 = 0U;
-        for (; i_kpr675 < 1U; i_kpr675++) {
-            uint32_t j_kpr676 = i_kpr675;
-            vec_memcpy(elems_tile0 + (j_kpr676 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr676 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr765 = 0U;
+        for (; i_kpr765 < 1U; i_kpr765++) {
+            uint32_t j_kpr766 = i_kpr765;
+            vec_memcpy(elems_tile0 + (j_kpr766 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr766 * 32U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr677 = 0U;
-        for (; i_kpr677 < 1U; i_kpr677++) {
-            uint32_t j_kpr678 = i_kpr677;
-            vec_memcpy(col_ind_tile0 + (j_kpr678 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr678 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr767 = 0U;
+        for (; i_kpr767 < 1U; i_kpr767++) {
+            uint32_t j_kpr768 = i_kpr767;
+            vec_memcpy(col_ind_tile0 + (j_kpr768 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr768 * 32U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr679 = 0U;
-        for (; i_kpr679 < to_; i_kpr679++)
-            elems_tile0[i_kpr679 * 32U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr769 = 0U;
+        for (; i_kpr769 < to_; i_kpr769++)
+            elems_tile0[i_kpr769 * 32U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -7448,8 +8371,14 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -7462,17 +8391,17 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 128U; nnz -= 128U) {
             uint32_t off = ri_ + idx * 128U;
             __syncthreads();
-            uint32_t i_kpr681 = 0U;
-            for (; i_kpr681 < 1U; i_kpr681++) {
-                uint32_t j_kpr682 = i_kpr681;
-                vec_memcpy(elems_tile0 + (j_kpr682 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr682 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr771 = 0U;
+            for (; i_kpr771 < 1U; i_kpr771++) {
+                uint32_t j_kpr772 = i_kpr771;
+                vec_memcpy(elems_tile0 + (j_kpr772 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr772 * 32U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr683 = 0U;
-            for (; i_kpr683 < 1U; i_kpr683++) {
-                uint32_t j_kpr684 = i_kpr683;
-                vec_memcpy(col_ind_tile0 + (j_kpr684 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr684 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr773 = 0U;
+            for (; i_kpr773 < 1U; i_kpr773++) {
+                uint32_t j_kpr774 = i_kpr773;
+                vec_memcpy(col_ind_tile0 + (j_kpr774 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr774 * 32U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -7488,947 +8417,19 @@ __hoisted_g_spmm_f32_128x512x32_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 32U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
                         }
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr686 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr685 = 0U;
-    for (; i_kpr685 < hi_kpr686; i_kpr685++) {
-        uint32_t j_kpr687 = i_kpr685;
-        elems_tile0[j_kpr687 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr687 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr687 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr687 * 32U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 4U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 32U * 4U < cols) {
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-    }
-    uint32_t i_kpr688 = 0U;
-    for (; i_kpr688 < 4U; i_kpr688++) {
-        uint32_t j_kpr689 = i_kpr688;
-        uint32_t off = n_idx + j_kpr689 * 32U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr689 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(16)
-/**
-  hoisted when extracting g_spmm_f32_256x64x16
-*/
-static void
-__hoisted_g_spmm_f32_256x64x16_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[4U];
-    memset(out, 0U, 4U * sizeof(float));
-    if (nnz >= 256U) {
-        uint32_t i_kpr690 = 0U;
-        for (; i_kpr690 < 4U; i_kpr690++) {
-            uint32_t j_kpr691 = i_kpr690;
-            vec_memcpy(elems_tile0 + (j_kpr691 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr691 * 16U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr692 = 0U;
-        for (; i_kpr692 < 4U; i_kpr692++) {
-            uint32_t j_kpr693 = i_kpr692;
-            vec_memcpy(col_ind_tile0 + (j_kpr693 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr693 * 16U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr694 = 0U;
-        for (; i_kpr694 < to_; i_kpr694++)
-            elems_tile0[i_kpr694 * 16U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 256U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 1U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 256U;
-        for (; nnz >= 256U; nnz -= 256U) {
-            uint32_t off = ri_ + idx * 256U;
-            __syncthreads();
-            uint32_t i_kpr696 = 0U;
-            for (; i_kpr696 < 4U; i_kpr696++) {
-                uint32_t j_kpr697 = i_kpr696;
-                vec_memcpy(elems_tile0 + (j_kpr697 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr697 * 16U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr698 = 0U;
-            for (; i_kpr698 < 4U; i_kpr698++) {
-                uint32_t j_kpr699 = i_kpr698;
-                vec_memcpy(col_ind_tile0 + (j_kpr699 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr699 * 16U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 256U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 1U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 16U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr701 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr700 = 0U;
-    for (; i_kpr700 < hi_kpr701; i_kpr700++) {
-        uint32_t j_kpr702 = i_kpr700;
-        elems_tile0[j_kpr702 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr702 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr702 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr702 * 16U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 1U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                float lchunk[4U];
-                memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
-                uint32_t ix = 0U;
-                for (; ix < 4U; ix++)
-                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
-            }
-        }
-    }
-    uint32_t i_kpr703 = 0U;
-    for (; i_kpr703 < 1U; i_kpr703++) {
-        uint32_t j_kpr704 = i_kpr703;
-        uint32_t off = n_idx + j_kpr704 * 16U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr704 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(16)
-/**
-  hoisted when extracting g_spmm_f32_256x64x16_on
-*/
-static void
-__hoisted_g_spmm_f32_256x64x16_on_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[4U];
-    memset(out, 0U, 4U * sizeof(float));
-    if (nnz >= 256U) {
-        uint32_t i_kpr705 = 0U;
-        for (; i_kpr705 < 4U; i_kpr705++) {
-            uint32_t j_kpr706 = i_kpr705;
-            vec_memcpy(elems_tile0 + (j_kpr706 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr706 * 16U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr707 = 0U;
-        for (; i_kpr707 < 4U; i_kpr707++) {
-            uint32_t j_kpr708 = i_kpr707;
-            vec_memcpy(col_ind_tile0 + (j_kpr708 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr708 * 16U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr709 = 0U;
-        for (; i_kpr709 < to_; i_kpr709++)
-            elems_tile0[i_kpr709 * 16U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 256U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 1U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 256U;
-        for (; nnz >= 256U; nnz -= 256U) {
-            uint32_t off = ri_ + idx * 256U;
-            __syncthreads();
-            uint32_t i_kpr711 = 0U;
-            for (; i_kpr711 < 4U; i_kpr711++) {
-                uint32_t j_kpr712 = i_kpr711;
-                vec_memcpy(elems_tile0 + (j_kpr712 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr712 * 16U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr713 = 0U;
-            for (; i_kpr713 < 4U; i_kpr713++) {
-                uint32_t j_kpr714 = i_kpr713;
-                vec_memcpy(col_ind_tile0 + (j_kpr714 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr714 * 16U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 256U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 1U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 16U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr716 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr715 = 0U;
-    for (; i_kpr715 < hi_kpr716; i_kpr715++) {
-        uint32_t j_kpr717 = i_kpr715;
-        elems_tile0[j_kpr717 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr717 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr717 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr717 * 16U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 1U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                float lchunk[4U];
-                memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
-                uint32_t ix = 0U;
-                for (; ix < 4U; ix++)
-                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
-            }
-        }
-    }
-    uint32_t i_kpr718 = 0U;
-    for (; i_kpr718 < 1U; i_kpr718++) {
-        uint32_t j_kpr719 = i_kpr718;
-        uint32_t off = n_idx + j_kpr719 * 16U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr719 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(16)
-/**
-  hoisted when extracting g_spmm_f32_256x128x16
-*/
-static void
-__hoisted_g_spmm_f32_256x128x16_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[8U];
-    memset(out, 0U, 8U * sizeof(float));
-    if (nnz >= 256U) {
-        uint32_t i_kpr720 = 0U;
-        for (; i_kpr720 < 4U; i_kpr720++) {
-            uint32_t j_kpr721 = i_kpr720;
-            vec_memcpy(elems_tile0 + (j_kpr721 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr721 * 16U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr722 = 0U;
-        for (; i_kpr722 < 4U; i_kpr722++) {
-            uint32_t j_kpr723 = i_kpr722;
-            vec_memcpy(col_ind_tile0 + (j_kpr723 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr723 * 16U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr724 = 0U;
-        for (; i_kpr724 < to_; i_kpr724++)
-            elems_tile0[i_kpr724 * 16U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 256U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 2U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 16U * 4U < cols) {
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 256U;
-        for (; nnz >= 256U; nnz -= 256U) {
-            uint32_t off = ri_ + idx * 256U;
-            __syncthreads();
-            uint32_t i_kpr726 = 0U;
-            for (; i_kpr726 < 4U; i_kpr726++) {
-                uint32_t j_kpr727 = i_kpr726;
-                vec_memcpy(elems_tile0 + (j_kpr727 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr727 * 16U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr728 = 0U;
-            for (; i_kpr728 < 4U; i_kpr728++) {
-                uint32_t j_kpr729 = i_kpr728;
-                vec_memcpy(col_ind_tile0 + (j_kpr729 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr729 * 16U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 256U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 2U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 16U * 4U < cols) {
-                            float lchunk[4U];
-                            memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++)
-                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                        }
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr731 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr730 = 0U;
-    for (; i_kpr730 < hi_kpr731; i_kpr730++) {
-        uint32_t j_kpr732 = i_kpr730;
-        elems_tile0[j_kpr732 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr732 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr732 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr732 * 16U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 2U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 16U * 4U < cols) {
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-    }
-    uint32_t i_kpr733 = 0U;
-    for (; i_kpr733 < 2U; i_kpr733++) {
-        uint32_t j_kpr734 = i_kpr733;
-        uint32_t off = n_idx + j_kpr734 * 16U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr734 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(16)
-/**
-  hoisted when extracting g_spmm_f32_256x128x16_on
-*/
-static void
-__hoisted_g_spmm_f32_256x128x16_on_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[8U];
-    memset(out, 0U, 8U * sizeof(float));
-    if (nnz >= 256U) {
-        uint32_t i_kpr735 = 0U;
-        for (; i_kpr735 < 4U; i_kpr735++) {
-            uint32_t j_kpr736 = i_kpr735;
-            vec_memcpy(elems_tile0 + (j_kpr736 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr736 * 16U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr737 = 0U;
-        for (; i_kpr737 < 4U; i_kpr737++) {
-            uint32_t j_kpr738 = i_kpr737;
-            vec_memcpy(col_ind_tile0 + (j_kpr738 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr738 * 16U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr739 = 0U;
-        for (; i_kpr739 < to_; i_kpr739++)
-            elems_tile0[i_kpr739 * 16U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 256U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 2U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 16U * 4U < cols) {
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 256U;
-        for (; nnz >= 256U; nnz -= 256U) {
-            uint32_t off = ri_ + idx * 256U;
-            __syncthreads();
-            uint32_t i_kpr741 = 0U;
-            for (; i_kpr741 < 4U; i_kpr741++) {
-                uint32_t j_kpr742 = i_kpr741;
-                vec_memcpy(elems_tile0 + (j_kpr742 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr742 * 16U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr743 = 0U;
-            for (; i_kpr743 < 4U; i_kpr743++) {
-                uint32_t j_kpr744 = i_kpr743;
-                vec_memcpy(col_ind_tile0 + (j_kpr744 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr744 * 16U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 256U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 2U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 16U * 4U < cols) {
-                            float lchunk[4U];
-                            memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++)
-                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                        }
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr746 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr745 = 0U;
-    for (; i_kpr745 < hi_kpr746; i_kpr745++) {
-        uint32_t j_kpr747 = i_kpr745;
-        elems_tile0[j_kpr747 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr747 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr747 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr747 * 16U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 2U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 16U * 4U < cols) {
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-    }
-    uint32_t i_kpr748 = 0U;
-    for (; i_kpr748 < 2U; i_kpr748++) {
-        uint32_t j_kpr749 = i_kpr748;
-        uint32_t off = n_idx + j_kpr749 * 16U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr749 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(32)
-/**
-  hoisted when extracting g_spmm_f32_256x128x32
-*/
-static void
-__hoisted_g_spmm_f32_256x128x32_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[4U];
-    memset(out, 0U, 4U * sizeof(float));
-    if (nnz >= 256U) {
-        uint32_t i_kpr750 = 0U;
-        for (; i_kpr750 < 2U; i_kpr750++) {
-            uint32_t j_kpr751 = i_kpr750;
-            vec_memcpy(elems_tile0 + (j_kpr751 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr751 * 32U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr752 = 0U;
-        for (; i_kpr752 < 2U; i_kpr752++) {
-            uint32_t j_kpr753 = i_kpr752;
-            vec_memcpy(col_ind_tile0 + (j_kpr753 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr753 * 32U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr754 = 0U;
-        for (; i_kpr754 < to_; i_kpr754++)
-            elems_tile0[i_kpr754 * 32U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 256U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 1U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 256U;
-        for (; nnz >= 256U; nnz -= 256U) {
-            uint32_t off = ri_ + idx * 256U;
-            __syncthreads();
-            uint32_t i_kpr756 = 0U;
-            for (; i_kpr756 < 2U; i_kpr756++) {
-                uint32_t j_kpr757 = i_kpr756;
-                vec_memcpy(elems_tile0 + (j_kpr757 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr757 * 32U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr758 = 0U;
-            for (; i_kpr758 < 2U; i_kpr758++) {
-                uint32_t j_kpr759 = i_kpr758;
-                vec_memcpy(col_ind_tile0 + (j_kpr759 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr759 * 32U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 256U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 1U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 32U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr761 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr760 = 0U;
-    for (; i_kpr760 < hi_kpr761; i_kpr760++) {
-        uint32_t j_kpr762 = i_kpr760;
-        elems_tile0[j_kpr762 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr762 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr762 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr762 * 32U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 1U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                float lchunk[4U];
-                memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
-                uint32_t ix = 0U;
-                for (; ix < 4U; ix++)
-                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
-            }
-        }
-    }
-    uint32_t i_kpr763 = 0U;
-    for (; i_kpr763 < 1U; i_kpr763++) {
-        uint32_t j_kpr764 = i_kpr763;
-        uint32_t off = n_idx + j_kpr764 * 32U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr764 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(32)
-/**
-  hoisted when extracting g_spmm_f32_256x128x32_on
-*/
-static void
-__hoisted_g_spmm_f32_256x128x32_on_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[4U];
-    memset(out, 0U, 4U * sizeof(float));
-    if (nnz >= 256U) {
-        uint32_t i_kpr765 = 0U;
-        for (; i_kpr765 < 2U; i_kpr765++) {
-            uint32_t j_kpr766 = i_kpr765;
-            vec_memcpy(elems_tile0 + (j_kpr766 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr766 * 32U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr767 = 0U;
-        for (; i_kpr767 < 2U; i_kpr767++) {
-            uint32_t j_kpr768 = i_kpr767;
-            vec_memcpy(col_ind_tile0 + (j_kpr768 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr768 * 32U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr769 = 0U;
-        for (; i_kpr769 < to_; i_kpr769++)
-            elems_tile0[i_kpr769 * 32U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 256U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 1U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 256U;
-        for (; nnz >= 256U; nnz -= 256U) {
-            uint32_t off = ri_ + idx * 256U;
-            __syncthreads();
-            uint32_t i_kpr771 = 0U;
-            for (; i_kpr771 < 2U; i_kpr771++) {
-                uint32_t j_kpr772 = i_kpr771;
-                vec_memcpy(elems_tile0 + (j_kpr772 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr772 * 32U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr773 = 0U;
-            for (; i_kpr773 < 2U; i_kpr773++) {
-                uint32_t j_kpr774 = i_kpr773;
-                vec_memcpy(col_ind_tile0 + (j_kpr774 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr774 * 32U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 256U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 1U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 32U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
                     }
                 }
             }
@@ -8457,32 +8458,1115 @@ __hoisted_g_spmm_f32_256x128x32_on_0(uint32_t *row_indices, uint32_t rows,
             uint32_t kr = col_ind_tile0[kv];
             float kx = elems_tile0[kv];
             uint32_t k1 = 0U;
+            for (; k1 < 4U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+    }
+    uint32_t i_kpr780 = 0U;
+    for (; i_kpr780 < 4U; i_kpr780++) {
+        uint32_t j_kpr781 = i_kpr780;
+        uint32_t off = n_idx + j_kpr781 * 32U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr778 = 0U;
+            for (; i_kpr778 < 1U; i_kpr778++) {
+                uint32_t j_kpr779 = i_kpr778;
+                uint32_t start = j_kpr781 * 4U + j_kpr779 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr779 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(16)
+/**
+  hoisted when extracting g_spmm_f32_256x64x16
+*/
+static void
+__hoisted_g_spmm_f32_256x64x16_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[4U];
+    memset(out, 0U, 4U * sizeof(float));
+    if (nnz >= 256U) {
+        uint32_t i_kpr782 = 0U;
+        for (; i_kpr782 < 4U; i_kpr782++) {
+            uint32_t j_kpr783 = i_kpr782;
+            vec_memcpy(elems_tile0 + (j_kpr783 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr783 * 16U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr784 = 0U;
+        for (; i_kpr784 < 4U; i_kpr784++) {
+            uint32_t j_kpr785 = i_kpr784;
+            vec_memcpy(col_ind_tile0 + (j_kpr785 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr785 * 16U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
+        uint32_t i_kpr786 = 0U;
+        for (; i_kpr786 < to_; i_kpr786++)
+            elems_tile0[i_kpr786 * 16U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 256U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 1U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 256U;
+        for (; nnz >= 256U; nnz -= 256U) {
+            uint32_t off = ri_ + idx * 256U;
+            __syncthreads();
+            uint32_t i_kpr788 = 0U;
+            for (; i_kpr788 < 4U; i_kpr788++) {
+                uint32_t j_kpr789 = i_kpr788;
+                vec_memcpy(elems_tile0 + (j_kpr789 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr789 * 16U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr790 = 0U;
+            for (; i_kpr790 < 4U; i_kpr790++) {
+                uint32_t j_kpr791 = i_kpr790;
+                vec_memcpy(col_ind_tile0 + (j_kpr791 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr791 * 16U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 256U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 1U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr793 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr792 = 0U;
+    for (; i_kpr792 < hi_kpr793; i_kpr792++) {
+        uint32_t j_kpr794 = i_kpr792;
+        elems_tile0[j_kpr794 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr794 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr794 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr794 * 16U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr778 = 0U;
-    for (; i_kpr778 < 1U; i_kpr778++) {
-        uint32_t j_kpr779 = i_kpr778;
-        uint32_t off = n_idx + j_kpr779 * 32U * 4U;
+    uint32_t i_kpr797 = 0U;
+    for (; i_kpr797 < 1U; i_kpr797++) {
+        uint32_t j_kpr798 = i_kpr797;
+        uint32_t off = n_idx + j_kpr798 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr779 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr795 = 0U;
+            for (; i_kpr795 < 1U; i_kpr795++) {
+                uint32_t j_kpr796 = i_kpr795;
+                uint32_t start = j_kpr798 * 4U + j_kpr796 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr796 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(16)
+/**
+  hoisted when extracting g_spmm_f32_256x64x16_on
+*/
+static void
+__hoisted_g_spmm_f32_256x64x16_on_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[4U];
+    memset(out, 0U, 4U * sizeof(float));
+    if (nnz >= 256U) {
+        uint32_t i_kpr799 = 0U;
+        for (; i_kpr799 < 4U; i_kpr799++) {
+            uint32_t j_kpr800 = i_kpr799;
+            vec_memcpy(elems_tile0 + (j_kpr800 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr800 * 16U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr801 = 0U;
+        for (; i_kpr801 < 4U; i_kpr801++) {
+            uint32_t j_kpr802 = i_kpr801;
+            vec_memcpy(col_ind_tile0 + (j_kpr802 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr802 * 16U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
+        uint32_t i_kpr803 = 0U;
+        for (; i_kpr803 < to_; i_kpr803++)
+            elems_tile0[i_kpr803 * 16U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 256U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 1U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 256U;
+        for (; nnz >= 256U; nnz -= 256U) {
+            uint32_t off = ri_ + idx * 256U;
+            __syncthreads();
+            uint32_t i_kpr805 = 0U;
+            for (; i_kpr805 < 4U; i_kpr805++) {
+                uint32_t j_kpr806 = i_kpr805;
+                vec_memcpy(elems_tile0 + (j_kpr806 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr806 * 16U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr807 = 0U;
+            for (; i_kpr807 < 4U; i_kpr807++) {
+                uint32_t j_kpr808 = i_kpr807;
+                vec_memcpy(col_ind_tile0 + (j_kpr808 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr808 * 16U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 256U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 1U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr810 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr809 = 0U;
+    for (; i_kpr809 < hi_kpr810; i_kpr809++) {
+        uint32_t j_kpr811 = i_kpr809;
+        elems_tile0[j_kpr811 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr811 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr811 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr811 * 16U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 1U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                float lchunk[4U];
+                memset(lchunk, 0U, 4U * sizeof(float));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
+                uint32_t ix = 0U;
+                for (; ix < 4U; ix++)
+                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
+            }
+        }
+    }
+    uint32_t i_kpr814 = 0U;
+    for (; i_kpr814 < 1U; i_kpr814++) {
+        uint32_t j_kpr815 = i_kpr814;
+        uint32_t off = n_idx + j_kpr815 * 16U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr812 = 0U;
+            for (; i_kpr812 < 1U; i_kpr812++) {
+                uint32_t j_kpr813 = i_kpr812;
+                uint32_t start = j_kpr815 * 4U + j_kpr813 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr813 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(16)
+/**
+  hoisted when extracting g_spmm_f32_256x128x16
+*/
+static void
+__hoisted_g_spmm_f32_256x128x16_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[8U];
+    memset(out, 0U, 8U * sizeof(float));
+    if (nnz >= 256U) {
+        uint32_t i_kpr816 = 0U;
+        for (; i_kpr816 < 4U; i_kpr816++) {
+            uint32_t j_kpr817 = i_kpr816;
+            vec_memcpy(elems_tile0 + (j_kpr817 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr817 * 16U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr818 = 0U;
+        for (; i_kpr818 < 4U; i_kpr818++) {
+            uint32_t j_kpr819 = i_kpr818;
+            vec_memcpy(col_ind_tile0 + (j_kpr819 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr819 * 16U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
+        uint32_t i_kpr820 = 0U;
+        for (; i_kpr820 < to_; i_kpr820++)
+            elems_tile0[i_kpr820 * 16U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 256U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 2U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 256U;
+        for (; nnz >= 256U; nnz -= 256U) {
+            uint32_t off = ri_ + idx * 256U;
+            __syncthreads();
+            uint32_t i_kpr822 = 0U;
+            for (; i_kpr822 < 4U; i_kpr822++) {
+                uint32_t j_kpr823 = i_kpr822;
+                vec_memcpy(elems_tile0 + (j_kpr823 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr823 * 16U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr824 = 0U;
+            for (; i_kpr824 < 4U; i_kpr824++) {
+                uint32_t j_kpr825 = i_kpr824;
+                vec_memcpy(col_ind_tile0 + (j_kpr825 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr825 * 16U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 256U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 2U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        if (n_idx + __anf03 * 16U * 4U < cols) {
+                            float lchunk[4U];
+                            memset(lchunk, 0U, 4U * sizeof(float));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
+                            uint32_t ix = 0U;
+                            for (; ix < 4U; ix++)
+                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                        }
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr827 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr826 = 0U;
+    for (; i_kpr826 < hi_kpr827; i_kpr826++) {
+        uint32_t j_kpr828 = i_kpr826;
+        elems_tile0[j_kpr828 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr828 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr828 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr828 * 16U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 2U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+    }
+    uint32_t i_kpr831 = 0U;
+    for (; i_kpr831 < 2U; i_kpr831++) {
+        uint32_t j_kpr832 = i_kpr831;
+        uint32_t off = n_idx + j_kpr832 * 16U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr829 = 0U;
+            for (; i_kpr829 < 1U; i_kpr829++) {
+                uint32_t j_kpr830 = i_kpr829;
+                uint32_t start = j_kpr832 * 4U + j_kpr830 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr830 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(16)
+/**
+  hoisted when extracting g_spmm_f32_256x128x16_on
+*/
+static void
+__hoisted_g_spmm_f32_256x128x16_on_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[8U];
+    memset(out, 0U, 8U * sizeof(float));
+    if (nnz >= 256U) {
+        uint32_t i_kpr833 = 0U;
+        for (; i_kpr833 < 4U; i_kpr833++) {
+            uint32_t j_kpr834 = i_kpr833;
+            vec_memcpy(elems_tile0 + (j_kpr834 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr834 * 16U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr835 = 0U;
+        for (; i_kpr835 < 4U; i_kpr835++) {
+            uint32_t j_kpr836 = i_kpr835;
+            vec_memcpy(col_ind_tile0 + (j_kpr836 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr836 * 16U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
+        uint32_t i_kpr837 = 0U;
+        for (; i_kpr837 < to_; i_kpr837++)
+            elems_tile0[i_kpr837 * 16U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 256U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 2U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 256U;
+        for (; nnz >= 256U; nnz -= 256U) {
+            uint32_t off = ri_ + idx * 256U;
+            __syncthreads();
+            uint32_t i_kpr839 = 0U;
+            for (; i_kpr839 < 4U; i_kpr839++) {
+                uint32_t j_kpr840 = i_kpr839;
+                vec_memcpy(elems_tile0 + (j_kpr840 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr840 * 16U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr841 = 0U;
+            for (; i_kpr841 < 4U; i_kpr841++) {
+                uint32_t j_kpr842 = i_kpr841;
+                vec_memcpy(col_ind_tile0 + (j_kpr842 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr842 * 16U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 256U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 2U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        if (n_idx + __anf03 * 16U * 4U < cols) {
+                            float lchunk[4U];
+                            memset(lchunk, 0U, 4U * sizeof(float));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
+                            uint32_t ix = 0U;
+                            for (; ix < 4U; ix++)
+                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                        }
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr844 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr843 = 0U;
+    for (; i_kpr843 < hi_kpr844; i_kpr843++) {
+        uint32_t j_kpr845 = i_kpr843;
+        elems_tile0[j_kpr845 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr845 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr845 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr845 * 16U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 2U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+    }
+    uint32_t i_kpr848 = 0U;
+    for (; i_kpr848 < 2U; i_kpr848++) {
+        uint32_t j_kpr849 = i_kpr848;
+        uint32_t off = n_idx + j_kpr849 * 16U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr846 = 0U;
+            for (; i_kpr846 < 1U; i_kpr846++) {
+                uint32_t j_kpr847 = i_kpr846;
+                uint32_t start = j_kpr849 * 4U + j_kpr847 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr847 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(32)
+/**
+  hoisted when extracting g_spmm_f32_256x128x32
+*/
+static void
+__hoisted_g_spmm_f32_256x128x32_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[4U];
+    memset(out, 0U, 4U * sizeof(float));
+    if (nnz >= 256U) {
+        uint32_t i_kpr850 = 0U;
+        for (; i_kpr850 < 2U; i_kpr850++) {
+            uint32_t j_kpr851 = i_kpr850;
+            vec_memcpy(elems_tile0 + (j_kpr851 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr851 * 32U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr852 = 0U;
+        for (; i_kpr852 < 2U; i_kpr852++) {
+            uint32_t j_kpr853 = i_kpr852;
+            vec_memcpy(col_ind_tile0 + (j_kpr853 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr853 * 32U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
+        uint32_t i_kpr854 = 0U;
+        for (; i_kpr854 < to_; i_kpr854++)
+            elems_tile0[i_kpr854 * 32U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 256U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 1U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 256U;
+        for (; nnz >= 256U; nnz -= 256U) {
+            uint32_t off = ri_ + idx * 256U;
+            __syncthreads();
+            uint32_t i_kpr856 = 0U;
+            for (; i_kpr856 < 2U; i_kpr856++) {
+                uint32_t j_kpr857 = i_kpr856;
+                vec_memcpy(elems_tile0 + (j_kpr857 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr857 * 32U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr858 = 0U;
+            for (; i_kpr858 < 2U; i_kpr858++) {
+                uint32_t j_kpr859 = i_kpr858;
+                vec_memcpy(col_ind_tile0 + (j_kpr859 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr859 * 32U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 256U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 1U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr861 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr860 = 0U;
+    for (; i_kpr860 < hi_kpr861; i_kpr860++) {
+        uint32_t j_kpr862 = i_kpr860;
+        elems_tile0[j_kpr862 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr862 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr862 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr862 * 32U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 1U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                float lchunk[4U];
+                memset(lchunk, 0U, 4U * sizeof(float));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
+                uint32_t ix = 0U;
+                for (; ix < 4U; ix++)
+                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
+            }
+        }
+    }
+    uint32_t i_kpr865 = 0U;
+    for (; i_kpr865 < 1U; i_kpr865++) {
+        uint32_t j_kpr866 = i_kpr865;
+        uint32_t off = n_idx + j_kpr866 * 32U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr863 = 0U;
+            for (; i_kpr863 < 1U; i_kpr863++) {
+                uint32_t j_kpr864 = i_kpr863;
+                uint32_t start = j_kpr866 * 4U + j_kpr864 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr864 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(32)
+/**
+  hoisted when extracting g_spmm_f32_256x128x32_on
+*/
+static void
+__hoisted_g_spmm_f32_256x128x32_on_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[4U];
+    memset(out, 0U, 4U * sizeof(float));
+    if (nnz >= 256U) {
+        uint32_t i_kpr867 = 0U;
+        for (; i_kpr867 < 2U; i_kpr867++) {
+            uint32_t j_kpr868 = i_kpr867;
+            vec_memcpy(elems_tile0 + (j_kpr868 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr868 * 32U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr869 = 0U;
+        for (; i_kpr869 < 2U; i_kpr869++) {
+            uint32_t j_kpr870 = i_kpr869;
+            vec_memcpy(col_ind_tile0 + (j_kpr870 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr870 * 32U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
+        uint32_t i_kpr871 = 0U;
+        for (; i_kpr871 < to_; i_kpr871++)
+            elems_tile0[i_kpr871 * 32U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 256U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 1U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 256U;
+        for (; nnz >= 256U; nnz -= 256U) {
+            uint32_t off = ri_ + idx * 256U;
+            __syncthreads();
+            uint32_t i_kpr873 = 0U;
+            for (; i_kpr873 < 2U; i_kpr873++) {
+                uint32_t j_kpr874 = i_kpr873;
+                vec_memcpy(elems_tile0 + (j_kpr874 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr874 * 32U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr875 = 0U;
+            for (; i_kpr875 < 2U; i_kpr875++) {
+                uint32_t j_kpr876 = i_kpr875;
+                vec_memcpy(col_ind_tile0 + (j_kpr876 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr876 * 32U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 256U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 1U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr878 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr877 = 0U;
+    for (; i_kpr877 < hi_kpr878; i_kpr877++) {
+        uint32_t j_kpr879 = i_kpr877;
+        elems_tile0[j_kpr879 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr879 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr879 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr879 * 32U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 1U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                float lchunk[4U];
+                memset(lchunk, 0U, 4U * sizeof(float));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
+                uint32_t ix = 0U;
+                for (; ix < 4U; ix++)
+                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
+            }
+        }
+    }
+    uint32_t i_kpr882 = 0U;
+    for (; i_kpr882 < 1U; i_kpr882++) {
+        uint32_t j_kpr883 = i_kpr882;
+        uint32_t off = n_idx + j_kpr883 * 32U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr880 = 0U;
+            for (; i_kpr880 < 1U; i_kpr880++) {
+                uint32_t j_kpr881 = i_kpr880;
+                uint32_t start = j_kpr883 * 4U + j_kpr881 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr881 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -8509,23 +9593,23 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t *row_indices, uint32_t rows,
     float out[16U];
     memset(out, 0U, 16U * sizeof(float));
     if (nnz >= 256U) {
-        uint32_t i_kpr780 = 0U;
-        for (; i_kpr780 < 4U; i_kpr780++) {
-            uint32_t j_kpr781 = i_kpr780;
-            vec_memcpy(elems_tile0 + (j_kpr781 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr781 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr884 = 0U;
+        for (; i_kpr884 < 4U; i_kpr884++) {
+            uint32_t j_kpr885 = i_kpr884;
+            vec_memcpy(elems_tile0 + (j_kpr885 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr885 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr782 = 0U;
-        for (; i_kpr782 < 4U; i_kpr782++) {
-            uint32_t j_kpr783 = i_kpr782;
-            vec_memcpy(col_ind_tile0 + (j_kpr783 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr783 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr886 = 0U;
+        for (; i_kpr886 < 4U; i_kpr886++) {
+            uint32_t j_kpr887 = i_kpr886;
+            vec_memcpy(col_ind_tile0 + (j_kpr887 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr887 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr784 = 0U;
-        for (; i_kpr784 < to_; i_kpr784++)
-            elems_tile0[i_kpr784 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr888 = 0U;
+        for (; i_kpr888 < to_; i_kpr888++)
+            elems_tile0[i_kpr888 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -8540,8 +9624,14 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8554,17 +9644,17 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 256U; nnz -= 256U) {
             uint32_t off = ri_ + idx * 256U;
             __syncthreads();
-            uint32_t i_kpr786 = 0U;
-            for (; i_kpr786 < 4U; i_kpr786++) {
-                uint32_t j_kpr787 = i_kpr786;
-                vec_memcpy(elems_tile0 + (j_kpr787 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr787 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr890 = 0U;
+            for (; i_kpr890 < 4U; i_kpr890++) {
+                uint32_t j_kpr891 = i_kpr890;
+                vec_memcpy(elems_tile0 + (j_kpr891 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr891 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr788 = 0U;
-            for (; i_kpr788 < 4U; i_kpr788++) {
-                uint32_t j_kpr789 = i_kpr788;
-                vec_memcpy(col_ind_tile0 + (j_kpr789 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr789 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr892 = 0U;
+            for (; i_kpr892 < 4U; i_kpr892++) {
+                uint32_t j_kpr893 = i_kpr892;
+                vec_memcpy(col_ind_tile0 + (j_kpr893 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr893 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -8580,9 +9670,15 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8598,14 +9694,14 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr791 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr790 = 0U;
-    for (; i_kpr790 < hi_kpr791; i_kpr790++) {
-        uint32_t j_kpr792 = i_kpr790;
-        elems_tile0[j_kpr792 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr792 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr792 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr792 * 16U + threadIdx.x];
+    uint32_t hi_kpr895 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr894 = 0U;
+    for (; i_kpr894 < hi_kpr895; i_kpr894++) {
+        uint32_t j_kpr896 = i_kpr894;
+        elems_tile0[j_kpr896 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr896 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr896 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr896 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -8621,8 +9717,14 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8630,19 +9732,24 @@ __hoisted_g_spmm_f32_256x256x16_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr793 = 0U;
-    for (; i_kpr793 < 4U; i_kpr793++) {
-        uint32_t j_kpr794 = i_kpr793;
-        uint32_t off = n_idx + j_kpr794 * 16U * 4U;
+    uint32_t i_kpr899 = 0U;
+    for (; i_kpr899 < 4U; i_kpr899++) {
+        uint32_t j_kpr900 = i_kpr899;
+        uint32_t off = n_idx + j_kpr900 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr794 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr897 = 0U;
+            for (; i_kpr897 < 1U; i_kpr897++) {
+                uint32_t j_kpr898 = i_kpr897;
+                uint32_t start = j_kpr900 * 4U + j_kpr898 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr898 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -8669,23 +9776,23 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t *row_indices, uint32_t rows,
     float out[16U];
     memset(out, 0U, 16U * sizeof(float));
     if (nnz >= 256U) {
-        uint32_t i_kpr795 = 0U;
-        for (; i_kpr795 < 4U; i_kpr795++) {
-            uint32_t j_kpr796 = i_kpr795;
-            vec_memcpy(elems_tile0 + (j_kpr796 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr796 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr901 = 0U;
+        for (; i_kpr901 < 4U; i_kpr901++) {
+            uint32_t j_kpr902 = i_kpr901;
+            vec_memcpy(elems_tile0 + (j_kpr902 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr902 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr797 = 0U;
-        for (; i_kpr797 < 4U; i_kpr797++) {
-            uint32_t j_kpr798 = i_kpr797;
-            vec_memcpy(col_ind_tile0 + (j_kpr798 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr798 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr903 = 0U;
+        for (; i_kpr903 < 4U; i_kpr903++) {
+            uint32_t j_kpr904 = i_kpr903;
+            vec_memcpy(col_ind_tile0 + (j_kpr904 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr904 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr799 = 0U;
-        for (; i_kpr799 < to_; i_kpr799++)
-            elems_tile0[i_kpr799 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr905 = 0U;
+        for (; i_kpr905 < to_; i_kpr905++)
+            elems_tile0[i_kpr905 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -8700,8 +9807,14 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8714,17 +9827,17 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 256U; nnz -= 256U) {
             uint32_t off = ri_ + idx * 256U;
             __syncthreads();
-            uint32_t i_kpr801 = 0U;
-            for (; i_kpr801 < 4U; i_kpr801++) {
-                uint32_t j_kpr802 = i_kpr801;
-                vec_memcpy(elems_tile0 + (j_kpr802 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr802 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr907 = 0U;
+            for (; i_kpr907 < 4U; i_kpr907++) {
+                uint32_t j_kpr908 = i_kpr907;
+                vec_memcpy(elems_tile0 + (j_kpr908 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr908 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr803 = 0U;
-            for (; i_kpr803 < 4U; i_kpr803++) {
-                uint32_t j_kpr804 = i_kpr803;
-                vec_memcpy(col_ind_tile0 + (j_kpr804 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr804 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr909 = 0U;
+            for (; i_kpr909 < 4U; i_kpr909++) {
+                uint32_t j_kpr910 = i_kpr909;
+                vec_memcpy(col_ind_tile0 + (j_kpr910 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr910 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -8740,9 +9853,15 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8758,14 +9877,14 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr806 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr805 = 0U;
-    for (; i_kpr805 < hi_kpr806; i_kpr805++) {
-        uint32_t j_kpr807 = i_kpr805;
-        elems_tile0[j_kpr807 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr807 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr807 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr807 * 16U + threadIdx.x];
+    uint32_t hi_kpr912 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr911 = 0U;
+    for (; i_kpr911 < hi_kpr912; i_kpr911++) {
+        uint32_t j_kpr913 = i_kpr911;
+        elems_tile0[j_kpr913 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr913 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr913 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr913 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -8781,8 +9900,14 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8790,19 +9915,24 @@ __hoisted_g_spmm_f32_256x256x16_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr808 = 0U;
-    for (; i_kpr808 < 4U; i_kpr808++) {
-        uint32_t j_kpr809 = i_kpr808;
-        uint32_t off = n_idx + j_kpr809 * 16U * 4U;
+    uint32_t i_kpr916 = 0U;
+    for (; i_kpr916 < 4U; i_kpr916++) {
+        uint32_t j_kpr917 = i_kpr916;
+        uint32_t off = n_idx + j_kpr917 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr809 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr914 = 0U;
+            for (; i_kpr914 < 1U; i_kpr914++) {
+                uint32_t j_kpr915 = i_kpr914;
+                uint32_t start = j_kpr917 * 4U + j_kpr915 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr915 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -8829,23 +9959,23 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 256U) {
-        uint32_t i_kpr810 = 0U;
-        for (; i_kpr810 < 2U; i_kpr810++) {
-            uint32_t j_kpr811 = i_kpr810;
-            vec_memcpy(elems_tile0 + (j_kpr811 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr811 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr918 = 0U;
+        for (; i_kpr918 < 2U; i_kpr918++) {
+            uint32_t j_kpr919 = i_kpr918;
+            vec_memcpy(elems_tile0 + (j_kpr919 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr919 * 32U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr812 = 0U;
-        for (; i_kpr812 < 2U; i_kpr812++) {
-            uint32_t j_kpr813 = i_kpr812;
-            vec_memcpy(col_ind_tile0 + (j_kpr813 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr813 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr920 = 0U;
+        for (; i_kpr920 < 2U; i_kpr920++) {
+            uint32_t j_kpr921 = i_kpr920;
+            vec_memcpy(col_ind_tile0 + (j_kpr921 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr921 * 32U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr814 = 0U;
-        for (; i_kpr814 < to_; i_kpr814++)
-            elems_tile0[i_kpr814 * 32U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr922 = 0U;
+        for (; i_kpr922 < to_; i_kpr922++)
+            elems_tile0[i_kpr922 * 32U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -8860,8 +9990,14 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8874,17 +10010,17 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 256U; nnz -= 256U) {
             uint32_t off = ri_ + idx * 256U;
             __syncthreads();
-            uint32_t i_kpr816 = 0U;
-            for (; i_kpr816 < 2U; i_kpr816++) {
-                uint32_t j_kpr817 = i_kpr816;
-                vec_memcpy(elems_tile0 + (j_kpr817 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr817 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr924 = 0U;
+            for (; i_kpr924 < 2U; i_kpr924++) {
+                uint32_t j_kpr925 = i_kpr924;
+                vec_memcpy(elems_tile0 + (j_kpr925 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr925 * 32U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr818 = 0U;
-            for (; i_kpr818 < 2U; i_kpr818++) {
-                uint32_t j_kpr819 = i_kpr818;
-                vec_memcpy(col_ind_tile0 + (j_kpr819 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr819 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr926 = 0U;
+            for (; i_kpr926 < 2U; i_kpr926++) {
+                uint32_t j_kpr927 = i_kpr926;
+                vec_memcpy(col_ind_tile0 + (j_kpr927 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr927 * 32U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -8900,9 +10036,15 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 32U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8918,14 +10060,14 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr821 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr820 = 0U;
-    for (; i_kpr820 < hi_kpr821; i_kpr820++) {
-        uint32_t j_kpr822 = i_kpr820;
-        elems_tile0[j_kpr822 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr822 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr822 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr822 * 32U + threadIdx.x];
+    uint32_t hi_kpr929 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr928 = 0U;
+    for (; i_kpr928 < hi_kpr929; i_kpr928++) {
+        uint32_t j_kpr930 = i_kpr928;
+        elems_tile0[j_kpr930 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr930 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr930 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr930 * 32U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -8941,8 +10083,14 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -8950,19 +10098,24 @@ __hoisted_g_spmm_f32_256x256x32_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr823 = 0U;
-    for (; i_kpr823 < 2U; i_kpr823++) {
-        uint32_t j_kpr824 = i_kpr823;
-        uint32_t off = n_idx + j_kpr824 * 32U * 4U;
+    uint32_t i_kpr933 = 0U;
+    for (; i_kpr933 < 2U; i_kpr933++) {
+        uint32_t j_kpr934 = i_kpr933;
+        uint32_t off = n_idx + j_kpr934 * 32U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr824 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr931 = 0U;
+            for (; i_kpr931 < 1U; i_kpr931++) {
+                uint32_t j_kpr932 = i_kpr931;
+                uint32_t start = j_kpr934 * 4U + j_kpr932 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr932 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -8989,23 +10142,23 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 256U) {
-        uint32_t i_kpr825 = 0U;
-        for (; i_kpr825 < 2U; i_kpr825++) {
-            uint32_t j_kpr826 = i_kpr825;
-            vec_memcpy(elems_tile0 + (j_kpr826 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr826 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr935 = 0U;
+        for (; i_kpr935 < 2U; i_kpr935++) {
+            uint32_t j_kpr936 = i_kpr935;
+            vec_memcpy(elems_tile0 + (j_kpr936 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr936 * 32U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr827 = 0U;
-        for (; i_kpr827 < 2U; i_kpr827++) {
-            uint32_t j_kpr828 = i_kpr827;
-            vec_memcpy(col_ind_tile0 + (j_kpr828 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr828 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr937 = 0U;
+        for (; i_kpr937 < 2U; i_kpr937++) {
+            uint32_t j_kpr938 = i_kpr937;
+            vec_memcpy(col_ind_tile0 + (j_kpr938 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr938 * 32U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr829 = 0U;
-        for (; i_kpr829 < to_; i_kpr829++)
-            elems_tile0[i_kpr829 * 32U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr939 = 0U;
+        for (; i_kpr939 < to_; i_kpr939++)
+            elems_tile0[i_kpr939 * 32U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -9020,8 +10173,14 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9034,17 +10193,17 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 256U; nnz -= 256U) {
             uint32_t off = ri_ + idx * 256U;
             __syncthreads();
-            uint32_t i_kpr831 = 0U;
-            for (; i_kpr831 < 2U; i_kpr831++) {
-                uint32_t j_kpr832 = i_kpr831;
-                vec_memcpy(elems_tile0 + (j_kpr832 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr832 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr941 = 0U;
+            for (; i_kpr941 < 2U; i_kpr941++) {
+                uint32_t j_kpr942 = i_kpr941;
+                vec_memcpy(elems_tile0 + (j_kpr942 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr942 * 32U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr833 = 0U;
-            for (; i_kpr833 < 2U; i_kpr833++) {
-                uint32_t j_kpr834 = i_kpr833;
-                vec_memcpy(col_ind_tile0 + (j_kpr834 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr834 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr943 = 0U;
+            for (; i_kpr943 < 2U; i_kpr943++) {
+                uint32_t j_kpr944 = i_kpr943;
+                vec_memcpy(col_ind_tile0 + (j_kpr944 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr944 * 32U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -9060,9 +10219,15 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 32U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9078,14 +10243,14 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr836 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr835 = 0U;
-    for (; i_kpr835 < hi_kpr836; i_kpr835++) {
-        uint32_t j_kpr837 = i_kpr835;
-        elems_tile0[j_kpr837 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr837 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr837 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr837 * 32U + threadIdx.x];
+    uint32_t hi_kpr946 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr945 = 0U;
+    for (; i_kpr945 < hi_kpr946; i_kpr945++) {
+        uint32_t j_kpr947 = i_kpr945;
+        elems_tile0[j_kpr947 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr947 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr947 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr947 * 32U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -9101,8 +10266,14 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9110,19 +10281,24 @@ __hoisted_g_spmm_f32_256x256x32_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr838 = 0U;
-    for (; i_kpr838 < 2U; i_kpr838++) {
-        uint32_t j_kpr839 = i_kpr838;
-        uint32_t off = n_idx + j_kpr839 * 32U * 4U;
+    uint32_t i_kpr950 = 0U;
+    for (; i_kpr950 < 2U; i_kpr950++) {
+        uint32_t j_kpr951 = i_kpr950;
+        uint32_t off = n_idx + j_kpr951 * 32U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr839 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr948 = 0U;
+            for (; i_kpr948 < 1U; i_kpr948++) {
+                uint32_t j_kpr949 = i_kpr948;
+                uint32_t start = j_kpr951 * 4U + j_kpr949 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr949 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -9149,23 +10325,23 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 256U) {
-        uint32_t i_kpr840 = 0U;
-        for (; i_kpr840 < 1U; i_kpr840++) {
-            uint32_t j_kpr841 = i_kpr840;
-            vec_memcpy(elems_tile0 + (j_kpr841 * 64U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr841 * 64U + threadIdx.x) * 4U));
+        uint32_t i_kpr952 = 0U;
+        for (; i_kpr952 < 1U; i_kpr952++) {
+            uint32_t j_kpr953 = i_kpr952;
+            vec_memcpy(elems_tile0 + (j_kpr953 * 64U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr953 * 64U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr842 = 0U;
-        for (; i_kpr842 < 1U; i_kpr842++) {
-            uint32_t j_kpr843 = i_kpr842;
-            vec_memcpy(col_ind_tile0 + (j_kpr843 * 64U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr843 * 64U + threadIdx.x) * 4U));
+        uint32_t i_kpr954 = 0U;
+        for (; i_kpr954 < 1U; i_kpr954++) {
+            uint32_t j_kpr955 = i_kpr954;
+            vec_memcpy(col_ind_tile0 + (j_kpr955 * 64U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr955 * 64U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
-        uint32_t i_kpr844 = 0U;
-        for (; i_kpr844 < to_; i_kpr844++)
-            elems_tile0[i_kpr844 * 64U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr956 = 0U;
+        for (; i_kpr956 < to_; i_kpr956++)
+            elems_tile0[i_kpr956 * 64U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -9179,8 +10355,14 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9192,17 +10374,17 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 256U; nnz -= 256U) {
             uint32_t off = ri_ + idx * 256U;
             __syncthreads();
-            uint32_t i_kpr846 = 0U;
-            for (; i_kpr846 < 1U; i_kpr846++) {
-                uint32_t j_kpr847 = i_kpr846;
-                vec_memcpy(elems_tile0 + (j_kpr847 * 64U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr847 * 64U + threadIdx.x) * 4U));
+            uint32_t i_kpr958 = 0U;
+            for (; i_kpr958 < 1U; i_kpr958++) {
+                uint32_t j_kpr959 = i_kpr958;
+                vec_memcpy(elems_tile0 + (j_kpr959 * 64U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr959 * 64U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr848 = 0U;
-            for (; i_kpr848 < 1U; i_kpr848++) {
-                uint32_t j_kpr849 = i_kpr848;
-                vec_memcpy(col_ind_tile0 + (j_kpr849 * 64U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr849 * 64U + threadIdx.x) * 4U));
+            uint32_t i_kpr960 = 0U;
+            for (; i_kpr960 < 1U; i_kpr960++) {
+                uint32_t j_kpr961 = i_kpr960;
+                vec_memcpy(col_ind_tile0 + (j_kpr961 * 64U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr961 * 64U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -9217,8 +10399,14 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 64U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 64U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9233,14 +10421,14 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr851 = (__anf01 + 63U - threadIdx.x) / 64U;
-    uint32_t i_kpr850 = 0U;
-    for (; i_kpr850 < hi_kpr851; i_kpr850++) {
-        uint32_t j_kpr852 = i_kpr850;
-        elems_tile0[j_kpr852 * 64U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr852 * 64U + threadIdx.x];
-        col_ind_tile0[j_kpr852 * 64U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr852 * 64U + threadIdx.x];
+    uint32_t hi_kpr963 = (__anf01 + 63U - threadIdx.x) / 64U;
+    uint32_t i_kpr962 = 0U;
+    for (; i_kpr962 < hi_kpr963; i_kpr962++) {
+        uint32_t j_kpr964 = i_kpr962;
+        elems_tile0[j_kpr964 * 64U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr964 * 64U + threadIdx.x];
+        col_ind_tile0[j_kpr964 * 64U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr964 * 64U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -9255,27 +10443,38 @@ __hoisted_g_spmm_f32_256x256x64_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr853 = 0U;
-    for (; i_kpr853 < 1U; i_kpr853++) {
-        uint32_t j_kpr854 = i_kpr853;
-        uint32_t off = n_idx + j_kpr854 * 64U * 4U;
+    uint32_t i_kpr967 = 0U;
+    for (; i_kpr967 < 1U; i_kpr967++) {
+        uint32_t j_kpr968 = i_kpr967;
+        uint32_t off = n_idx + j_kpr968 * 64U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr854 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr965 = 0U;
+            for (; i_kpr965 < 1U; i_kpr965++) {
+                uint32_t j_kpr966 = i_kpr965;
+                uint32_t start = j_kpr968 * 4U + j_kpr966 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr966 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -9302,23 +10501,23 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 256U) {
-        uint32_t i_kpr855 = 0U;
-        for (; i_kpr855 < 1U; i_kpr855++) {
-            uint32_t j_kpr856 = i_kpr855;
-            vec_memcpy(elems_tile0 + (j_kpr856 * 64U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr856 * 64U + threadIdx.x) * 4U));
+        uint32_t i_kpr969 = 0U;
+        for (; i_kpr969 < 1U; i_kpr969++) {
+            uint32_t j_kpr970 = i_kpr969;
+            vec_memcpy(elems_tile0 + (j_kpr970 * 64U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr970 * 64U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr857 = 0U;
-        for (; i_kpr857 < 1U; i_kpr857++) {
-            uint32_t j_kpr858 = i_kpr857;
-            vec_memcpy(col_ind_tile0 + (j_kpr858 * 64U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr858 * 64U + threadIdx.x) * 4U));
+        uint32_t i_kpr971 = 0U;
+        for (; i_kpr971 < 1U; i_kpr971++) {
+            uint32_t j_kpr972 = i_kpr971;
+            vec_memcpy(col_ind_tile0 + (j_kpr972 * 64U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr972 * 64U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
-        uint32_t i_kpr859 = 0U;
-        for (; i_kpr859 < to_; i_kpr859++)
-            elems_tile0[i_kpr859 * 64U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr973 = 0U;
+        for (; i_kpr973 < to_; i_kpr973++)
+            elems_tile0[i_kpr973 * 64U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -9332,8 +10531,14 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9345,17 +10550,17 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 256U; nnz -= 256U) {
             uint32_t off = ri_ + idx * 256U;
             __syncthreads();
-            uint32_t i_kpr861 = 0U;
-            for (; i_kpr861 < 1U; i_kpr861++) {
-                uint32_t j_kpr862 = i_kpr861;
-                vec_memcpy(elems_tile0 + (j_kpr862 * 64U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr862 * 64U + threadIdx.x) * 4U));
+            uint32_t i_kpr975 = 0U;
+            for (; i_kpr975 < 1U; i_kpr975++) {
+                uint32_t j_kpr976 = i_kpr975;
+                vec_memcpy(elems_tile0 + (j_kpr976 * 64U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr976 * 64U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr863 = 0U;
-            for (; i_kpr863 < 1U; i_kpr863++) {
-                uint32_t j_kpr864 = i_kpr863;
-                vec_memcpy(col_ind_tile0 + (j_kpr864 * 64U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr864 * 64U + threadIdx.x) * 4U));
+            uint32_t i_kpr977 = 0U;
+            for (; i_kpr977 < 1U; i_kpr977++) {
+                uint32_t j_kpr978 = i_kpr977;
+                vec_memcpy(col_ind_tile0 + (j_kpr978 * 64U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr978 * 64U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -9370,8 +10575,14 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 64U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 64U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9386,14 +10597,14 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr866 = (__anf01 + 63U - threadIdx.x) / 64U;
-    uint32_t i_kpr865 = 0U;
-    for (; i_kpr865 < hi_kpr866; i_kpr865++) {
-        uint32_t j_kpr867 = i_kpr865;
-        elems_tile0[j_kpr867 * 64U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr867 * 64U + threadIdx.x];
-        col_ind_tile0[j_kpr867 * 64U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr867 * 64U + threadIdx.x];
+    uint32_t hi_kpr980 = (__anf01 + 63U - threadIdx.x) / 64U;
+    uint32_t i_kpr979 = 0U;
+    for (; i_kpr979 < hi_kpr980; i_kpr979++) {
+        uint32_t j_kpr981 = i_kpr979;
+        elems_tile0[j_kpr981 * 64U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr981 * 64U + threadIdx.x];
+        col_ind_tile0[j_kpr981 * 64U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr981 * 64U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -9408,27 +10619,38 @@ __hoisted_g_spmm_f32_256x256x64_on_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr868 = 0U;
-    for (; i_kpr868 < 1U; i_kpr868++) {
-        uint32_t j_kpr869 = i_kpr868;
-        uint32_t off = n_idx + j_kpr869 * 64U * 4U;
+    uint32_t i_kpr984 = 0U;
+    for (; i_kpr984 < 1U; i_kpr984++) {
+        uint32_t j_kpr985 = i_kpr984;
+        uint32_t off = n_idx + j_kpr985 * 64U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr869 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr982 = 0U;
+            for (; i_kpr982 < 1U; i_kpr982++) {
+                uint32_t j_kpr983 = i_kpr982;
+                uint32_t start = j_kpr985 * 4U + j_kpr983 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr983 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -9455,23 +10677,23 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t *row_indices, uint32_t rows,
     float out[32U];
     memset(out, 0U, 32U * sizeof(float));
     if (nnz >= 256U) {
-        uint32_t i_kpr870 = 0U;
-        for (; i_kpr870 < 4U; i_kpr870++) {
-            uint32_t j_kpr871 = i_kpr870;
-            vec_memcpy(elems_tile0 + (j_kpr871 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr871 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr986 = 0U;
+        for (; i_kpr986 < 4U; i_kpr986++) {
+            uint32_t j_kpr987 = i_kpr986;
+            vec_memcpy(elems_tile0 + (j_kpr987 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr987 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr872 = 0U;
-        for (; i_kpr872 < 4U; i_kpr872++) {
-            uint32_t j_kpr873 = i_kpr872;
-            vec_memcpy(col_ind_tile0 + (j_kpr873 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr873 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr988 = 0U;
+        for (; i_kpr988 < 4U; i_kpr988++) {
+            uint32_t j_kpr989 = i_kpr988;
+            vec_memcpy(col_ind_tile0 + (j_kpr989 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr989 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr874 = 0U;
-        for (; i_kpr874 < to_; i_kpr874++)
-            elems_tile0[i_kpr874 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr990 = 0U;
+        for (; i_kpr990 < to_; i_kpr990++)
+            elems_tile0[i_kpr990 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -9486,8 +10708,14 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9500,17 +10728,17 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 256U; nnz -= 256U) {
             uint32_t off = ri_ + idx * 256U;
             __syncthreads();
-            uint32_t i_kpr876 = 0U;
-            for (; i_kpr876 < 4U; i_kpr876++) {
-                uint32_t j_kpr877 = i_kpr876;
-                vec_memcpy(elems_tile0 + (j_kpr877 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr877 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr992 = 0U;
+            for (; i_kpr992 < 4U; i_kpr992++) {
+                uint32_t j_kpr993 = i_kpr992;
+                vec_memcpy(elems_tile0 + (j_kpr993 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr993 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr878 = 0U;
-            for (; i_kpr878 < 4U; i_kpr878++) {
-                uint32_t j_kpr879 = i_kpr878;
-                vec_memcpy(col_ind_tile0 + (j_kpr879 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr879 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr994 = 0U;
+            for (; i_kpr994 < 4U; i_kpr994++) {
+                uint32_t j_kpr995 = i_kpr994;
+                vec_memcpy(col_ind_tile0 + (j_kpr995 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr995 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -9526,9 +10754,15 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9544,14 +10778,14 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr881 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr880 = 0U;
-    for (; i_kpr880 < hi_kpr881; i_kpr880++) {
-        uint32_t j_kpr882 = i_kpr880;
-        elems_tile0[j_kpr882 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr882 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr882 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr882 * 16U + threadIdx.x];
+    uint32_t hi_kpr997 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr996 = 0U;
+    for (; i_kpr996 < hi_kpr997; i_kpr996++) {
+        uint32_t j_kpr998 = i_kpr996;
+        elems_tile0[j_kpr998 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr998 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr998 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr998 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -9567,8 +10801,14 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9576,19 +10816,24 @@ __hoisted_g_spmm_f32_256x512x16_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr883 = 0U;
-    for (; i_kpr883 < 8U; i_kpr883++) {
-        uint32_t j_kpr884 = i_kpr883;
-        uint32_t off = n_idx + j_kpr884 * 16U * 4U;
+    uint32_t i_kpr1001 = 0U;
+    for (; i_kpr1001 < 8U; i_kpr1001++) {
+        uint32_t j_kpr1002 = i_kpr1001;
+        uint32_t off = n_idx + j_kpr1002 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr884 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr999 = 0U;
+            for (; i_kpr999 < 1U; i_kpr999++) {
+                uint32_t j_kpr1000 = i_kpr999;
+                uint32_t start = j_kpr1002 * 4U + j_kpr1000 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1000 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -9615,23 +10860,23 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t *row_indices, uint32_t rows,
     float out[32U];
     memset(out, 0U, 32U * sizeof(float));
     if (nnz >= 256U) {
-        uint32_t i_kpr885 = 0U;
-        for (; i_kpr885 < 4U; i_kpr885++) {
-            uint32_t j_kpr886 = i_kpr885;
-            vec_memcpy(elems_tile0 + (j_kpr886 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr886 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr1003 = 0U;
+        for (; i_kpr1003 < 4U; i_kpr1003++) {
+            uint32_t j_kpr1004 = i_kpr1003;
+            vec_memcpy(elems_tile0 + (j_kpr1004 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1004 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr887 = 0U;
-        for (; i_kpr887 < 4U; i_kpr887++) {
-            uint32_t j_kpr888 = i_kpr887;
-            vec_memcpy(col_ind_tile0 + (j_kpr888 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr888 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr1005 = 0U;
+        for (; i_kpr1005 < 4U; i_kpr1005++) {
+            uint32_t j_kpr1006 = i_kpr1005;
+            vec_memcpy(col_ind_tile0 + (j_kpr1006 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1006 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr889 = 0U;
-        for (; i_kpr889 < to_; i_kpr889++)
-            elems_tile0[i_kpr889 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1007 = 0U;
+        for (; i_kpr1007 < to_; i_kpr1007++)
+            elems_tile0[i_kpr1007 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -9646,8 +10891,14 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9660,17 +10911,17 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 256U; nnz -= 256U) {
             uint32_t off = ri_ + idx * 256U;
             __syncthreads();
-            uint32_t i_kpr891 = 0U;
-            for (; i_kpr891 < 4U; i_kpr891++) {
-                uint32_t j_kpr892 = i_kpr891;
-                vec_memcpy(elems_tile0 + (j_kpr892 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr892 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr1009 = 0U;
+            for (; i_kpr1009 < 4U; i_kpr1009++) {
+                uint32_t j_kpr1010 = i_kpr1009;
+                vec_memcpy(elems_tile0 + (j_kpr1010 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1010 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr893 = 0U;
-            for (; i_kpr893 < 4U; i_kpr893++) {
-                uint32_t j_kpr894 = i_kpr893;
-                vec_memcpy(col_ind_tile0 + (j_kpr894 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr894 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr1011 = 0U;
+            for (; i_kpr1011 < 4U; i_kpr1011++) {
+                uint32_t j_kpr1012 = i_kpr1011;
+                vec_memcpy(col_ind_tile0 + (j_kpr1012 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1012 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -9686,9 +10937,15 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9704,14 +10961,14 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr896 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr895 = 0U;
-    for (; i_kpr895 < hi_kpr896; i_kpr895++) {
-        uint32_t j_kpr897 = i_kpr895;
-        elems_tile0[j_kpr897 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr897 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr897 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr897 * 16U + threadIdx.x];
+    uint32_t hi_kpr1014 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr1013 = 0U;
+    for (; i_kpr1013 < hi_kpr1014; i_kpr1013++) {
+        uint32_t j_kpr1015 = i_kpr1013;
+        elems_tile0[j_kpr1015 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1015 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr1015 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1015 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -9727,8 +10984,14 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -9736,19 +10999,24 @@ __hoisted_g_spmm_f32_256x512x16_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr898 = 0U;
-    for (; i_kpr898 < 8U; i_kpr898++) {
-        uint32_t j_kpr899 = i_kpr898;
-        uint32_t off = n_idx + j_kpr899 * 16U * 4U;
+    uint32_t i_kpr1018 = 0U;
+    for (; i_kpr1018 < 8U; i_kpr1018++) {
+        uint32_t j_kpr1019 = i_kpr1018;
+        uint32_t off = n_idx + j_kpr1019 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr899 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1016 = 0U;
+            for (; i_kpr1016 < 1U; i_kpr1016++) {
+                uint32_t j_kpr1017 = i_kpr1016;
+                uint32_t start = j_kpr1019 * 4U + j_kpr1017 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1017 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -9775,1280 +11043,14 @@ __hoisted_g_spmm_f32_256x512x32_0(uint32_t *row_indices, uint32_t rows,
     float out[16U];
     memset(out, 0U, 16U * sizeof(float));
     if (nnz >= 256U) {
-        uint32_t i_kpr900 = 0U;
-        for (; i_kpr900 < 2U; i_kpr900++) {
-            uint32_t j_kpr901 = i_kpr900;
-            vec_memcpy(elems_tile0 + (j_kpr901 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr901 * 32U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr902 = 0U;
-        for (; i_kpr902 < 2U; i_kpr902++) {
-            uint32_t j_kpr903 = i_kpr902;
-            vec_memcpy(col_ind_tile0 + (j_kpr903 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr903 * 32U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr904 = 0U;
-        for (; i_kpr904 < to_; i_kpr904++)
-            elems_tile0[i_kpr904 * 32U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 256U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 4U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 32U * 4U < cols) {
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 256U;
-        for (; nnz >= 256U; nnz -= 256U) {
-            uint32_t off = ri_ + idx * 256U;
-            __syncthreads();
-            uint32_t i_kpr906 = 0U;
-            for (; i_kpr906 < 2U; i_kpr906++) {
-                uint32_t j_kpr907 = i_kpr906;
-                vec_memcpy(elems_tile0 + (j_kpr907 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr907 * 32U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr908 = 0U;
-            for (; i_kpr908 < 2U; i_kpr908++) {
-                uint32_t j_kpr909 = i_kpr908;
-                vec_memcpy(col_ind_tile0 + (j_kpr909 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr909 * 32U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 256U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 4U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 32U * 4U < cols) {
-                            float lchunk[4U];
-                            memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 32U * 4U)));
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++)
-                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                        }
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr911 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr910 = 0U;
-    for (; i_kpr910 < hi_kpr911; i_kpr910++) {
-        uint32_t j_kpr912 = i_kpr910;
-        elems_tile0[j_kpr912 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr912 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr912 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr912 * 32U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 4U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 32U * 4U < cols) {
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-    }
-    uint32_t i_kpr913 = 0U;
-    for (; i_kpr913 < 4U; i_kpr913++) {
-        uint32_t j_kpr914 = i_kpr913;
-        uint32_t off = n_idx + j_kpr914 * 32U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr914 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(32)
-/**
-  hoisted when extracting g_spmm_f32_256x512x32_on
-*/
-static void
-__hoisted_g_spmm_f32_256x512x32_on_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[16U];
-    memset(out, 0U, 16U * sizeof(float));
-    if (nnz >= 256U) {
-        uint32_t i_kpr915 = 0U;
-        for (; i_kpr915 < 2U; i_kpr915++) {
-            uint32_t j_kpr916 = i_kpr915;
-            vec_memcpy(elems_tile0 + (j_kpr916 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr916 * 32U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr917 = 0U;
-        for (; i_kpr917 < 2U; i_kpr917++) {
-            uint32_t j_kpr918 = i_kpr917;
-            vec_memcpy(col_ind_tile0 + (j_kpr918 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr918 * 32U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr919 = 0U;
-        for (; i_kpr919 < to_; i_kpr919++)
-            elems_tile0[i_kpr919 * 32U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 256U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 4U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 32U * 4U < cols) {
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 256U;
-        for (; nnz >= 256U; nnz -= 256U) {
-            uint32_t off = ri_ + idx * 256U;
-            __syncthreads();
-            uint32_t i_kpr921 = 0U;
-            for (; i_kpr921 < 2U; i_kpr921++) {
-                uint32_t j_kpr922 = i_kpr921;
-                vec_memcpy(elems_tile0 + (j_kpr922 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr922 * 32U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr923 = 0U;
-            for (; i_kpr923 < 2U; i_kpr923++) {
-                uint32_t j_kpr924 = i_kpr923;
-                vec_memcpy(col_ind_tile0 + (j_kpr924 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr924 * 32U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 256U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 4U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 32U * 4U < cols) {
-                            float lchunk[4U];
-                            memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 32U * 4U)));
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++)
-                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                        }
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr926 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr925 = 0U;
-    for (; i_kpr925 < hi_kpr926; i_kpr925++) {
-        uint32_t j_kpr927 = i_kpr925;
-        elems_tile0[j_kpr927 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr927 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr927 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr927 * 32U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 4U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 32U * 4U < cols) {
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-    }
-    uint32_t i_kpr928 = 0U;
-    for (; i_kpr928 < 4U; i_kpr928++) {
-        uint32_t j_kpr929 = i_kpr928;
-        uint32_t off = n_idx + j_kpr929 * 32U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr929 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(64)
-/**
-  hoisted when extracting g_spmm_f32_256x512x64
-*/
-static void
-__hoisted_g_spmm_f32_256x512x64_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[8U];
-    memset(out, 0U, 8U * sizeof(float));
-    if (nnz >= 256U) {
-        uint32_t i_kpr930 = 0U;
-        for (; i_kpr930 < 1U; i_kpr930++) {
-            uint32_t j_kpr931 = i_kpr930;
-            vec_memcpy(elems_tile0 + (j_kpr931 * 64U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr931 * 64U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr932 = 0U;
-        for (; i_kpr932 < 1U; i_kpr932++) {
-            uint32_t j_kpr933 = i_kpr932;
-            vec_memcpy(col_ind_tile0 + (j_kpr933 * 64U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr933 * 64U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
-        uint32_t i_kpr934 = 0U;
-        for (; i_kpr934 < to_; i_kpr934++)
-            elems_tile0[i_kpr934 * 64U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 256U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 2U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 64U * 4U < cols) {
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 256U;
-        for (; nnz >= 256U; nnz -= 256U) {
-            uint32_t off = ri_ + idx * 256U;
-            __syncthreads();
-            uint32_t i_kpr936 = 0U;
-            for (; i_kpr936 < 1U; i_kpr936++) {
-                uint32_t j_kpr937 = i_kpr936;
-                vec_memcpy(elems_tile0 + (j_kpr937 * 64U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr937 * 64U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr938 = 0U;
-            for (; i_kpr938 < 1U; i_kpr938++) {
-                uint32_t j_kpr939 = i_kpr938;
-                vec_memcpy(col_ind_tile0 + (j_kpr939 * 64U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr939 * 64U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 256U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 2U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 64U * 4U < cols) {
-                            float lchunk[4U];
-                            memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 64U * 4U)));
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++)
-                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                        }
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr941 = (__anf01 + 63U - threadIdx.x) / 64U;
-    uint32_t i_kpr940 = 0U;
-    for (; i_kpr940 < hi_kpr941; i_kpr940++) {
-        uint32_t j_kpr942 = i_kpr940;
-        elems_tile0[j_kpr942 * 64U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr942 * 64U + threadIdx.x];
-        col_ind_tile0[j_kpr942 * 64U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr942 * 64U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 2U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 64U * 4U < cols) {
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-    }
-    uint32_t i_kpr943 = 0U;
-    for (; i_kpr943 < 2U; i_kpr943++) {
-        uint32_t j_kpr944 = i_kpr943;
-        uint32_t off = n_idx + j_kpr944 * 64U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr944 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(64)
-/**
-  hoisted when extracting g_spmm_f32_256x512x64_on
-*/
-static void
-__hoisted_g_spmm_f32_256x512x64_on_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[8U];
-    memset(out, 0U, 8U * sizeof(float));
-    if (nnz >= 256U) {
-        uint32_t i_kpr945 = 0U;
-        for (; i_kpr945 < 1U; i_kpr945++) {
-            uint32_t j_kpr946 = i_kpr945;
-            vec_memcpy(elems_tile0 + (j_kpr946 * 64U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr946 * 64U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr947 = 0U;
-        for (; i_kpr947 < 1U; i_kpr947++) {
-            uint32_t j_kpr948 = i_kpr947;
-            vec_memcpy(col_ind_tile0 + (j_kpr948 * 64U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr948 * 64U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
-        uint32_t i_kpr949 = 0U;
-        for (; i_kpr949 < to_; i_kpr949++)
-            elems_tile0[i_kpr949 * 64U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 256U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 2U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 64U * 4U < cols) {
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 256U;
-        for (; nnz >= 256U; nnz -= 256U) {
-            uint32_t off = ri_ + idx * 256U;
-            __syncthreads();
-            uint32_t i_kpr951 = 0U;
-            for (; i_kpr951 < 1U; i_kpr951++) {
-                uint32_t j_kpr952 = i_kpr951;
-                vec_memcpy(elems_tile0 + (j_kpr952 * 64U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr952 * 64U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr953 = 0U;
-            for (; i_kpr953 < 1U; i_kpr953++) {
-                uint32_t j_kpr954 = i_kpr953;
-                vec_memcpy(col_ind_tile0 + (j_kpr954 * 64U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr954 * 64U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 256U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 2U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 64U * 4U < cols) {
-                            float lchunk[4U];
-                            memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 64U * 4U)));
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++)
-                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                        }
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr956 = (__anf01 + 63U - threadIdx.x) / 64U;
-    uint32_t i_kpr955 = 0U;
-    for (; i_kpr955 < hi_kpr956; i_kpr955++) {
-        uint32_t j_kpr957 = i_kpr955;
-        elems_tile0[j_kpr957 * 64U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr957 * 64U + threadIdx.x];
-        col_ind_tile0[j_kpr957 * 64U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr957 * 64U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 2U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 64U * 4U < cols) {
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-    }
-    uint32_t i_kpr958 = 0U;
-    for (; i_kpr958 < 2U; i_kpr958++) {
-        uint32_t j_kpr959 = i_kpr958;
-        uint32_t off = n_idx + j_kpr959 * 64U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr959 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(16)
-/**
-  hoisted when extracting g_spmm_f32_512x64x16
-*/
-static void
-__hoisted_g_spmm_f32_512x64x16_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[4U];
-    memset(out, 0U, 4U * sizeof(float));
-    if (nnz >= 512U) {
-        uint32_t i_kpr960 = 0U;
-        for (; i_kpr960 < 8U; i_kpr960++) {
-            uint32_t j_kpr961 = i_kpr960;
-            vec_memcpy(elems_tile0 + (j_kpr961 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr961 * 16U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr962 = 0U;
-        for (; i_kpr962 < 8U; i_kpr962++) {
-            uint32_t j_kpr963 = i_kpr962;
-            vec_memcpy(col_ind_tile0 + (j_kpr963 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr963 * 16U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr964 = 0U;
-        for (; i_kpr964 < to_; i_kpr964++)
-            elems_tile0[i_kpr964 * 16U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 512U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 1U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 512U;
-        for (; nnz >= 512U; nnz -= 512U) {
-            uint32_t off = ri_ + idx * 512U;
-            __syncthreads();
-            uint32_t i_kpr966 = 0U;
-            for (; i_kpr966 < 8U; i_kpr966++) {
-                uint32_t j_kpr967 = i_kpr966;
-                vec_memcpy(elems_tile0 + (j_kpr967 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr967 * 16U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr968 = 0U;
-            for (; i_kpr968 < 8U; i_kpr968++) {
-                uint32_t j_kpr969 = i_kpr968;
-                vec_memcpy(col_ind_tile0 + (j_kpr969 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr969 * 16U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 512U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 1U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 16U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr971 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr970 = 0U;
-    for (; i_kpr970 < hi_kpr971; i_kpr970++) {
-        uint32_t j_kpr972 = i_kpr970;
-        elems_tile0[j_kpr972 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr972 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr972 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr972 * 16U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 1U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                float lchunk[4U];
-                memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
-                uint32_t ix = 0U;
-                for (; ix < 4U; ix++)
-                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
-            }
-        }
-    }
-    uint32_t i_kpr973 = 0U;
-    for (; i_kpr973 < 1U; i_kpr973++) {
-        uint32_t j_kpr974 = i_kpr973;
-        uint32_t off = n_idx + j_kpr974 * 16U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr974 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(16)
-/**
-  hoisted when extracting g_spmm_f32_512x64x16_on
-*/
-static void
-__hoisted_g_spmm_f32_512x64x16_on_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[4U];
-    memset(out, 0U, 4U * sizeof(float));
-    if (nnz >= 512U) {
-        uint32_t i_kpr975 = 0U;
-        for (; i_kpr975 < 8U; i_kpr975++) {
-            uint32_t j_kpr976 = i_kpr975;
-            vec_memcpy(elems_tile0 + (j_kpr976 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr976 * 16U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr977 = 0U;
-        for (; i_kpr977 < 8U; i_kpr977++) {
-            uint32_t j_kpr978 = i_kpr977;
-            vec_memcpy(col_ind_tile0 + (j_kpr978 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr978 * 16U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr979 = 0U;
-        for (; i_kpr979 < to_; i_kpr979++)
-            elems_tile0[i_kpr979 * 16U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 512U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 1U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 512U;
-        for (; nnz >= 512U; nnz -= 512U) {
-            uint32_t off = ri_ + idx * 512U;
-            __syncthreads();
-            uint32_t i_kpr981 = 0U;
-            for (; i_kpr981 < 8U; i_kpr981++) {
-                uint32_t j_kpr982 = i_kpr981;
-                vec_memcpy(elems_tile0 + (j_kpr982 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr982 * 16U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr983 = 0U;
-            for (; i_kpr983 < 8U; i_kpr983++) {
-                uint32_t j_kpr984 = i_kpr983;
-                vec_memcpy(col_ind_tile0 + (j_kpr984 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr984 * 16U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 512U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 1U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 16U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr986 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr985 = 0U;
-    for (; i_kpr985 < hi_kpr986; i_kpr985++) {
-        uint32_t j_kpr987 = i_kpr985;
-        elems_tile0[j_kpr987 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr987 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr987 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr987 * 16U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 1U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                float lchunk[4U];
-                memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
-                uint32_t ix = 0U;
-                for (; ix < 4U; ix++)
-                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
-            }
-        }
-    }
-    uint32_t i_kpr988 = 0U;
-    for (; i_kpr988 < 1U; i_kpr988++) {
-        uint32_t j_kpr989 = i_kpr988;
-        uint32_t off = n_idx + j_kpr989 * 16U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr989 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(16)
-/**
-  hoisted when extracting g_spmm_f32_512x128x16
-*/
-static void
-__hoisted_g_spmm_f32_512x128x16_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[8U];
-    memset(out, 0U, 8U * sizeof(float));
-    if (nnz >= 512U) {
-        uint32_t i_kpr990 = 0U;
-        for (; i_kpr990 < 8U; i_kpr990++) {
-            uint32_t j_kpr991 = i_kpr990;
-            vec_memcpy(elems_tile0 + (j_kpr991 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr991 * 16U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr992 = 0U;
-        for (; i_kpr992 < 8U; i_kpr992++) {
-            uint32_t j_kpr993 = i_kpr992;
-            vec_memcpy(col_ind_tile0 + (j_kpr993 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr993 * 16U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr994 = 0U;
-        for (; i_kpr994 < to_; i_kpr994++)
-            elems_tile0[i_kpr994 * 16U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 512U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 2U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 16U * 4U < cols) {
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 512U;
-        for (; nnz >= 512U; nnz -= 512U) {
-            uint32_t off = ri_ + idx * 512U;
-            __syncthreads();
-            uint32_t i_kpr996 = 0U;
-            for (; i_kpr996 < 8U; i_kpr996++) {
-                uint32_t j_kpr997 = i_kpr996;
-                vec_memcpy(elems_tile0 + (j_kpr997 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr997 * 16U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr998 = 0U;
-            for (; i_kpr998 < 8U; i_kpr998++) {
-                uint32_t j_kpr999 = i_kpr998;
-                vec_memcpy(col_ind_tile0 + (j_kpr999 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr999 * 16U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 512U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 2U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 16U * 4U < cols) {
-                            float lchunk[4U];
-                            memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++)
-                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                        }
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr1001 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr1000 = 0U;
-    for (; i_kpr1000 < hi_kpr1001; i_kpr1000++) {
-        uint32_t j_kpr1002 = i_kpr1000;
-        elems_tile0[j_kpr1002 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1002 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr1002 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1002 * 16U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 2U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 16U * 4U < cols) {
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-    }
-    uint32_t i_kpr1003 = 0U;
-    for (; i_kpr1003 < 2U; i_kpr1003++) {
-        uint32_t j_kpr1004 = i_kpr1003;
-        uint32_t off = n_idx + j_kpr1004 * 16U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1004 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(16)
-/**
-  hoisted when extracting g_spmm_f32_512x128x16_on
-*/
-static void
-__hoisted_g_spmm_f32_512x128x16_on_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[8U];
-    memset(out, 0U, 8U * sizeof(float));
-    if (nnz >= 512U) {
-        uint32_t i_kpr1005 = 0U;
-        for (; i_kpr1005 < 8U; i_kpr1005++) {
-            uint32_t j_kpr1006 = i_kpr1005;
-            vec_memcpy(elems_tile0 + (j_kpr1006 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1006 * 16U + threadIdx.x) * 4U));
-        }
-        uint32_t i_kpr1007 = 0U;
-        for (; i_kpr1007 < 8U; i_kpr1007++) {
-            uint32_t j_kpr1008 = i_kpr1007;
-            vec_memcpy(col_ind_tile0 + (j_kpr1008 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1008 * 16U + threadIdx.x) * 4U));
-        }
-        __syncthreads();
-        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr1009 = 0U;
-        for (; i_kpr1009 < to_; i_kpr1009++)
-            elems_tile0[i_kpr1009 * 16U + threadIdx.x] = 0.0f;
-        __syncthreads();
-        if (n_idx < cols) {
-            uint32_t k = 0U;
-            for (; k < 512U; k++) {
-                uint32_t kv = k;
-                uint32_t kr = col_ind_tile0[kv];
-                float kx = elems_tile0[kv];
-                uint32_t k1 = 0U;
-                for (; k1 < 2U; k1++) {
-                    uint32_t __anf1 = k1;
-                    uint32_t __anf01 = k1;
-                    if (n_idx + __anf01 * 16U * 4U < cols) {
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                    }
-                }
-            }
-        }
-        idx = 1U;
-        nnz -= 512U;
-        for (; nnz >= 512U; nnz -= 512U) {
-            uint32_t off = ri_ + idx * 512U;
-            __syncthreads();
-            uint32_t i_kpr1011 = 0U;
-            for (; i_kpr1011 < 8U; i_kpr1011++) {
-                uint32_t j_kpr1012 = i_kpr1011;
-                vec_memcpy(elems_tile0 + (j_kpr1012 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1012 * 16U + threadIdx.x) * 4U));
-            }
-            uint32_t i_kpr1013 = 0U;
-            for (; i_kpr1013 < 8U; i_kpr1013++) {
-                uint32_t j_kpr1014 = i_kpr1013;
-                vec_memcpy(col_ind_tile0 + (j_kpr1014 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1014 * 16U + threadIdx.x) * 4U));
-            }
-            __syncthreads();
-            if (n_idx < cols) {
-                uint32_t k = 0U;
-                for (; k < 512U; k++) {
-                    uint32_t kv = k;
-                    uint32_t kr = col_ind_tile0[kv];
-                    float kx = elems_tile0[kv];
-                    uint32_t k1 = 0U;
-                    for (; k1 < 2U; k1++) {
-                        uint32_t __anf1 = k1;
-                        uint32_t __anf03 = k1;
-                        if (n_idx + __anf03 * 16U * 4U < cols) {
-                            float lchunk[4U];
-                            memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
-                            uint32_t ix = 0U;
-                            for (; ix < 4U; ix++)
-                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                        }
-                    }
-                }
-            }
-            idx++;
-        }
-    } else {
-        idx = 0U;
-        nnz = re - ri;
-    }
-    uint32_t __anf01 = nnz;
-    __syncthreads();
-    uint32_t hi_kpr1016 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr1015 = 0U;
-    for (; i_kpr1015 < hi_kpr1016; i_kpr1015++) {
-        uint32_t j_kpr1017 = i_kpr1015;
-        elems_tile0[j_kpr1017 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1017 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr1017 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1017 * 16U + threadIdx.x];
-    }
-    __syncthreads();
-    if (n_idx < cols) {
-        uint32_t k = 0U;
-        for (; k < __anf01; k++) {
-            uint32_t kv = k;
-            uint32_t kr = col_ind_tile0[kv];
-            float kx = elems_tile0[kv];
-            uint32_t k1 = 0U;
-            for (; k1 < 2U; k1++) {
-                uint32_t __anf1 = k1;
-                uint32_t __anf02 = k1;
-                if (n_idx + __anf02 * 16U * 4U < cols) {
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
-                }
-            }
-        }
-    }
-    uint32_t i_kpr1018 = 0U;
-    for (; i_kpr1018 < 2U; i_kpr1018++) {
-        uint32_t j_kpr1019 = i_kpr1018;
-        uint32_t off = n_idx + j_kpr1019 * 16U * 4U;
-        if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1019 * 4U + lane];
-            vec_memcpy(gC + address, combined);
-        }
-    }
-}
-
-__global__ __launch_bounds__(32)
-/**
-  hoisted when extracting g_spmm_f32_512x128x32
-*/
-static void
-__hoisted_g_spmm_f32_512x128x32_0(uint32_t *row_indices, uint32_t rows,
-    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
-    float *gC)
-{
-    uint32_t m_idx = row_indices[blockIdx.x % rows];
-    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
-    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
-    uint32_t *col_ind_tile0 =
-        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
-    uint32_t ri = gA.row_off[m_idx];
-    uint32_t re = gA.row_off[m_idx + 1U];
-    uint32_t ri_ = ri / 4U * 4U;
-    uint32_t nnz = re - ri_;
-    uint32_t idx = 0U;
-    float out[4U];
-    memset(out, 0U, 4U * sizeof(float));
-    if (nnz >= 512U) {
         uint32_t i_kpr1020 = 0U;
-        for (; i_kpr1020 < 4U; i_kpr1020++) {
+        for (; i_kpr1020 < 2U; i_kpr1020++) {
             uint32_t j_kpr1021 = i_kpr1020;
             vec_memcpy(elems_tile0 + (j_kpr1021 * 32U + threadIdx.x) * 4U,
                 gA.elems + (ri_ + (j_kpr1021 * 32U + threadIdx.x) * 4U));
         }
         uint32_t i_kpr1022 = 0U;
-        for (; i_kpr1022 < 4U; i_kpr1022++) {
+        for (; i_kpr1022 < 2U; i_kpr1022++) {
             uint32_t j_kpr1023 = i_kpr1022;
             vec_memcpy(col_ind_tile0 + (j_kpr1023 * 32U + threadIdx.x) * 4U,
                 gA.col_ind + (ri_ + (j_kpr1023 * 32U + threadIdx.x) * 4U));
@@ -11061,37 +11063,45 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t *row_indices, uint32_t rows,
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
-            for (; k < 512U; k++) {
+            for (; k < 256U; k++) {
                 uint32_t kv = k;
                 uint32_t kr = col_ind_tile0[kv];
                 float kx = elems_tile0[kv];
                 uint32_t k1 = 0U;
-                for (; k1 < 1U; k1++) {
+                for (; k1 < 4U; k1++) {
                     uint32_t __anf1 = k1;
                     uint32_t __anf01 = k1;
-                    float lchunk[4U];
-                    memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
-                    uint32_t ix = 0U;
-                    for (; ix < 4U; ix++)
-                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
                 }
             }
         }
         idx = 1U;
-        nnz -= 512U;
-        for (; nnz >= 512U; nnz -= 512U) {
-            uint32_t off = ri_ + idx * 512U;
+        nnz -= 256U;
+        for (; nnz >= 256U; nnz -= 256U) {
+            uint32_t off = ri_ + idx * 256U;
             __syncthreads();
             uint32_t i_kpr1026 = 0U;
-            for (; i_kpr1026 < 4U; i_kpr1026++) {
+            for (; i_kpr1026 < 2U; i_kpr1026++) {
                 uint32_t j_kpr1027 = i_kpr1026;
                 vec_memcpy(elems_tile0 + (j_kpr1027 * 32U + threadIdx.x) * 4U,
                     gA.elems + (off + (j_kpr1027 * 32U + threadIdx.x) * 4U));
             }
             uint32_t i_kpr1028 = 0U;
-            for (; i_kpr1028 < 4U; i_kpr1028++) {
+            for (; i_kpr1028 < 2U; i_kpr1028++) {
                 uint32_t j_kpr1029 = i_kpr1028;
                 vec_memcpy(col_ind_tile0 + (j_kpr1029 * 32U + threadIdx.x) * 4U,
                     gA.col_ind + (off + (j_kpr1029 * 32U + threadIdx.x) * 4U));
@@ -11099,21 +11109,30 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t *row_indices, uint32_t rows,
             __syncthreads();
             if (n_idx < cols) {
                 uint32_t k = 0U;
-                for (; k < 512U; k++) {
+                for (; k < 256U; k++) {
                     uint32_t kv = k;
                     uint32_t kr = col_ind_tile0[kv];
                     float kx = elems_tile0[kv];
                     uint32_t k1 = 0U;
-                    for (; k1 < 1U; k1++) {
+                    for (; k1 < 4U; k1++) {
                         uint32_t __anf1 = k1;
                         uint32_t __anf03 = k1;
-                        float lchunk[4U];
-                        memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 32U * 4U)));
-                        uint32_t ix = 0U;
-                        for (; ix < 4U; ix++)
-                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                        if (n_idx + __anf03 * 32U * 4U < cols) {
+                            float lchunk[4U];
+                            memset(lchunk, 0U, 4U * sizeof(float));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 32U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
+                            uint32_t ix = 0U;
+                            for (; ix < 4U; ix++)
+                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                        }
                     }
                 }
             }
@@ -11142,32 +11161,1488 @@ __hoisted_g_spmm_f32_512x128x32_0(uint32_t *row_indices, uint32_t rows,
             uint32_t kr = col_ind_tile0[kv];
             float kx = elems_tile0[kv];
             uint32_t k1 = 0U;
+            for (; k1 < 4U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+    }
+    uint32_t i_kpr1035 = 0U;
+    for (; i_kpr1035 < 4U; i_kpr1035++) {
+        uint32_t j_kpr1036 = i_kpr1035;
+        uint32_t off = n_idx + j_kpr1036 * 32U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr1033 = 0U;
+            for (; i_kpr1033 < 1U; i_kpr1033++) {
+                uint32_t j_kpr1034 = i_kpr1033;
+                uint32_t start = j_kpr1036 * 4U + j_kpr1034 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1034 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(32)
+/**
+  hoisted when extracting g_spmm_f32_256x512x32_on
+*/
+static void
+__hoisted_g_spmm_f32_256x512x32_on_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[16U];
+    memset(out, 0U, 16U * sizeof(float));
+    if (nnz >= 256U) {
+        uint32_t i_kpr1037 = 0U;
+        for (; i_kpr1037 < 2U; i_kpr1037++) {
+            uint32_t j_kpr1038 = i_kpr1037;
+            vec_memcpy(elems_tile0 + (j_kpr1038 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1038 * 32U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr1039 = 0U;
+        for (; i_kpr1039 < 2U; i_kpr1039++) {
+            uint32_t j_kpr1040 = i_kpr1039;
+            vec_memcpy(col_ind_tile0 + (j_kpr1040 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1040 * 32U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
+        uint32_t i_kpr1041 = 0U;
+        for (; i_kpr1041 < to_; i_kpr1041++)
+            elems_tile0[i_kpr1041 * 32U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 256U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 4U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 32U * 4U < cols) {
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 256U;
+        for (; nnz >= 256U; nnz -= 256U) {
+            uint32_t off = ri_ + idx * 256U;
+            __syncthreads();
+            uint32_t i_kpr1043 = 0U;
+            for (; i_kpr1043 < 2U; i_kpr1043++) {
+                uint32_t j_kpr1044 = i_kpr1043;
+                vec_memcpy(elems_tile0 + (j_kpr1044 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1044 * 32U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr1045 = 0U;
+            for (; i_kpr1045 < 2U; i_kpr1045++) {
+                uint32_t j_kpr1046 = i_kpr1045;
+                vec_memcpy(col_ind_tile0 + (j_kpr1046 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1046 * 32U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 256U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 4U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        if (n_idx + __anf03 * 32U * 4U < cols) {
+                            float lchunk[4U];
+                            memset(lchunk, 0U, 4U * sizeof(float));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 32U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
+                            uint32_t ix = 0U;
+                            for (; ix < 4U; ix++)
+                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                        }
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr1048 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr1047 = 0U;
+    for (; i_kpr1047 < hi_kpr1048; i_kpr1047++) {
+        uint32_t j_kpr1049 = i_kpr1047;
+        elems_tile0[j_kpr1049 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1049 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr1049 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1049 * 32U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 4U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 32U * 4U < cols) {
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+    }
+    uint32_t i_kpr1052 = 0U;
+    for (; i_kpr1052 < 4U; i_kpr1052++) {
+        uint32_t j_kpr1053 = i_kpr1052;
+        uint32_t off = n_idx + j_kpr1053 * 32U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr1050 = 0U;
+            for (; i_kpr1050 < 1U; i_kpr1050++) {
+                uint32_t j_kpr1051 = i_kpr1050;
+                uint32_t start = j_kpr1053 * 4U + j_kpr1051 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1051 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(64)
+/**
+  hoisted when extracting g_spmm_f32_256x512x64
+*/
+static void
+__hoisted_g_spmm_f32_256x512x64_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[8U];
+    memset(out, 0U, 8U * sizeof(float));
+    if (nnz >= 256U) {
+        uint32_t i_kpr1054 = 0U;
+        for (; i_kpr1054 < 1U; i_kpr1054++) {
+            uint32_t j_kpr1055 = i_kpr1054;
+            vec_memcpy(elems_tile0 + (j_kpr1055 * 64U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1055 * 64U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr1056 = 0U;
+        for (; i_kpr1056 < 1U; i_kpr1056++) {
+            uint32_t j_kpr1057 = i_kpr1056;
+            vec_memcpy(col_ind_tile0 + (j_kpr1057 * 64U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1057 * 64U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
+        uint32_t i_kpr1058 = 0U;
+        for (; i_kpr1058 < to_; i_kpr1058++)
+            elems_tile0[i_kpr1058 * 64U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 256U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 2U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 64U * 4U < cols) {
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 64U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 256U;
+        for (; nnz >= 256U; nnz -= 256U) {
+            uint32_t off = ri_ + idx * 256U;
+            __syncthreads();
+            uint32_t i_kpr1060 = 0U;
+            for (; i_kpr1060 < 1U; i_kpr1060++) {
+                uint32_t j_kpr1061 = i_kpr1060;
+                vec_memcpy(elems_tile0 + (j_kpr1061 * 64U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1061 * 64U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr1062 = 0U;
+            for (; i_kpr1062 < 1U; i_kpr1062++) {
+                uint32_t j_kpr1063 = i_kpr1062;
+                vec_memcpy(col_ind_tile0 + (j_kpr1063 * 64U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1063 * 64U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 256U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 2U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        if (n_idx + __anf03 * 64U * 4U < cols) {
+                            float lchunk[4U];
+                            memset(lchunk, 0U, 4U * sizeof(float));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 64U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
+                            uint32_t ix = 0U;
+                            for (; ix < 4U; ix++)
+                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                        }
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr1065 = (__anf01 + 63U - threadIdx.x) / 64U;
+    uint32_t i_kpr1064 = 0U;
+    for (; i_kpr1064 < hi_kpr1065; i_kpr1064++) {
+        uint32_t j_kpr1066 = i_kpr1064;
+        elems_tile0[j_kpr1066 * 64U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1066 * 64U + threadIdx.x];
+        col_ind_tile0[j_kpr1066 * 64U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1066 * 64U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 2U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 64U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+    }
+    uint32_t i_kpr1069 = 0U;
+    for (; i_kpr1069 < 2U; i_kpr1069++) {
+        uint32_t j_kpr1070 = i_kpr1069;
+        uint32_t off = n_idx + j_kpr1070 * 64U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr1067 = 0U;
+            for (; i_kpr1067 < 1U; i_kpr1067++) {
+                uint32_t j_kpr1068 = i_kpr1067;
+                uint32_t start = j_kpr1070 * 4U + j_kpr1068 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1068 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(64)
+/**
+  hoisted when extracting g_spmm_f32_256x512x64_on
+*/
+static void
+__hoisted_g_spmm_f32_256x512x64_on_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 512U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 256U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[8U];
+    memset(out, 0U, 8U * sizeof(float));
+    if (nnz >= 256U) {
+        uint32_t i_kpr1071 = 0U;
+        for (; i_kpr1071 < 1U; i_kpr1071++) {
+            uint32_t j_kpr1072 = i_kpr1071;
+            vec_memcpy(elems_tile0 + (j_kpr1072 * 64U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1072 * 64U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr1073 = 0U;
+        for (; i_kpr1073 < 1U; i_kpr1073++) {
+            uint32_t j_kpr1074 = i_kpr1073;
+            vec_memcpy(col_ind_tile0 + (j_kpr1074 * 64U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1074 * 64U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
+        uint32_t i_kpr1075 = 0U;
+        for (; i_kpr1075 < to_; i_kpr1075++)
+            elems_tile0[i_kpr1075 * 64U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 256U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 2U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 64U * 4U < cols) {
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 64U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 256U;
+        for (; nnz >= 256U; nnz -= 256U) {
+            uint32_t off = ri_ + idx * 256U;
+            __syncthreads();
+            uint32_t i_kpr1077 = 0U;
+            for (; i_kpr1077 < 1U; i_kpr1077++) {
+                uint32_t j_kpr1078 = i_kpr1077;
+                vec_memcpy(elems_tile0 + (j_kpr1078 * 64U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1078 * 64U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr1079 = 0U;
+            for (; i_kpr1079 < 1U; i_kpr1079++) {
+                uint32_t j_kpr1080 = i_kpr1079;
+                vec_memcpy(col_ind_tile0 + (j_kpr1080 * 64U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1080 * 64U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 256U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 2U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        if (n_idx + __anf03 * 64U * 4U < cols) {
+                            float lchunk[4U];
+                            memset(lchunk, 0U, 4U * sizeof(float));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 64U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
+                            uint32_t ix = 0U;
+                            for (; ix < 4U; ix++)
+                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                        }
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr1082 = (__anf01 + 63U - threadIdx.x) / 64U;
+    uint32_t i_kpr1081 = 0U;
+    for (; i_kpr1081 < hi_kpr1082; i_kpr1081++) {
+        uint32_t j_kpr1083 = i_kpr1081;
+        elems_tile0[j_kpr1083 * 64U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1083 * 64U + threadIdx.x];
+        col_ind_tile0[j_kpr1083 * 64U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1083 * 64U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 2U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 64U * 4U < cols) {
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 64U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+    }
+    uint32_t i_kpr1086 = 0U;
+    for (; i_kpr1086 < 2U; i_kpr1086++) {
+        uint32_t j_kpr1087 = i_kpr1086;
+        uint32_t off = n_idx + j_kpr1087 * 64U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr1084 = 0U;
+            for (; i_kpr1084 < 1U; i_kpr1084++) {
+                uint32_t j_kpr1085 = i_kpr1084;
+                uint32_t start = j_kpr1087 * 4U + j_kpr1085 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1085 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(16)
+/**
+  hoisted when extracting g_spmm_f32_512x64x16
+*/
+static void
+__hoisted_g_spmm_f32_512x64x16_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[4U];
+    memset(out, 0U, 4U * sizeof(float));
+    if (nnz >= 512U) {
+        uint32_t i_kpr1088 = 0U;
+        for (; i_kpr1088 < 8U; i_kpr1088++) {
+            uint32_t j_kpr1089 = i_kpr1088;
+            vec_memcpy(elems_tile0 + (j_kpr1089 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1089 * 16U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr1090 = 0U;
+        for (; i_kpr1090 < 8U; i_kpr1090++) {
+            uint32_t j_kpr1091 = i_kpr1090;
+            vec_memcpy(col_ind_tile0 + (j_kpr1091 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1091 * 16U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
+        uint32_t i_kpr1092 = 0U;
+        for (; i_kpr1092 < to_; i_kpr1092++)
+            elems_tile0[i_kpr1092 * 16U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 512U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 1U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 512U;
+        for (; nnz >= 512U; nnz -= 512U) {
+            uint32_t off = ri_ + idx * 512U;
+            __syncthreads();
+            uint32_t i_kpr1094 = 0U;
+            for (; i_kpr1094 < 8U; i_kpr1094++) {
+                uint32_t j_kpr1095 = i_kpr1094;
+                vec_memcpy(elems_tile0 + (j_kpr1095 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1095 * 16U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr1096 = 0U;
+            for (; i_kpr1096 < 8U; i_kpr1096++) {
+                uint32_t j_kpr1097 = i_kpr1096;
+                vec_memcpy(col_ind_tile0 + (j_kpr1097 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1097 * 16U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 512U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 1U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr1099 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr1098 = 0U;
+    for (; i_kpr1098 < hi_kpr1099; i_kpr1098++) {
+        uint32_t j_kpr1100 = i_kpr1098;
+        elems_tile0[j_kpr1100 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1100 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr1100 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1100 * 16U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
             for (; k1 < 1U; k1++) {
                 uint32_t __anf1 = k1;
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr1033 = 0U;
-    for (; i_kpr1033 < 1U; i_kpr1033++) {
-        uint32_t j_kpr1034 = i_kpr1033;
-        uint32_t off = n_idx + j_kpr1034 * 32U * 4U;
+    uint32_t i_kpr1103 = 0U;
+    for (; i_kpr1103 < 1U; i_kpr1103++) {
+        uint32_t j_kpr1104 = i_kpr1103;
+        uint32_t off = n_idx + j_kpr1104 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1034 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1101 = 0U;
+            for (; i_kpr1101 < 1U; i_kpr1101++) {
+                uint32_t j_kpr1102 = i_kpr1101;
+                uint32_t start = j_kpr1104 * 4U + j_kpr1102 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1102 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(16)
+/**
+  hoisted when extracting g_spmm_f32_512x64x16_on
+*/
+static void
+__hoisted_g_spmm_f32_512x64x16_on_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 64U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[4U];
+    memset(out, 0U, 4U * sizeof(float));
+    if (nnz >= 512U) {
+        uint32_t i_kpr1105 = 0U;
+        for (; i_kpr1105 < 8U; i_kpr1105++) {
+            uint32_t j_kpr1106 = i_kpr1105;
+            vec_memcpy(elems_tile0 + (j_kpr1106 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1106 * 16U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr1107 = 0U;
+        for (; i_kpr1107 < 8U; i_kpr1107++) {
+            uint32_t j_kpr1108 = i_kpr1107;
+            vec_memcpy(col_ind_tile0 + (j_kpr1108 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1108 * 16U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
+        uint32_t i_kpr1109 = 0U;
+        for (; i_kpr1109 < to_; i_kpr1109++)
+            elems_tile0[i_kpr1109 * 16U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 512U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 1U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 512U;
+        for (; nnz >= 512U; nnz -= 512U) {
+            uint32_t off = ri_ + idx * 512U;
+            __syncthreads();
+            uint32_t i_kpr1111 = 0U;
+            for (; i_kpr1111 < 8U; i_kpr1111++) {
+                uint32_t j_kpr1112 = i_kpr1111;
+                vec_memcpy(elems_tile0 + (j_kpr1112 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1112 * 16U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr1113 = 0U;
+            for (; i_kpr1113 < 8U; i_kpr1113++) {
+                uint32_t j_kpr1114 = i_kpr1113;
+                vec_memcpy(col_ind_tile0 + (j_kpr1114 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1114 * 16U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 512U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 1U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr1116 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr1115 = 0U;
+    for (; i_kpr1115 < hi_kpr1116; i_kpr1115++) {
+        uint32_t j_kpr1117 = i_kpr1115;
+        elems_tile0[j_kpr1117 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1117 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr1117 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1117 * 16U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 1U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                float lchunk[4U];
+                memset(lchunk, 0U, 4U * sizeof(float));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
+                uint32_t ix = 0U;
+                for (; ix < 4U; ix++)
+                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
+            }
+        }
+    }
+    uint32_t i_kpr1120 = 0U;
+    for (; i_kpr1120 < 1U; i_kpr1120++) {
+        uint32_t j_kpr1121 = i_kpr1120;
+        uint32_t off = n_idx + j_kpr1121 * 16U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr1118 = 0U;
+            for (; i_kpr1118 < 1U; i_kpr1118++) {
+                uint32_t j_kpr1119 = i_kpr1118;
+                uint32_t start = j_kpr1121 * 4U + j_kpr1119 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1119 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(16)
+/**
+  hoisted when extracting g_spmm_f32_512x128x16
+*/
+static void
+__hoisted_g_spmm_f32_512x128x16_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[8U];
+    memset(out, 0U, 8U * sizeof(float));
+    if (nnz >= 512U) {
+        uint32_t i_kpr1122 = 0U;
+        for (; i_kpr1122 < 8U; i_kpr1122++) {
+            uint32_t j_kpr1123 = i_kpr1122;
+            vec_memcpy(elems_tile0 + (j_kpr1123 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1123 * 16U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr1124 = 0U;
+        for (; i_kpr1124 < 8U; i_kpr1124++) {
+            uint32_t j_kpr1125 = i_kpr1124;
+            vec_memcpy(col_ind_tile0 + (j_kpr1125 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1125 * 16U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
+        uint32_t i_kpr1126 = 0U;
+        for (; i_kpr1126 < to_; i_kpr1126++)
+            elems_tile0[i_kpr1126 * 16U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 512U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 2U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 512U;
+        for (; nnz >= 512U; nnz -= 512U) {
+            uint32_t off = ri_ + idx * 512U;
+            __syncthreads();
+            uint32_t i_kpr1128 = 0U;
+            for (; i_kpr1128 < 8U; i_kpr1128++) {
+                uint32_t j_kpr1129 = i_kpr1128;
+                vec_memcpy(elems_tile0 + (j_kpr1129 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1129 * 16U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr1130 = 0U;
+            for (; i_kpr1130 < 8U; i_kpr1130++) {
+                uint32_t j_kpr1131 = i_kpr1130;
+                vec_memcpy(col_ind_tile0 + (j_kpr1131 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1131 * 16U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 512U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 2U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        if (n_idx + __anf03 * 16U * 4U < cols) {
+                            float lchunk[4U];
+                            memset(lchunk, 0U, 4U * sizeof(float));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
+                            uint32_t ix = 0U;
+                            for (; ix < 4U; ix++)
+                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                        }
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr1133 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr1132 = 0U;
+    for (; i_kpr1132 < hi_kpr1133; i_kpr1132++) {
+        uint32_t j_kpr1134 = i_kpr1132;
+        elems_tile0[j_kpr1134 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1134 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr1134 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1134 * 16U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 2U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+    }
+    uint32_t i_kpr1137 = 0U;
+    for (; i_kpr1137 < 2U; i_kpr1137++) {
+        uint32_t j_kpr1138 = i_kpr1137;
+        uint32_t off = n_idx + j_kpr1138 * 16U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr1135 = 0U;
+            for (; i_kpr1135 < 1U; i_kpr1135++) {
+                uint32_t j_kpr1136 = i_kpr1135;
+                uint32_t start = j_kpr1138 * 4U + j_kpr1136 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1136 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(16)
+/**
+  hoisted when extracting g_spmm_f32_512x128x16_on
+*/
+static void
+__hoisted_g_spmm_f32_512x128x16_on_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[8U];
+    memset(out, 0U, 8U * sizeof(float));
+    if (nnz >= 512U) {
+        uint32_t i_kpr1139 = 0U;
+        for (; i_kpr1139 < 8U; i_kpr1139++) {
+            uint32_t j_kpr1140 = i_kpr1139;
+            vec_memcpy(elems_tile0 + (j_kpr1140 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1140 * 16U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr1141 = 0U;
+        for (; i_kpr1141 < 8U; i_kpr1141++) {
+            uint32_t j_kpr1142 = i_kpr1141;
+            vec_memcpy(col_ind_tile0 + (j_kpr1142 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1142 * 16U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
+        uint32_t i_kpr1143 = 0U;
+        for (; i_kpr1143 < to_; i_kpr1143++)
+            elems_tile0[i_kpr1143 * 16U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 512U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 2U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    if (n_idx + __anf01 * 16U * 4U < cols) {
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 512U;
+        for (; nnz >= 512U; nnz -= 512U) {
+            uint32_t off = ri_ + idx * 512U;
+            __syncthreads();
+            uint32_t i_kpr1145 = 0U;
+            for (; i_kpr1145 < 8U; i_kpr1145++) {
+                uint32_t j_kpr1146 = i_kpr1145;
+                vec_memcpy(elems_tile0 + (j_kpr1146 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1146 * 16U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr1147 = 0U;
+            for (; i_kpr1147 < 8U; i_kpr1147++) {
+                uint32_t j_kpr1148 = i_kpr1147;
+                vec_memcpy(col_ind_tile0 + (j_kpr1148 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1148 * 16U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 512U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 2U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        if (n_idx + __anf03 * 16U * 4U < cols) {
+                            float lchunk[4U];
+                            memset(lchunk, 0U, 4U * sizeof(float));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
+                            uint32_t ix = 0U;
+                            for (; ix < 4U; ix++)
+                                out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                        }
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr1150 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr1149 = 0U;
+    for (; i_kpr1149 < hi_kpr1150; i_kpr1149++) {
+        uint32_t j_kpr1151 = i_kpr1149;
+        elems_tile0[j_kpr1151 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1151 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr1151 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1151 * 16U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 2U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                if (n_idx + __anf02 * 16U * 4U < cols) {
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+    }
+    uint32_t i_kpr1154 = 0U;
+    for (; i_kpr1154 < 2U; i_kpr1154++) {
+        uint32_t j_kpr1155 = i_kpr1154;
+        uint32_t off = n_idx + j_kpr1155 * 16U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr1152 = 0U;
+            for (; i_kpr1152 < 1U; i_kpr1152++) {
+                uint32_t j_kpr1153 = i_kpr1152;
+                uint32_t start = j_kpr1155 * 4U + j_kpr1153 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1153 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
+        }
+    }
+}
+
+__global__ __launch_bounds__(32)
+/**
+  hoisted when extracting g_spmm_f32_512x128x32
+*/
+static void
+__hoisted_g_spmm_f32_512x128x32_0(uint32_t *row_indices, uint32_t rows,
+    Kuiper_Sparse_Matrix_csr_matrix__float gA, uint32_t cols, float *gB,
+    float *gC)
+{
+    uint32_t m_idx = row_indices[blockIdx.x % rows];
+    uint32_t n_idx = blockIdx.x / rows * 128U + threadIdx.x * 4U;
+    float *elems_tile0 = (float *) KPR_SHMEM_AT(0U);
+    uint32_t *col_ind_tile0 =
+        (uint32_t *) KPR_SHMEM_AT((uint32_t) sizeof(float) * 512U);
+    uint32_t ri = gA.row_off[m_idx];
+    uint32_t re = gA.row_off[m_idx + 1U];
+    uint32_t ri_ = ri / 4U * 4U;
+    uint32_t nnz = re - ri_;
+    uint32_t idx = 0U;
+    float out[4U];
+    memset(out, 0U, 4U * sizeof(float));
+    if (nnz >= 512U) {
+        uint32_t i_kpr1156 = 0U;
+        for (; i_kpr1156 < 4U; i_kpr1156++) {
+            uint32_t j_kpr1157 = i_kpr1156;
+            vec_memcpy(elems_tile0 + (j_kpr1157 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1157 * 32U + threadIdx.x) * 4U));
+        }
+        uint32_t i_kpr1158 = 0U;
+        for (; i_kpr1158 < 4U; i_kpr1158++) {
+            uint32_t j_kpr1159 = i_kpr1158;
+            vec_memcpy(col_ind_tile0 + (j_kpr1159 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1159 * 32U + threadIdx.x) * 4U));
+        }
+        __syncthreads();
+        uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
+        uint32_t i_kpr1160 = 0U;
+        for (; i_kpr1160 < to_; i_kpr1160++)
+            elems_tile0[i_kpr1160 * 32U + threadIdx.x] = 0.0f;
+        __syncthreads();
+        if (n_idx < cols) {
+            uint32_t k = 0U;
+            for (; k < 512U; k++) {
+                uint32_t kv = k;
+                uint32_t kr = col_ind_tile0[kv];
+                float kx = elems_tile0[kv];
+                uint32_t k1 = 0U;
+                for (; k1 < 1U; k1++) {
+                    uint32_t __anf1 = k1;
+                    uint32_t __anf01 = k1;
+                    float lchunk[4U];
+                    memset(lchunk, 0U, 4U * sizeof(float));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
+                    uint32_t ix = 0U;
+                    for (; ix < 4U; ix++)
+                        out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                }
+            }
+        }
+        idx = 1U;
+        nnz -= 512U;
+        for (; nnz >= 512U; nnz -= 512U) {
+            uint32_t off = ri_ + idx * 512U;
+            __syncthreads();
+            uint32_t i_kpr1162 = 0U;
+            for (; i_kpr1162 < 4U; i_kpr1162++) {
+                uint32_t j_kpr1163 = i_kpr1162;
+                vec_memcpy(elems_tile0 + (j_kpr1163 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1163 * 32U + threadIdx.x) * 4U));
+            }
+            uint32_t i_kpr1164 = 0U;
+            for (; i_kpr1164 < 4U; i_kpr1164++) {
+                uint32_t j_kpr1165 = i_kpr1164;
+                vec_memcpy(col_ind_tile0 + (j_kpr1165 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1165 * 32U + threadIdx.x) * 4U));
+            }
+            __syncthreads();
+            if (n_idx < cols) {
+                uint32_t k = 0U;
+                for (; k < 512U; k++) {
+                    uint32_t kv = k;
+                    uint32_t kr = col_ind_tile0[kv];
+                    float kx = elems_tile0[kv];
+                    uint32_t k1 = 0U;
+                    for (; k1 < 1U; k1++) {
+                        uint32_t __anf1 = k1;
+                        uint32_t __anf03 = k1;
+                        float lchunk[4U];
+                        memset(lchunk, 0U, 4U * sizeof(float));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
+                        uint32_t ix = 0U;
+                        for (; ix < 4U; ix++)
+                            out[__anf1 * 4U + ix] += kx * lchunk[ix];
+                    }
+                }
+            }
+            idx++;
+        }
+    } else {
+        idx = 0U;
+        nnz = re - ri;
+    }
+    uint32_t __anf01 = nnz;
+    __syncthreads();
+    uint32_t hi_kpr1167 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr1166 = 0U;
+    for (; i_kpr1166 < hi_kpr1167; i_kpr1166++) {
+        uint32_t j_kpr1168 = i_kpr1166;
+        elems_tile0[j_kpr1168 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1168 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr1168 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1168 * 32U + threadIdx.x];
+    }
+    __syncthreads();
+    if (n_idx < cols) {
+        uint32_t k = 0U;
+        for (; k < __anf01; k++) {
+            uint32_t kv = k;
+            uint32_t kr = col_ind_tile0[kv];
+            float kx = elems_tile0[kv];
+            uint32_t k1 = 0U;
+            for (; k1 < 1U; k1++) {
+                uint32_t __anf1 = k1;
+                uint32_t __anf02 = k1;
+                float lchunk[4U];
+                memset(lchunk, 0U, 4U * sizeof(float));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
+                uint32_t ix = 0U;
+                for (; ix < 4U; ix++)
+                    out[__anf1 * 4U + ix] += kx * lchunk[ix];
+            }
+        }
+    }
+    uint32_t i_kpr1171 = 0U;
+    for (; i_kpr1171 < 1U; i_kpr1171++) {
+        uint32_t j_kpr1172 = i_kpr1171;
+        uint32_t off = n_idx + j_kpr1172 * 32U * 4U;
+        if (off < cols) {
+            uint32_t i_kpr1169 = 0U;
+            for (; i_kpr1169 < 1U; i_kpr1169++) {
+                uint32_t j_kpr1170 = i_kpr1169;
+                uint32_t start = j_kpr1172 * 4U + j_kpr1170 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1170 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -11194,23 +12669,23 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1035 = 0U;
-        for (; i_kpr1035 < 4U; i_kpr1035++) {
-            uint32_t j_kpr1036 = i_kpr1035;
-            vec_memcpy(elems_tile0 + (j_kpr1036 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1036 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr1173 = 0U;
+        for (; i_kpr1173 < 4U; i_kpr1173++) {
+            uint32_t j_kpr1174 = i_kpr1173;
+            vec_memcpy(elems_tile0 + (j_kpr1174 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1174 * 32U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1037 = 0U;
-        for (; i_kpr1037 < 4U; i_kpr1037++) {
-            uint32_t j_kpr1038 = i_kpr1037;
-            vec_memcpy(col_ind_tile0 + (j_kpr1038 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1038 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr1175 = 0U;
+        for (; i_kpr1175 < 4U; i_kpr1175++) {
+            uint32_t j_kpr1176 = i_kpr1175;
+            vec_memcpy(col_ind_tile0 + (j_kpr1176 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1176 * 32U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr1039 = 0U;
-        for (; i_kpr1039 < to_; i_kpr1039++)
-            elems_tile0[i_kpr1039 * 32U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1177 = 0U;
+        for (; i_kpr1177 < to_; i_kpr1177++)
+            elems_tile0[i_kpr1177 * 32U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -11224,8 +12699,14 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11237,17 +12718,17 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1041 = 0U;
-            for (; i_kpr1041 < 4U; i_kpr1041++) {
-                uint32_t j_kpr1042 = i_kpr1041;
-                vec_memcpy(elems_tile0 + (j_kpr1042 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1042 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr1179 = 0U;
+            for (; i_kpr1179 < 4U; i_kpr1179++) {
+                uint32_t j_kpr1180 = i_kpr1179;
+                vec_memcpy(elems_tile0 + (j_kpr1180 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1180 * 32U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1043 = 0U;
-            for (; i_kpr1043 < 4U; i_kpr1043++) {
-                uint32_t j_kpr1044 = i_kpr1043;
-                vec_memcpy(col_ind_tile0 + (j_kpr1044 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1044 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr1181 = 0U;
+            for (; i_kpr1181 < 4U; i_kpr1181++) {
+                uint32_t j_kpr1182 = i_kpr1181;
+                vec_memcpy(col_ind_tile0 + (j_kpr1182 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1182 * 32U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -11262,8 +12743,14 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11278,14 +12765,14 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1046 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr1045 = 0U;
-    for (; i_kpr1045 < hi_kpr1046; i_kpr1045++) {
-        uint32_t j_kpr1047 = i_kpr1045;
-        elems_tile0[j_kpr1047 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1047 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr1047 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1047 * 32U + threadIdx.x];
+    uint32_t hi_kpr1184 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr1183 = 0U;
+    for (; i_kpr1183 < hi_kpr1184; i_kpr1183++) {
+        uint32_t j_kpr1185 = i_kpr1183;
+        elems_tile0[j_kpr1185 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1185 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr1185 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1185 * 32U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -11300,27 +12787,38 @@ __hoisted_g_spmm_f32_512x128x32_on_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr1048 = 0U;
-    for (; i_kpr1048 < 1U; i_kpr1048++) {
-        uint32_t j_kpr1049 = i_kpr1048;
-        uint32_t off = n_idx + j_kpr1049 * 32U * 4U;
+    uint32_t i_kpr1188 = 0U;
+    for (; i_kpr1188 < 1U; i_kpr1188++) {
+        uint32_t j_kpr1189 = i_kpr1188;
+        uint32_t off = n_idx + j_kpr1189 * 32U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1049 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1186 = 0U;
+            for (; i_kpr1186 < 1U; i_kpr1186++) {
+                uint32_t j_kpr1187 = i_kpr1186;
+                uint32_t start = j_kpr1189 * 4U + j_kpr1187 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1187 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -11347,23 +12845,23 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t *row_indices, uint32_t rows,
     float out[16U];
     memset(out, 0U, 16U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1050 = 0U;
-        for (; i_kpr1050 < 8U; i_kpr1050++) {
-            uint32_t j_kpr1051 = i_kpr1050;
-            vec_memcpy(elems_tile0 + (j_kpr1051 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1051 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr1190 = 0U;
+        for (; i_kpr1190 < 8U; i_kpr1190++) {
+            uint32_t j_kpr1191 = i_kpr1190;
+            vec_memcpy(elems_tile0 + (j_kpr1191 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1191 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1052 = 0U;
-        for (; i_kpr1052 < 8U; i_kpr1052++) {
-            uint32_t j_kpr1053 = i_kpr1052;
-            vec_memcpy(col_ind_tile0 + (j_kpr1053 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1053 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr1192 = 0U;
+        for (; i_kpr1192 < 8U; i_kpr1192++) {
+            uint32_t j_kpr1193 = i_kpr1192;
+            vec_memcpy(col_ind_tile0 + (j_kpr1193 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1193 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr1054 = 0U;
-        for (; i_kpr1054 < to_; i_kpr1054++)
-            elems_tile0[i_kpr1054 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1194 = 0U;
+        for (; i_kpr1194 < to_; i_kpr1194++)
+            elems_tile0[i_kpr1194 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -11378,8 +12876,14 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11392,17 +12896,17 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1056 = 0U;
-            for (; i_kpr1056 < 8U; i_kpr1056++) {
-                uint32_t j_kpr1057 = i_kpr1056;
-                vec_memcpy(elems_tile0 + (j_kpr1057 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1057 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr1196 = 0U;
+            for (; i_kpr1196 < 8U; i_kpr1196++) {
+                uint32_t j_kpr1197 = i_kpr1196;
+                vec_memcpy(elems_tile0 + (j_kpr1197 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1197 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1058 = 0U;
-            for (; i_kpr1058 < 8U; i_kpr1058++) {
-                uint32_t j_kpr1059 = i_kpr1058;
-                vec_memcpy(col_ind_tile0 + (j_kpr1059 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1059 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr1198 = 0U;
+            for (; i_kpr1198 < 8U; i_kpr1198++) {
+                uint32_t j_kpr1199 = i_kpr1198;
+                vec_memcpy(col_ind_tile0 + (j_kpr1199 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1199 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -11418,9 +12922,15 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11436,14 +12946,14 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1061 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr1060 = 0U;
-    for (; i_kpr1060 < hi_kpr1061; i_kpr1060++) {
-        uint32_t j_kpr1062 = i_kpr1060;
-        elems_tile0[j_kpr1062 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1062 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr1062 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1062 * 16U + threadIdx.x];
+    uint32_t hi_kpr1201 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr1200 = 0U;
+    for (; i_kpr1200 < hi_kpr1201; i_kpr1200++) {
+        uint32_t j_kpr1202 = i_kpr1200;
+        elems_tile0[j_kpr1202 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1202 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr1202 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1202 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -11459,8 +12969,14 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11468,19 +12984,24 @@ __hoisted_g_spmm_f32_512x256x16_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr1063 = 0U;
-    for (; i_kpr1063 < 4U; i_kpr1063++) {
-        uint32_t j_kpr1064 = i_kpr1063;
-        uint32_t off = n_idx + j_kpr1064 * 16U * 4U;
+    uint32_t i_kpr1205 = 0U;
+    for (; i_kpr1205 < 4U; i_kpr1205++) {
+        uint32_t j_kpr1206 = i_kpr1205;
+        uint32_t off = n_idx + j_kpr1206 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1064 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1203 = 0U;
+            for (; i_kpr1203 < 1U; i_kpr1203++) {
+                uint32_t j_kpr1204 = i_kpr1203;
+                uint32_t start = j_kpr1206 * 4U + j_kpr1204 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1204 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -11507,23 +13028,23 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t *row_indices, uint32_t rows,
     float out[16U];
     memset(out, 0U, 16U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1065 = 0U;
-        for (; i_kpr1065 < 8U; i_kpr1065++) {
-            uint32_t j_kpr1066 = i_kpr1065;
-            vec_memcpy(elems_tile0 + (j_kpr1066 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1066 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr1207 = 0U;
+        for (; i_kpr1207 < 8U; i_kpr1207++) {
+            uint32_t j_kpr1208 = i_kpr1207;
+            vec_memcpy(elems_tile0 + (j_kpr1208 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1208 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1067 = 0U;
-        for (; i_kpr1067 < 8U; i_kpr1067++) {
-            uint32_t j_kpr1068 = i_kpr1067;
-            vec_memcpy(col_ind_tile0 + (j_kpr1068 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1068 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr1209 = 0U;
+        for (; i_kpr1209 < 8U; i_kpr1209++) {
+            uint32_t j_kpr1210 = i_kpr1209;
+            vec_memcpy(col_ind_tile0 + (j_kpr1210 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1210 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr1069 = 0U;
-        for (; i_kpr1069 < to_; i_kpr1069++)
-            elems_tile0[i_kpr1069 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1211 = 0U;
+        for (; i_kpr1211 < to_; i_kpr1211++)
+            elems_tile0[i_kpr1211 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -11538,8 +13059,14 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11552,17 +13079,17 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1071 = 0U;
-            for (; i_kpr1071 < 8U; i_kpr1071++) {
-                uint32_t j_kpr1072 = i_kpr1071;
-                vec_memcpy(elems_tile0 + (j_kpr1072 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1072 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr1213 = 0U;
+            for (; i_kpr1213 < 8U; i_kpr1213++) {
+                uint32_t j_kpr1214 = i_kpr1213;
+                vec_memcpy(elems_tile0 + (j_kpr1214 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1214 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1073 = 0U;
-            for (; i_kpr1073 < 8U; i_kpr1073++) {
-                uint32_t j_kpr1074 = i_kpr1073;
-                vec_memcpy(col_ind_tile0 + (j_kpr1074 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1074 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr1215 = 0U;
+            for (; i_kpr1215 < 8U; i_kpr1215++) {
+                uint32_t j_kpr1216 = i_kpr1215;
+                vec_memcpy(col_ind_tile0 + (j_kpr1216 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1216 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -11578,9 +13105,15 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11596,14 +13129,14 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1076 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr1075 = 0U;
-    for (; i_kpr1075 < hi_kpr1076; i_kpr1075++) {
-        uint32_t j_kpr1077 = i_kpr1075;
-        elems_tile0[j_kpr1077 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1077 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr1077 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1077 * 16U + threadIdx.x];
+    uint32_t hi_kpr1218 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr1217 = 0U;
+    for (; i_kpr1217 < hi_kpr1218; i_kpr1217++) {
+        uint32_t j_kpr1219 = i_kpr1217;
+        elems_tile0[j_kpr1219 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1219 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr1219 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1219 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -11619,8 +13152,14 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11628,19 +13167,24 @@ __hoisted_g_spmm_f32_512x256x16_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr1078 = 0U;
-    for (; i_kpr1078 < 4U; i_kpr1078++) {
-        uint32_t j_kpr1079 = i_kpr1078;
-        uint32_t off = n_idx + j_kpr1079 * 16U * 4U;
+    uint32_t i_kpr1222 = 0U;
+    for (; i_kpr1222 < 4U; i_kpr1222++) {
+        uint32_t j_kpr1223 = i_kpr1222;
+        uint32_t off = n_idx + j_kpr1223 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1079 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1220 = 0U;
+            for (; i_kpr1220 < 1U; i_kpr1220++) {
+                uint32_t j_kpr1221 = i_kpr1220;
+                uint32_t start = j_kpr1223 * 4U + j_kpr1221 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1221 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -11667,23 +13211,23 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1080 = 0U;
-        for (; i_kpr1080 < 4U; i_kpr1080++) {
-            uint32_t j_kpr1081 = i_kpr1080;
-            vec_memcpy(elems_tile0 + (j_kpr1081 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1081 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr1224 = 0U;
+        for (; i_kpr1224 < 4U; i_kpr1224++) {
+            uint32_t j_kpr1225 = i_kpr1224;
+            vec_memcpy(elems_tile0 + (j_kpr1225 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1225 * 32U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1082 = 0U;
-        for (; i_kpr1082 < 4U; i_kpr1082++) {
-            uint32_t j_kpr1083 = i_kpr1082;
-            vec_memcpy(col_ind_tile0 + (j_kpr1083 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1083 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr1226 = 0U;
+        for (; i_kpr1226 < 4U; i_kpr1226++) {
+            uint32_t j_kpr1227 = i_kpr1226;
+            vec_memcpy(col_ind_tile0 + (j_kpr1227 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1227 * 32U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr1084 = 0U;
-        for (; i_kpr1084 < to_; i_kpr1084++)
-            elems_tile0[i_kpr1084 * 32U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1228 = 0U;
+        for (; i_kpr1228 < to_; i_kpr1228++)
+            elems_tile0[i_kpr1228 * 32U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -11698,8 +13242,14 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11712,17 +13262,17 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1086 = 0U;
-            for (; i_kpr1086 < 4U; i_kpr1086++) {
-                uint32_t j_kpr1087 = i_kpr1086;
-                vec_memcpy(elems_tile0 + (j_kpr1087 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1087 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr1230 = 0U;
+            for (; i_kpr1230 < 4U; i_kpr1230++) {
+                uint32_t j_kpr1231 = i_kpr1230;
+                vec_memcpy(elems_tile0 + (j_kpr1231 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1231 * 32U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1088 = 0U;
-            for (; i_kpr1088 < 4U; i_kpr1088++) {
-                uint32_t j_kpr1089 = i_kpr1088;
-                vec_memcpy(col_ind_tile0 + (j_kpr1089 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1089 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr1232 = 0U;
+            for (; i_kpr1232 < 4U; i_kpr1232++) {
+                uint32_t j_kpr1233 = i_kpr1232;
+                vec_memcpy(col_ind_tile0 + (j_kpr1233 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1233 * 32U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -11738,9 +13288,15 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 32U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11756,14 +13312,14 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1091 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr1090 = 0U;
-    for (; i_kpr1090 < hi_kpr1091; i_kpr1090++) {
-        uint32_t j_kpr1092 = i_kpr1090;
-        elems_tile0[j_kpr1092 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1092 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr1092 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1092 * 32U + threadIdx.x];
+    uint32_t hi_kpr1235 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr1234 = 0U;
+    for (; i_kpr1234 < hi_kpr1235; i_kpr1234++) {
+        uint32_t j_kpr1236 = i_kpr1234;
+        elems_tile0[j_kpr1236 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1236 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr1236 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1236 * 32U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -11779,8 +13335,14 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11788,19 +13350,24 @@ __hoisted_g_spmm_f32_512x256x32_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr1093 = 0U;
-    for (; i_kpr1093 < 2U; i_kpr1093++) {
-        uint32_t j_kpr1094 = i_kpr1093;
-        uint32_t off = n_idx + j_kpr1094 * 32U * 4U;
+    uint32_t i_kpr1239 = 0U;
+    for (; i_kpr1239 < 2U; i_kpr1239++) {
+        uint32_t j_kpr1240 = i_kpr1239;
+        uint32_t off = n_idx + j_kpr1240 * 32U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1094 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1237 = 0U;
+            for (; i_kpr1237 < 1U; i_kpr1237++) {
+                uint32_t j_kpr1238 = i_kpr1237;
+                uint32_t start = j_kpr1240 * 4U + j_kpr1238 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1238 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -11827,23 +13394,23 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1095 = 0U;
-        for (; i_kpr1095 < 4U; i_kpr1095++) {
-            uint32_t j_kpr1096 = i_kpr1095;
-            vec_memcpy(elems_tile0 + (j_kpr1096 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1096 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr1241 = 0U;
+        for (; i_kpr1241 < 4U; i_kpr1241++) {
+            uint32_t j_kpr1242 = i_kpr1241;
+            vec_memcpy(elems_tile0 + (j_kpr1242 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1242 * 32U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1097 = 0U;
-        for (; i_kpr1097 < 4U; i_kpr1097++) {
-            uint32_t j_kpr1098 = i_kpr1097;
-            vec_memcpy(col_ind_tile0 + (j_kpr1098 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1098 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr1243 = 0U;
+        for (; i_kpr1243 < 4U; i_kpr1243++) {
+            uint32_t j_kpr1244 = i_kpr1243;
+            vec_memcpy(col_ind_tile0 + (j_kpr1244 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1244 * 32U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr1099 = 0U;
-        for (; i_kpr1099 < to_; i_kpr1099++)
-            elems_tile0[i_kpr1099 * 32U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1245 = 0U;
+        for (; i_kpr1245 < to_; i_kpr1245++)
+            elems_tile0[i_kpr1245 * 32U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -11858,8 +13425,14 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11872,17 +13445,17 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1101 = 0U;
-            for (; i_kpr1101 < 4U; i_kpr1101++) {
-                uint32_t j_kpr1102 = i_kpr1101;
-                vec_memcpy(elems_tile0 + (j_kpr1102 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1102 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr1247 = 0U;
+            for (; i_kpr1247 < 4U; i_kpr1247++) {
+                uint32_t j_kpr1248 = i_kpr1247;
+                vec_memcpy(elems_tile0 + (j_kpr1248 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1248 * 32U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1103 = 0U;
-            for (; i_kpr1103 < 4U; i_kpr1103++) {
-                uint32_t j_kpr1104 = i_kpr1103;
-                vec_memcpy(col_ind_tile0 + (j_kpr1104 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1104 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr1249 = 0U;
+            for (; i_kpr1249 < 4U; i_kpr1249++) {
+                uint32_t j_kpr1250 = i_kpr1249;
+                vec_memcpy(col_ind_tile0 + (j_kpr1250 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1250 * 32U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -11898,9 +13471,15 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 32U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11916,14 +13495,14 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1106 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr1105 = 0U;
-    for (; i_kpr1105 < hi_kpr1106; i_kpr1105++) {
-        uint32_t j_kpr1107 = i_kpr1105;
-        elems_tile0[j_kpr1107 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1107 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr1107 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1107 * 32U + threadIdx.x];
+    uint32_t hi_kpr1252 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr1251 = 0U;
+    for (; i_kpr1251 < hi_kpr1252; i_kpr1251++) {
+        uint32_t j_kpr1253 = i_kpr1251;
+        elems_tile0[j_kpr1253 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1253 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr1253 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1253 * 32U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -11939,8 +13518,14 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -11948,19 +13533,24 @@ __hoisted_g_spmm_f32_512x256x32_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr1108 = 0U;
-    for (; i_kpr1108 < 2U; i_kpr1108++) {
-        uint32_t j_kpr1109 = i_kpr1108;
-        uint32_t off = n_idx + j_kpr1109 * 32U * 4U;
+    uint32_t i_kpr1256 = 0U;
+    for (; i_kpr1256 < 2U; i_kpr1256++) {
+        uint32_t j_kpr1257 = i_kpr1256;
+        uint32_t off = n_idx + j_kpr1257 * 32U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1109 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1254 = 0U;
+            for (; i_kpr1254 < 1U; i_kpr1254++) {
+                uint32_t j_kpr1255 = i_kpr1254;
+                uint32_t start = j_kpr1257 * 4U + j_kpr1255 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1255 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -11987,23 +13577,23 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1110 = 0U;
-        for (; i_kpr1110 < 2U; i_kpr1110++) {
-            uint32_t j_kpr1111 = i_kpr1110;
-            vec_memcpy(elems_tile0 + (j_kpr1111 * 64U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1111 * 64U + threadIdx.x) * 4U));
+        uint32_t i_kpr1258 = 0U;
+        for (; i_kpr1258 < 2U; i_kpr1258++) {
+            uint32_t j_kpr1259 = i_kpr1258;
+            vec_memcpy(elems_tile0 + (j_kpr1259 * 64U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1259 * 64U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1112 = 0U;
-        for (; i_kpr1112 < 2U; i_kpr1112++) {
-            uint32_t j_kpr1113 = i_kpr1112;
-            vec_memcpy(col_ind_tile0 + (j_kpr1113 * 64U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1113 * 64U + threadIdx.x) * 4U));
+        uint32_t i_kpr1260 = 0U;
+        for (; i_kpr1260 < 2U; i_kpr1260++) {
+            uint32_t j_kpr1261 = i_kpr1260;
+            vec_memcpy(col_ind_tile0 + (j_kpr1261 * 64U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1261 * 64U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
-        uint32_t i_kpr1114 = 0U;
-        for (; i_kpr1114 < to_; i_kpr1114++)
-            elems_tile0[i_kpr1114 * 64U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1262 = 0U;
+        for (; i_kpr1262 < to_; i_kpr1262++)
+            elems_tile0[i_kpr1262 * 64U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -12017,8 +13607,14 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12030,17 +13626,17 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1116 = 0U;
-            for (; i_kpr1116 < 2U; i_kpr1116++) {
-                uint32_t j_kpr1117 = i_kpr1116;
-                vec_memcpy(elems_tile0 + (j_kpr1117 * 64U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1117 * 64U + threadIdx.x) * 4U));
+            uint32_t i_kpr1264 = 0U;
+            for (; i_kpr1264 < 2U; i_kpr1264++) {
+                uint32_t j_kpr1265 = i_kpr1264;
+                vec_memcpy(elems_tile0 + (j_kpr1265 * 64U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1265 * 64U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1118 = 0U;
-            for (; i_kpr1118 < 2U; i_kpr1118++) {
-                uint32_t j_kpr1119 = i_kpr1118;
-                vec_memcpy(col_ind_tile0 + (j_kpr1119 * 64U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1119 * 64U + threadIdx.x) * 4U));
+            uint32_t i_kpr1266 = 0U;
+            for (; i_kpr1266 < 2U; i_kpr1266++) {
+                uint32_t j_kpr1267 = i_kpr1266;
+                vec_memcpy(col_ind_tile0 + (j_kpr1267 * 64U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1267 * 64U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -12055,8 +13651,14 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 64U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 64U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12071,14 +13673,14 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1121 = (__anf01 + 63U - threadIdx.x) / 64U;
-    uint32_t i_kpr1120 = 0U;
-    for (; i_kpr1120 < hi_kpr1121; i_kpr1120++) {
-        uint32_t j_kpr1122 = i_kpr1120;
-        elems_tile0[j_kpr1122 * 64U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1122 * 64U + threadIdx.x];
-        col_ind_tile0[j_kpr1122 * 64U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1122 * 64U + threadIdx.x];
+    uint32_t hi_kpr1269 = (__anf01 + 63U - threadIdx.x) / 64U;
+    uint32_t i_kpr1268 = 0U;
+    for (; i_kpr1268 < hi_kpr1269; i_kpr1268++) {
+        uint32_t j_kpr1270 = i_kpr1268;
+        elems_tile0[j_kpr1270 * 64U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1270 * 64U + threadIdx.x];
+        col_ind_tile0[j_kpr1270 * 64U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1270 * 64U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -12093,27 +13695,38 @@ __hoisted_g_spmm_f32_512x256x64_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr1123 = 0U;
-    for (; i_kpr1123 < 1U; i_kpr1123++) {
-        uint32_t j_kpr1124 = i_kpr1123;
-        uint32_t off = n_idx + j_kpr1124 * 64U * 4U;
+    uint32_t i_kpr1273 = 0U;
+    for (; i_kpr1273 < 1U; i_kpr1273++) {
+        uint32_t j_kpr1274 = i_kpr1273;
+        uint32_t off = n_idx + j_kpr1274 * 64U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1124 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1271 = 0U;
+            for (; i_kpr1271 < 1U; i_kpr1271++) {
+                uint32_t j_kpr1272 = i_kpr1271;
+                uint32_t start = j_kpr1274 * 4U + j_kpr1272 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1272 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -12140,23 +13753,23 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1125 = 0U;
-        for (; i_kpr1125 < 2U; i_kpr1125++) {
-            uint32_t j_kpr1126 = i_kpr1125;
-            vec_memcpy(elems_tile0 + (j_kpr1126 * 64U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1126 * 64U + threadIdx.x) * 4U));
+        uint32_t i_kpr1275 = 0U;
+        for (; i_kpr1275 < 2U; i_kpr1275++) {
+            uint32_t j_kpr1276 = i_kpr1275;
+            vec_memcpy(elems_tile0 + (j_kpr1276 * 64U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1276 * 64U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1127 = 0U;
-        for (; i_kpr1127 < 2U; i_kpr1127++) {
-            uint32_t j_kpr1128 = i_kpr1127;
-            vec_memcpy(col_ind_tile0 + (j_kpr1128 * 64U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1128 * 64U + threadIdx.x) * 4U));
+        uint32_t i_kpr1277 = 0U;
+        for (; i_kpr1277 < 2U; i_kpr1277++) {
+            uint32_t j_kpr1278 = i_kpr1277;
+            vec_memcpy(col_ind_tile0 + (j_kpr1278 * 64U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1278 * 64U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
-        uint32_t i_kpr1129 = 0U;
-        for (; i_kpr1129 < to_; i_kpr1129++)
-            elems_tile0[i_kpr1129 * 64U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1279 = 0U;
+        for (; i_kpr1279 < to_; i_kpr1279++)
+            elems_tile0[i_kpr1279 * 64U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -12170,8 +13783,14 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12183,17 +13802,17 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1131 = 0U;
-            for (; i_kpr1131 < 2U; i_kpr1131++) {
-                uint32_t j_kpr1132 = i_kpr1131;
-                vec_memcpy(elems_tile0 + (j_kpr1132 * 64U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1132 * 64U + threadIdx.x) * 4U));
+            uint32_t i_kpr1281 = 0U;
+            for (; i_kpr1281 < 2U; i_kpr1281++) {
+                uint32_t j_kpr1282 = i_kpr1281;
+                vec_memcpy(elems_tile0 + (j_kpr1282 * 64U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1282 * 64U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1133 = 0U;
-            for (; i_kpr1133 < 2U; i_kpr1133++) {
-                uint32_t j_kpr1134 = i_kpr1133;
-                vec_memcpy(col_ind_tile0 + (j_kpr1134 * 64U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1134 * 64U + threadIdx.x) * 4U));
+            uint32_t i_kpr1283 = 0U;
+            for (; i_kpr1283 < 2U; i_kpr1283++) {
+                uint32_t j_kpr1284 = i_kpr1283;
+                vec_memcpy(col_ind_tile0 + (j_kpr1284 * 64U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1284 * 64U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -12208,8 +13827,14 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 64U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf03 * 64U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12224,14 +13849,14 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1136 = (__anf01 + 63U - threadIdx.x) / 64U;
-    uint32_t i_kpr1135 = 0U;
-    for (; i_kpr1135 < hi_kpr1136; i_kpr1135++) {
-        uint32_t j_kpr1137 = i_kpr1135;
-        elems_tile0[j_kpr1137 * 64U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1137 * 64U + threadIdx.x];
-        col_ind_tile0[j_kpr1137 * 64U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1137 * 64U + threadIdx.x];
+    uint32_t hi_kpr1286 = (__anf01 + 63U - threadIdx.x) / 64U;
+    uint32_t i_kpr1285 = 0U;
+    for (; i_kpr1285 < hi_kpr1286; i_kpr1285++) {
+        uint32_t j_kpr1287 = i_kpr1285;
+        elems_tile0[j_kpr1287 * 64U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1287 * 64U + threadIdx.x];
+        col_ind_tile0[j_kpr1287 * 64U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1287 * 64U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -12246,27 +13871,38 @@ __hoisted_g_spmm_f32_512x256x64_on_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr1138 = 0U;
-    for (; i_kpr1138 < 1U; i_kpr1138++) {
-        uint32_t j_kpr1139 = i_kpr1138;
-        uint32_t off = n_idx + j_kpr1139 * 64U * 4U;
+    uint32_t i_kpr1290 = 0U;
+    for (; i_kpr1290 < 1U; i_kpr1290++) {
+        uint32_t j_kpr1291 = i_kpr1290;
+        uint32_t off = n_idx + j_kpr1291 * 64U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1139 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1288 = 0U;
+            for (; i_kpr1288 < 1U; i_kpr1288++) {
+                uint32_t j_kpr1289 = i_kpr1288;
+                uint32_t start = j_kpr1291 * 4U + j_kpr1289 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1289 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -12293,23 +13929,23 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t *row_indices, uint32_t rows,
     float out[32U];
     memset(out, 0U, 32U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1140 = 0U;
-        for (; i_kpr1140 < 8U; i_kpr1140++) {
-            uint32_t j_kpr1141 = i_kpr1140;
-            vec_memcpy(elems_tile0 + (j_kpr1141 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1141 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr1292 = 0U;
+        for (; i_kpr1292 < 8U; i_kpr1292++) {
+            uint32_t j_kpr1293 = i_kpr1292;
+            vec_memcpy(elems_tile0 + (j_kpr1293 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1293 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1142 = 0U;
-        for (; i_kpr1142 < 8U; i_kpr1142++) {
-            uint32_t j_kpr1143 = i_kpr1142;
-            vec_memcpy(col_ind_tile0 + (j_kpr1143 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1143 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr1294 = 0U;
+        for (; i_kpr1294 < 8U; i_kpr1294++) {
+            uint32_t j_kpr1295 = i_kpr1294;
+            vec_memcpy(col_ind_tile0 + (j_kpr1295 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1295 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr1144 = 0U;
-        for (; i_kpr1144 < to_; i_kpr1144++)
-            elems_tile0[i_kpr1144 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1296 = 0U;
+        for (; i_kpr1296 < to_; i_kpr1296++)
+            elems_tile0[i_kpr1296 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -12324,8 +13960,14 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12338,17 +13980,17 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1146 = 0U;
-            for (; i_kpr1146 < 8U; i_kpr1146++) {
-                uint32_t j_kpr1147 = i_kpr1146;
-                vec_memcpy(elems_tile0 + (j_kpr1147 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1147 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr1298 = 0U;
+            for (; i_kpr1298 < 8U; i_kpr1298++) {
+                uint32_t j_kpr1299 = i_kpr1298;
+                vec_memcpy(elems_tile0 + (j_kpr1299 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1299 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1148 = 0U;
-            for (; i_kpr1148 < 8U; i_kpr1148++) {
-                uint32_t j_kpr1149 = i_kpr1148;
-                vec_memcpy(col_ind_tile0 + (j_kpr1149 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1149 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr1300 = 0U;
+            for (; i_kpr1300 < 8U; i_kpr1300++) {
+                uint32_t j_kpr1301 = i_kpr1300;
+                vec_memcpy(col_ind_tile0 + (j_kpr1301 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1301 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -12364,9 +14006,15 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12382,14 +14030,14 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1151 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr1150 = 0U;
-    for (; i_kpr1150 < hi_kpr1151; i_kpr1150++) {
-        uint32_t j_kpr1152 = i_kpr1150;
-        elems_tile0[j_kpr1152 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1152 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr1152 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1152 * 16U + threadIdx.x];
+    uint32_t hi_kpr1303 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr1302 = 0U;
+    for (; i_kpr1302 < hi_kpr1303; i_kpr1302++) {
+        uint32_t j_kpr1304 = i_kpr1302;
+        elems_tile0[j_kpr1304 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1304 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr1304 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1304 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -12405,8 +14053,14 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12414,19 +14068,24 @@ __hoisted_g_spmm_f32_512x512x16_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr1153 = 0U;
-    for (; i_kpr1153 < 8U; i_kpr1153++) {
-        uint32_t j_kpr1154 = i_kpr1153;
-        uint32_t off = n_idx + j_kpr1154 * 16U * 4U;
+    uint32_t i_kpr1307 = 0U;
+    for (; i_kpr1307 < 8U; i_kpr1307++) {
+        uint32_t j_kpr1308 = i_kpr1307;
+        uint32_t off = n_idx + j_kpr1308 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1154 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1305 = 0U;
+            for (; i_kpr1305 < 1U; i_kpr1305++) {
+                uint32_t j_kpr1306 = i_kpr1305;
+                uint32_t start = j_kpr1308 * 4U + j_kpr1306 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1306 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -12453,23 +14112,23 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t *row_indices, uint32_t rows,
     float out[32U];
     memset(out, 0U, 32U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1155 = 0U;
-        for (; i_kpr1155 < 8U; i_kpr1155++) {
-            uint32_t j_kpr1156 = i_kpr1155;
-            vec_memcpy(elems_tile0 + (j_kpr1156 * 16U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1156 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr1309 = 0U;
+        for (; i_kpr1309 < 8U; i_kpr1309++) {
+            uint32_t j_kpr1310 = i_kpr1309;
+            vec_memcpy(elems_tile0 + (j_kpr1310 * 16U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1310 * 16U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1157 = 0U;
-        for (; i_kpr1157 < 8U; i_kpr1157++) {
-            uint32_t j_kpr1158 = i_kpr1157;
-            vec_memcpy(col_ind_tile0 + (j_kpr1158 * 16U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1158 * 16U + threadIdx.x) * 4U));
+        uint32_t i_kpr1311 = 0U;
+        for (; i_kpr1311 < 8U; i_kpr1311++) {
+            uint32_t j_kpr1312 = i_kpr1311;
+            vec_memcpy(col_ind_tile0 + (j_kpr1312 * 16U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1312 * 16U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 15U - threadIdx.x) / 16U;
-        uint32_t i_kpr1159 = 0U;
-        for (; i_kpr1159 < to_; i_kpr1159++)
-            elems_tile0[i_kpr1159 * 16U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1313 = 0U;
+        for (; i_kpr1313 < to_; i_kpr1313++)
+            elems_tile0[i_kpr1313 * 16U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -12484,8 +14143,14 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 16U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 16U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 16U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12498,17 +14163,17 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1161 = 0U;
-            for (; i_kpr1161 < 8U; i_kpr1161++) {
-                uint32_t j_kpr1162 = i_kpr1161;
-                vec_memcpy(elems_tile0 + (j_kpr1162 * 16U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1162 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr1315 = 0U;
+            for (; i_kpr1315 < 8U; i_kpr1315++) {
+                uint32_t j_kpr1316 = i_kpr1315;
+                vec_memcpy(elems_tile0 + (j_kpr1316 * 16U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1316 * 16U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1163 = 0U;
-            for (; i_kpr1163 < 8U; i_kpr1163++) {
-                uint32_t j_kpr1164 = i_kpr1163;
-                vec_memcpy(col_ind_tile0 + (j_kpr1164 * 16U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1164 * 16U + threadIdx.x) * 4U));
+            uint32_t i_kpr1317 = 0U;
+            for (; i_kpr1317 < 8U; i_kpr1317++) {
+                uint32_t j_kpr1318 = i_kpr1317;
+                vec_memcpy(col_ind_tile0 + (j_kpr1318 * 16U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1318 * 16U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -12524,9 +14189,15 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 16U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 16U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 16U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12542,14 +14213,14 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1166 = (__anf01 + 15U - threadIdx.x) / 16U;
-    uint32_t i_kpr1165 = 0U;
-    for (; i_kpr1165 < hi_kpr1166; i_kpr1165++) {
-        uint32_t j_kpr1167 = i_kpr1165;
-        elems_tile0[j_kpr1167 * 16U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1167 * 16U + threadIdx.x];
-        col_ind_tile0[j_kpr1167 * 16U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1167 * 16U + threadIdx.x];
+    uint32_t hi_kpr1320 = (__anf01 + 15U - threadIdx.x) / 16U;
+    uint32_t i_kpr1319 = 0U;
+    for (; i_kpr1319 < hi_kpr1320; i_kpr1319++) {
+        uint32_t j_kpr1321 = i_kpr1319;
+        elems_tile0[j_kpr1321 * 16U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1321 * 16U + threadIdx.x];
+        col_ind_tile0[j_kpr1321 * 16U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1321 * 16U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -12565,8 +14236,14 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 16U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 16U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 16U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12574,19 +14251,24 @@ __hoisted_g_spmm_f32_512x512x16_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr1168 = 0U;
-    for (; i_kpr1168 < 8U; i_kpr1168++) {
-        uint32_t j_kpr1169 = i_kpr1168;
-        uint32_t off = n_idx + j_kpr1169 * 16U * 4U;
+    uint32_t i_kpr1324 = 0U;
+    for (; i_kpr1324 < 8U; i_kpr1324++) {
+        uint32_t j_kpr1325 = i_kpr1324;
+        uint32_t off = n_idx + j_kpr1325 * 16U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1169 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1322 = 0U;
+            for (; i_kpr1322 < 1U; i_kpr1322++) {
+                uint32_t j_kpr1323 = i_kpr1322;
+                uint32_t start = j_kpr1325 * 4U + j_kpr1323 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1323 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -12613,23 +14295,23 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t *row_indices, uint32_t rows,
     float out[16U];
     memset(out, 0U, 16U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1170 = 0U;
-        for (; i_kpr1170 < 4U; i_kpr1170++) {
-            uint32_t j_kpr1171 = i_kpr1170;
-            vec_memcpy(elems_tile0 + (j_kpr1171 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1171 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr1326 = 0U;
+        for (; i_kpr1326 < 4U; i_kpr1326++) {
+            uint32_t j_kpr1327 = i_kpr1326;
+            vec_memcpy(elems_tile0 + (j_kpr1327 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1327 * 32U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1172 = 0U;
-        for (; i_kpr1172 < 4U; i_kpr1172++) {
-            uint32_t j_kpr1173 = i_kpr1172;
-            vec_memcpy(col_ind_tile0 + (j_kpr1173 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1173 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr1328 = 0U;
+        for (; i_kpr1328 < 4U; i_kpr1328++) {
+            uint32_t j_kpr1329 = i_kpr1328;
+            vec_memcpy(col_ind_tile0 + (j_kpr1329 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1329 * 32U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr1174 = 0U;
-        for (; i_kpr1174 < to_; i_kpr1174++)
-            elems_tile0[i_kpr1174 * 32U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1330 = 0U;
+        for (; i_kpr1330 < to_; i_kpr1330++)
+            elems_tile0[i_kpr1330 * 32U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -12644,8 +14326,14 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12658,17 +14346,17 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1176 = 0U;
-            for (; i_kpr1176 < 4U; i_kpr1176++) {
-                uint32_t j_kpr1177 = i_kpr1176;
-                vec_memcpy(elems_tile0 + (j_kpr1177 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1177 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr1332 = 0U;
+            for (; i_kpr1332 < 4U; i_kpr1332++) {
+                uint32_t j_kpr1333 = i_kpr1332;
+                vec_memcpy(elems_tile0 + (j_kpr1333 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1333 * 32U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1178 = 0U;
-            for (; i_kpr1178 < 4U; i_kpr1178++) {
-                uint32_t j_kpr1179 = i_kpr1178;
-                vec_memcpy(col_ind_tile0 + (j_kpr1179 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1179 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr1334 = 0U;
+            for (; i_kpr1334 < 4U; i_kpr1334++) {
+                uint32_t j_kpr1335 = i_kpr1334;
+                vec_memcpy(col_ind_tile0 + (j_kpr1335 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1335 * 32U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -12684,9 +14372,15 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 32U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12702,14 +14396,14 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1181 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr1180 = 0U;
-    for (; i_kpr1180 < hi_kpr1181; i_kpr1180++) {
-        uint32_t j_kpr1182 = i_kpr1180;
-        elems_tile0[j_kpr1182 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1182 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr1182 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1182 * 32U + threadIdx.x];
+    uint32_t hi_kpr1337 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr1336 = 0U;
+    for (; i_kpr1336 < hi_kpr1337; i_kpr1336++) {
+        uint32_t j_kpr1338 = i_kpr1336;
+        elems_tile0[j_kpr1338 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1338 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr1338 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1338 * 32U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -12725,8 +14419,14 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12734,19 +14434,24 @@ __hoisted_g_spmm_f32_512x512x32_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr1183 = 0U;
-    for (; i_kpr1183 < 4U; i_kpr1183++) {
-        uint32_t j_kpr1184 = i_kpr1183;
-        uint32_t off = n_idx + j_kpr1184 * 32U * 4U;
+    uint32_t i_kpr1341 = 0U;
+    for (; i_kpr1341 < 4U; i_kpr1341++) {
+        uint32_t j_kpr1342 = i_kpr1341;
+        uint32_t off = n_idx + j_kpr1342 * 32U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1184 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1339 = 0U;
+            for (; i_kpr1339 < 1U; i_kpr1339++) {
+                uint32_t j_kpr1340 = i_kpr1339;
+                uint32_t start = j_kpr1342 * 4U + j_kpr1340 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1340 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -12773,23 +14478,23 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t *row_indices, uint32_t rows,
     float out[16U];
     memset(out, 0U, 16U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1185 = 0U;
-        for (; i_kpr1185 < 4U; i_kpr1185++) {
-            uint32_t j_kpr1186 = i_kpr1185;
-            vec_memcpy(elems_tile0 + (j_kpr1186 * 32U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1186 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr1343 = 0U;
+        for (; i_kpr1343 < 4U; i_kpr1343++) {
+            uint32_t j_kpr1344 = i_kpr1343;
+            vec_memcpy(elems_tile0 + (j_kpr1344 * 32U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1344 * 32U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1187 = 0U;
-        for (; i_kpr1187 < 4U; i_kpr1187++) {
-            uint32_t j_kpr1188 = i_kpr1187;
-            vec_memcpy(col_ind_tile0 + (j_kpr1188 * 32U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1188 * 32U + threadIdx.x) * 4U));
+        uint32_t i_kpr1345 = 0U;
+        for (; i_kpr1345 < 4U; i_kpr1345++) {
+            uint32_t j_kpr1346 = i_kpr1345;
+            vec_memcpy(col_ind_tile0 + (j_kpr1346 * 32U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1346 * 32U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 31U - threadIdx.x) / 32U;
-        uint32_t i_kpr1189 = 0U;
-        for (; i_kpr1189 < to_; i_kpr1189++)
-            elems_tile0[i_kpr1189 * 32U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1347 = 0U;
+        for (; i_kpr1347 < to_; i_kpr1347++)
+            elems_tile0[i_kpr1347 * 32U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -12804,8 +14509,14 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 32U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 32U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 32U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12818,17 +14529,17 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1191 = 0U;
-            for (; i_kpr1191 < 4U; i_kpr1191++) {
-                uint32_t j_kpr1192 = i_kpr1191;
-                vec_memcpy(elems_tile0 + (j_kpr1192 * 32U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1192 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr1349 = 0U;
+            for (; i_kpr1349 < 4U; i_kpr1349++) {
+                uint32_t j_kpr1350 = i_kpr1349;
+                vec_memcpy(elems_tile0 + (j_kpr1350 * 32U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1350 * 32U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1193 = 0U;
-            for (; i_kpr1193 < 4U; i_kpr1193++) {
-                uint32_t j_kpr1194 = i_kpr1193;
-                vec_memcpy(col_ind_tile0 + (j_kpr1194 * 32U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1194 * 32U + threadIdx.x) * 4U));
+            uint32_t i_kpr1351 = 0U;
+            for (; i_kpr1351 < 4U; i_kpr1351++) {
+                uint32_t j_kpr1352 = i_kpr1351;
+                vec_memcpy(col_ind_tile0 + (j_kpr1352 * 32U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1352 * 32U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -12844,9 +14555,15 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 32U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 32U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 32U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12862,14 +14579,14 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1196 = (__anf01 + 31U - threadIdx.x) / 32U;
-    uint32_t i_kpr1195 = 0U;
-    for (; i_kpr1195 < hi_kpr1196; i_kpr1195++) {
-        uint32_t j_kpr1197 = i_kpr1195;
-        elems_tile0[j_kpr1197 * 32U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1197 * 32U + threadIdx.x];
-        col_ind_tile0[j_kpr1197 * 32U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1197 * 32U + threadIdx.x];
+    uint32_t hi_kpr1354 = (__anf01 + 31U - threadIdx.x) / 32U;
+    uint32_t i_kpr1353 = 0U;
+    for (; i_kpr1353 < hi_kpr1354; i_kpr1353++) {
+        uint32_t j_kpr1355 = i_kpr1353;
+        elems_tile0[j_kpr1355 * 32U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1355 * 32U + threadIdx.x];
+        col_ind_tile0[j_kpr1355 * 32U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1355 * 32U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -12885,8 +14602,14 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 32U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 32U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 32U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12894,19 +14617,24 @@ __hoisted_g_spmm_f32_512x512x32_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr1198 = 0U;
-    for (; i_kpr1198 < 4U; i_kpr1198++) {
-        uint32_t j_kpr1199 = i_kpr1198;
-        uint32_t off = n_idx + j_kpr1199 * 32U * 4U;
+    uint32_t i_kpr1358 = 0U;
+    for (; i_kpr1358 < 4U; i_kpr1358++) {
+        uint32_t j_kpr1359 = i_kpr1358;
+        uint32_t off = n_idx + j_kpr1359 * 32U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1199 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1356 = 0U;
+            for (; i_kpr1356 < 1U; i_kpr1356++) {
+                uint32_t j_kpr1357 = i_kpr1356;
+                uint32_t start = j_kpr1359 * 4U + j_kpr1357 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1357 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -12933,23 +14661,23 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1200 = 0U;
-        for (; i_kpr1200 < 2U; i_kpr1200++) {
-            uint32_t j_kpr1201 = i_kpr1200;
-            vec_memcpy(elems_tile0 + (j_kpr1201 * 64U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1201 * 64U + threadIdx.x) * 4U));
+        uint32_t i_kpr1360 = 0U;
+        for (; i_kpr1360 < 2U; i_kpr1360++) {
+            uint32_t j_kpr1361 = i_kpr1360;
+            vec_memcpy(elems_tile0 + (j_kpr1361 * 64U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1361 * 64U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1202 = 0U;
-        for (; i_kpr1202 < 2U; i_kpr1202++) {
-            uint32_t j_kpr1203 = i_kpr1202;
-            vec_memcpy(col_ind_tile0 + (j_kpr1203 * 64U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1203 * 64U + threadIdx.x) * 4U));
+        uint32_t i_kpr1362 = 0U;
+        for (; i_kpr1362 < 2U; i_kpr1362++) {
+            uint32_t j_kpr1363 = i_kpr1362;
+            vec_memcpy(col_ind_tile0 + (j_kpr1363 * 64U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1363 * 64U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
-        uint32_t i_kpr1204 = 0U;
-        for (; i_kpr1204 < to_; i_kpr1204++)
-            elems_tile0[i_kpr1204 * 64U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1364 = 0U;
+        for (; i_kpr1364 < to_; i_kpr1364++)
+            elems_tile0[i_kpr1364 * 64U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -12964,8 +14692,14 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 64U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -12978,17 +14712,17 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1206 = 0U;
-            for (; i_kpr1206 < 2U; i_kpr1206++) {
-                uint32_t j_kpr1207 = i_kpr1206;
-                vec_memcpy(elems_tile0 + (j_kpr1207 * 64U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1207 * 64U + threadIdx.x) * 4U));
+            uint32_t i_kpr1366 = 0U;
+            for (; i_kpr1366 < 2U; i_kpr1366++) {
+                uint32_t j_kpr1367 = i_kpr1366;
+                vec_memcpy(elems_tile0 + (j_kpr1367 * 64U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1367 * 64U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1208 = 0U;
-            for (; i_kpr1208 < 2U; i_kpr1208++) {
-                uint32_t j_kpr1209 = i_kpr1208;
-                vec_memcpy(col_ind_tile0 + (j_kpr1209 * 64U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1209 * 64U + threadIdx.x) * 4U));
+            uint32_t i_kpr1368 = 0U;
+            for (; i_kpr1368 < 2U; i_kpr1368++) {
+                uint32_t j_kpr1369 = i_kpr1368;
+                vec_memcpy(col_ind_tile0 + (j_kpr1369 * 64U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1369 * 64U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -13004,9 +14738,15 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 64U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 64U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 64U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -13022,14 +14762,14 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1211 = (__anf01 + 63U - threadIdx.x) / 64U;
-    uint32_t i_kpr1210 = 0U;
-    for (; i_kpr1210 < hi_kpr1211; i_kpr1210++) {
-        uint32_t j_kpr1212 = i_kpr1210;
-        elems_tile0[j_kpr1212 * 64U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1212 * 64U + threadIdx.x];
-        col_ind_tile0[j_kpr1212 * 64U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1212 * 64U + threadIdx.x];
+    uint32_t hi_kpr1371 = (__anf01 + 63U - threadIdx.x) / 64U;
+    uint32_t i_kpr1370 = 0U;
+    for (; i_kpr1370 < hi_kpr1371; i_kpr1370++) {
+        uint32_t j_kpr1372 = i_kpr1370;
+        elems_tile0[j_kpr1372 * 64U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1372 * 64U + threadIdx.x];
+        col_ind_tile0[j_kpr1372 * 64U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1372 * 64U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -13045,8 +14785,14 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 64U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -13054,19 +14800,24 @@ __hoisted_g_spmm_f32_512x512x64_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr1213 = 0U;
-    for (; i_kpr1213 < 2U; i_kpr1213++) {
-        uint32_t j_kpr1214 = i_kpr1213;
-        uint32_t off = n_idx + j_kpr1214 * 64U * 4U;
+    uint32_t i_kpr1375 = 0U;
+    for (; i_kpr1375 < 2U; i_kpr1375++) {
+        uint32_t j_kpr1376 = i_kpr1375;
+        uint32_t off = n_idx + j_kpr1376 * 64U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1214 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1373 = 0U;
+            for (; i_kpr1373 < 1U; i_kpr1373++) {
+                uint32_t j_kpr1374 = i_kpr1373;
+                uint32_t start = j_kpr1376 * 4U + j_kpr1374 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1374 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -13093,23 +14844,23 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t *row_indices, uint32_t rows,
     float out[8U];
     memset(out, 0U, 8U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1215 = 0U;
-        for (; i_kpr1215 < 2U; i_kpr1215++) {
-            uint32_t j_kpr1216 = i_kpr1215;
-            vec_memcpy(elems_tile0 + (j_kpr1216 * 64U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1216 * 64U + threadIdx.x) * 4U));
+        uint32_t i_kpr1377 = 0U;
+        for (; i_kpr1377 < 2U; i_kpr1377++) {
+            uint32_t j_kpr1378 = i_kpr1377;
+            vec_memcpy(elems_tile0 + (j_kpr1378 * 64U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1378 * 64U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1217 = 0U;
-        for (; i_kpr1217 < 2U; i_kpr1217++) {
-            uint32_t j_kpr1218 = i_kpr1217;
-            vec_memcpy(col_ind_tile0 + (j_kpr1218 * 64U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1218 * 64U + threadIdx.x) * 4U));
+        uint32_t i_kpr1379 = 0U;
+        for (; i_kpr1379 < 2U; i_kpr1379++) {
+            uint32_t j_kpr1380 = i_kpr1379;
+            vec_memcpy(col_ind_tile0 + (j_kpr1380 * 64U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1380 * 64U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 63U - threadIdx.x) / 64U;
-        uint32_t i_kpr1219 = 0U;
-        for (; i_kpr1219 < to_; i_kpr1219++)
-            elems_tile0[i_kpr1219 * 64U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1381 = 0U;
+        for (; i_kpr1381 < to_; i_kpr1381++)
+            elems_tile0[i_kpr1381 * 64U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -13124,8 +14875,14 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t *row_indices, uint32_t rows,
                     if (n_idx + __anf01 * 64U * 4U < cols) {
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf01 * 64U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB + (cols * kr + (n_idx + __anf01 * 64U * 4U) +
+                                         kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -13138,17 +14895,17 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1221 = 0U;
-            for (; i_kpr1221 < 2U; i_kpr1221++) {
-                uint32_t j_kpr1222 = i_kpr1221;
-                vec_memcpy(elems_tile0 + (j_kpr1222 * 64U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1222 * 64U + threadIdx.x) * 4U));
+            uint32_t i_kpr1383 = 0U;
+            for (; i_kpr1383 < 2U; i_kpr1383++) {
+                uint32_t j_kpr1384 = i_kpr1383;
+                vec_memcpy(elems_tile0 + (j_kpr1384 * 64U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1384 * 64U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1223 = 0U;
-            for (; i_kpr1223 < 2U; i_kpr1223++) {
-                uint32_t j_kpr1224 = i_kpr1223;
-                vec_memcpy(col_ind_tile0 + (j_kpr1224 * 64U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1224 * 64U + threadIdx.x) * 4U));
+            uint32_t i_kpr1385 = 0U;
+            for (; i_kpr1385 < 2U; i_kpr1385++) {
+                uint32_t j_kpr1386 = i_kpr1385;
+                vec_memcpy(col_ind_tile0 + (j_kpr1386 * 64U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1386 * 64U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -13164,9 +14921,15 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t *row_indices, uint32_t rows,
                         if (n_idx + __anf03 * 64U * 4U < cols) {
                             float lchunk[4U];
                             memset(lchunk, 0U, 4U * sizeof(float));
-                            vec_memcpy(lchunk,
-                                gB +
-                                    (cols * kr + (n_idx + __anf03 * 64U * 4U)));
+                            uint32_t k2 = 0U;
+                            while (k2 < 1U) {
+                                uint32_t kv1 = k2;
+                                vec_memcpy(lchunk + kv1 * 4U,
+                                    gB + (cols * kr +
+                                             (n_idx + __anf03 * 64U * 4U) +
+                                             kv1 * 4U));
+                                k2 = kv1 + 1U;
+                            }
                             uint32_t ix = 0U;
                             for (; ix < 4U; ix++)
                                 out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -13182,14 +14945,14 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1226 = (__anf01 + 63U - threadIdx.x) / 64U;
-    uint32_t i_kpr1225 = 0U;
-    for (; i_kpr1225 < hi_kpr1226; i_kpr1225++) {
-        uint32_t j_kpr1227 = i_kpr1225;
-        elems_tile0[j_kpr1227 * 64U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1227 * 64U + threadIdx.x];
-        col_ind_tile0[j_kpr1227 * 64U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1227 * 64U + threadIdx.x];
+    uint32_t hi_kpr1388 = (__anf01 + 63U - threadIdx.x) / 64U;
+    uint32_t i_kpr1387 = 0U;
+    for (; i_kpr1387 < hi_kpr1388; i_kpr1387++) {
+        uint32_t j_kpr1389 = i_kpr1387;
+        elems_tile0[j_kpr1389 * 64U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1389 * 64U + threadIdx.x];
+        col_ind_tile0[j_kpr1389 * 64U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1389 * 64U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -13205,8 +14968,14 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t *row_indices, uint32_t rows,
                 if (n_idx + __anf02 * 64U * 4U < cols) {
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf02 * 64U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf02 * 64U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -13214,19 +14983,24 @@ __hoisted_g_spmm_f32_512x512x64_on_0(uint32_t *row_indices, uint32_t rows,
             }
         }
     }
-    uint32_t i_kpr1228 = 0U;
-    for (; i_kpr1228 < 2U; i_kpr1228++) {
-        uint32_t j_kpr1229 = i_kpr1228;
-        uint32_t off = n_idx + j_kpr1229 * 64U * 4U;
+    uint32_t i_kpr1392 = 0U;
+    for (; i_kpr1392 < 2U; i_kpr1392++) {
+        uint32_t j_kpr1393 = i_kpr1392;
+        uint32_t off = n_idx + j_kpr1393 * 64U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1229 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1390 = 0U;
+            for (; i_kpr1390 < 1U; i_kpr1390++) {
+                uint32_t j_kpr1391 = i_kpr1390;
+                uint32_t start = j_kpr1393 * 4U + j_kpr1391 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1391 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -13253,23 +15027,23 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1230 = 0U;
-        for (; i_kpr1230 < 1U; i_kpr1230++) {
-            uint32_t j_kpr1231 = i_kpr1230;
-            vec_memcpy(elems_tile0 + (j_kpr1231 * 128U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1231 * 128U + threadIdx.x) * 4U));
+        uint32_t i_kpr1394 = 0U;
+        for (; i_kpr1394 < 1U; i_kpr1394++) {
+            uint32_t j_kpr1395 = i_kpr1394;
+            vec_memcpy(elems_tile0 + (j_kpr1395 * 128U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1395 * 128U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1232 = 0U;
-        for (; i_kpr1232 < 1U; i_kpr1232++) {
-            uint32_t j_kpr1233 = i_kpr1232;
-            vec_memcpy(col_ind_tile0 + (j_kpr1233 * 128U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1233 * 128U + threadIdx.x) * 4U));
+        uint32_t i_kpr1396 = 0U;
+        for (; i_kpr1396 < 1U; i_kpr1396++) {
+            uint32_t j_kpr1397 = i_kpr1396;
+            vec_memcpy(col_ind_tile0 + (j_kpr1397 * 128U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1397 * 128U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 127U - threadIdx.x) / 128U;
-        uint32_t i_kpr1234 = 0U;
-        for (; i_kpr1234 < to_; i_kpr1234++)
-            elems_tile0[i_kpr1234 * 128U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1398 = 0U;
+        for (; i_kpr1398 < to_; i_kpr1398++)
+            elems_tile0[i_kpr1398 * 128U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -13283,8 +15057,14 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 128U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 128U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -13296,18 +15076,18 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1236 = 0U;
-            for (; i_kpr1236 < 1U; i_kpr1236++) {
-                uint32_t j_kpr1237 = i_kpr1236;
-                vec_memcpy(elems_tile0 + (j_kpr1237 * 128U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1237 * 128U + threadIdx.x) * 4U));
+            uint32_t i_kpr1400 = 0U;
+            for (; i_kpr1400 < 1U; i_kpr1400++) {
+                uint32_t j_kpr1401 = i_kpr1400;
+                vec_memcpy(elems_tile0 + (j_kpr1401 * 128U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1401 * 128U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1238 = 0U;
-            for (; i_kpr1238 < 1U; i_kpr1238++) {
-                uint32_t j_kpr1239 = i_kpr1238;
+            uint32_t i_kpr1402 = 0U;
+            for (; i_kpr1402 < 1U; i_kpr1402++) {
+                uint32_t j_kpr1403 = i_kpr1402;
                 vec_memcpy(
-                    col_ind_tile0 + (j_kpr1239 * 128U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1239 * 128U + threadIdx.x) * 4U));
+                    col_ind_tile0 + (j_kpr1403 * 128U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1403 * 128U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -13322,8 +15102,15 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 128U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB +
+                                    (cols * kr + (n_idx + __anf03 * 128U * 4U) +
+                                        kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -13338,14 +15125,14 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1241 = (__anf01 + 127U - threadIdx.x) / 128U;
-    uint32_t i_kpr1240 = 0U;
-    for (; i_kpr1240 < hi_kpr1241; i_kpr1240++) {
-        uint32_t j_kpr1242 = i_kpr1240;
-        elems_tile0[j_kpr1242 * 128U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1242 * 128U + threadIdx.x];
-        col_ind_tile0[j_kpr1242 * 128U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1242 * 128U + threadIdx.x];
+    uint32_t hi_kpr1405 = (__anf01 + 127U - threadIdx.x) / 128U;
+    uint32_t i_kpr1404 = 0U;
+    for (; i_kpr1404 < hi_kpr1405; i_kpr1404++) {
+        uint32_t j_kpr1406 = i_kpr1404;
+        elems_tile0[j_kpr1406 * 128U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1406 * 128U + threadIdx.x];
+        col_ind_tile0[j_kpr1406 * 128U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1406 * 128U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -13360,27 +15147,38 @@ __hoisted_g_spmm_f32_512x512x128_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 128U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 128U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr1243 = 0U;
-    for (; i_kpr1243 < 1U; i_kpr1243++) {
-        uint32_t j_kpr1244 = i_kpr1243;
-        uint32_t off = n_idx + j_kpr1244 * 128U * 4U;
+    uint32_t i_kpr1409 = 0U;
+    for (; i_kpr1409 < 1U; i_kpr1409++) {
+        uint32_t j_kpr1410 = i_kpr1409;
+        uint32_t off = n_idx + j_kpr1410 * 128U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1244 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1407 = 0U;
+            for (; i_kpr1407 < 1U; i_kpr1407++) {
+                uint32_t j_kpr1408 = i_kpr1407;
+                uint32_t start = j_kpr1410 * 4U + j_kpr1408 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1408 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
@@ -13407,23 +15205,23 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t *row_indices, uint32_t rows,
     float out[4U];
     memset(out, 0U, 4U * sizeof(float));
     if (nnz >= 512U) {
-        uint32_t i_kpr1245 = 0U;
-        for (; i_kpr1245 < 1U; i_kpr1245++) {
-            uint32_t j_kpr1246 = i_kpr1245;
-            vec_memcpy(elems_tile0 + (j_kpr1246 * 128U + threadIdx.x) * 4U,
-                gA.elems + (ri_ + (j_kpr1246 * 128U + threadIdx.x) * 4U));
+        uint32_t i_kpr1411 = 0U;
+        for (; i_kpr1411 < 1U; i_kpr1411++) {
+            uint32_t j_kpr1412 = i_kpr1411;
+            vec_memcpy(elems_tile0 + (j_kpr1412 * 128U + threadIdx.x) * 4U,
+                gA.elems + (ri_ + (j_kpr1412 * 128U + threadIdx.x) * 4U));
         }
-        uint32_t i_kpr1247 = 0U;
-        for (; i_kpr1247 < 1U; i_kpr1247++) {
-            uint32_t j_kpr1248 = i_kpr1247;
-            vec_memcpy(col_ind_tile0 + (j_kpr1248 * 128U + threadIdx.x) * 4U,
-                gA.col_ind + (ri_ + (j_kpr1248 * 128U + threadIdx.x) * 4U));
+        uint32_t i_kpr1413 = 0U;
+        for (; i_kpr1413 < 1U; i_kpr1413++) {
+            uint32_t j_kpr1414 = i_kpr1413;
+            vec_memcpy(col_ind_tile0 + (j_kpr1414 * 128U + threadIdx.x) * 4U,
+                gA.col_ind + (ri_ + (j_kpr1414 * 128U + threadIdx.x) * 4U));
         }
         __syncthreads();
         uint32_t to_ = (ri - ri_ + 127U - threadIdx.x) / 128U;
-        uint32_t i_kpr1249 = 0U;
-        for (; i_kpr1249 < to_; i_kpr1249++)
-            elems_tile0[i_kpr1249 * 128U + threadIdx.x] = 0.0f;
+        uint32_t i_kpr1415 = 0U;
+        for (; i_kpr1415 < to_; i_kpr1415++)
+            elems_tile0[i_kpr1415 * 128U + threadIdx.x] = 0.0f;
         __syncthreads();
         if (n_idx < cols) {
             uint32_t k = 0U;
@@ -13437,8 +15235,14 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t *row_indices, uint32_t rows,
                     uint32_t __anf01 = k1;
                     float lchunk[4U];
                     memset(lchunk, 0U, 4U * sizeof(float));
-                    vec_memcpy(lchunk,
-                        gB + (cols * kr + (n_idx + __anf01 * 128U * 4U)));
+                    uint32_t k2 = 0U;
+                    while (k2 < 1U) {
+                        uint32_t kv1 = k2;
+                        vec_memcpy(lchunk + kv1 * 4U,
+                            gB + (cols * kr + (n_idx + __anf01 * 128U * 4U) +
+                                     kv1 * 4U));
+                        k2 = kv1 + 1U;
+                    }
                     uint32_t ix = 0U;
                     for (; ix < 4U; ix++)
                         out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -13450,18 +15254,18 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t *row_indices, uint32_t rows,
         for (; nnz >= 512U; nnz -= 512U) {
             uint32_t off = ri_ + idx * 512U;
             __syncthreads();
-            uint32_t i_kpr1251 = 0U;
-            for (; i_kpr1251 < 1U; i_kpr1251++) {
-                uint32_t j_kpr1252 = i_kpr1251;
-                vec_memcpy(elems_tile0 + (j_kpr1252 * 128U + threadIdx.x) * 4U,
-                    gA.elems + (off + (j_kpr1252 * 128U + threadIdx.x) * 4U));
+            uint32_t i_kpr1417 = 0U;
+            for (; i_kpr1417 < 1U; i_kpr1417++) {
+                uint32_t j_kpr1418 = i_kpr1417;
+                vec_memcpy(elems_tile0 + (j_kpr1418 * 128U + threadIdx.x) * 4U,
+                    gA.elems + (off + (j_kpr1418 * 128U + threadIdx.x) * 4U));
             }
-            uint32_t i_kpr1253 = 0U;
-            for (; i_kpr1253 < 1U; i_kpr1253++) {
-                uint32_t j_kpr1254 = i_kpr1253;
+            uint32_t i_kpr1419 = 0U;
+            for (; i_kpr1419 < 1U; i_kpr1419++) {
+                uint32_t j_kpr1420 = i_kpr1419;
                 vec_memcpy(
-                    col_ind_tile0 + (j_kpr1254 * 128U + threadIdx.x) * 4U,
-                    gA.col_ind + (off + (j_kpr1254 * 128U + threadIdx.x) * 4U));
+                    col_ind_tile0 + (j_kpr1420 * 128U + threadIdx.x) * 4U,
+                    gA.col_ind + (off + (j_kpr1420 * 128U + threadIdx.x) * 4U));
             }
             __syncthreads();
             if (n_idx < cols) {
@@ -13476,8 +15280,15 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t *row_indices, uint32_t rows,
                         uint32_t __anf03 = k1;
                         float lchunk[4U];
                         memset(lchunk, 0U, 4U * sizeof(float));
-                        vec_memcpy(lchunk,
-                            gB + (cols * kr + (n_idx + __anf03 * 128U * 4U)));
+                        uint32_t k2 = 0U;
+                        while (k2 < 1U) {
+                            uint32_t kv1 = k2;
+                            vec_memcpy(lchunk + kv1 * 4U,
+                                gB +
+                                    (cols * kr + (n_idx + __anf03 * 128U * 4U) +
+                                        kv1 * 4U));
+                            k2 = kv1 + 1U;
+                        }
                         uint32_t ix = 0U;
                         for (; ix < 4U; ix++)
                             out[__anf1 * 4U + ix] += kx * lchunk[ix];
@@ -13492,14 +15303,14 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t *row_indices, uint32_t rows,
     }
     uint32_t __anf01 = nnz;
     __syncthreads();
-    uint32_t hi_kpr1256 = (__anf01 + 127U - threadIdx.x) / 128U;
-    uint32_t i_kpr1255 = 0U;
-    for (; i_kpr1255 < hi_kpr1256; i_kpr1255++) {
-        uint32_t j_kpr1257 = i_kpr1255;
-        elems_tile0[j_kpr1257 * 128U + threadIdx.x] =
-            gA.elems[re - __anf01 + j_kpr1257 * 128U + threadIdx.x];
-        col_ind_tile0[j_kpr1257 * 128U + threadIdx.x] =
-            gA.col_ind[re - __anf01 + j_kpr1257 * 128U + threadIdx.x];
+    uint32_t hi_kpr1422 = (__anf01 + 127U - threadIdx.x) / 128U;
+    uint32_t i_kpr1421 = 0U;
+    for (; i_kpr1421 < hi_kpr1422; i_kpr1421++) {
+        uint32_t j_kpr1423 = i_kpr1421;
+        elems_tile0[j_kpr1423 * 128U + threadIdx.x] =
+            gA.elems[re - __anf01 + j_kpr1423 * 128U + threadIdx.x];
+        col_ind_tile0[j_kpr1423 * 128U + threadIdx.x] =
+            gA.col_ind[re - __anf01 + j_kpr1423 * 128U + threadIdx.x];
     }
     __syncthreads();
     if (n_idx < cols) {
@@ -13514,27 +15325,38 @@ __hoisted_g_spmm_f32_512x512x128_on_0(uint32_t *row_indices, uint32_t rows,
                 uint32_t __anf02 = k1;
                 float lchunk[4U];
                 memset(lchunk, 0U, 4U * sizeof(float));
-                vec_memcpy(
-                    lchunk, gB + (cols * kr + (n_idx + __anf02 * 128U * 4U)));
+                uint32_t k2 = 0U;
+                while (k2 < 1U) {
+                    uint32_t kv1 = k2;
+                    vec_memcpy(lchunk + kv1 * 4U,
+                        gB + (cols * kr + (n_idx + __anf02 * 128U * 4U) +
+                                 kv1 * 4U));
+                    k2 = kv1 + 1U;
+                }
                 uint32_t ix = 0U;
                 for (; ix < 4U; ix++)
                     out[__anf1 * 4U + ix] += kx * lchunk[ix];
             }
         }
     }
-    uint32_t i_kpr1258 = 0U;
-    for (; i_kpr1258 < 1U; i_kpr1258++) {
-        uint32_t j_kpr1259 = i_kpr1258;
-        uint32_t off = n_idx + j_kpr1259 * 128U * 4U;
+    uint32_t i_kpr1426 = 0U;
+    for (; i_kpr1426 < 1U; i_kpr1426++) {
+        uint32_t j_kpr1427 = i_kpr1426;
+        uint32_t off = n_idx + j_kpr1427 * 128U * 4U;
         if (off < cols) {
-            uint32_t address = cols * m_idx + off;
-            float combined[4U];
-            memset(combined, 0U, 4U * sizeof(float));
-            vec_memcpy(combined, gC + address);
-            uint32_t lane = 0U;
-            for (; lane < 4U; lane++)
-                combined[lane] = out[j_kpr1259 * 4U + lane];
-            vec_memcpy(gC + address, combined);
+            uint32_t i_kpr1424 = 0U;
+            for (; i_kpr1424 < 1U; i_kpr1424++) {
+                uint32_t j_kpr1425 = i_kpr1424;
+                uint32_t start = j_kpr1427 * 4U + j_kpr1425 * 4U;
+                uint32_t address = cols * m_idx + (off + j_kpr1425 * 4U);
+                float combined[4U];
+                memset(combined, 0U, 4U * sizeof(float));
+                vec_memcpy(combined, gC + address);
+                uint32_t lane = 0U;
+                for (; lane < 4U; lane++)
+                    combined[lane] = out[start + lane];
+                vec_memcpy(gC + address, combined);
+            }
         }
     }
 }
