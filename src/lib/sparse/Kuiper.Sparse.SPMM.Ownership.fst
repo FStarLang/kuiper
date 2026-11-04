@@ -3,9 +3,11 @@ module Kuiper.Sparse.SPMM.Ownership
 #lang-pulse
 
 open Kuiper
+module MU = Kuiper.Kernel.GEMM.Util
 open Kuiper.Sparse
 open Kuiper.Sparse.Approx
 open Kuiper.Sparse.LoadStore
+module Epilogue = Kuiper.Sparse.SPMM.Epilogue
 open Kuiper.Sparse.SPMM.Defs
 open Kuiper.Sparse.SPMM.Barrier
 
@@ -29,15 +31,19 @@ let prod_divides_pat (a b c : pos)
 
 unfold
 let block_pre
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (p : parameters et)
+  (#et #tb #tc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, real_like tb,
+     scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
+  (p : parameters et { p.outputChunk == chunk tc })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
   (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : array2 et lB)
-  (gC : array2 et lC)
+  (gB : array2 tb lB)
+  (gC : array2 tc lC)
+  (rC : chest2 real p.rows p.cols)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -45,43 +51,7 @@ let block_pre
   (#relems : erased (lseq real gA.nnz))
   (rA : chest2 real p.rows p.shared)
   // matrices densas
-  (eB : chest2 et p.shared p.cols)
-  (rB : chest2 real p.shared p.cols { eB %~ rB })
-  (fA fri fB : perm)
-  (bid : natlt (nblocks p))
-  (tid : natlt p.blockWidth)
-  : slprop
-  =
-  csr_matrix_approx' gA #(fA /. allthreads p)
-    elems col_ind row_off relems rA **
-  row_indices |-> Frac (fri /. allthreads p) (ordering row_perm) **
-  gB |-> Frac (fB /. allthreads p) eB **
-  thread_live_tile_vec
-    gC
-    (brow p bid |~> row_perm)
-    (tcol p bid tid)
-    (p.blockItemsX / p.blockWidth)
-    p.blockWidth
-
-unfold
-let block_post
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (p : parameters et)
-  (row_perm : permutation (natlt p.rows))
-  (#lB : layout2 p.shared p.cols)
-  (#lC : layout2 p.rows p.cols)
-  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
-  (row_indices : larray sz p.rows)
-  (gB : array2 et lB)
-  (gC : array2 et lC)
-  // matriz sparse gA
-  (elems : lseq et gA.nnz)
-  (col_ind : lseq sz gA.nnz)
-  (row_off : lseq sz (p.rows + 1))
-  (#relems : erased (lseq real gA.nnz))
-  (rA : chest2 real p.rows p.shared)
-  // matrices densas
-  (eB : chest2 et p.shared p.cols)
+  (eB : chest2 tb p.shared p.cols)
   (rB : chest2 real p.shared p.cols { eB %~ rB })
   (fA fri fB : perm)
   (bid : natlt (nblocks p))
@@ -96,7 +66,48 @@ let block_post
     gC
     (brow p bid |~> row_perm)
     (tcol p bid tid)
-    (MS.matmul rA rB)
+    rC
+    (p.blockItemsX / p.blockWidth)
+    p.blockWidth
+
+unfold
+let block_post
+  (#et #tb #tc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, real_like tb,
+     scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
+  (p : parameters et { p.outputChunk == chunk tc })
+  (row_perm : permutation (natlt p.rows))
+  (#lB : layout2 p.shared p.cols)
+  (#lC : layout2 p.rows p.cols)
+  (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
+  (row_indices : larray sz p.rows)
+  (gB : array2 tb lB)
+  (gC : array2 tc lC)
+  (rC : chest2 real p.rows p.cols)
+  // matriz sparse gA
+  (elems : lseq et gA.nnz)
+  (col_ind : lseq sz gA.nnz)
+  (row_off : lseq sz (p.rows + 1))
+  (#relems : erased (lseq real gA.nnz))
+  (rA : chest2 real p.rows p.shared)
+  // matrices densas
+  (eB : chest2 tb p.shared p.cols)
+  (rB : chest2 real p.shared p.cols { eB %~ rB })
+  (fA fri fB : perm)
+  (bid : natlt (nblocks p))
+  (tid : natlt p.blockWidth)
+  : slprop
+  =
+  csr_matrix_approx' gA #(fA /. allthreads p)
+    elems col_ind row_off relems rA **
+  row_indices |-> Frac (fri /. allthreads p) (ordering row_perm) **
+  gB |-> Frac (fB /. allthreads p) eB **
+  thread_tile_approx
+    gC
+    (brow p bid |~> row_perm)
+    (tcol p bid tid)
+    rC
     (p.blockItemsX / p.blockWidth)
     p.blockWidth
 
@@ -124,15 +135,19 @@ let spmm_idx_succ_fits
 
 unfold
 let kpre
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (p : parameters et)
+  (#et #tb #tc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, real_like tb,
+     scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
+  (p : parameters et { p.outputChunk == chunk tc })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
   (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : array2 et lB)
-  (gC : array2 et lC)
+  (gB : array2 tb lB)
+  (gC : array2 tc lC)
+  (rC : chest2 real p.rows p.cols)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -140,7 +155,7 @@ let kpre
   (#relems : erased (lseq real gA.nnz))
   (rA : chest2 real p.rows p.shared)
   // matrices densas
-  (eB : chest2 et p.shared p.cols)
+  (eB : chest2 tb p.shared p.cols)
   (rB : chest2 real p.shared p.cols { eB %~ rB })
   (fA fri fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
@@ -153,7 +168,7 @@ let kpre
   let sh_i : larray sz p.blockItemsK = fst (snd sh) in
   block_pre
     p row_perm
-    gA row_indices gB gC
+    gA row_indices gB gC rC
     elems col_ind row_off
     #relems rA eB rB
     fA fri fB
@@ -167,15 +182,19 @@ let kpre
 
 unfold
 let kpost
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (p : parameters et)
+  (#et #tb #tc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, real_like tb,
+     scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
+  (p : parameters et { p.outputChunk == chunk tc })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
   (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : array2 et lB)
-  (gC : array2 et lC)
+  (gB : array2 tb lB)
+  (gC : array2 tc lC)
+  (rC : chest2 real p.rows p.cols)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -183,7 +202,7 @@ let kpost
   (#relems : erased (lseq real gA.nnz))
   (rA : chest2 real p.rows p.shared)
   // matrices densas
-  (eB : chest2 et p.shared p.cols)
+  (eB : chest2 tb p.shared p.cols)
   (rB : chest2 real p.shared p.cols { eB %~ rB })
   (fA fri fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
@@ -196,7 +215,7 @@ let kpost
   let sh_i : larray sz p.blockItemsK = fst (snd sh) in
   block_post
     p row_perm
-    gA row_indices gB gC
+    gA row_indices gB gC rC
     elems col_ind row_off
     #relems rA eB rB
     fA fri fB
@@ -259,7 +278,7 @@ let block_count_commuted
 let output_column_aligned
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (p : parameters et) (bid : natlt (nblocks_ p))
-  : Lemma (SZ.v (chunk et) /? bcol p bid)
+  : Lemma (SZ.v (p.outputChunk) /? bcol p bid)
   = let _ = tcol p bid 0 in ()
 
 let output_tile_bound
@@ -272,16 +291,20 @@ let output_tile_bound
 #push-options "--z3rlimit 30"
 ghost
 fn setup
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (p : parameters et)
+  (#et #tb #tc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, real_like tb,
+     scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
+  (p : parameters et { p.outputChunk == chunk tc })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : array2 et lB)
-  (gC : array2 et lC)
+  (gB : array2 tb lB)
+  (gC : array2 tc lC)
+  (rC : chest2 real p.rows p.cols)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -289,7 +312,7 @@ fn setup
   (#relems : erased (lseq real gA.nnz))
   (#rA : chest2 real p.rows p.shared)
   // matrices densas
-  (#eB : chest2 et p.shared p.cols)
+  (#eB : chest2 tb p.shared p.cols)
   (#rB : chest2 real p.shared p.cols { eB %~ rB })
   (#fA #fri #fB : perm)
   ()
@@ -298,12 +321,12 @@ fn setup
     csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
     row_indices |-> Frac fri (ordering row_perm) **
     gB |-> Frac fB eB **
-    live gC
+    matrix_approx gC rC
   ensures
     (forall+ (bid : natlt (nblocks p)) (tid : natlt p.blockWidth).
       block_pre
         p row_perm
-        gA row_indices gB gC
+        gA row_indices gB gC rC
         elems col_ind row_off
         #relems rA eB rB
         fA fri fB
@@ -311,13 +334,14 @@ fn setup
     ) **
       emp
 {
+  unfold matrix_approx gC rC;
   with eC. assert gC |-> eC;
   tensor_explode2 gC;
   forevery_unflatten' _;
 
   // Keep each cell's initial value while grouping rows into column tiles.
-  Math.prod_divides p.blockWidth (chunk et) p.blockItemsX;
-  Math.prod_cancel_divides p.blockItemsX (chunk et) p.blockWidth;
+  Math.prod_divides p.blockWidth (chunk tc) p.blockItemsX;
+  Math.prod_cancel_divides p.blockItemsX (chunk tc) p.blockWidth;
   forevery_map
     (fun r -> forall+ (c : natlt p.cols).
       pts_to_cell gC (idx2 r c) (acc2 eC r c))
@@ -352,7 +376,7 @@ fn setup
     (fun bid -> pts_to_tile_in_matrix gC
       (brow p bid |~> row_perm) (bcol p bid) eC p.blockItemsX)
     (fun bid -> forall+ (tid : natlt p.blockWidth).
-      thread_live_tile_vec gC (brow p bid |~> row_perm) (tcol p bid tid)
+      thread_tile_approx gC (brow p bid |~> row_perm) (tcol p bid tid) rC
         (p.blockItemsX / p.blockWidth) p.blockWidth)
     fn bid {
       output_column_aligned p bid;
@@ -361,11 +385,11 @@ fn setup
         as pts_to_tile_in_matrix gC
           (brow p bid |~> row_perm) (bcol p bid) eC
           ((p.blockItemsX / p.blockWidth) * p.blockWidth);
-      thread_live_tile_vec_scatter gC (brow p bid |~> row_perm) (bcol p bid) eC
+      Epilogue.scatter gC (brow p bid |~> row_perm) (bcol p bid) eC rC
         p.blockWidth (p.blockItemsX / p.blockWidth);
       forevery_ext #(natlt p.blockWidth) _
-        (fun tid -> thread_live_tile_vec gC
-          (brow p bid |~> row_perm) (tcol p bid tid)
+        (fun tid -> thread_tile_approx gC
+          (brow p bid |~> row_perm) (tcol p bid tid) rC
           (p.blockItemsX / p.blockWidth) p.blockWidth);
     };
 
@@ -395,16 +419,20 @@ fn setup
 #pop-options
 ghost
 fn block_setup
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (p : parameters et)
+  (#et #tb #tc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, real_like tb,
+     scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
+  (p : parameters et { p.outputChunk == chunk tc })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : array2 et lB)
-  (gC : array2 et lC)
+  (gB : array2 tb lB)
+  (gC : array2 tc lC)
+  (rC : chest2 real p.rows p.cols)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -412,7 +440,7 @@ fn block_setup
   (#relems : erased (lseq real gA.nnz))
   (#rA : chest2 real p.rows p.shared)
   // matrices densas
-  (#eB : chest2 et p.shared p.cols)
+  (#eB : chest2 tb p.shared p.cols)
   (#rB : chest2 real p.shared p.cols { eB %~ rB })
   (#fA #fri #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
@@ -425,7 +453,7 @@ fn block_setup
     (forall+ (tid : natlt p.blockWidth).
       block_pre
         p row_perm
-        gA row_indices gB gC
+        gA row_indices gB gC rC
         elems col_ind row_off
         #relems rA eB rB
         fA fri fB
@@ -435,7 +463,7 @@ fn block_setup
     (forall+ (tid : natlt p.blockWidth).
       kpre
         p row_perm
-        gA row_indices gB gC
+        gA row_indices gB gC rC
         elems col_ind row_off
         #relems rA eB rB
         fA fri fB
@@ -486,16 +514,20 @@ fn block_setup
 
 ghost
 fn block_teardown
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (p : parameters et)
+  (#et #tb #tc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, real_like tb,
+     scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
+  (p : parameters et { p.outputChunk == chunk tc })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : array2 et lB)
-  (gC : array2 et lC)
+  (gB : array2 tb lB)
+  (gC : array2 tc lC)
+  (rC : chest2 real p.rows p.cols)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -503,7 +535,7 @@ fn block_teardown
   (#relems : erased (lseq real gA.nnz))
   (#rA : chest2 real p.rows p.shared)
   // matrices densas
-  (#eB : chest2 et p.shared p.cols)
+  (#eB : chest2 tb p.shared p.cols)
   (#rB : chest2 real p.shared p.cols { eB %~ rB })
   (#fA #fri #fB : perm)
   (#_ : squash (well_formed p col_ind row_off))
@@ -515,7 +547,7 @@ fn block_teardown
     (forall+ (tid : natlt p.blockWidth).
       kpost
         p row_perm
-        gA row_indices gB gC
+        gA row_indices gB gC rC
         elems col_ind row_off
         #relems rA eB rB
         fA fri fB
@@ -527,7 +559,7 @@ fn block_teardown
     (forall+ (tid : natlt p.blockWidth).
       block_post
         p row_perm
-        gA row_indices gB gC
+        gA row_indices gB gC rC
         elems col_ind row_off
         #relems rA eB rB
         fA fri fB
@@ -610,16 +642,20 @@ let block_index_bound #et {| sized et, has_vec_cpy et |} (p : parameters et)
 #push-options "--z3rlimit 30 --using_facts_from '* -Kuiper.Sparse.Common.sorted_slice'"
 ghost
 fn teardown
-  (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
-  (p : parameters et)
+  (#et #tb #tc : Type0)
+  {| scalar et, sized et, has_vec_cpy et, real_like et,
+     scalar tb, real_like tb,
+     scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
+  (p : parameters et { p.outputChunk == chunk tc })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
   {| ctlayout lB, ctlayout lC |}
   (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (row_indices : larray sz p.rows)
-  (gB : array2 et lB)
-  (gC : array2 et lC)
+  (gB : array2 tb lB)
+  (gC : array2 tc lC)
+  (rC : chest2 real p.rows p.cols)
   // matriz sparse gA
   (elems : lseq et gA.nnz)
   (col_ind : lseq sz gA.nnz)
@@ -627,7 +663,7 @@ fn teardown
   (#relems : erased (lseq real gA.nnz))
   (#rA : chest2 real p.rows p.shared)
   // matrices densas
-  (#eB : chest2 et p.shared p.cols)
+  (#eB : chest2 tb p.shared p.cols)
   (#rB : chest2 real p.shared p.cols { eB %~ rB })
   (#fA #fri #fB : perm)
   ()
@@ -636,7 +672,7 @@ fn teardown
     (forall+ (bid : natlt (nblocks p)) (tid : natlt p.blockWidth).
       block_post
         p row_perm
-        gA row_indices gB gC
+        gA row_indices gB gC rC
         elems col_ind row_off
         #relems rA eB rB
         fA fri fB
@@ -647,7 +683,7 @@ fn teardown
     csr_matrix_approx' gA #fA elems col_ind row_off relems rA **
     row_indices |-> Frac fri (ordering row_perm) **
     gB |-> Frac fB eB **
-    matrix_approx gC (MS.matmul rA rB)
+    matrix_approx gC rC
 {
   forevery_unzip_2 _ _;
   forevery_unfactor' (allthreads p) _ _
@@ -669,30 +705,30 @@ fn teardown
 
   // Gather each block's vectors into a scalar tile, preserving the value
   // of every cell. Then undo the block ordering and the row permutation.
-  Math.prod_divides p.blockWidth (chunk et) p.blockItemsX;
-  Math.prod_cancel_divides p.blockItemsX (chunk et) p.blockWidth;
+  Math.prod_divides p.blockWidth (chunk tc) p.blockItemsX;
+  Math.prod_cancel_divides p.blockItemsX (chunk tc) p.blockWidth;
   forevery_map #(natlt (nblocks p))
     (fun bid -> forall+ (tid : natlt p.blockWidth).
       thread_tile_approx gC
         (brow p bid |~> row_perm) (tcol p bid tid)
-        (MS.matmul rA rB) (p.blockItemsX / p.blockWidth) p.blockWidth)
+        rC (p.blockItemsX / p.blockWidth) p.blockWidth)
     (fun bid -> tile_approx gC
-      (brow p bid |~> row_perm) (bcol p bid) (MS.matmul rA rB) p.blockItemsX)
+      (brow p bid |~> row_perm) (bcol p bid) rC p.blockItemsX)
     fn bid {
       output_column_aligned p bid;
       forevery_ext #(natlt p.blockWidth)
         _
         (fun tid -> thread_tile_approx gC
-          (brow p bid |~> row_perm) (thread_offset et (bcol p bid) tid)
-          (MS.matmul rA rB) (p.blockItemsX / p.blockWidth) p.blockWidth);
+          (brow p bid |~> row_perm) (thread_offset tc (bcol p bid) tid)
+          rC (p.blockItemsX / p.blockWidth) p.blockWidth);
       thread_tile_approx_gather gC
-        (brow p bid |~> row_perm) (bcol p bid) (MS.matmul rA rB)
+        (brow p bid |~> row_perm) (bcol p bid) rC
         p.blockWidth (p.blockItemsX / p.blockWidth);
       rewrite tile_approx gC
-          (brow p bid |~> row_perm) (bcol p bid) (MS.matmul rA rB)
+          (brow p bid |~> row_perm) (bcol p bid) rC
           ((p.blockItemsX / p.blockWidth) * p.blockWidth)
         as tile_approx gC
-          (brow p bid |~> row_perm) (bcol p bid) (MS.matmul rA rB) p.blockItemsX;
+          (brow p bid |~> row_perm) (bcol p bid) rC p.blockItemsX;
     };
   block_index_bound p;
   block_count_commuted p;
@@ -701,9 +737,9 @@ fn teardown
   forevery_map_2 #(natlt (divup p.cols p.blockItemsX)) #(natlt p.rows)
     (fun b r -> tile_approx gC
       (brow p (b * p.rows + r) |~> row_perm) (bcol p (b * p.rows + r))
-      (MS.matmul rA rB) p.blockItemsX)
+      rC p.blockItemsX)
     (fun b r -> tile_approx gC
-      (r |~> row_perm) (b * p.blockItemsX) (MS.matmul rA rB) p.blockItemsX)
+      (r |~> row_perm) (b * p.blockItemsX) rC p.blockItemsX)
     fn b r {
       lem_div2 b p.rows r;
       rewrite each (brow p (b * p.rows + r)) as r;
@@ -714,12 +750,12 @@ fn teardown
   forevery_commute _;
   forevery_iso row_perm (fun r -> forall+ (b : natlt (divup p.cols p.blockItemsX)).
     tile_approx gC (r |~> row_perm) (b * p.blockItemsX)
-      (MS.matmul rA rB) p.blockItemsX);
+      rC p.blockItemsX);
   forevery_ext_2 #(natlt p.rows) #(natlt (divup p.cols p.blockItemsX))
     _
     (fun r b -> tile_approx gC r (b * p.blockItemsX)
-      (MS.matmul rA rB) p.blockItemsX);
-  gather_approx_matrix gC (MS.matmul rA rB) p.blockItemsX;
+      rC p.blockItemsX);
+  gather_approx_matrix gC rC p.blockItemsX;
 
   ();
 }
