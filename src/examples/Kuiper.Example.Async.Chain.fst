@@ -16,7 +16,7 @@ inline_for_extraction noextract
 let inc (v:u64) : u64 = U64.add_underspec v 1uL
 
 inline_for_extraction noextract
-fn kernel_f (r : gpu_ref u64) (#v : erased u64)
+fn kernel_f (r : ref u64) (#v : erased u64)
   ()
   requires gpu ** r |-> v
   ensures  gpu ** r |-> inc v
@@ -25,7 +25,7 @@ fn kernel_f (r : gpu_ref u64) (#v : erased u64)
 }
 
 inline_for_extraction noextract
-let kernel (r : gpu_ref u64) (#v : erased u64)
+let kernel (r : ref u64{visibility_of_ref r == gpu_of}) (#v : erased u64)
   : kernel_desc _ _
   = { f = kernel_f r #v;
       full_post_sendable = solve;
@@ -34,8 +34,9 @@ let kernel (r : gpu_ref u64) (#v : erased u64)
 
 fn galloc (x : u64)
   preserves cpu
-  returns  r : gpu_ref u64
+  returns  r : ref u64
   ensures  on gpu_loc (r |-> x)
+  ensures  pure (visibility_of_ref r == gpu_of /\ Pulse.Lib.Reference.is_full_ref r)
 {
   let mut r = x;
   let gr = alloc0 #u64 ();
@@ -43,7 +44,7 @@ fn galloc (x : u64)
   gr
 }
 
-fn gread (gr : gpu_ref u64) (#v0 : erased u64)
+fn gread (gr : ref u64) (#v0 : erased u64)
   preserves cpu
   requires on gpu_loc (gr |-> v0)
   returns  v : u64

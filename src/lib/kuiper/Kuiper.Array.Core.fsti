@@ -603,11 +603,13 @@ fn array_gather_underspec
 //   ensures
 //     arr |-> Frac 'f ('s1 @+ 's2)
 
+// Taking an element's address preserves the allocation's visibility, including
+// the distinction between global, shared, and thread-local GPU storage.
 val ref_of_cell
   (#et : Type0)
   (a : array et)
   (i : nat)
-  : ref et
+  : r:ref et{Pulse.Lib.Reference.visibility_of_ref r == visibility_of a}
 
 fn get_ref_of_cell
   (#et : Type0)
