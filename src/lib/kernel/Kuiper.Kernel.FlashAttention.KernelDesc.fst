@@ -203,6 +203,8 @@ let array2_stride_subtile_base
     [SMTPat (core (array2_stride_subtile gm srows scols tr tc))]
   = ()
 
+(* Kuiper.Divides.lemma_divides_product causes a matching loop in this VC. *)
+#push-options "--using_facts_from '* -Kuiper.Divides.lemma_divides_product'"
 let stride_cell_convert_eq
   (#et : _)
   (#rows #cols : erased nat)
@@ -224,6 +226,7 @@ let stride_cell_convert_eq
   = pts_to_cell_eq gm (idx2 ((i * srows + tr) <: natlt rows) ((j * scols + tc) <: natlt cols)) f v;
     pts_to_cell_eq (array2_stride_subtile gm srows scols tr tc) (idx2 i j) f v;
     ()
+#pop-options
 
 (* ── EMatrix-level lemmas for the stride decomposition ─────────────────── *)
 

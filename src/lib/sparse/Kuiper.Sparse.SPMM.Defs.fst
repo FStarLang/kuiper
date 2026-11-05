@@ -79,7 +79,13 @@ let allthreads
   (p : parameters et)
 : Pure sz
   (ensures fun r -> SZ.v r == allthreads_ p)
-= assert fits (max_blocks * max_threads); nblocks p *^ nthreads p
+= let nb = nblocks p in
+  let nt = nthreads p in
+  // nb * nt <= max_blocks * max_threads, which fits (nonlinear, spelled out)
+  FStar.Math.Lemmas.lemma_mult_le_right (SZ.v nt) (SZ.v nb) (SZ.v max_blocks);
+  FStar.Math.Lemmas.lemma_mult_le_left (SZ.v max_blocks) (SZ.v nt) (SZ.v max_threads);
+  assert fits (max_blocks * max_threads);
+  nb *^ nt
 #pop-options
 
 let brow
