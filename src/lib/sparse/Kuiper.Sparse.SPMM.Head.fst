@@ -27,6 +27,11 @@ module Compute = Kuiper.Sparse.SPMM.Compute
 
 open Kuiper.Sparse.SPMM.Ownership
 
+let frac_div_pos (a : real) (n : pos)
+: Lemma (requires a >. 0.0R) (ensures a /. FStar.Real.of_int n >. 0.0R)
+        [SMTPat (a /. FStar.Real.of_int n)]
+= ()
+
 inline_for_extraction noextract
 fn sparse_load_main
   (#et : Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}

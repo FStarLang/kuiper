@@ -856,6 +856,12 @@ let kf_first_step_arith (tid nth k : nat)
           (ensures tid + 1 <= nth /\ min (tid + pow2 k) nth == tid + 1)
   = ()
 
+(* Positivity of the input fraction, likewise proved apart from [kf]'s context. *)
+private
+let frac_nth_pos (nth : pos)
+  : Lemma (FStar.Real.(1.0R /. of_int nth >. 0.0R))
+  = ()
+
 inline_for_extraction noextract
 fn kf
   (#et:Type0) {| floating et, real_like et, floating_real_like et |}
@@ -918,6 +924,7 @@ fn kf
   (**)     as (array1_pts_to_slice_max sa tid (min (tid + pow2 !n) nth) vr_s);
   (**)if_intro_true' (div_pow2 !n tid) (array1_pts_to_slice_max sa tid (min (tid + pow2 !n) nth) vr_s);
 
+  (**)frac_nth_pos (SZ.v nth);
   open FStar.SizeT;
   while (spow2 !n <^ nth)
     invariant

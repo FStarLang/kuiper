@@ -45,6 +45,54 @@ let flat_warp_row_bound (wid : nat) (warp_rows warp_cols : pos)
     FStar.Math.Lemmas.euclidean_division_definition wid warp_cols
   end
 
+(* The fade depends on (idxI, idxJ) only through the flat count
+   idxI * wn + idxJ; in particular finishing row idxI (idxJ = wn) is the same
+   as starting row idxI + 1.  Needed to re-establish the outer loop invariant:
+   the solver no longer finds this (nonlinear) step unaided. *)
+#push-options "--fuel 1"
+let em_fade_comb_tiles_flat_at
+  (comb : real -> real -> real)
+  (tm tn wm wn : pos)
+  (a1 : natle wm) (b1 : natle wn)
+  (a2 : natle wm) (b2 : natle wn)
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
+  (i : natlt (wm*tm)) (j : natlt (wn*tn))
+  : Lemma (requires a1 * wn + b1 == a2 * wn + b2)
+          (ensures Chest.acc2 (em_fade_comb_tiles comb tm tn wm wn a1 b1 rm1 rm2) i j
+                == Chest.acc2 (em_fade_comb_tiles comb tm tn wm wn a2 b2 rm1 rm2) i j)
+= ()
+#pop-options
+
+let em_fade_comb_tiles_flat
+  (comb : real -> real -> real)
+  (tm tn wm wn : pos)
+  (a1 : natle wm) (b1 : natle wn)
+  (a2 : natle wm) (b2 : natle wn)
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
+  : Lemma (requires a1 * wn + b1 == a2 * wn + b2)
+          (ensures em_fade_comb_tiles comb tm tn wm wn a1 b1 rm1 rm2
+                == em_fade_comb_tiles comb tm tn wm wn a2 b2 rm1 rm2)
+= introduce forall (i : natlt (wm*tm)) (j : natlt (wn*tn)).
+    Chest.acc2 (em_fade_comb_tiles comb tm tn wm wn a1 b1 rm1 rm2) i j
+    == Chest.acc2 (em_fade_comb_tiles comb tm tn wm wn a2 b2 rm1 rm2) i j
+  with em_fade_comb_tiles_flat_at comb tm tn wm wn a1 b1 a2 b2 rm1 rm2 i j;
+  Kuiper.EMatrix.lemma_equal_intro
+    (em_fade_comb_tiles comb tm tn wm wn a1 b1 rm1 rm2)
+    (em_fade_comb_tiles comb tm tn wm wn a2 b2 rm1 rm2);
+  Chest.ext
+    (em_fade_comb_tiles comb tm tn wm wn a1 b1 rm1 rm2)
+    (em_fade_comb_tiles comb tm tn wm wn a2 b2 rm1 rm2)
+
+let em_fade_comb_tiles_next_row
+  (comb : real -> real -> real)
+  (tm tn wm wn : pos)
+  (idxI : natlt wm)
+  (rm1 rm2 : chest2 real (wm*tm) (wn*tn))
+  : Lemma (em_fade_comb_tiles comb tm tn wm wn idxI wn rm1 rm2
+           == em_fade_comb_tiles comb tm tn wm wn (idxI + 1) 0 rm1 rm2)
+= FStar.Math.Lemmas.distributivity_add_left idxI 1 wn;
+  em_fade_comb_tiles_flat comb tm tn wm wn idxI wn (idxI + 1) 0 rm1 rm2
+
 #push-options "--fuel 1 --ifuel 1"
 inline_for_extraction noextract
 fn epilogue
@@ -158,6 +206,7 @@ fn epilogue
 
       j := !j +^ 1sz;
     };
+    em_fade_comb_tiles_next_row comb tm tn wm wn !i rCtile rAcc;
     i := !i +^ 1sz;
   };
 

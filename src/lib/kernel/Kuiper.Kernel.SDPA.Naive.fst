@@ -480,6 +480,8 @@ fn sdpa_naive
   let eSf = fold_chest ebias; let rSf = fold_chest rbias;
 
   // Compute Q * K^T + bias, scaled by scale, into bias
+  // Reassociate the nonlinear product n * h * l * s for the bounds below.
+  FStar.Math.Lemmas.paren_mul_right (SZ.v n * SZ.v h) (SZ.v l) (SZ.v s);
   assert pure (SZ.fits ((n *^ h) * (l * s)));
   assert pure ((n *^ h) * (l * s) <= max_blocks);
   assert pure (G.bsize_req (n*^h) l s e);
@@ -560,6 +562,7 @@ fn sdpa_naive
   let eO0f = fold_chest eO0;
 
   // Final batched matmul to compute output: probs * V
+  FStar.Math.Lemmas.paren_mul_right (SZ.v n * SZ.v h) (SZ.v l) (SZ.v ev);
   assert pure (SZ.fits ((n *^ h) * (l * ev)));
   assert pure ((n *^ h) * (l * ev) <= max_blocks);
   assert pure (G.bsize_req (n*^h) l ev s);
