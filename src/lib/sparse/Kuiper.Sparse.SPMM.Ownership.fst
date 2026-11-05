@@ -5,6 +5,7 @@ module Kuiper.Sparse.SPMM.Ownership
 open Kuiper
 module MU = Kuiper.Kernel.GEMM.Util
 open Kuiper.Sparse
+open Kuiper.Sparse.SPMM.Groups
 open Kuiper.Sparse.Approx
 open Kuiper.Sparse.LoadStore
 module Epilogue = Kuiper.Sparse.SPMM.Epilogue
@@ -35,7 +36,7 @@ let block_pre
   {| scalar et, sized et, has_vec_cpy et, real_like et,
      scalar tb, real_like tb,
      scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
-  (p : parameters et { p.outputChunk == chunk tc })
+  (p : parameters et { chunk tc /? p.workChunk })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -62,7 +63,7 @@ let block_pre
     elems col_ind row_off relems rA **
   row_indices |-> Frac (fri /. allthreads p) (ordering row_perm) **
   gB |-> Frac (fB /. allthreads p) eB **
-  thread_tile_approx
+  thread_groups_approx (p.workChunk)
     gC
     (brow p bid |~> row_perm)
     (tcol p bid tid)
@@ -76,7 +77,7 @@ let block_post
   {| scalar et, sized et, has_vec_cpy et, real_like et,
      scalar tb, real_like tb,
      scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
-  (p : parameters et { p.outputChunk == chunk tc })
+  (p : parameters et { chunk tc /? p.workChunk })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -103,7 +104,7 @@ let block_post
     elems col_ind row_off relems rA **
   row_indices |-> Frac (fri /. allthreads p) (ordering row_perm) **
   gB |-> Frac (fB /. allthreads p) eB **
-  thread_tile_approx
+  thread_groups_approx (p.workChunk)
     gC
     (brow p bid |~> row_perm)
     (tcol p bid tid)
@@ -139,7 +140,7 @@ let kpre
   {| scalar et, sized et, has_vec_cpy et, real_like et,
      scalar tb, real_like tb,
      scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
-  (p : parameters et { p.outputChunk == chunk tc })
+  (p : parameters et { chunk tc /? p.workChunk })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -186,7 +187,7 @@ let kpost
   {| scalar et, sized et, has_vec_cpy et, real_like et,
      scalar tb, real_like tb,
      scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
-  (p : parameters et { p.outputChunk == chunk tc })
+  (p : parameters et { chunk tc /? p.workChunk })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -278,7 +279,7 @@ let block_count_commuted
 let output_column_aligned
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (p : parameters et) (bid : natlt (nblocks_ p))
-  : Lemma (SZ.v (p.outputChunk) /? bcol p bid)
+  : Lemma (SZ.v (p.workChunk) /? bcol p bid)
   = let _ = tcol p bid 0 in ()
 
 let output_tile_bound
@@ -295,7 +296,7 @@ fn setup
   {| scalar et, sized et, has_vec_cpy et, real_like et,
      scalar tb, real_like tb,
      scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
-  (p : parameters et { p.outputChunk == chunk tc })
+  (p : parameters et { chunk tc /? p.workChunk })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -340,8 +341,8 @@ fn setup
   forevery_unflatten' _;
 
   // Keep each cell's initial value while grouping rows into column tiles.
-  Math.prod_divides p.blockWidth (chunk tc) p.blockItemsX;
-  Math.prod_cancel_divides p.blockItemsX (chunk tc) p.blockWidth;
+  Math.prod_divides p.blockWidth (p.workChunk) p.blockItemsX;
+  Math.prod_cancel_divides p.blockItemsX (p.workChunk) p.blockWidth;
   forevery_map
     (fun r -> forall+ (c : natlt p.cols).
       pts_to_cell gC (idx2 r c) (acc2 eC r c))
@@ -376,7 +377,7 @@ fn setup
     (fun bid -> pts_to_tile_in_matrix gC
       (brow p bid |~> row_perm) (bcol p bid) eC p.blockItemsX)
     (fun bid -> forall+ (tid : natlt p.blockWidth).
-      thread_tile_approx gC (brow p bid |~> row_perm) (tcol p bid tid) rC
+      thread_groups_approx (p.workChunk) gC (brow p bid |~> row_perm) (tcol p bid tid) rC
         (p.blockItemsX / p.blockWidth) p.blockWidth)
     fn bid {
       output_column_aligned p bid;
@@ -385,10 +386,10 @@ fn setup
         as pts_to_tile_in_matrix gC
           (brow p bid |~> row_perm) (bcol p bid) eC
           ((p.blockItemsX / p.blockWidth) * p.blockWidth);
-      Epilogue.scatter gC (brow p bid |~> row_perm) (bcol p bid) eC rC
+      share_groups (p.workChunk) gC (brow p bid |~> row_perm) (bcol p bid) eC rC
         p.blockWidth (p.blockItemsX / p.blockWidth);
       forevery_ext #(natlt p.blockWidth) _
-        (fun tid -> thread_tile_approx gC
+        (fun tid -> thread_groups_approx (p.workChunk) gC
           (brow p bid |~> row_perm) (tcol p bid tid) rC
           (p.blockItemsX / p.blockWidth) p.blockWidth);
     };
@@ -423,7 +424,7 @@ fn block_setup
   {| scalar et, sized et, has_vec_cpy et, real_like et,
      scalar tb, real_like tb,
      scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
-  (p : parameters et { p.outputChunk == chunk tc })
+  (p : parameters et { chunk tc /? p.workChunk })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -518,7 +519,7 @@ fn block_teardown
   {| scalar et, sized et, has_vec_cpy et, real_like et,
      scalar tb, real_like tb,
      scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
-  (p : parameters et { p.outputChunk == chunk tc })
+  (p : parameters et { chunk tc /? p.workChunk })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -646,7 +647,7 @@ fn teardown
   {| scalar et, sized et, has_vec_cpy et, real_like et,
      scalar tb, real_like tb,
      scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
-  (p : parameters et { p.outputChunk == chunk tc })
+  (p : parameters et { chunk tc /? p.workChunk })
   (row_perm : permutation (natlt p.rows))
   (#lB : layout2 p.shared p.cols)
   (#lC : layout2 p.rows p.cols)
@@ -705,11 +706,11 @@ fn teardown
 
   // Gather each block's vectors into a scalar tile, preserving the value
   // of every cell. Then undo the block ordering and the row permutation.
-  Math.prod_divides p.blockWidth (chunk tc) p.blockItemsX;
-  Math.prod_cancel_divides p.blockItemsX (chunk tc) p.blockWidth;
+  Math.prod_divides p.blockWidth (p.workChunk) p.blockItemsX;
+  Math.prod_cancel_divides p.blockItemsX (p.workChunk) p.blockWidth;
   forevery_map #(natlt (nblocks p))
     (fun bid -> forall+ (tid : natlt p.blockWidth).
-      thread_tile_approx gC
+      thread_groups_approx (p.workChunk) gC
         (brow p bid |~> row_perm) (tcol p bid tid)
         rC (p.blockItemsX / p.blockWidth) p.blockWidth)
     (fun bid -> tile_approx gC
@@ -718,10 +719,10 @@ fn teardown
       output_column_aligned p bid;
       forevery_ext #(natlt p.blockWidth)
         _
-        (fun tid -> thread_tile_approx gC
-          (brow p bid |~> row_perm) (thread_offset tc (bcol p bid) tid)
+        (fun tid -> thread_groups_approx (p.workChunk) gC
+          (brow p bid |~> row_perm) (thread_group_offset (p.workChunk) (bcol p bid) tid)
           rC (p.blockItemsX / p.blockWidth) p.blockWidth);
-      thread_tile_approx_gather gC
+      gather_groups (p.workChunk) gC
         (brow p bid |~> row_perm) (bcol p bid) rC
         p.blockWidth (p.blockItemsX / p.blockWidth);
       rewrite tile_approx gC

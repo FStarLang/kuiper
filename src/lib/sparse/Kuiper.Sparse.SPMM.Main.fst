@@ -40,6 +40,27 @@ let spmm_idx_succ_bound
   (ensures  idx + 1 <= (row_end - row_start) / block_items)
 = ()
 
+(* Express the source slice using the loop's successor index.  Prove the
+   sequence equality here, before it is embedded in a large heap frame. *)
+let seq_mask_tile_source_slice
+  (#et : Type0) {| scalar et |}
+  (#n : nat) (elems : lseq et n)
+  (ri' ri re : nat { ri' <= ri /\ ri <= re /\ re <= n })
+  (row_elems_ : lseq et (re - ri) { row_elems_ == Seq.slice elems ri re })
+  (row_elems : lseq et (re - ri') { row_elems == seq_mask (ri - ri') row_elems_ })
+  (idx : nat) (count : pos)
+  : Lemma
+      (requires ri - ri' <= idx * count /\ idx * count + count <= re - ri')
+      (ensures
+        Seq.slice elems (ri' + idx * count) (ri' + idx * count + count) ==
+        Seq.slice row_elems (idx * count) ((idx + 1) * count))
+  = FStar.Math.Lemmas.distributivity_add_left idx 1 count;
+    seq_mask_source_slice elems ri' ri re row_elems_ row_elems
+      (idx * count) ((idx + 1) * count);
+    Seq.lemma_eq_elim
+      (Seq.slice elems (ri' + idx * count) (ri' + (idx + 1) * count))
+      (Seq.slice row_elems (idx * count) ((idx + 1) * count))
+
 (* Name the dependent prefix specification so loop-invariant well-formedness
    does not repeatedly reconstruct its slice and output-length refinements. *)
 let tile_mm_prefix_result
@@ -52,14 +73,14 @@ let tile_mm_prefix_result
   (elems : lseq real n)
   (row_ind : lseq sz n)
   (rB : chest2 real p.shared p.cols)
-  (n_idx : nat { p.outputChunk /? n_idx })
+  (n_idx : nat { p.workChunk /? n_idx })
   (stop : nat)
   (v_out : seq tacc)
   : prop
   = stop <= n /\
     in_bounds 0 p.shared (cast_pos row_ind) /\
     len v_out == threadItemsX p /\
-    Compute.tile_mm_result rmapA rmapB p.outputChunk
+    Compute.tile_mm_result rmapA rmapB p.workChunk
       #p.shared #p.cols #(threadItemsX p)
       out0 #stop
       (Seq.slice elems 0 stop)
@@ -76,7 +97,7 @@ fn kf_main
   (mapB : tb -> tacc)
   (rmapA : real -> real { MU.approx1 mapA rmapA /\ rmapA 0.0R == 0.0R })
   (rmapB : real -> real { MU.approx1 mapB rmapB })
-  (p : parameters et)
+  (p : parameters et { chunk tb /? p.workChunk })
   (row_perm : permutation (natlt p.rows))
   (gA : csr_matrix et (SZ.v p.rows) (SZ.v p.shared))
   (#lB : layout2 p.shared p.cols) {| ctlB : ctlayout lB, srmB : strided_row_major lB |}
@@ -114,7 +135,7 @@ fn kf_main
   requires  pure (aligned 16 gA.col_ind)
   preserves gB |-> Frac (fB /. allthreads p) eB
   requires  pure (aligned 16 (core gB))
-  requires  pure (aligned_strided_row_major (p.outputChunk) srmB)
+  requires  pure (aligned_strided_row_major (chunk tb) srmB)
   preserves
     B.barrier_tok (
       barrier_contract p row_perm elems col_ind row_off
@@ -136,7 +157,7 @@ fn kf_main
       elems_tile col_ind_tile bid (v_idx * 2) tid **
     out |-> (vout <: seq tacc) **
     pure (
-      Compute.tile_mm_result rmapA rmapB p.outputChunk
+      Compute.tile_mm_result rmapA rmapB p.workChunk
         (Seq.create (threadItemsX p) 0.0R <: lseq real (threadItemsX p))
         (Seq.slice relems ri (re - residue))
         (lslice' (cast_pos col_ind) ri (re - residue))
@@ -211,7 +232,7 @@ fn kf_main
 
     with v_out. assert out |-> v_out;
     assert pure (
-      Compute.tile_mm_result rmapA rmapB p.outputChunk
+      Compute.tile_mm_result rmapA rmapB p.workChunk
         #p.shared #p.cols
         #(threadItemsX p)
         (rout0 <: lseq real (threadItemsX p))
@@ -273,7 +294,7 @@ fn kf_main
         (v_idx * p.blockItemsK)
         (v_idx * p.blockItemsK + p.blockItemsK);
       // TODO
-      assert pure (p.outputChunk /? p.cols);
+      assert pure (p.workChunk /? p.cols);
       assert pure (in_bounds 0 p.shared (cast_pos row_ind_));
       assert pure (!idx * p.blockItemsK + p.blockItemsK <= re - ri');
       Seq.lemma_len_slice
@@ -289,8 +310,25 @@ fn kf_main
       // Reuse this source bound when checking tile_mm's loaded-slice frame.
       assert pure (ri' + !idx * p.blockItemsK + p.blockItemsK <= gA.nnz);
 
+      // Match the loaded arrays to tile_mm's row-relative slices before
+      // framing the call.  Keeping the sequence and length equalities
+      // explicit avoids reconstructing them inside a heap equality query.
+      Seq.lemma_len_slice elems
+        (ri' + v_idx * p.blockItemsK)
+        (ri' + v_idx * p.blockItemsK + p.blockItemsK);
+      Seq.lemma_len_slice col_ind
+        (ri' + v_idx * p.blockItemsK)
+        (ri' + v_idx * p.blockItemsK + p.blockItemsK);
+      seq_mask_tile_source_slice elems ri' ri re row_elems_ row_elems
+        v_idx p.blockItemsK;
+      assert pure (
+        Seq.slice col_ind
+          (ri' + v_idx * p.blockItemsK)
+          (ri' + v_idx * p.blockItemsK + p.blockItemsK) ==
+        Seq.slice row_ind_ (v_idx * p.blockItemsK) next_end);
+
       #set-options "--z3rlimit 60" {
-        Compute.tile_mm mapA mapB rmapA rmapB p.outputChunk
+        Compute.tile_mm mapA mapB rmapA rmapB p.workChunk
           out
           rout0
           elems_tile col_ind_tile #(1.0R /. p.blockWidth)
@@ -342,7 +380,7 @@ fn kf_main
       (ri' + v_idx * p.blockItemsK - ri)
       (v_idx * p.blockItemsK) ();
 
-    Compute.tile_mm_mask_lemma rmapA rmapB p.outputChunk
+    Compute.mask_tile_mm_result rmapA rmapB p.workChunk
       #p.shared #p.cols
       #(threadItemsX p) rout0
       (v_idx * p.blockItemsK)
@@ -404,7 +442,7 @@ fn kf_main
     idx := 0sz;
     nnz := re -^ ri;
 
-    Compute.tile_mm_lemma0 rmapA rmapB p.outputChunk
+    Compute.intro_tile_mm_result rmapA rmapB p.workChunk
       rout0
       rB n_idx p.blockWidth out0;
 

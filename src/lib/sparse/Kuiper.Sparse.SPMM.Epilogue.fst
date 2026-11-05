@@ -6,6 +6,7 @@ module Kuiper.Sparse.SPMM.Epilogue
 open Kuiper
 open Kuiper.Tensor
 open Kuiper.Sparse
+open Kuiper.Sparse.SPMM.Groups
 open Kuiper.Sparse.Approx
 open Kuiper.Sparse.SPMM.Maps
 open Kuiper.Array.Vectorized
@@ -13,24 +14,17 @@ open Kuiper.Array2.Strided
 open Kuiper.Chest
 open Kuiper.Sparse.Tensor
 
-let scatter_offset
-  (#tc : Type0) {| sized tc, has_vec_cpy tc |}
-  (col : nat { chunk tc /? col }) (k nthr tid : nat)
-  : Lemma (col + (k * nthr + tid) * chunk tc ==
-      offset_chunk tc (thread_offset tc col tid) k nthr)
-  = FStar.Math.Lemmas.distributivity_add_left (k * nthr) tid (chunk tc)
-
 inline_for_extraction noextract
 let chunk_offset
-  (tc : Type0) {| sized tc, has_vec_cpy tc |}
-  (col : sz { chunk tc /? col })
-  (k nthr : sz { fits (col + k * nthr * chunk tc) })
-  : Pure (o : sz { chunk tc /? o })
+  (ch : szp)
+  (col : sz { ch /? col })
+  (k nthr : sz { fits (col + k * nthr * ch) })
+  : Pure (o : sz { ch /? o })
       (requires true)
-      (ensures fun o -> v o == offset_chunk tc col k nthr)
-  = lemma_divides_product (chunk tc) (v k * v nthr);
-    lemma_divides_sum (chunk tc) (v col) (v k * v nthr * chunk tc);
-    col +^ k *^ nthr *^ chunk tc
+      (ensures fun o -> v o == group_offset ch col k nthr)
+  = lemma_divides_product (ch) (v k * v nthr);
+    lemma_divides_sum (ch) (v col) (v k * v nthr * ch);
+    col +^ k *^ nthr *^ ch
 
 let tile_chunk_bound (ch : pos) (n col : nat) (nthr : pos)
   (k : natlt (n / ch))
@@ -51,64 +45,6 @@ let tile_chunk_bound (ch : pos) (n col : nat) (nthr : pos)
     assert (k * nthr * ch + nthr * ch == (k + 1) * ch * nthr);
     FStar.SizeT.fits_lte (col + k * nthr * ch) (col + n * nthr);
     FStar.SizeT.fits_lte (col + k * nthr * ch + ch) (col + n * nthr)
-
-(* Retain the initial C model while distributing its cells to threads. *)
-ghost
-fn scatter
-  (#tc : Type0) {| scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
-  (#rows #cols : pos { chunk tc /? cols }) (#l : layout2 rows cols)
-  (gC : array2 tc l) (row : natlt rows)
-  (col : natlt cols { chunk tc /? col })
-  (eC : chest2 tc rows cols) (rC : chest2 real rows cols { eC %~ rC })
-  (nthr : pos) (n : nat { chunk tc /? n })
-  requires pts_to_tile_in_matrix gC row col eC (n * nthr)
-  ensures forall+ (tid : natlt nthr).
-    thread_tile_approx gC row (thread_offset tc col tid) rC n nthr
-{
-  unfold pts_to_tile_in_matrix gC;
-  forevery_map #(natlt (n * nthr))
-    (fun i -> matrix_pts_to_cell_in_matrix_in_bounds gC row (col + i) eC)
-    (fun i -> cell_approx_in_bounds gC row (col + i) rC)
-    fn i {
-      if (col + i < cols) {
-        when__elim_true _ _;
-        fold cell_approx gC row (col + i) (acc2 rC row (col + i));
-        when__intro_true (col + i < cols)
-          (cell_approx gC row (col + i) (acc2 rC row (col + i)));
-      } else {
-        when__elim_false _ _;
-        when__intro_false (col + i < cols)
-          (fun _ -> cell_approx gC row (col + i) (acc2 rC row (col + i)));
-      }
-    };
-  lemma_divides_product_l (chunk tc) n nthr;
-  lemma_divides_exact (chunk tc) n;
-  forevery_factor (n * nthr) ((n / chunk tc) * nthr) (chunk tc) _;
-  forevery_factor ((n / chunk tc) * nthr) (n / chunk tc) nthr _;
-  forevery_map_2 #(natlt (n / chunk tc)) #(natlt nthr)
-    (fun k tid -> forall+ (lane : natlt (chunk tc)).
-      cell_approx_in_bounds gC row (col + ((k * nthr + tid) * chunk tc + lane)) rC)
-    (fun k tid -> thread_vec_approx gC row (thread_offset tc col tid) rC nthr k)
-    fn k tid {
-      scatter_offset #tc col k nthr tid;
-      forevery_map #(natlt (chunk tc))
-        (fun lane -> cell_approx_in_bounds gC row
-          (col + ((k * nthr + tid) * chunk tc + lane)) rC)
-        (fun lane -> cell_approx_in_bounds gC row
-          (offset_chunk tc (thread_offset tc col tid) k nthr + lane) rC)
-        fn lane {
-          rewrite each (col + ((k * nthr + tid) * chunk tc + lane))
-            as (offset_chunk tc (thread_offset tc col tid) k nthr + lane);
-        };
-      fold vec_approx gC row (offset_chunk tc (thread_offset tc col tid) k nthr) rC;
-    };
-  forevery_commute _;
-  forevery_map #(natlt nthr)
-    (fun tid -> forall+ (k : natlt (n / chunk tc)).
-      thread_vec_approx gC row (thread_offset tc col tid) rC nthr k)
-    (fun tid -> thread_tile_approx gC row (thread_offset tc col tid) rC n nthr)
-    fn tid { fold thread_tile_approx gC row (thread_offset tc col tid) rC n nthr; };
-}
 
 let chunk_values_approx
   (#tc : Type0) {| scalar tc, sized tc, has_vec_cpy tc, real_like tc |}
@@ -275,6 +211,47 @@ let accumulator_chunk
       (values @! (k * ch + lane)) %~ acc2 rProduct row (col + k * nthr * ch + lane)
     with Kuiper.Math.div_mod_of_mul_add ch k lane
 
+// Restrict the accumulator mapping to one native C vector, in a small
+// pure context rather than asking the store loop to instantiate it implicitly.
+let accumulator_subchunk
+  (#tacc : Type0) {| scalar tacc, real_like tacc |}
+  (ch c : pos) (#rows #cols : pos)
+  (rProduct : chest2 real rows cols) (row : natlt rows) (col : nat)
+  (#n : nat) (values : lseq tacc n) (nthr : pos) (k s : nat)
+  : Lemma
+    (requires (k + 1) * ch <= n /\ (s + 1) * c <= ch /\
+      col + k * nthr * ch + ch <= cols /\
+      tile_values_approx ch rProduct row col values nthr)
+    (ensures forall (lane : natlt c).
+      (values @! (k * ch + s * c + lane)) %~
+        acc2 rProduct row (col + k * nthr * ch + s * c + lane))
+  = introduce forall (lane : natlt c).
+      (values @! (k * ch + s * c + lane)) %~
+        acc2 rProduct row (col + k * nthr * ch + s * c + lane)
+    with (
+      FStar.Math.Lemmas.distributivity_add_left s 1 c;
+      Kuiper.Math.div_mod_of_mul_add ch k (s * c + lane)
+    )
+
+let group_offset_value (ch : pos) (col : nat { ch /? col }) (k nthr : nat)
+  : Lemma (group_offset ch col k nthr == col + k * nthr * ch)
+  = ()
+
+let native_subchunk_bound (whole block : pos) (k : natlt (whole / block))
+  : Lemma (requires block /? whole)
+          (ensures k * block + block <= whole /\ (k + 1) * block <= whole)
+  = lemma_divides_exact block whole;
+    FStar.Math.Lemmas.lemma_mult_le_right block (k + 1) (whole / block);
+    FStar.Math.Lemmas.distributivity_add_left k 1 block
+
+let accumulator_subchunk_bound (ch c : pos) (n k s : nat)
+  : Lemma
+    (requires (k + 1) * ch <= n /\ (s + 1) * c <= ch /\ fits n)
+    (ensures k * ch + s * c + c <= n /\ fits (k * ch + s * c))
+  = FStar.Math.Lemmas.distributivity_add_left k 1 ch;
+    FStar.Math.Lemmas.distributivity_add_left s 1 c;
+    FStar.SizeT.fits_lte (k * ch + s * c) n
+
 (* Apply the combination locally, then copy a complete aligned vector into C.
    The bounds check covers the whole vector, including on partial tiles. *)
 inline_for_extraction noextract
@@ -282,44 +259,89 @@ fn combine_store
   (#tc #tacc : Type0)
   {| scalar tc, sized tc, has_vec_cpy tc, real_like tc,
      scalar tacc, real_like tacc |}
+  (ch : szp { chunk tc /? ch })
   (comb : tc -> tacc -> tc)
   (rcomb : real -> real -> real { approx2 comb rcomb })
-  (#rows #cols : szp { chunk tc /? cols })
+  (#rows #cols : szp { ch /? cols /\ chunk tc /? cols })
   (#lC : layout2 rows cols) {| ctlayout lC, strided : strided_row_major lC |}
   (gC : array2 tc lC)
-  (row : szlt rows) (col : sz { chunk tc /? col })
+  (row : szlt rows) (col : sz { ch /? col })
   (rC rProduct : chest2 real rows cols)
-  (n : sz { chunk tc /? n })
+  (n : sz { ch /? n })
   (out : larray tacc n) (#values : lseq tacc n)
   (nthr : szp)
   preserves gpu ** out |-> values
-  requires thread_tile_approx gC row col rC n nthr
+  requires thread_groups_approx ch gC row col rC n nthr
   requires pure (aligned 16 (core gC))
   requires pure (aligned_strided_row_major (chunk tc) strided)
   requires pure (fits (col + n * nthr))
-  requires pure (tile_values_approx (chunk tc) rProduct row col values nthr)
-  ensures thread_tile_approx gC row col (chest_comb rcomb rC rProduct) n nthr
+  requires pure (tile_values_approx ch rProduct row col values nthr)
+  ensures thread_groups_approx ch gC row col (chest_comb rcomb rC rProduct) n nthr
 {
-  unfold thread_tile_approx gC;
-  forevery_rw_size (n / chunk tc) (n /^ chunk tc);
-  foreach (n /^ chunk tc)
-    (fun k -> thread_vec_approx gC row col rC nthr k)
-    (fun k -> thread_vec_approx gC row col (chest_comb rcomb rC rProduct) nthr k)
+  unfold thread_groups_approx ch gC;
+  forevery_rw_size (n / ch) (n /^ ch);
+  foreach (n /^ ch)
+    (fun k -> thread_group_approx ch gC row col rC nthr k)
+    (fun k -> thread_group_approx ch gC row col (chest_comb rcomb rC rProduct) nthr k)
     #(gpu ** out |-> values)
     fn k {
-      tile_chunk_bound (chunk tc) n col nthr k;
-      let off = chunk_offset tc col k nthr;
-      rewrite each (offset_chunk tc col k nthr) as (v off);
+      tile_chunk_bound ch n col nthr k;
+      let off = chunk_offset ch col k nthr;
+      group_offset_value ch col k nthr;
+      rewrite each (group_offset ch col k nthr) as (v off);
       if (off <^ cols)
-        requires vec_approx gC row off rC
-        ensures vec_approx gC row off (chest_comb rcomb rC rProduct)
+        requires group_approx ch gC row off rC
+        ensures group_approx ch gC row off (chest_comb rcomb rC rProduct)
       {
-        Kuiper.Sparse.Math.divides_leq (chunk tc) cols off;
-        accumulator_chunk (chunk tc) rProduct row col values nthr k;
-        combine_chunk comb rcomb gC row off rC rProduct out (k *^ chunk tc);
+        Kuiper.Sparse.Math.divides_leq ch cols off;
+        accumulator_chunk ch rProduct row col values nthr k;
+        unfold group_approx ch gC;
+        lemma_divides_exact (chunk tc) ch;
+        FStar.Math.Lemmas.swap_mul (chunk tc) (ch / chunk tc);
+        forevery_factor ch (ch / chunk tc) (chunk tc) _;
+        forevery_rw_size (ch / chunk tc) (ch /^ chunk tc);
+        foreach (ch /^ chunk tc)
+          (fun s -> forall+ (lane : natlt (chunk tc)).
+            cell_approx_in_bounds gC row (off + (s * chunk tc + lane)) rC)
+          (fun s -> forall+ (lane : natlt (chunk tc)).
+            cell_approx_in_bounds gC row (off + (s * chunk tc + lane))
+              (chest_comb rcomb rC rProduct))
+          #(gpu ** out |-> values)
+          fn s {
+            native_subchunk_bound ch (chunk tc) s;
+            lemma_divides_product (chunk tc) s;
+            Kuiper.Sparse.Math.divides_chain (chunk tc) ch off;
+            lemma_divides_sum (chunk tc) off (s * chunk tc);
+            accumulator_subchunk_bound ch (chunk tc) n k s;
+            let dst = off +^ s *^ chunk tc;
+            let start = k *^ ch +^ s *^ chunk tc;
+            forevery_map #(natlt (chunk tc))
+              (fun lane -> cell_approx_in_bounds gC row (off + (s * chunk tc + lane)) rC)
+              (fun lane -> cell_approx_in_bounds gC row (dst + lane) rC)
+              fn lane {
+                rewrite each (off + (s * chunk tc + lane)) as (v dst + lane);
+              };
+            fold vec_approx gC row dst rC;
+            accumulator_subchunk ch (chunk tc) rProduct row col values nthr k s;
+            combine_chunk comb rcomb gC row dst rC rProduct out start;
+            unfold vec_approx gC;
+            forevery_map #(natlt (chunk tc))
+              (fun lane -> cell_approx_in_bounds gC row (dst + lane)
+                (chest_comb rcomb rC rProduct))
+              (fun lane -> cell_approx_in_bounds gC row (off + (s * chunk tc + lane))
+                (chest_comb rcomb rC rProduct))
+              fn lane {
+                rewrite each (v dst + lane) as (off + (s * chunk tc + lane));
+              };
+          };
+        forevery_rw_size (ch /^ chunk tc) (ch / chunk tc);
+        forevery_unfactor ch (ch / chunk tc) (chunk tc)
+          (fun lane -> cell_approx_in_bounds gC row (off + lane)
+            (chest_comb rcomb rC rProduct));
+        fold group_approx ch gC row off (chest_comb rcomb rC rProduct);
       } else {
-        unfold vec_approx gC;
-        forevery_map #(natlt (chunk tc))
+        unfold group_approx ch gC;
+        forevery_map #(natlt ch)
           (fun lane -> cell_approx_in_bounds gC row (off + lane) rC)
           (fun lane -> cell_approx_in_bounds gC row (off + lane)
             (chest_comb rcomb rC rProduct))
@@ -329,10 +351,10 @@ fn combine_store
               (fun _ -> cell_approx gC row (off + lane)
                 (acc2 (chest_comb rcomb rC rProduct) row (off + lane)));
           };
-        fold vec_approx gC row off (chest_comb rcomb rC rProduct);
+        fold group_approx ch gC row off (chest_comb rcomb rC rProduct);
       };
-      rewrite each (v off) as (offset_chunk tc col k nthr);
+      rewrite each (v off) as (group_offset ch col k nthr);
     };
-  forevery_rw_size (n /^ chunk tc) (n / chunk tc);
-  fold thread_tile_approx gC row col (chest_comb rcomb rC rProduct) n nthr;
+  forevery_rw_size (n /^ ch) (n / ch);
+  fold thread_groups_approx ch gC row col (chest_comb rcomb rC rProduct) n nthr;
 }

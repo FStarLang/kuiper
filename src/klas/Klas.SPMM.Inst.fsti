@@ -4,7 +4,7 @@ open Kuiper
 module MU = Kuiper.Kernel.GEMM.Util
 open Kuiper.Sparse
 open Kuiper.Sparse.Approx
-open Kuiper.Sparse.SPMM.Defs { size_req }
+open Kuiper.Sparse.SPMM.Defs { size_req, working_chunk }
 module SZ = Kuiper.SizeT
 open Kuiper.Tensor
 open Kuiper.Tensor.Layout.Alg { l2_row_major as rm }
@@ -132,7 +132,7 @@ fn ginst_on
   (blockWidth : (k : szp {
     (k * chunk ta) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\
-    (k * chunk tc) /? blockItemsX
+    (k * working_chunk tb tc) /? blockItemsX
   }))
   (rows shared cols : szp)
   (gA : csr_matrix ta (SZ.v rows) (SZ.v shared){is_global gA})
@@ -161,7 +161,7 @@ fn ginst_on
   preserves cpu ** stream_live s
   requires
     pure (eB %~ rB) **
-    pure (chunk tc /? cols) **
+    pure (working_chunk tb tc /? cols) **
     epoch_live s e **
     on gpu_loc (csr_matrix_approx gA #fA eA rA) **
     on gpu_loc (row_indices |-> Frac fri (ordering row_perm)) **
@@ -194,7 +194,7 @@ fn ginst
   (blockWidth : (k : szp {
     (k * chunk ta) /? blockItemsK /\
     (k * chunk sz) /? blockItemsK /\
-    (k * chunk tc) /? blockItemsX
+    (k * working_chunk tb tc) /? blockItemsX
   }))
   (rows shared cols : szp)
   (gA : csr_matrix ta (SZ.v rows) (SZ.v shared){is_global gA})
@@ -225,7 +225,7 @@ fn ginst
     on gpu_loc (gB |-> Frac fB eB)
   requires
     pure (eB %~ rB) **
-    pure (chunk tc /? cols) **
+    pure (working_chunk tb tc /? cols) **
     on gpu_loc (matrix_approx gC rC) **
     pure (size_req rows shared cols blockWidth blockItemsK blockItemsX)
   ensures on gpu_loc (matrix_approx gC (MS.gmmcomb rmapA rmapB rcomb rC rA rB))

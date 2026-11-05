@@ -512,6 +512,89 @@ fn array_cpy_chunk
 }
 #pop-options
 
+#push-options "--z3rlimit 30"
+open Kuiper.Seq.Common { seq_blit }
+
+// Advancing by native vectors preserves their 16-byte alignment.
+let native_offset_aligned
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (a : array et) (k : nat)
+  : Lemma (requires aligned 16 a)
+          (ensures aligned' 16 a (k * chunk et))
+  = FStar.Math.Lemmas.paren_mul_right k (chunk et) (size #et);
+    FStar.Math.Lemmas.lemma_mod_plus (base_address a) k 16
+
+// State the prefix update outside the Pulse/typeclass context.
+let copy_prefix_step
+  (#et : Type0) (#n #m : nat) (before : lseq et n) (source : lseq et m)
+  (off p count : nat { p + count <= n /\ off + n <= m })
+  : Lemma
+    (requires forall (i : natlt n). i < p ==> before @! i == source @! (off + i))
+    (ensures forall (i : natlt n). i < p + count ==>
+      seq_blit before p source (off + p) count @! i == source @! (off + i))
+  = introduce forall (i : natlt n). i < p + count ==>
+      seq_blit before p source (off + p) count @! i == source @! (off + i)
+    with (if i < p then () else ())
+
+// Copy a contiguous array slice using one or more native vectors.
+// Source offsets and destination size need only be multiples of the native chunk.
+inline_for_extraction noextract
+fn array_cpy_chunks
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (dst_sz : szp { chunk et /? dst_sz })
+  (dst_arr : larray et dst_sz)
+  (#src_sz : szp)
+  (#src_l : layout1 src_sz) {| ctlayout src_l, src_cl : cont_layout src_l |}
+  (src_arr : array1 et src_l)
+  (#f : perm)
+  (#ss : erased (lseq et src_sz))
+  (src_off : sz { chunk et /? src_off /\ src_off + dst_sz <= src_sz })
+  preserves gpu ** src_arr |-> Frac f (seq_to_chest1 ss)
+  requires live dst_arr
+  requires pure (aligned 16 dst_arr /\ aligned 16 (core src_arr))
+  requires pure (aligned_cont_layout (chunk et) src_cl)
+  ensures dst_arr |-> Seq.slice ss src_off (src_off + dst_sz)
+{
+  assert pure (Seq.equal (chest1_to_seq (seq_to_chest1 ss)) ss);
+  Seq.lemma_eq_elim (chest1_to_seq (seq_to_chest1 ss)) ss;
+  let source : erased (lseq et src_sz) = chest1_to_seq (seq_to_chest1 ss);
+  lower_cont src_arr #f;
+  Pulse.Lib.Array.pts_to_len dst_arr;
+  with initial. assert dst_arr |-> initial;
+  let mut k = 0sz;
+  while (!k <^ dst_sz /^ chunk et)
+    invariant exists* (vk : sz) (values : lseq et dst_sz).
+      k |-> vk ** dst_arr |-> values **
+      pure (vk <= dst_sz / chunk et /\
+        (forall (i : natlt dst_sz). i < vk * chunk et ==> values @! i == source @! (src_off + i)))
+    decreases (dst_sz /^ chunk et - !k)
+  {
+    let kv = !k;
+    Kuiper.Sparse.Math.block_lemma dst_sz (chunk et) kv;
+    lemma_divides_product (chunk et) kv;
+    lemma_divides_sum (chunk et) src_off (kv * chunk et);
+    native_offset_aligned dst_arr kv;
+    aligned_cont_offset src_arr (src_off + kv * chunk et);
+    src_cl.pf (src_off + kv * chunk et);
+    with before. assert dst_arr |-> before;
+    array_vec_cpy dst_arr (kv *^ chunk et)
+      (core src_arr) (src_cl.offset +^ src_off +^ kv *^ chunk et);
+    with after. assert dst_arr |-> after;
+    assert pure (after == seq_blit before (kv * chunk et) source
+      (src_off + kv * chunk et) (chunk et));
+    copy_prefix_step before source src_off (kv * chunk et) (chunk et);
+    FStar.Math.Lemmas.distributivity_add_left (v kv) 1 (v (chunk et));
+    k := kv +^ 1sz;
+  };
+  raise_cont src_arr #f;
+  with result. assert dst_arr |-> result;
+  lemma_divides_exact (chunk et) dst_sz;
+  assert pure (Seq.equal result (Seq.slice ss src_off (src_off + dst_sz)));
+  with restored. assert src_arr |-> Frac f restored;
+  assert pure (restored `equal` seq_to_chest1 ss);
+}
+#pop-options
+
 inline_for_extraction noextract
 fn matrix_store_tile_vec_approx
   (#et:Type0) {| scalar et, sized et, has_vec_cpy et, real_like et |}
