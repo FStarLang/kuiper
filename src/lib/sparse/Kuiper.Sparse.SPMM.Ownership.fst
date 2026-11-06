@@ -276,6 +276,12 @@ let block_count_commuted
   : Lemma (SZ.v (nblocks p) == divup (SZ.v p.cols) (SZ.v p.blockItemsX) * SZ.v p.rows)
   = FStar.Math.Lemmas.swap_mul (SZ.v p.rows) (divup (SZ.v p.cols) (SZ.v p.blockItemsX))
 
+let block_column_nonneg
+  (#et : Type0) {| sized et, has_vec_cpy et |}
+  (p : parameters et)
+  : Lemma (forall (x : nat). x / SZ.v p.rows * SZ.v p.blockItemsX >= 0)
+  = ()
+
 let output_column_aligned
   (#et : Type0) {| sized et, has_vec_cpy et |}
   (p : parameters et) (bid : natlt (nblocks_ p))
@@ -370,6 +376,7 @@ fn setup
   block_count_commuted p;
   forevery_unfactor'
     (nblocks p) (divup p.cols p.blockItemsX) p.rows _;
+  block_column_nonneg p;
   forevery_ext #(natlt (nblocks p)) _
     (fun bid -> pts_to_tile_in_matrix gC
       (brow p bid |~> row_perm) (bcol p bid) eC p.blockItemsX);
