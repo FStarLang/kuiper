@@ -85,7 +85,7 @@ jobs:
           # distros too, but not the other way around.
           - os: ubuntu-22.04
           # Apple Silicon
-          - os: macos-14
+          - os: macos-15
           # Intel Mac
           - os: macos-15-intel
     runs-on: ${{ matrix.os }}
