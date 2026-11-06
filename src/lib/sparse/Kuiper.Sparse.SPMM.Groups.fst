@@ -186,6 +186,7 @@ fn gather_groups
         (fun lane -> cell_approx_in_bounds gm i ((j + x * ch) + lane) em)
         (fun lane -> cell_approx_in_bounds gm i (j + (x * ch + lane)) em)
         fn lane {
+          FStar.Math.Lemmas.paren_add_right j (x * ch) lane;
           rewrite each ((j + x * ch) + lane) as (j + (x * ch + lane));
         };
     };
