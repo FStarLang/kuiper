@@ -26,6 +26,10 @@ on:
         description: 'Release tag to publish (leave empty for artifacts only)'
         type: string
         default: ''
+    outputs:
+      sha:
+        description: 'Commit used to build the packages'
+        value: ${{ jobs.prepare.outputs.sha }}
   workflow_dispatch:
     inputs:
       ref:

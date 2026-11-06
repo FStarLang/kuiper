@@ -37,10 +37,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Check out repo
+      - name: Check out the build commit
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.branch || 'main' }}
+          # The branch may have advanced while the packages were building.
+          ref: ${{ needs.build.outputs.sha }}
           fetch-depth: 0
 
       - name: Set up variables
@@ -51,10 +52,7 @@ jobs:
           else
             TAG=nightly-${BRANCH}-$(date -I)
           fi
-          SHA=$(git rev-parse HEAD)
-
           echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "SHA=$SHA" >> $GITHUB_ENV
 
       - uses: actions/download-artifact@v7
         with:
@@ -75,6 +73,7 @@ jobs:
       - name: Create prerelease with artifacts
         env:
           GH_TOKEN: ${{ github.token }}
+          SHA: ${{ needs.build.outputs.sha }}
         run: |
           # Replace any existing release+tag for today so re-runs are idempotent.
           gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
