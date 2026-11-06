@@ -26,6 +26,10 @@ on:
         description: 'Release tag to publish (leave empty for artifacts only)'
         type: string
         default: ''
+    outputs:
+      sha:
+        description: 'Commit used to build the packages'
+        value: ${{ jobs.prepare.outputs.sha }}
   workflow_dispatch:
     inputs:
       ref:
@@ -85,7 +89,7 @@ jobs:
           # distros too, but not the other way around.
           - os: ubuntu-22.04
           # Apple Silicon
-          - os: macos-14
+          - os: macos-15
           # Intel Mac
           - os: macos-15-intel
     runs-on: ${{ matrix.os }}
