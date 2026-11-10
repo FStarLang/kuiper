@@ -47,7 +47,7 @@ let to_real_ok_pat
   = to_real_ok x
 
 let a_add_pat
-  (a:Type) {| scalar a, real_like a, ar : real_like a |}
+  (a:Type) {| scalar a, ar : real_like a |}
   (x:a) (y:a) (r:real) (s:real)
   : Lemma (requires v_approximates x r /\ v_approximates y s)
       (ensures v_approximates (add x y) (r_add r s))
@@ -58,7 +58,7 @@ let a_add_pat
   = a_add x y r s
 
 let a_mul_pat
-  (a:Type) {| scalar a, real_like a, ar : real_like a |}
+  (a:Type) {| scalar a, ar : real_like a |}
   (x:a) (y:a) (r:real) (s:real)
   : Lemma (requires v_approximates x r /\ v_approximates y s)
       (ensures v_approximates (mul x y) (r_mul r s))

@@ -95,7 +95,7 @@ let self_div (x : pos) : Lemma (x / x == 1)
   = FStar.Math.Lemmas.lemma_div_exact x x
 #pop-options
 
-#push-options "--fuel 1 --ifuel 1 --z3rlimit 10"
+#push-options "--fuel 1 --ifuel 1 --z3rlimit 20"
 inline_for_extraction noextract
 fn kf
   (#et_ab #et_c : Type0)

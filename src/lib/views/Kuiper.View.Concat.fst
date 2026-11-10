@@ -25,7 +25,7 @@ let aview_concat
       imap     = inj_either vw1.iview.step.imap vw2.iview.step.imap `inj_comp` inj_nat_sum _ _;
     };
   };
-  ctn = solve;
+  ctn = Kuiper.Container.container_prod vw1.ctn vw2.ctn;
 }
 
 inline_for_extraction noextract
