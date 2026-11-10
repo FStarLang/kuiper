@@ -356,7 +356,7 @@ val pts_to_cell
   (v : et)
   : slprop
 
-[@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
+[@@pulse_unfold]
 instance cell_pts_to (#et : Type) (#r : nat) (#d : shape r) (#l : tlayout d)
   : has_pts_to (cell (tensor et l) (abs d)) et
 = {

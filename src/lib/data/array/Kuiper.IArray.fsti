@@ -73,7 +73,7 @@ val pts_to_cell_def
   : Lemma (pts_to_cell a #f i v ==
             pts_to_cell (core a) #f (it_to_nat vw i) v)
 
-[@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
+[@@pulse_unfold]
 instance cell_pts_to (#et : Type) (#vw : aiview)
   : has_pts_to (cell (iarray et vw) vw.ait) et
 = {

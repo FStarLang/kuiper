@@ -284,6 +284,28 @@ fn join_lane_cells_approximates
   join_array2_from_lane_cells m;
 }
 
+(* Tile-wise approximation lifts to the whole matrix; proved apart from
+   [array2_untile_approximates]'s large context. *)
+let from_tiles_approximates
+  (#et : Type0) {| scalar et, real_like et |}
+  (#rows #cols : nat)
+  (trows : pos{trows /? rows})
+  (tcols : pos{tcols /? cols})
+  (ff : natlt (rows / trows) -> natlt (cols / tcols) -> chest2 et trows tcols)
+  (r : chest2 real rows cols)
+  : Lemma (requires forall (tr : natlt (rows / trows)) (tc : natlt (cols / tcols)).
+                      ff tr tc %~ ematrix_subtile r trows tcols tr tc)
+          (ensures ematrix_from_tiles trows tcols ff %~ r)
+  = let aux (i : natlt rows) (j : natlt cols)
+      : Lemma (acc2 (ematrix_from_tiles trows tcols ff) i j %~ acc2 r i j)
+      = let tr : natlt (rows / trows) = i / trows in
+        let tc : natlt (cols / tcols) = j / tcols in
+        subtile_acc2 r trows tcols tr tc (i % trows) (j % tcols);
+        FStar.Math.Lemmas.euclidean_division_definition i trows;
+        FStar.Math.Lemmas.euclidean_division_definition j tcols
+    in
+    Classical.forall_intro_2 aux
+
 ghost
 fn array2_untile_approximates
   (#et : Type0) {| scalar et, real_like et |}
@@ -334,6 +356,7 @@ fn array2_untile_approximates
       array2_subtile m trows tcols tr tc |-> ff tr tc)
     fn tr tc { () };
   array2_untile' m trows tcols ff;
+  from_tiles_approximates trows tcols ff r;
   assert pure (ematrix_from_tiles trows tcols ff %~ r);
 }
 

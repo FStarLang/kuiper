@@ -302,6 +302,7 @@ fn iteration
   let nextid = FStar.SizeT.(tid +^ spow2 it);
 
   let end_ : erased nat = hide (min (tid + 2 * pow2 it) nth);
+  assert pure (min (SZ.v tid + pow2 (SZ.v it) + pow2 (SZ.v it)) (SZ.v nth) == reveal end_);
 
   if (nextid <^ nth) {
     forevery_ext

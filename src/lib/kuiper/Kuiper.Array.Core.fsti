@@ -219,7 +219,7 @@ instance is_send_across_global_array
 = let i : is_send_across (visibility_of a) (pts_to_slice a #f i j s) = solve in
   i
 
-[@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
+[@@pulse_unfold]
 instance cell_pts_to (#a : Type)
   : has_pts_to (cell (array a) nat) a
 = {

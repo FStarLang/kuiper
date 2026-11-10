@@ -91,8 +91,8 @@ let vcell (#et #st : Type) (#vw : aview et st)
   (i : vw.iview.ait)
   (v : et)
   : slprop
-  = Pulse.Class.PtsTo.op_Bar_Minus_Greater
-      #_ #_ #(Pulse.Class.PtsTo.pts_to_frac _ _ (cell_pts_to #et #st #vw))
+  = Pulse.Class.PtsTo.FracOp.op_Bar_Minus_Greater
+      #_ #_ #(cell_pts_to #et #st #vw)
       (Cell a i) (Frac f v)
 
 (* [pts_to_cell] and [IArray.pts_to_cell] are the same slprop, but
@@ -100,9 +100,8 @@ let vcell (#et #st : Type) (#vw : aview et st)
    the solver no longer does it on its own. *)
 let unfold_varray_cell () : T.Tac unit =
   T.norm [delta_only [`%pts_to_cell;
-                      `%Pulse.Class.PtsTo.op_Bar_Minus_Greater;
-                      `%Pulse.Class.PtsTo.pts_to;
-                      `%Pulse.Class.PtsTo.pts_to_frac;
+                      `%Pulse.Class.PtsTo.FracOp.op_Bar_Minus_Greater;
+                      `%Pulse.Class.PtsTo.Base.pts_to;
                       `%IArray.cell_pts_to];
           iota; primops];
   slprop_equiv_norm ()
@@ -483,7 +482,11 @@ fn varray_cell_reindex
   ensures
     Cell a' i' |-> Frac f v
 {
+  rewrite (Cell a i |-> Frac f v) as (IArray.pts_to_cell a #f i v)
+    by unfold_varray_cell ();
   IArray.iarray_cell_reindex a i a' i';
+  rewrite (IArray.pts_to_cell a' #f i' v) as (Cell a' i' |-> Frac f v)
+    by unfold_varray_cell ();
 }
 
 ghost
@@ -1074,7 +1077,9 @@ fn write_cell
   ensures
     Cell a (ci_to_ai vw ci) |-> v1
 {
+  unfold pts_to_cell a (ci_to_ai vw ci) (reveal v0);
   IArray.write_cell a ci v1;
+  fold pts_to_cell a (ci_to_ai vw ci) v1;
 }
 
 inline_for_extraction noextract
@@ -1094,9 +1099,7 @@ fn write_cell'
     Cell a (reveal ai) |-> reveal v1
 {
   rewrite each reveal ai as (ci_to_ai vw ci);
-  fold pts_to_cell a (ci_to_ai vw ci) (reveal v0);
   write_cell a ci v1;
-  unfold pts_to_cell a (ci_to_ai vw ci) (reveal v1);
   rewrite each (ci_to_ai vw ci) as (reveal ai);
 }
 
@@ -1143,9 +1146,7 @@ fn read_cell'
     pure (v == v0)
 {
   rewrite each reveal ai as (ci_to_ai vw i);
-  fold pts_to_cell a #f (ci_to_ai vw i) (reveal v0);
   let res = read_cell a i;
-  unfold pts_to_cell a #f (ci_to_ai vw i) res;
   rewrite each (ci_to_ai vw i) as (reveal ai);
   res
 }

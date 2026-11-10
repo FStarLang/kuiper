@@ -40,7 +40,7 @@ let refined_second_domain #a {| scalar a, real_like a |}
   (f:a -> a -> a) (x y:a) (r:real) (s:real{s =!= 0.0R})
   : Lemma (requires f %~ quotient /\ x %~ r /\ y %~ s)
           (ensures f x y %~ (r /. s)) =
-  approx_apply2 #a #real #a #(s:real{s =!= 0.0R}) #a #real
+  approx_apply2_dom #a #real #a #real #a #real #(fun _ -> True) #(fun s -> s =!= 0.0R)
     f quotient x y r s
 
 let exact_input #a {| scalar a, real_like a |}

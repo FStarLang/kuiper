@@ -21,9 +21,9 @@ unfold let r_exp (x:real) : real = Exp.exp x
 unfold let r_log (x:real{x >. 0.0R}) : real = Exp.log x
 unfold let r_expm1 (x:real) : real = Exp.exp x -. 1.0R
 unfold let r_log1p (x:real{x >. 0.0R -. 1.0R}) : real = Exp.log (1.0R +. x)
-unfold let r_sqrt (x:Sqrt.rnonneg) : real = Sqrt.sqrt x
-unfold let r_rsqrt (x:Sqrt.rpos) : real = Sqrt.rsqrt x
-unfold let r_pow (x:Pow.rpos) (y:real) : real = Pow.pow x y
+unfold let r_sqrt (x:real{x >=. 0.0R}) : real = Sqrt.sqrt x
+unfold let r_rsqrt (x:real{x >. 0.0R}) : real = Sqrt.rsqrt x
+unfold let r_pow (x:real{x >. 0.0R}) (y:real) : real = Pow.pow x y
 unfold let r_exp2 (x:real) : real = Pow.exp2 x
 unfold let r_fma (x y z:real) : real = x *. y +. z
 unfold let r_sin (x:real) : real = Trig.sin x
