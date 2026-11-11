@@ -21,12 +21,6 @@ instance erased_can_approximate_lhs (c m : Type)
   approximates = (fun (x: erased c) (y: m) -> approximates (reveal x) y);
 }
 
-instance erased_can_approximate_rhs (c m : Type)
-  {| _: can_approximate c m |}
-  : can_approximate c (erased m) = {
-  approximates = (fun (x: c) (y: erased m) -> approximates x (reveal y));
-}
-
 let pts_to_approx_via #pt #rt #mt {| has_pts_to pt rt, can_approximate rt mt |}
   (p : pt) (#[full_default()] f:perm) (v : rt) (m : mt)
 =
@@ -54,13 +48,6 @@ instance lseq_lhs (#a #b : Type)
   (len : erased nat)
   : can_approximate (lseq a len) b = {
   approximates = (fun (s: lseq a len) (m: b) -> approximates (s <: seq a) m);
-}
-
-instance lseq_rhs (#a #b : Type)
-  (d : can_approximate a (seq b))
-  (len : erased nat)
-  : can_approximate a (lseq b len) = {
-  approximates = (fun (s: a) (m: lseq b len) -> approximates s (m <: seq b));
 }
 
 let to_real_seq (#a:Type) {| scalar a, real_like a |}

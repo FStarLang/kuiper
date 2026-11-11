@@ -521,14 +521,30 @@ fn barrier_in_fold_residue_post
 {
   residue_phase_bounds p.blockItemsK ri ri' re idx residue;
   Kuiper.Math.div_mod_of_mul_add 2 idx 1;
-  rewrite (thread_slice_pts_to elems_tile 0 residue
-      elems (re - residue) p.blockWidth tid **
-    slice_live elems_tile #(1.0R /. p.blockWidth) residue p.blockItemsK **
-    thread_slice_pts_to col_ind_tile 0 residue
-      col_ind (re - residue) p.blockWidth tid **
-    slice_live col_ind_tile #(1.0R /. p.blockWidth) residue p.blockItemsK)
-    as (barrier_in p row_perm elems col_ind row_off
-    elems_tile col_ind_tile bid (idx * 2 + 1) tid);
+  assert pure ((idx * 2 + 1) / 2 == idx /\ (idx * 2 + 1) % 2 == 1);
+  assert pure (ri' + (idx * 2 + 1) / 2 * p.blockItemsK + p.blockItemsK > re);
+  assert pure (ri' + (idx * 2 + 1) / 2 * p.blockItemsK <= re);
+  if (idx = 0) {
+    assert pure (idx * 2 + 1 == 1 /\ residue == re - ri /\ re - residue == SZ.v ri);
+    rewrite (thread_slice_pts_to elems_tile 0 residue
+        elems (re - residue) p.blockWidth tid **
+      slice_live elems_tile #(1.0R /. p.blockWidth) residue p.blockItemsK **
+      thread_slice_pts_to col_ind_tile 0 residue
+        col_ind (re - residue) p.blockWidth tid **
+      slice_live col_ind_tile #(1.0R /. p.blockWidth) residue p.blockItemsK)
+      as (barrier_in p row_perm elems col_ind row_off
+      elems_tile col_ind_tile bid (idx * 2 + 1) tid);
+  } else {
+    assert pure (idx * 2 + 1 <> 1 /\ re - residue == ri' + (idx * 2 + 1) / 2 * p.blockItemsK);
+    rewrite (thread_slice_pts_to elems_tile 0 residue
+        elems (re - residue) p.blockWidth tid **
+      slice_live elems_tile #(1.0R /. p.blockWidth) residue p.blockItemsK **
+      thread_slice_pts_to col_ind_tile 0 residue
+        col_ind (re - residue) p.blockWidth tid **
+      slice_live col_ind_tile #(1.0R /. p.blockWidth) residue p.blockItemsK)
+      as (barrier_in p row_perm elems col_ind row_off
+      elems_tile col_ind_tile bid (idx * 2 + 1) tid);
+  }
 }
 
 ghost

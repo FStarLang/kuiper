@@ -274,7 +274,7 @@ fn iarray_end_
   requires
     a |-> Frac f v
   ensures
-    core a |-> Frac f (Seq.init_ghost len v)
+    Pulse.Lib.Array.pts_to (core a) #f (Seq.init_ghost len v)
 {
   unfold iarray_pts_to a #f v;
   (* [raw_view.ait] is definitionally [natlt len]; convert by normalization. *)
@@ -321,7 +321,7 @@ fn iarray_end2_
   requires
     a |-> Frac f v
   ensures
-    core a |-> Frac f (Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i)))
+    Pulse.Lib.Array.pts_to (core a) #f (Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i)))
 {
   unfold iarray_pts_to a #f v;
   let b : (vw.ait =~ natlt vw.len) = full_view_bij vw;
@@ -347,7 +347,7 @@ fn iarray_end2
   returns
     a' : larray et (len vw)
   ensures
-    a' |-> Frac f (Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i)))
+    Pulse.Lib.Array.pts_to a' #f (Seq.init_ghost (len vw) (fun (i : natlt (len vw)) -> v (it_of_nat vw i)))
 {
   iarray_end2_ a;
   core a;

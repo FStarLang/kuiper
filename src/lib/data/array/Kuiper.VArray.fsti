@@ -86,7 +86,7 @@ val pts_to_cell_eq
            ==
            pts_to_cell (core a) #f (vw.iview.step.imap.f i) v)
 
-[@@pulse_unfold; FStar.Tactics.Typeclasses.noinst]
+[@@pulse_unfold]
 instance cell_pts_to (#et #st : Type) (#vw : aview et st)
   : has_pts_to (cell (varray vw) vw.iview.ait) et
 = {

@@ -385,8 +385,8 @@ let tcell (#et : Type0) (#r : nat) (#d : shape r)
   (i : abs d)
   (v : et)
   : slprop
-  = Pulse.Class.PtsTo.op_Bar_Minus_Greater
-      #_ #_ #(Pulse.Class.PtsTo.pts_to_frac _ _ (cell_pts_to #et #r #d #l))
+  = Pulse.Class.PtsTo.FracOp.op_Bar_Minus_Greater
+      #_ #_ #(cell_pts_to #et #r #d #l)
       (Cell a i) (Frac f v)
 
 (* [pts_to_cell] and [A.pts_to_cell] are the same slprop, but are
@@ -394,9 +394,8 @@ let tcell (#et : Type0) (#r : nat) (#d : shape r)
    solver no longer does it on its own. *)
 let unfold_tensor_cell () : T.Tac unit =
   T.norm [delta_only [`%pts_to_cell;
-                      `%Pulse.Class.PtsTo.op_Bar_Minus_Greater;
-                      `%Pulse.Class.PtsTo.pts_to;
-                      `%Pulse.Class.PtsTo.pts_to_frac;
+                      `%Pulse.Class.PtsTo.FracOp.op_Bar_Minus_Greater;
+                      `%Pulse.Class.PtsTo.Base.pts_to;
                       `%A.cell_pts_to];
           iota; primops];
   slprop_equiv_norm ()

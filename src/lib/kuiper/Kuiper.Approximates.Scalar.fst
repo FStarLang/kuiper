@@ -39,14 +39,6 @@ unfold instance real_like_can_approximate (#a:Type) (_ : scalar a) (_ : real_lik
   approximates = v_approximates;
 }
 
-(* Refined real domains (log, division, sqrt) use the same scalar relation.
-   This instance has no recursive can_approximate premise. *)
-unfold instance refined_real_can_approximate (#a:Type) (p:real -> prop)
-  (_ : scalar a) (_ : real_like a)
-  : can_approximate a (r:real{p r}) = {
-  approximates = (fun (x:a) (r:real{p r}) -> v_approximates x r);
-}
-
 let to_real_ok_pat
   (a:Type) {| scalar a, real_like a |}
   (x : a) :

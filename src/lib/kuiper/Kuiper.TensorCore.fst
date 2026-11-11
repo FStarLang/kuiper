@@ -149,10 +149,10 @@ fn array_fragment_extract
     array_fragment_pts_to farr #f ems
   ensures
     exists* (s : (lseq (fragment et knd m n k l) (Seq.length ems))).
-      farr |-> Frac f s **
+      Pulse.Lib.Array.pts_to farr #f s **
       (s @! i) |-> (ems @! i) **
       (forall* (em' : value_for et knd m n k).
-        (farr |-> Frac f s **
+        (Pulse.Lib.Array.pts_to farr #f s **
          (s @! i) |-> em') @==>
           array_fragment_pts_to farr #f (Seq.upd ems i em'))
 {
@@ -169,7 +169,7 @@ fn array_fragment_extract
         if op_Equals #(natlt (Seq.length ems)) j i then emp
         else (s @! j) |-> (ems @! j))
     ensures
-      (farr |-> Frac f s ** (s @! i) |-> em')
+      (Pulse.Lib.Array.pts_to farr #f s ** (s @! i) |-> em')
       @==> array_fragment_pts_to farr #f (Seq.upd ems i em')
   {
     ghost
@@ -178,7 +178,7 @@ fn array_fragment_extract
         (forall+ (j : natlt (Seq.length ems)).
           if op_Equals #(natlt (Seq.length ems)) j i then emp
           else (s @! j) |-> (ems @! j)) **
-        (farr |-> Frac f s ** (s @! i) |-> em')
+        (Pulse.Lib.Array.pts_to farr #f s ** (s @! i) |-> em')
       ensures
         array_fragment_pts_to farr #f (Seq.upd ems i em')
     {
@@ -219,7 +219,7 @@ fn array_fragment_extract_ro
   ensures
     exists* (s : (lseq (fragment et knd m n k l) (Seq.length ems))).
       factored
-        (farr |-> Frac f s ** (s @! i) |-> Frac f (ems @! i))
+        (Pulse.Lib.Array.pts_to farr #f s ** (s @! i) |-> Frac f (ems @! i))
         (array_fragment_pts_to farr #f ems)
 {
   array_fragment_extract farr i;

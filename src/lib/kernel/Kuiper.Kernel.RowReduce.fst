@@ -302,6 +302,7 @@ fn iteration
   let nextid = FStar.SizeT.(tid +^ spow2 it);
 
   let end_ : erased nat = hide (min (tid + 2 * pow2 it) nth);
+  assert pure (min (SZ.v tid + pow2 (SZ.v it) + pow2 (SZ.v it)) (SZ.v nth) == reveal end_);
 
   if (nextid <^ nth) {
     forevery_ext
@@ -842,6 +843,12 @@ let psum_vr_partial (#et:Type0) {| scalar et, real_like et |}
 
 (* ── Per-thread kernel function ────────────────────────────────────────── *)
 
+(* Positivity of the input fraction, proven apart from kf_block's large context. *)
+private
+let frac_rows_nth_pos (rows nth : pos)
+  : Lemma (FStar.Real.(1.0R /. of_int rows /. of_int nth >. 0.0R))
+  = ()
+
 #push-options "--z3rlimit 10"
 inline_for_extraction noextract
 fn kf_block
@@ -921,6 +928,7 @@ fn kf_block
   (**)assert pure (min (SZ.v tid + pow2 0) nth == SZ.v tid + 1);
   (**)if_intro_true' (div_pow2 !n tid) (array1_pts_to_slice_sum sa tid (min (tid + pow2 !n) nth) vr_s);
 
+  frac_rows_nth_pos (SZ.v rows) (SZ.v nth);
   open FStar.SizeT;
   while (spow2 !n <^ nth)
     invariant
