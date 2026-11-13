@@ -868,6 +868,7 @@ let gkdesc
     (cast_out mapA mapB comb gA gB gC eA eB eC fA fB)
     (gbkdesc mapA mapB comb #1sz #m #n #k
       #(C.l2_to_l3 m k #lA) #(C.l2_to_l3 k n #lB) #(C.l2_to_l3 m n #lC)
+      #(C.cl2_to_cl3 m k #lA) #(C.cl2_to_cl3 k n #lB) #(C.cl2_to_cl3 m n #lC)
       (relay gA (C.l2_to_l3 m k #lA))
       (relay gB (C.l2_to_l3 k n #lB))
       (relay gC (C.l2_to_l3 m n #lC))

@@ -31,8 +31,9 @@ let _helper (et st : Type) (vw : aview et st)
           [SMTPat (len vw)]
   = ()
 
+(* Not an instance: it would match every container goal. *)
 unfold
-instance is_container_view_igm (#et:Type) (#st:Type0)
+let is_container_view_igm (#et:Type) (#st:Type0)
   (vw : aview et st)
   : container st vw.iview.ait et
   = vw.ctn
@@ -211,7 +212,7 @@ let sum_view
   : aview et (st1 & st2) =
 {
   iview = sum_view vw1.iview vw2.iview;
-  ctn   = solve;
+  ctn   = Kuiper.Container.container_prod vw1.ctn vw2.ctn;
 }
 
 let no_overlap_fam
@@ -229,5 +230,5 @@ let sum_aview_fam
   : aview et (natlt n ^->> st) =
 {
   iview = sum_aiview_fam n (fun i -> (vws i).iview);
-  ctn   = solve;
+  ctn   = Kuiper.Container.dep_ghost_map_container _ _ _ _ #(fun i -> (vws i).ctn);
 }
