@@ -1,0 +1,953 @@
+{
+  "flashmoe": {
+    "jobs": 8,
+    "modules": [
+      {
+        "max_rss_kib": 1227696,
+        "module": "KPlay.Support.Luce.MMA.fst",
+        "returncode": 0,
+        "source_sha256": "56051897cac93ff51d74f20b04a7094402eb3fb2751e4b072ee2252e30c9293a",
+        "system_seconds": 0.8444919999999999,
+        "user_seconds": 68.015607,
+        "wall_seconds": 68.85046856000554
+      },
+      {
+        "max_rss_kib": 935808,
+        "module": "Kuiper.Array.Core.fst",
+        "returncode": 0,
+        "source_sha256": "e920146fd2201c63441bf4839619a7fecb80c86eaab0c7e67147a062651b5e8a",
+        "system_seconds": 1.592778,
+        "user_seconds": 41.845582,
+        "wall_seconds": 43.35732287701103
+      },
+      {
+        "max_rss_kib": 766984,
+        "module": "Kuiper.Array.Core.fsti",
+        "returncode": 0,
+        "source_sha256": "0d4f9921c1b50a069854134af30561e382ccf864f274e83fdeeb32e7cdeff226",
+        "system_seconds": 0.774664,
+        "user_seconds": 29.661942,
+        "wall_seconds": 30.426165382988984
+      },
+      {
+        "max_rss_kib": 601480,
+        "module": "Kuiper.Base.fsti",
+        "returncode": 0,
+        "source_sha256": "cd91a0a96b3912cb9a609d08e09013a8cee833e6a4a9396e892556b99fa6783e",
+        "system_seconds": 0.36918399999999996,
+        "user_seconds": 20.416642,
+        "wall_seconds": 20.785828966007102
+      },
+      {
+        "max_rss_kib": 940988,
+        "module": "Kuiper.Float.Casts.Base.fsti",
+        "returncode": 0,
+        "source_sha256": "095a46de2ddefbacaae8f3eb323d06cda91f1a6a7299dcc26686cdb535517ae4",
+        "system_seconds": 0.543986,
+        "user_seconds": 34.795164,
+        "wall_seconds": 35.34260858397465
+      },
+      {
+        "max_rss_kib": 978868,
+        "module": "Kuiper.Float.Casts.fst",
+        "returncode": 0,
+        "source_sha256": "ef244d3fb55e9cfc0e3eb1c6984b0eccaff3cccb8813171d2da1429465906025",
+        "system_seconds": 0.7855179999999999,
+        "user_seconds": 37.56578,
+        "wall_seconds": 38.33709256199654
+      },
+      {
+        "max_rss_kib": 942004,
+        "module": "Kuiper.Float.Casts.fsti",
+        "returncode": 0,
+        "source_sha256": "ab6aef33d6ca3fc3ffa7c672da3872ec806080624a73d6740a0649c16f8036c8",
+        "system_seconds": 0.5519879999999999,
+        "user_seconds": 35.977235,
+        "wall_seconds": 36.530579022015445
+      },
+      {
+        "max_rss_kib": 374544,
+        "module": "Kuiper.Float32.Base.fsti",
+        "returncode": 0,
+        "source_sha256": "8fadd03039055318b730460c732499dad42a51c3a52b657f602123718f095cdb",
+        "system_seconds": 0.185002,
+        "user_seconds": 10.617144,
+        "wall_seconds": 10.803235008002957
+      },
+      {
+        "max_rss_kib": 676180,
+        "module": "Kuiper.Float32.Bounds.fsti",
+        "returncode": 0,
+        "source_sha256": "7ed5f25a6c3e8372c29e0c6760cb28b785a9dd9c06b949daa292253dfe8e7734",
+        "system_seconds": 0.44012599999999996,
+        "user_seconds": 23.985767,
+        "wall_seconds": 24.42374628401012
+      },
+      {
+        "max_rss_kib": 276292,
+        "module": "Kuiper.Float32.ConstantFold.Certificates.fst",
+        "returncode": 0,
+        "source_sha256": "34dd8ba1bacb07229cb90ccc6bc36a8fa2e6f9a9ccfe6f0000ed6f4a78ec022e",
+        "system_seconds": 0.216273,
+        "user_seconds": 6.225211,
+        "wall_seconds": 6.440074077021563
+      },
+      {
+        "max_rss_kib": 680880,
+        "module": "Kuiper.Float32.ConstantFold.fsti",
+        "returncode": 0,
+        "source_sha256": "108098e10520c490322b445356f9932a560e57aa0df034eecbae05524efcaa7e",
+        "system_seconds": 0.391785,
+        "user_seconds": 22.840388,
+        "wall_seconds": 23.23273595800856
+      },
+      {
+        "max_rss_kib": 700252,
+        "module": "Kuiper.Float32.FastMath.fsti",
+        "returncode": 0,
+        "source_sha256": "a3db29152908fb20aa4136abe9f2833953e35a93109fc086d3715ebe5c7742ca",
+        "system_seconds": 0.43140599999999996,
+        "user_seconds": 23.549034,
+        "wall_seconds": 23.97930752299726
+      },
+      {
+        "max_rss_kib": 271456,
+        "module": "Kuiper.Float32.Literals.fst",
+        "returncode": 0,
+        "source_sha256": "5296485b6eea2a269a9f85d3a8905c029b5e064bb52f801036a0ca946c8d1931",
+        "system_seconds": 0.226128,
+        "user_seconds": 6.233294,
+        "wall_seconds": 6.457609731005505
+      },
+      {
+        "max_rss_kib": 690968,
+        "module": "Kuiper.Float32.NativeNeg.fsti",
+        "returncode": 0,
+        "source_sha256": "33bca2e4713b5ccb01f97d13b3fd3c2788df65fa264e41b878d94f229e9b424f",
+        "system_seconds": 0.403997,
+        "user_seconds": 23.414862,
+        "wall_seconds": 23.82005244999891
+      },
+      {
+        "max_rss_kib": 752736,
+        "module": "Kuiper.Float32.fst",
+        "returncode": 0,
+        "source_sha256": "e69f350874ec9be94e66ae9584bb63e5344626c4fba468d3fffbb5ffe4245313",
+        "system_seconds": 0.7586689999999999,
+        "user_seconds": 25.596645,
+        "wall_seconds": 26.32951600899105
+      },
+      {
+        "max_rss_kib": 676560,
+        "module": "Kuiper.Float32.fsti",
+        "returncode": 0,
+        "source_sha256": "a401f79784072459089a77d0871e5114d755c4159310b7671dacadf80372d294",
+        "system_seconds": 0.450384,
+        "user_seconds": 24.235736,
+        "wall_seconds": 24.683820520993322
+      },
+      {
+        "max_rss_kib": 374344,
+        "module": "Kuiper.Floating.Bounds.fsti",
+        "returncode": 0,
+        "source_sha256": "3f66d3e2871e636dfdfbd76ea155b87255cb16299333c1859bf81745ad5d241f",
+        "system_seconds": 0.319822,
+        "user_seconds": 10.691721,
+        "wall_seconds": 11.004434130998561
+      },
+      {
+        "max_rss_kib": 600200,
+        "module": "Kuiper.Locs.fsti",
+        "returncode": 0,
+        "source_sha256": "c478438c74e4266635ffef5677e2ef6b77b93cd3860bf1ab2dc8f7184b154125",
+        "system_seconds": 0.371512,
+        "user_seconds": 20.596802,
+        "wall_seconds": 20.966358504985692
+      },
+      {
+        "max_rss_kib": 150444,
+        "module": "Kuiper.Real.Trigonometry.fsti",
+        "returncode": 0,
+        "source_sha256": "77eff9987e5229f93afa637ceb7d4a16d478987fcaefe4c74b8d7234989c544f",
+        "system_seconds": 0.14558,
+        "user_seconds": 1.001287,
+        "wall_seconds": 1.144264987000497
+      },
+      {
+        "max_rss_kib": 825888,
+        "module": "Kuiper.Tensor.Input.fsti",
+        "returncode": 0,
+        "source_sha256": "ba8f47309df1a58341004ec107f5839a044c931feb45323823d69d401ca5580a",
+        "system_seconds": 0.47287999999999997,
+        "user_seconds": 30.946528,
+        "wall_seconds": 31.418369090999477
+      },
+      {
+        "max_rss_kib": 853640,
+        "module": "Kuiper.Tensor.Results.fsti",
+        "returncode": 0,
+        "source_sha256": "4782bd5de0228e1e9a88dd93b195f7246b261ab1754755078462c84e14398dfc",
+        "system_seconds": 0.48255899999999996,
+        "user_seconds": 32.341453,
+        "wall_seconds": 32.82452167998417
+      },
+      {
+        "max_rss_kib": 851864,
+        "module": "Kuiper.Tensor.Runtime.Helpers.fst",
+        "returncode": 0,
+        "source_sha256": "5c9077f36b6492e578462532039df206446faedf6f764c38ae2f15cabc0f54ec",
+        "system_seconds": 0.531879,
+        "user_seconds": 30.855113,
+        "wall_seconds": 31.386085044010542
+      },
+      {
+        "max_rss_kib": 841604,
+        "module": "Kuiper.Tensor.Runtime.Helpers.fsti",
+        "returncode": 0,
+        "source_sha256": "12ddcd36661bea05f4e78eb6fcb6c98a832a381080955ffb72547555a617f675",
+        "system_seconds": 0.5577219999999999,
+        "user_seconds": 31.427077,
+        "wall_seconds": 31.986151096993126
+      },
+      {
+        "max_rss_kib": 827712,
+        "module": "Kuiper.Tensor.Runtime.fsti",
+        "returncode": 0,
+        "source_sha256": "3322f8d76eaf5217bb90f33b1ca1fcf6d2080239426c4ee029f43b343a9fb4f0",
+        "system_seconds": 0.49948899999999996,
+        "user_seconds": 32.429473,
+        "wall_seconds": 32.92888794399914
+      },
+      {
+        "max_rss_kib": 1183672,
+        "module": "Kuiper.TensorCore.MMA.Bounds.fsti",
+        "returncode": 0,
+        "source_sha256": "680c192c2e3b6fd6bebc4036e0f238d1e58d2a5015ce0bc2fb0f5986c14aa100",
+        "system_seconds": 0.727123,
+        "user_seconds": 59.846017,
+        "wall_seconds": 60.57361252701958
+      },
+      {
+        "max_rss_kib": 1204156,
+        "module": "Kuiper.TensorCore.MMA.Registers.fsti",
+        "returncode": 0,
+        "source_sha256": "9a70f588779d43d684bfdec8e1679dcf39de4955f6856d92174c3cd40626d1a6",
+        "system_seconds": 0.7459129999999999,
+        "user_seconds": 61.936649,
+        "wall_seconds": 62.68275419299607
+      },
+      {
+        "max_rss_kib": 1229752,
+        "module": "Kuiper.TensorCore.MMA.Views.fsti",
+        "returncode": 0,
+        "source_sha256": "3b077f3e5de412751dfb603d3c1d4d55f733c98d097bf5f56d509c57e8785584",
+        "system_seconds": 0.840155,
+        "user_seconds": 67.442841,
+        "wall_seconds": 68.27970431602444
+      },
+      {
+        "max_rss_kib": 1207120,
+        "module": "Kuiper.TensorCore.MMA.fsti",
+        "returncode": 0,
+        "source_sha256": "7221e4cac92e163778e345c020415af8647e8c042b668c6206d9aac7b49b8553",
+        "system_seconds": 0.73122,
+        "user_seconds": 60.20809,
+        "wall_seconds": 60.93949888998759
+      },
+      {
+        "max_rss_kib": 1215408,
+        "module": "Kuiper.TensorRO.fst",
+        "returncode": 0,
+        "source_sha256": "ac907865b0c6b4dc54fdac85f3dbcb6f3608184607fa0ef6bb848fa09ab1c155",
+        "system_seconds": 1.611736,
+        "user_seconds": 66.180985,
+        "wall_seconds": 67.72440401700442
+      },
+      {
+        "max_rss_kib": 1087400,
+        "module": "Kuiper.TensorRO.fsti",
+        "returncode": 0,
+        "source_sha256": "e9e9f913aacdb38c06b10002eb8893f971355f5dd2557c62e8c13471d33390af",
+        "system_seconds": 0.935538,
+        "user_seconds": 50.120574,
+        "wall_seconds": 51.040471107000485
+      },
+      {
+        "max_rss_kib": 149432,
+        "module": "Luce.RoPE.Constants.Data.fst",
+        "returncode": 0,
+        "source_sha256": "aeab9093947cc2e376bb097101daf9c55c4ef77bb166a43be9e02593b9b01ef4",
+        "system_seconds": 0.097534,
+        "user_seconds": 0.932808,
+        "wall_seconds": 1.030416393012274
+      },
+      {
+        "max_rss_kib": 149432,
+        "module": "Luce.RoPE.Constants.Power.fst",
+        "returncode": 0,
+        "source_sha256": "9c9b2a5702d98ff528c3e5133aa0a356c26168317620c1a153a2c581d337a71d",
+        "system_seconds": 0.16172799999999998,
+        "user_seconds": 1.5352899999999998,
+        "wall_seconds": 1.6900598799984436
+      },
+      {
+        "max_rss_kib": 722216,
+        "module": "Luce.RoPE.Constants.fst",
+        "returncode": 0,
+        "source_sha256": "e46ad0a0a9f613f4df8149c99e83d15983f3d0440c65a6ef7efb587648414d5b",
+        "system_seconds": 0.527818,
+        "user_seconds": 31.755718,
+        "wall_seconds": 32.27394410900888
+      },
+      {
+        "max_rss_kib": 684144,
+        "module": "Luce.RoPE.Constants.fsti",
+        "returncode": 0,
+        "source_sha256": "ff0bf3546c55b4f71052d8b1ab157cab67b5143f1d674a36a6b4c7edbdad04d7",
+        "system_seconds": 0.40014,
+        "user_seconds": 24.299935,
+        "wall_seconds": 24.69986172800418
+      },
+      {
+        "max_rss_kib": 285672,
+        "module": "Luce.RoPE.fst",
+        "returncode": 0,
+        "source_sha256": "42ffa40cd4b77a033dd0eac0ff6f390bee67c325e8c87e010c0f92c6e36fe5e1",
+        "system_seconds": 0.38611,
+        "user_seconds": 18.530779,
+        "wall_seconds": 18.8993676250102
+      },
+      {
+        "max_rss_kib": 282028,
+        "module": "Luce.RoPE.fsti",
+        "returncode": 0,
+        "source_sha256": "8e320bb858e31dc763f4d1b1a3faaa7e74fa4607368ed38bc80f69f9ee3e3cb0",
+        "system_seconds": 0.17434,
+        "user_seconds": 6.260021,
+        "wall_seconds": 6.434864339011256
+      },
+      {
+        "max_rss_kib": 933212,
+        "module": "Luce.Softplus.Fast.fst",
+        "returncode": 0,
+        "source_sha256": "89167f9bc71fe7756ded18a8be9e814e13575f7f184400c6abb12408b53065eb",
+        "system_seconds": 0.540009,
+        "user_seconds": 36.611625,
+        "wall_seconds": 37.146570632001385
+      },
+      {
+        "max_rss_kib": 931768,
+        "module": "Luce.Softplus.fst",
+        "returncode": 0,
+        "source_sha256": "f2319440ec22835d27a9d3ae7bb4671f5903f814bc51c2fa555e9e24c5c1b85a",
+        "system_seconds": 0.552883,
+        "user_seconds": 34.851536,
+        "wall_seconds": 35.405454111984
+      },
+      {
+        "max_rss_kib": 269176,
+        "module": "FStar.Math.Exp.fst",
+        "returncode": 0,
+        "source_sha256": "f41798588645f069bfeecfb4725deafa4f32734a94eacbdeb9f898eaa00a7956",
+        "system_seconds": 0.34182199999999996,
+        "user_seconds": 5.85115,
+        "wall_seconds": 6.183060982992174
+      },
+      {
+        "max_rss_kib": 150452,
+        "module": "FStar.Math.Exp.fsti",
+        "returncode": 0,
+        "source_sha256": "90e8e10da75c1859ac1b3bd64ddd4aaaed0b8c01b327aaf48f3a683a8ab85e28",
+        "system_seconds": 0.12480899999999999,
+        "user_seconds": 1.043304,
+        "wall_seconds": 1.166697008011397
+      },
+      {
+        "max_rss_kib": 206776,
+        "module": "FStar.Math.LogSeries.fst",
+        "returncode": 0,
+        "source_sha256": "23bb57949d53a0314077b0e99b13d0ff24cee2d4f326b5d14cc7b33192326966",
+        "system_seconds": 0.530593,
+        "user_seconds": 20.305688,
+        "wall_seconds": 20.812294144008774
+      },
+      {
+        "max_rss_kib": 702204,
+        "module": "Pulse.Lib.Array.Core.fst",
+        "returncode": 0,
+        "source_sha256": "d8731e01c2699eabae0d9283d823ba69f924fc8fee9b65917d09123c520df244",
+        "system_seconds": 1.396514,
+        "user_seconds": 30.335571,
+        "wall_seconds": 31.674154842010466
+      },
+      {
+        "max_rss_kib": 573668,
+        "module": "Pulse.Lib.Array.Core.fsti",
+        "returncode": 0,
+        "source_sha256": "f6cb972e9b066b3b578c3618c9f733c51b0364a7e9f68b306e751dbb8ab4022c",
+        "system_seconds": 0.619174,
+        "user_seconds": 20.127489,
+        "wall_seconds": 20.735635499004275
+      }
+    ],
+    "requested_modules": 43,
+    "status": "passed",
+    "wall_seconds": 168.99190359498607
+  },
+  "luce": {
+    "jobs": 8,
+    "modules": [
+      {
+        "max_rss_kib": 1229748,
+        "module": "KPlay.Support.Luce.MMA.fst",
+        "returncode": 0,
+        "source_sha256": "56051897cac93ff51d74f20b04a7094402eb3fb2751e4b072ee2252e30c9293a",
+        "system_seconds": 0.810635,
+        "user_seconds": 66.389597,
+        "wall_seconds": 67.18834446399705
+      },
+      {
+        "max_rss_kib": 938716,
+        "module": "Kuiper.Array.Core.fst",
+        "returncode": 0,
+        "source_sha256": "e920146fd2201c63441bf4839619a7fecb80c86eaab0c7e67147a062651b5e8a",
+        "system_seconds": 1.673905,
+        "user_seconds": 41.884654,
+        "wall_seconds": 43.47903966798913
+      },
+      {
+        "max_rss_kib": 769600,
+        "module": "Kuiper.Array.Core.fsti",
+        "returncode": 0,
+        "source_sha256": "0d4f9921c1b50a069854134af30561e382ccf864f274e83fdeeb32e7cdeff226",
+        "system_seconds": 0.785859,
+        "user_seconds": 29.206585,
+        "wall_seconds": 29.98116877497523
+      },
+      {
+        "max_rss_kib": 605572,
+        "module": "Kuiper.Base.fsti",
+        "returncode": 0,
+        "source_sha256": "cd91a0a96b3912cb9a609d08e09013a8cee833e6a4a9396e892556b99fa6783e",
+        "system_seconds": 0.391347,
+        "user_seconds": 21.616281,
+        "wall_seconds": 22.00780505401781
+      },
+      {
+        "max_rss_kib": 375308,
+        "module": "Kuiper.Float32.Base.fsti",
+        "returncode": 0,
+        "source_sha256": "8fadd03039055318b730460c732499dad42a51c3a52b657f602123718f095cdb",
+        "system_seconds": 0.201003,
+        "user_seconds": 10.998184,
+        "wall_seconds": 11.200259340985212
+      },
+      {
+        "max_rss_kib": 277476,
+        "module": "Kuiper.Float32.ConstantFold.Certificates.fst",
+        "returncode": 0,
+        "source_sha256": "34dd8ba1bacb07229cb90ccc6bc36a8fa2e6f9a9ccfe6f0000ed6f4a78ec022e",
+        "system_seconds": 0.204749,
+        "user_seconds": 6.36156,
+        "wall_seconds": 6.565194411989069
+      },
+      {
+        "max_rss_kib": 680892,
+        "module": "Kuiper.Float32.ConstantFold.fsti",
+        "returncode": 0,
+        "source_sha256": "108098e10520c490322b445356f9932a560e57aa0df034eecbae05524efcaa7e",
+        "system_seconds": 0.409755,
+        "user_seconds": 23.940518,
+        "wall_seconds": 24.350817294995068
+      },
+      {
+        "max_rss_kib": 686704,
+        "module": "Kuiper.Float32.FastMath.fsti",
+        "returncode": 0,
+        "source_sha256": "004082f61380df61ae2bfd98d24b493ec1d7c2fa955964808d1284780b734d47",
+        "system_seconds": 0.397665,
+        "user_seconds": 23.298361,
+        "wall_seconds": 23.69477974800975
+      },
+      {
+        "max_rss_kib": 270716,
+        "module": "Kuiper.Float32.Literals.fst",
+        "returncode": 0,
+        "source_sha256": "5296485b6eea2a269a9f85d3a8905c029b5e064bb52f801036a0ca946c8d1931",
+        "system_seconds": 0.218986,
+        "user_seconds": 6.220164,
+        "wall_seconds": 6.43645913497312
+      },
+      {
+        "max_rss_kib": 688880,
+        "module": "Kuiper.Float32.NativeNeg.fsti",
+        "returncode": 0,
+        "source_sha256": "33bca2e4713b5ccb01f97d13b3fd3c2788df65fa264e41b878d94f229e9b424f",
+        "system_seconds": 0.398989,
+        "user_seconds": 23.906389,
+        "wall_seconds": 24.3066112420056
+      },
+      {
+        "max_rss_kib": 750536,
+        "module": "Kuiper.Float32.fst",
+        "returncode": 0,
+        "source_sha256": "e69f350874ec9be94e66ae9584bb63e5344626c4fba468d3fffbb5ffe4245313",
+        "system_seconds": 0.737915,
+        "user_seconds": 25.452666,
+        "wall_seconds": 26.16458014899399
+      },
+      {
+        "max_rss_kib": 676740,
+        "module": "Kuiper.Float32.fsti",
+        "returncode": 0,
+        "source_sha256": "a401f79784072459089a77d0871e5114d755c4159310b7671dacadf80372d294",
+        "system_seconds": 0.475091,
+        "user_seconds": 23.615489,
+        "wall_seconds": 24.08797814499121
+      },
+      {
+        "max_rss_kib": 616560,
+        "module": "Kuiper.Locs.fsti",
+        "returncode": 0,
+        "source_sha256": "c478438c74e4266635ffef5677e2ef6b77b93cd3860bf1ab2dc8f7184b154125",
+        "system_seconds": 0.41925399999999996,
+        "user_seconds": 19.675884,
+        "wall_seconds": 20.09333993299515
+      },
+      {
+        "max_rss_kib": 150456,
+        "module": "Kuiper.Real.Trigonometry.fsti",
+        "returncode": 0,
+        "source_sha256": "77eff9987e5229f93afa637ceb7d4a16d478987fcaefe4c74b8d7234989c544f",
+        "system_seconds": 0.15853899999999999,
+        "user_seconds": 1.024603,
+        "wall_seconds": 1.1809084960259497
+      },
+      {
+        "max_rss_kib": 815872,
+        "module": "Kuiper.Tensor.Input.fsti",
+        "returncode": 0,
+        "source_sha256": "ba8f47309df1a58341004ec107f5839a044c931feb45323823d69d401ca5580a",
+        "system_seconds": 0.536157,
+        "user_seconds": 33.444351,
+        "wall_seconds": 33.979955308983335
+      },
+      {
+        "max_rss_kib": 836056,
+        "module": "Kuiper.Tensor.Runtime.Helpers.fst",
+        "returncode": 0,
+        "source_sha256": "5c9077f36b6492e578462532039df206446faedf6f764c38ae2f15cabc0f54ec",
+        "system_seconds": 0.5286959999999999,
+        "user_seconds": 31.023665,
+        "wall_seconds": 31.551023075007834
+      },
+      {
+        "max_rss_kib": 836272,
+        "module": "Kuiper.Tensor.Runtime.Helpers.fsti",
+        "returncode": 0,
+        "source_sha256": "12ddcd36661bea05f4e78eb6fcb6c98a832a381080955ffb72547555a617f675",
+        "system_seconds": 0.529037,
+        "user_seconds": 31.617662,
+        "wall_seconds": 32.14715928200167
+      },
+      {
+        "max_rss_kib": 813036,
+        "module": "Kuiper.Tensor.Runtime.fsti",
+        "returncode": 0,
+        "source_sha256": "20fa5b17378416b860096fa18a6b1fbfe561834574400c4332244434e3611077",
+        "system_seconds": 0.506339,
+        "user_seconds": 30.314326,
+        "wall_seconds": 30.82036787099787
+      },
+      {
+        "max_rss_kib": 1204152,
+        "module": "Kuiper.TensorCore.MMA.Registers.fsti",
+        "returncode": 0,
+        "source_sha256": "9a70f588779d43d684bfdec8e1679dcf39de4955f6856d92174c3cd40626d1a6",
+        "system_seconds": 0.708298,
+        "user_seconds": 62.26775,
+        "wall_seconds": 62.97537901398027
+      },
+      {
+        "max_rss_kib": 1231800,
+        "module": "Kuiper.TensorCore.MMA.Views.fsti",
+        "returncode": 0,
+        "source_sha256": "3b077f3e5de412751dfb603d3c1d4d55f733c98d097bf5f56d509c57e8785584",
+        "system_seconds": 0.7928729999999999,
+        "user_seconds": 63.498566,
+        "wall_seconds": 64.28794602898415
+      },
+      {
+        "max_rss_kib": 1205112,
+        "module": "Kuiper.TensorCore.MMA.fsti",
+        "returncode": 0,
+        "source_sha256": "7221e4cac92e163778e345c020415af8647e8c042b668c6206d9aac7b49b8553",
+        "system_seconds": 0.7002069999999999,
+        "user_seconds": 61.215378,
+        "wall_seconds": 61.91586583398748
+      },
+      {
+        "max_rss_kib": 1221996,
+        "module": "Kuiper.TensorRO.fst",
+        "returncode": 0,
+        "source_sha256": "ac907865b0c6b4dc54fdac85f3dbcb6f3608184607fa0ef6bb848fa09ab1c155",
+        "system_seconds": 1.5435539999999999,
+        "user_seconds": 67.429198,
+        "wall_seconds": 68.90572372102179
+      },
+      {
+        "max_rss_kib": 1088768,
+        "module": "Kuiper.TensorRO.fsti",
+        "returncode": 0,
+        "source_sha256": "e9e9f913aacdb38c06b10002eb8893f971355f5dd2557c62e8c13471d33390af",
+        "system_seconds": 0.9799,
+        "user_seconds": 53.194578,
+        "wall_seconds": 54.158975236001424
+      },
+      {
+        "max_rss_kib": 149428,
+        "module": "Luce.RoPE.Constants.Data.fst",
+        "returncode": 0,
+        "source_sha256": "aeab9093947cc2e376bb097101daf9c55c4ef77bb166a43be9e02593b9b01ef4",
+        "system_seconds": 0.087351,
+        "user_seconds": 0.929577,
+        "wall_seconds": 1.016783023980679
+      },
+      {
+        "max_rss_kib": 149432,
+        "module": "Luce.RoPE.Constants.Power.fst",
+        "returncode": 0,
+        "source_sha256": "9c9b2a5702d98ff528c3e5133aa0a356c26168317620c1a153a2c581d337a71d",
+        "system_seconds": 0.173595,
+        "user_seconds": 1.534844,
+        "wall_seconds": 1.7019270450109616
+      },
+      {
+        "max_rss_kib": 723696,
+        "module": "Luce.RoPE.Constants.fst",
+        "returncode": 0,
+        "source_sha256": "e46ad0a0a9f613f4df8149c99e83d15983f3d0440c65a6ef7efb587648414d5b",
+        "system_seconds": 0.496934,
+        "user_seconds": 30.901777,
+        "wall_seconds": 31.387728753994452
+      },
+      {
+        "max_rss_kib": 684616,
+        "module": "Luce.RoPE.Constants.fsti",
+        "returncode": 0,
+        "source_sha256": "ff0bf3546c55b4f71052d8b1ab157cab67b5143f1d674a36a6b4c7edbdad04d7",
+        "system_seconds": 0.409112,
+        "user_seconds": 23.932219,
+        "wall_seconds": 24.34115025799838
+      },
+      {
+        "max_rss_kib": 290200,
+        "module": "Luce.RoPE.fst",
+        "returncode": 0,
+        "source_sha256": "42ffa40cd4b77a033dd0eac0ff6f390bee67c325e8c87e010c0f92c6e36fe5e1",
+        "system_seconds": 0.39991299999999996,
+        "user_seconds": 18.435954,
+        "wall_seconds": 18.818833445984637
+      },
+      {
+        "max_rss_kib": 281816,
+        "module": "Luce.RoPE.fsti",
+        "returncode": 0,
+        "source_sha256": "8e320bb858e31dc763f4d1b1a3faaa7e74fa4607368ed38bc80f69f9ee3e3cb0",
+        "system_seconds": 0.163048,
+        "user_seconds": 6.217146,
+        "wall_seconds": 6.380110683006933
+      },
+      {
+        "max_rss_kib": 935864,
+        "module": "Luce.Softplus.Fast.fst",
+        "returncode": 0,
+        "source_sha256": "89167f9bc71fe7756ded18a8be9e814e13575f7f184400c6abb12408b53065eb",
+        "system_seconds": 0.5539339999999999,
+        "user_seconds": 37.041032,
+        "wall_seconds": 37.59044775000075
+      },
+      {
+        "max_rss_kib": 931768,
+        "module": "Luce.Softplus.fst",
+        "returncode": 0,
+        "source_sha256": "f2319440ec22835d27a9d3ae7bb4671f5903f814bc51c2fa555e9e24c5c1b85a",
+        "system_seconds": 0.555227,
+        "user_seconds": 34.599178,
+        "wall_seconds": 35.15498284899513
+      },
+      {
+        "max_rss_kib": 266156,
+        "module": "FStar.Math.Exp.fst",
+        "returncode": 0,
+        "source_sha256": "f41798588645f069bfeecfb4725deafa4f32734a94eacbdeb9f898eaa00a7956",
+        "system_seconds": 0.35607,
+        "user_seconds": 5.8234960000000004,
+        "wall_seconds": 6.1700408259930555
+      },
+      {
+        "max_rss_kib": 150460,
+        "module": "FStar.Math.Exp.fsti",
+        "returncode": 0,
+        "source_sha256": "90e8e10da75c1859ac1b3bd64ddd4aaaed0b8c01b327aaf48f3a683a8ab85e28",
+        "system_seconds": 0.139605,
+        "user_seconds": 1.020582,
+        "wall_seconds": 1.159114302980015
+      },
+      {
+        "max_rss_kib": 206776,
+        "module": "FStar.Math.LogSeries.fst",
+        "returncode": 0,
+        "source_sha256": "23bb57949d53a0314077b0e99b13d0ff24cee2d4f326b5d14cc7b33192326966",
+        "system_seconds": 0.519968,
+        "user_seconds": 19.796462,
+        "wall_seconds": 20.293216602003668
+      },
+      {
+        "max_rss_kib": 699184,
+        "module": "Pulse.Lib.Array.Core.fst",
+        "returncode": 0,
+        "source_sha256": "d8731e01c2699eabae0d9283d823ba69f924fc8fee9b65917d09123c520df244",
+        "system_seconds": 1.377472,
+        "user_seconds": 30.058253,
+        "wall_seconds": 31.378043209027965
+      },
+      {
+        "max_rss_kib": 574456,
+        "module": "Pulse.Lib.Array.Core.fsti",
+        "returncode": 0,
+        "source_sha256": "f6cb972e9b066b3b578c3618c9f733c51b0364a7e9f68b306e751dbb8ab4022c",
+        "system_seconds": 0.594097,
+        "user_seconds": 18.68373,
+        "wall_seconds": 19.269544665003195
+      }
+    ],
+    "requested_modules": 36,
+    "status": "passed",
+    "wall_seconds": 138.66099422899424
+  },
+  "mirage": {
+    "jobs": 8,
+    "modules": [
+      {
+        "max_rss_kib": 931756,
+        "module": "Kuiper.Array.Core.fst",
+        "returncode": 0,
+        "source_sha256": "e920146fd2201c63441bf4839619a7fecb80c86eaab0c7e67147a062651b5e8a",
+        "system_seconds": 1.655365,
+        "user_seconds": 43.551558,
+        "wall_seconds": 45.127699639997445
+      },
+      {
+        "max_rss_kib": 768624,
+        "module": "Kuiper.Array.Core.fsti",
+        "returncode": 0,
+        "source_sha256": "0d4f9921c1b50a069854134af30561e382ccf864f274e83fdeeb32e7cdeff226",
+        "system_seconds": 0.819708,
+        "user_seconds": 29.54639,
+        "wall_seconds": 30.3548490240064
+      },
+      {
+        "max_rss_kib": 605732,
+        "module": "Kuiper.Base.fsti",
+        "returncode": 0,
+        "source_sha256": "cd91a0a96b3912cb9a609d08e09013a8cee833e6a4a9396e892556b99fa6783e",
+        "system_seconds": 0.353803,
+        "user_seconds": 20.435703,
+        "wall_seconds": 20.789561061013956
+      },
+      {
+        "max_rss_kib": 374896,
+        "module": "Kuiper.Float32.Base.fsti",
+        "returncode": 0,
+        "source_sha256": "8fadd03039055318b730460c732499dad42a51c3a52b657f602123718f095cdb",
+        "system_seconds": 0.211997,
+        "user_seconds": 10.469867,
+        "wall_seconds": 10.682886201015208
+      },
+      {
+        "max_rss_kib": 688620,
+        "module": "Kuiper.Float32.FastMath.fsti",
+        "returncode": 0,
+        "source_sha256": "004082f61380df61ae2bfd98d24b493ec1d7c2fa955964808d1284780b734d47",
+        "system_seconds": 0.39759,
+        "user_seconds": 23.936951,
+        "wall_seconds": 24.333205055008875
+      },
+      {
+        "max_rss_kib": 271212,
+        "module": "Kuiper.Float32.Literals.fst",
+        "returncode": 0,
+        "source_sha256": "8d6aec0584cfcab5e16f6ad59be1ff060940401a86f5df432192c0b7d4b41581",
+        "system_seconds": 0.196375,
+        "user_seconds": 6.148037,
+        "wall_seconds": 6.342266887018923
+      },
+      {
+        "max_rss_kib": 663456,
+        "module": "Kuiper.Float32.NativeNeg.Kind.fsti",
+        "returncode": 0,
+        "source_sha256": "94217fefb5c1eff44c5677718c4addb22867ee5a9c15d7bf8bb401f8c9e97f47",
+        "system_seconds": 0.348993,
+        "user_seconds": 22.771572,
+        "wall_seconds": 23.12188124502427
+      },
+      {
+        "max_rss_kib": 687600,
+        "module": "Kuiper.Float32.NativeNeg.fsti",
+        "returncode": 0,
+        "source_sha256": "33bca2e4713b5ccb01f97d13b3fd3c2788df65fa264e41b878d94f229e9b424f",
+        "system_seconds": 0.40199399999999996,
+        "user_seconds": 24.371648,
+        "wall_seconds": 24.774730778008234
+      },
+      {
+        "max_rss_kib": 748992,
+        "module": "Kuiper.Float32.fst",
+        "returncode": 0,
+        "source_sha256": "e69f350874ec9be94e66ae9584bb63e5344626c4fba468d3fffbb5ffe4245313",
+        "system_seconds": 0.719928,
+        "user_seconds": 26.248394,
+        "wall_seconds": 26.942776498006424
+      },
+      {
+        "max_rss_kib": 676644,
+        "module": "Kuiper.Float32.fsti",
+        "returncode": 0,
+        "source_sha256": "a401f79784072459089a77d0871e5114d755c4159310b7671dacadf80372d294",
+        "system_seconds": 0.43470699999999995,
+        "user_seconds": 24.330778,
+        "wall_seconds": 24.763434310996672
+      },
+      {
+        "max_rss_kib": 604024,
+        "module": "Kuiper.Locs.fsti",
+        "returncode": 0,
+        "source_sha256": "c478438c74e4266635ffef5677e2ef6b77b93cd3860bf1ab2dc8f7184b154125",
+        "system_seconds": 0.396553,
+        "user_seconds": 20.771965,
+        "wall_seconds": 21.167107804998523
+      },
+      {
+        "max_rss_kib": 150452,
+        "module": "Kuiper.Real.Trigonometry.fsti",
+        "returncode": 0,
+        "source_sha256": "77eff9987e5229f93afa637ceb7d4a16d478987fcaefe4c74b8d7234989c544f",
+        "system_seconds": 0.145259,
+        "user_seconds": 1.027096,
+        "wall_seconds": 1.1707036349980626
+      },
+      {
+        "max_rss_kib": 819968,
+        "module": "Kuiper.Tensor.Runtime.Helpers.fst",
+        "returncode": 0,
+        "source_sha256": "5c9077f36b6492e578462532039df206446faedf6f764c38ae2f15cabc0f54ec",
+        "system_seconds": 0.504313,
+        "user_seconds": 31.041926,
+        "wall_seconds": 31.546026587981032
+      },
+      {
+        "max_rss_kib": 812260,
+        "module": "Kuiper.Tensor.Runtime.Helpers.fsti",
+        "returncode": 0,
+        "source_sha256": "12ddcd36661bea05f4e78eb6fcb6c98a832a381080955ffb72547555a617f675",
+        "system_seconds": 0.466723,
+        "user_seconds": 30.456709,
+        "wall_seconds": 30.923831922991667
+      },
+      {
+        "max_rss_kib": 795456,
+        "module": "Kuiper.Tensor.Runtime.fsti",
+        "returncode": 0,
+        "source_sha256": "6bce914a6120cd5cf0a52e42c809088e5b66234dc981772061bbbbda5638af20",
+        "system_seconds": 0.49518199999999996,
+        "user_seconds": 29.846524,
+        "wall_seconds": 30.341865091002546
+      },
+      {
+        "max_rss_kib": 1183916,
+        "module": "Kuiper.TensorCore.MMA.Gather.fsti",
+        "returncode": 0,
+        "source_sha256": "0a67ccb142ba102beccf2a55d06004208aeb9c9229c7afea847e8691756028ab",
+        "system_seconds": 0.7852509999999999,
+        "user_seconds": 61.120109,
+        "wall_seconds": 61.90381762300967
+      },
+      {
+        "max_rss_kib": 1204288,
+        "module": "Kuiper.TensorCore.MMA.Registers.fsti",
+        "returncode": 0,
+        "source_sha256": "9a70f588779d43d684bfdec8e1679dcf39de4955f6856d92174c3cd40626d1a6",
+        "system_seconds": 0.7300869999999999,
+        "user_seconds": 61.891392,
+        "wall_seconds": 62.62099139599013
+      },
+      {
+        "max_rss_kib": 1191024,
+        "module": "Kuiper.TensorCore.MMA.ZeroA.fsti",
+        "returncode": 0,
+        "source_sha256": "30ea79982f56d66ca3f67836623c9c29adf04142429f826cfdc0f7c96565881e",
+        "system_seconds": 0.748143,
+        "user_seconds": 59.4616,
+        "wall_seconds": 60.2092768260045
+      },
+      {
+        "max_rss_kib": 1205536,
+        "module": "Kuiper.TensorCore.MMA.fsti",
+        "returncode": 0,
+        "source_sha256": "7221e4cac92e163778e345c020415af8647e8c042b668c6206d9aac7b49b8553",
+        "system_seconds": 0.7071179999999999,
+        "user_seconds": 59.703678,
+        "wall_seconds": 60.41118081199238
+      },
+      {
+        "max_rss_kib": 264596,
+        "module": "FStar.Math.Exp.fst",
+        "returncode": 0,
+        "source_sha256": "f41798588645f069bfeecfb4725deafa4f32734a94eacbdeb9f898eaa00a7956",
+        "system_seconds": 0.329812,
+        "user_seconds": 5.792013,
+        "wall_seconds": 6.112292748002801
+      },
+      {
+        "max_rss_kib": 150456,
+        "module": "FStar.Math.Exp.fsti",
+        "returncode": 0,
+        "source_sha256": "90e8e10da75c1859ac1b3bd64ddd4aaaed0b8c01b327aaf48f3a683a8ab85e28",
+        "system_seconds": 0.12889799999999998,
+        "user_seconds": 1.025624,
+        "wall_seconds": 1.153337857016595
+      },
+      {
+        "max_rss_kib": 206780,
+        "module": "FStar.Math.LogSeries.fst",
+        "returncode": 0,
+        "source_sha256": "23bb57949d53a0314077b0e99b13d0ff24cee2d4f326b5d14cc7b33192326966",
+        "system_seconds": 0.524492,
+        "user_seconds": 20.024902,
+        "wall_seconds": 20.52546804602025
+      },
+      {
+        "max_rss_kib": 702096,
+        "module": "Pulse.Lib.Array.Core.fst",
+        "returncode": 0,
+        "source_sha256": "d8731e01c2699eabae0d9283d823ba69f924fc8fee9b65917d09123c520df244",
+        "system_seconds": 1.325046,
+        "user_seconds": 30.175564,
+        "wall_seconds": 31.444523628015304
+      },
+      {
+        "max_rss_kib": 574160,
+        "module": "Pulse.Lib.Array.Core.fsti",
+        "returncode": 0,
+        "source_sha256": "f6cb972e9b066b3b578c3618c9f733c51b0364a7e9f68b306e751dbb8ab4022c",
+        "system_seconds": 0.612053,
+        "user_seconds": 18.55849,
+        "wall_seconds": 19.160611555009382
+      }
+    ],
+    "requested_modules": 24,
+    "status": "passed",
+    "wall_seconds": 102.54402615799336
+  }
+}

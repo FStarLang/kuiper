@@ -1,0 +1,43 @@
+{
+  "mirage": {
+    "repository": "https://github.com/mirage-project/mirage",
+    "commit": "c9d83035d2e79cf85ae6a1e5dcbb507c4f6bbe61",
+    "model": "Qwen/Qwen3-0.6B",
+    "model_revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+    "upstream_paths": {
+      "graph_entrypoint": "demo/qwen3/demo.py",
+      "persistent_kernel": "include/mirage/persistent_kernel/persistent_kernel.cuh",
+      "model_reference": "demo/qwen3/models/modeling_qwen3.py"
+    },
+    "scope": "Upstream source reference, not the repaired retained CUDA revision.",
+    "license": "Apache-2.0"
+  },
+  "luce": {
+    "repository": "https://github.com/PixelML/luce-megakernel",
+    "commit": "bab084443f14e6ab3ba76f8e8e3f721ad2e56144",
+    "model": "Qwen/Qwen3.5-0.8B",
+    "model_revision": "2fc06364715b967f1860aea9cf38778875588b17",
+    "upstream_paths": {
+      "decode": "kernel.cu",
+      "prefill": "prefill.cu",
+      "python_caller": "model.py",
+      "hugging_face_comparison": "final_bench.py"
+    },
+    "reference_code_note": "The external Transformers implementation is not pinned by the model revision. These paths identify upstream inspection entrypoints, not a reconstruction of the historical reference environment.",
+    "scope": "Upstream source reference; accepted reduced optimized code additionally repairs unaligned vector loads.",
+    "license": null,
+    "release_blocker": "No LICENSE, COPYING, or NOTICE file was found in the complete pinned tree. Obtain redistribution permission before public release."
+  },
+  "flashmoe": {
+    "repository": "https://github.com/osayamenja/FlashMoE",
+    "commit": "9cc0c32443d2a2da6825a68af5ef83060329483b",
+    "scope": "Production upstream reference only. The original optimized candidate binding is unavailable; the proved subject is the retained router.",
+    "original_optimized_candidate_binding_established": false,
+    "upstream_paths": {
+      "router": "csrc/include/flashmoe/gate.cuh",
+      "router_diagnostic_reference": "csrc/tests/gate.cu",
+      "full_moe_not_proved_here": "csrc/include/flashmoe/moe.cuh"
+    },
+    "license": "BSD-3-Clause"
+  }
+}

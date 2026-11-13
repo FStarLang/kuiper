@@ -1,0 +1,49 @@
+name: Megakernel artifacts
+
+on:
+  pull_request:
+    paths:
+      - examples/megakernels/**
+      - .github/workflows/megakernel-artifacts.yml
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Hosted-runner-sized, fresh cache-free proof suite
+        type: choice
+        options:
+          - tightness
+          - shared
+        default: tightness
+
+permissions:
+  contents: read
+
+jobs:
+  packaging:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check frozen source hashes and runner behavior
+        working-directory: examples/megakernels
+        run: make -j2 integrity test
+
+  proofs:
+    if: github.event_name == 'workflow_dispatch'
+    needs: packaging
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check supplied proofs without discovery or historical caches
+        working-directory: examples/megakernels
+        env:
+          SUITE: ${{ inputs.suite }}
+        run: python3 replay.py verify --kind "$SUITE" --jobs 2
+      - name: Retain timings and diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: megakernel-proof-checks
+          if-no-files-found: warn
+          path: |
+            examples/megakernels/.work/proofs/runs/
+            examples/megakernels/.work/proofs/support/*/result.json

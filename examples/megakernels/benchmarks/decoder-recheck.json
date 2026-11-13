@@ -1,0 +1,66 @@
+{
+  "cache_policy": "force/cache_off for every module; setup support checks recorded separately",
+  "cases": [
+    {
+      "id": "mirage-decoder-optimized",
+      "jobs": 3,
+      "kind": "family",
+      "modules": [
+        {
+          "max_rss_kib": 1247500,
+          "module": "KPlay.Functional.fsti",
+          "returncode": 0,
+          "source_sha256": "35fbc888432da4663be1656b87c49495e5575604c7cda59a43183da3fb2a54ef",
+          "system_seconds": 1.506787,
+          "user_seconds": 69.174606,
+          "wall_seconds": 70.63405916999909
+        },
+        {
+          "max_rss_kib": 24173880,
+          "module": "KPlay.Functional.fst",
+          "returncode": 0,
+          "source_sha256": "a8f90d977d8fa8283941ea81f548f363ebc4e3629480b66ca6de7c0062f55537",
+          "system_seconds": 43.18283,
+          "user_seconds": 1763.56143,
+          "wall_seconds": 1804.9158007059887
+        },
+        {
+          "max_rss_kib": 555016,
+          "module": "KPlay.SharedSpec.fst",
+          "returncode": 0,
+          "source_sha256": "25dc6788b3d19cf34924b2f30d5c38fe2ea8012318d2adf851743a75b7d5d057",
+          "system_seconds": 0.6903199999999999,
+          "user_seconds": 17.255495,
+          "wall_seconds": 17.929805649007903
+        }
+      ],
+      "requested_modules": 3,
+      "status": "passed",
+      "wall_seconds": 1804.9769862680114
+    }
+  ],
+  "completed_utc": "2026-11-13T12:47:38.074082+00:00",
+  "input_sha256": "b6027b0a5e9181c7439edf522a58d23eb2d131647ce0af0eb3613f87e2795a7e",
+  "jobs": 3,
+  "logical_cpus": 128,
+  "machine": "x86_64",
+  "platform": "Linux-6.8.0-147-generic-x86_64-with-glibc2.39",
+  "requested_cases": [
+    "mirage-decoder-optimized"
+  ],
+  "started_utc": "2026-11-13T12:17:33.093540+00:00",
+  "status": "passed",
+  "toolchain": {
+    "fstar_version": "F* 2026.09.13~dev\nplatform=Linux_x86_64\nsystem=Unix\ncompiler=OCaml 5.3.0\ndate=2026-09-18 15:14:44 -0700\ncommit=da21c3925bf09a0a1d9e7558170be82da5edb37c\n",
+    "support_sha256": "f3ad2bcdf1f261d4e4cbf0e61ab4f1fba6c13670b70af7850e77c3cff00b1789",
+    "toolchain": {
+      "fstar_commit": "da21c3925bf09a0a1d9e7558170be82da5edb37c",
+      "kuiper_commit": "fccc0b2cffdb785598f18f1a200c5228584f14fb",
+      "platform": "Linux-x86_64",
+      "sha256": "be6d162eea7ad75bb0d6c4b7e986da4ace1bf9ccb758e32d3b4139d6d7a772eb",
+      "url": "https://github.com/FStarLang/kuiper/releases/download/nightly-2026-09-19/kuiper-Linux-x86_64.tar.gz",
+      "z3_version": "4.13.3"
+    }
+  },
+  "wall_seconds": 1804.9777112379961
+}

@@ -1,0 +1,221 @@
+module Kuiper.Float32
+
+#lang-pulse
+
+open Pulse.Lib.Core
+open Kuiper.Locs
+open FStar.Tactics.Typeclasses { solve }
+open Kuiper.Sized
+open Kuiper.Canonical
+open Kuiper.Scalars.Base
+open Kuiper.Floating.Base
+open Kuiper.Approximates.Base
+open Kuiper.Real
+module Pow = FStar.Math.Pow
+module Sqrt = FStar.Math.Sqrt
+module Trig = Kuiper.Real.Trigonometry
+module F = Kuiper.Floating.Base
+
+open Kuiper.Float32.Base
+
+let t = Float32.Base.t
+
+inline_for_extraction noextract
+instance is_sized : sized t = { size = 4sz; default = zero }
+
+assume CanonicalSized : canonical is_sized
+
+inline_for_extraction noextract
+instance _ : scalar t = {
+  is_sized = solve;
+  add; mul; zero; one; lt; lte; eq;
+}
+
+inline_for_extraction noextract
+instance is_floating : floating t = {
+  is_scalar = solve;
+  sub; div; bit_eq;
+  of_int; of_literal; of_int_zero; of_int_one;
+  kind; is_zero;
+  largest; infinity;
+  kind_one; kind_zero; kind_largest; kind_infinity;
+  zero_is_zero; one_is_nonzero;
+  fexp; flog; sqrt; rsqrt; sin; cos; tan; asin; acos; atan;
+  sinh; cosh; tanh; ceil; floor; round; fabs; erf; log2;
+  log10; exp2; pow; atan2; fmin; fmax; fmod; copysign;
+  fma;
+}
+
+(* Approximation semantics is assumed. *)
+instance is_real_like          : real_like t = magic()
+instance is_floating_real_like : floating_real_like t = magic()
+
+let positive_normal = Kuiper.Float32.Base.positive_normal
+let positive_normal_of_literal (s : string) =
+  Kuiper.Float32.Base.positive_normal_of_literal s
+let positive_literal_at_most_one (s : string) =
+  Kuiper.Float32.Base.positive_literal_at_most_one s
+
+(* Trusted compiler/approximation bridge, separate from the checked integer
+   certificate and mathematical real enclosure. No native equality is asserted. *)
+let literal_interval_approx
+  (s : string) (lo_num : nat) (lo_den : pos)
+  (hi_num : nat) (hi_den : pos) (mantissa : nat) (exponent : int) (r : real)
+  : Lemma
+      (requires
+        Kuiper.Float32.Literals.common_normal_cell
+          s lo_num lo_den hi_num hi_den mantissa exponent /\
+        FStar.Real.of_int lo_num /. FStar.Real.of_int lo_den <=. r /\
+        r <=. FStar.Real.of_int hi_num /. FStar.Real.of_int hi_den)
+      (ensures v_approximates (F.of_literal #t s) r)
+  = admit()
+
+let non_nan_classification (x : t) =
+  Kuiper.Float32.Base.non_nan_classification x
+let fmax_special_values (x y : t) =
+  Kuiper.Float32.Base.fmax_special_values x y
+
+let lt_ordered (x y : t) = Kuiper.Float32.Base.lt_ordered x y
+let lt_transitive (x y z : t) = Kuiper.Float32.Base.lt_transitive x y z
+let exp_special_values (x : t) = Kuiper.Float32.Base.exp_special_values x
+
+inline_for_extraction noextract
+let fexpm1 = Kuiper.Float32.Base.fexpm1
+
+inline_for_extraction noextract
+let flog1p = Kuiper.Float32.Base.flog1p
+
+(* Approximation semantics for these CUDA math operations is assumed. *)
+let expm1_approx
+  (x : t)
+  (r : real)
+  : Lemma
+      (requires v_approximates x r)
+      (ensures v_approximates (fexpm1 x) (exp r -. 1.0R))
+= admit()
+
+let log1p_approx
+  (x : t)
+  (r : real { r >. 0.0R -. 1.0R })
+  : Lemma
+      (requires v_approximates x r)
+      (ensures v_approximates (flog1p x) (log (1.0R +. r)))
+= admit()
+
+(* Ordinary native math extends the same trusted approximation model.
+   These assumptions do not identify ordinary and fast operations. *)
+let pow_approx
+  (x y : t)
+  (xr : Pow.rpos)
+  (yr : real)
+  : Lemma
+      (requires v_approximates x xr /\ v_approximates y yr)
+      (ensures v_approximates (pow x y) (Pow.pow xr yr))
+= admit()
+
+let sin_approx
+  (x : t)
+  (xr : real)
+  : Lemma
+      (requires v_approximates x xr)
+      (ensures v_approximates (sin x) (Trig.sin xr))
+= admit()
+
+let cos_approx
+  (x : t)
+  (xr : real)
+  : Lemma
+      (requires v_approximates x xr)
+      (ensures v_approximates (cos x) (Trig.cos xr))
+= admit()
+
+(* Extracted primitively; the approximation contracts are trusted. *)
+noextract
+fn add_rn_ftz (x y : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr yr : real).
+      v_approximates x xr /\ v_approximates y yr ==>
+      v_approximates result (xr +. yr))
+{
+  admit()
+}
+
+noextract
+fn fma_rn_ftz (x y z : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    (forall (xr yr zr : real).
+      v_approximates x xr /\ v_approximates y yr /\ v_approximates z zr ==>
+      v_approximates result (xr *. yr +. zr)) /\
+    (x == F.sub F.zero F.infinity /\ positive_normal y /\
+      (Finite? (kind z) \/ z == F.sub F.zero F.infinity) ==>
+      result == F.sub F.zero F.infinity) /\
+    (x == F.sub F.zero F.infinity /\ positive_normal y /\ z == F.infinity ==>
+      NaN? (kind result)) /\
+    (NaN? (kind x) \/ NaN? (kind y) \/ NaN? (kind z) ==> NaN? (kind result)))
+{
+  admit()
+}
+
+noextract
+fn mul_rn_ftz (x y : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    (forall (xr yr : real).
+      v_approximates x xr /\ v_approximates y yr ==>
+      v_approximates result (xr *. yr)) /\
+    (Finite? (kind x) /\ positive_normal y /\ F.lte y F.one ==>
+      Finite? (kind result)) /\
+    (x == F.infinity /\ positive_normal y ==> result == F.infinity) /\
+    (x == F.sub F.zero F.infinity /\ positive_normal y ==>
+      result == F.sub F.zero F.infinity) /\
+    (NaN? (kind x) \/ NaN? (kind y) ==> NaN? (kind result)))
+{
+  admit()
+}
+
+noextract
+fn exp2_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    (forall (xr : real).
+      v_approximates x xr ==>
+      v_approximates result (Pow.exp2 xr)) /\
+    (x == F.sub F.zero F.infinity ==> result == F.zero) /\
+    (x == F.infinity ==> result == F.infinity) /\
+    (is_zero x ==> result == F.one) /\
+    (NaN? (kind x) ==> NaN? (kind result)))
+{
+  admit()
+}
+
+noextract
+fn rcp_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : real{xr =!= 0.0R}).
+      v_approximates x xr ==>
+      v_approximates result (1.0R /. xr))
+{
+  admit()
+}
+
+noextract
+fn rsqrt_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : Sqrt.rpos).
+      v_approximates x xr ==>
+      v_approximates result (1.0R /. Sqrt.sqrt xr))
+{
+  admit()
+}
+
+let lem_sizeof () = ()

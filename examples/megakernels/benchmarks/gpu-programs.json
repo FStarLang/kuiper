@@ -1,0 +1,141 @@
+{
+  "started_utc": "2026-11-13T08:03:25.664570+00:00",
+  "torch_version": "2.14.0+cu130",
+  "torch_cuda_version": "13.0",
+  "gpu": "NVIDIA H100 PCIe",
+  "compute_capability": [
+    9,
+    0
+  ],
+  "scope": "synthetic reduced-CUDA smoke tests; not proof extraction or original/reduced equivalence",
+  "compile_flags": [
+    "-O2",
+    "--expt-relaxed-constexpr"
+  ],
+  "cases": [
+    {
+      "id": "flashmoe-program-base",
+      "kernel_sha256": "160cec486205458b24d4c82aff36e4112a3338abae7d662fd3c9f51937a59fd9",
+      "compile_seconds": 41.714920233993325,
+      "observations": [
+        {
+          "fixture": "ties-and-overflow",
+          "status": "passed",
+          "cuda_ms": 12.49824047088623,
+          "wall_seconds": 0.012662428023759276
+        },
+        {
+          "fixture": "balanced-routing",
+          "status": "passed",
+          "cuda_ms": 12.292511940002441,
+          "wall_seconds": 0.012335596984485164
+        }
+      ]
+    },
+    {
+      "id": "flashmoe-program-optimized",
+      "kernel_sha256": "f8b2a73db1ba939e58ec461a42ac67afe9bb6019197c2065ba51af87e266afbb",
+      "compile_seconds": 43.454390283004614,
+      "observations": [
+        {
+          "fixture": "ties-and-overflow",
+          "status": "passed",
+          "cuda_ms": 0.6852800250053406,
+          "wall_seconds": 0.0007246689929161221
+        },
+        {
+          "fixture": "balanced-routing",
+          "status": "passed",
+          "cuda_ms": 0.5082880258560181,
+          "wall_seconds": 0.0005304169899318367
+        }
+      ]
+    },
+    {
+      "id": "luce-program-base",
+      "kernel_sha256": "6180de9638ab5018517ac7dda40a9a9829396f752ae43254bca0d0dabcbc9630",
+      "compile_seconds": 44.53402801300399,
+      "observations": [
+        {
+          "fixture": "zero-weights",
+          "status": "passed",
+          "tokens": [
+            0
+          ],
+          "weight_storage_offset": 1,
+          "cuda_ms": 3270.441162109375,
+          "wall_seconds": 3.270558272022754
+        }
+      ]
+    },
+    {
+      "id": "luce-program-optimized",
+      "kernel_sha256": "705d0c4173ca0d2ed8d0b148adaff20176f172665d4759a3c93fcd6033a3a60c",
+      "compile_seconds": 53.25748614699114,
+      "observations": [
+        {
+          "fixture": "zero-weights",
+          "status": "passed",
+          "tokens": [
+            0
+          ],
+          "weight_storage_offset": 1,
+          "cuda_ms": 12574.6484375,
+          "wall_seconds": 12.57484437499079
+        }
+      ]
+    },
+    {
+      "id": "mirage-program-base",
+      "kernel_sha256": "dc1c365f9bef5c25df3ab839fec2ff2ee91f38c93a10dd8ea107a73889000149",
+      "compile_seconds": 45.389951463002944,
+      "observations": [
+        {
+          "fixture": "zero-weights",
+          "status": "passed",
+          "tokens": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              0
+            ]
+          ],
+          "weight_storage_offset": 0,
+          "cuda_ms": 1756.53369140625,
+          "wall_seconds": 1.7566278529993724
+        }
+      ]
+    },
+    {
+      "id": "mirage-program-optimized",
+      "kernel_sha256": "c0338eb766188a8831d25e760161a954bbb7bce0de66c89dfab18fbd29123626",
+      "compile_seconds": 93.7193866299931,
+      "observations": [
+        {
+          "fixture": "zero-weights",
+          "status": "passed",
+          "tokens": [
+            [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              0
+            ]
+          ],
+          "weight_storage_offset": 0,
+          "cuda_ms": 1204.9417724609375,
+          "wall_seconds": 1.205016716994578
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "kuiper_commit": "fccc0b2cffdb785598f18f1a200c5228584f14fb",
+  "fstar_commit": "da21c3925bf09a0a1d9e7558170be82da5edb37c",
+  "z3_version": "4.13.3",
+  "platform": "Linux-x86_64",
+  "url": "https://github.com/FStarLang/kuiper/releases/download/nightly-2026-09-19/kuiper-Linux-x86_64.tar.gz",
+  "sha256": "be6d162eea7ad75bb0d6c4b7e986da4ace1bf9ccb758e32d3b4139d6d7a772eb"
+}

@@ -1,0 +1,4 @@
+proofs/** -text -whitespace
+support/** -text -whitespace
+kernels/** -text -whitespace
+replay-adjustments.patch -text -whitespace

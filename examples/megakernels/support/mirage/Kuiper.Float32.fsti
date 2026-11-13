@@ -1,0 +1,206 @@
+module Kuiper.Float32
+
+#lang-pulse
+
+open Pulse.Lib.Core
+open Kuiper.Locs
+open Kuiper.Floating.Base
+open Kuiper.Approximates.Base
+open Kuiper.Real
+module Pow = FStar.Math.Pow
+module Sqrt = FStar.Math.Sqrt
+module Trig = Kuiper.Real.Trigonometry
+module F = Kuiper.Floating.Base
+
+inline_for_extraction noextract
+val t : Type0
+
+inline_for_extraction noextract
+instance val is_floating : floating t
+
+instance val is_real_like : real_like t
+instance val is_floating_real_like : floating_real_like t
+
+val positive_normal : t -> GTot prop
+
+val positive_normal_of_literal (s : string)
+  : Lemma
+      (requires Kuiper.Float32.Literals.positive_normal_decimal s)
+      (ensures positive_normal (F.of_literal s))
+
+val positive_literal_at_most_one (s : string)
+  : Lemma
+      (requires Kuiper.Float32.Literals.positive_normal_decimal s /\
+                Kuiper.Float32.Literals.at_most_one_decimal s)
+      (ensures F.lte (F.of_literal #t s) F.one)
+
+(* Trusted literal interpretation in the existing algebraic approximation
+   model. The certificate and real enclosure put both values safely inside
+   the same normal rounding cell; this is not equality to the decoded float. *)
+val literal_interval_approx
+  (s : string) (lo_num : nat) (lo_den : pos)
+  (hi_num : nat) (hi_den : pos) (mantissa : nat) (exponent : int) (r : real)
+  : Lemma
+      (requires
+        Kuiper.Float32.Literals.common_normal_cell
+          s lo_num lo_den hi_num hi_den mantissa exponent /\
+        FStar.Real.of_int lo_num /. FStar.Real.of_int lo_den <=. r /\
+        r <=. FStar.Real.of_int hi_num /. FStar.Real.of_int hi_den)
+      (ensures v_approximates (F.of_literal #t s) r)
+
+val non_nan_classification (x : t)
+  : Lemma
+      (requires not (NaN? (kind x)))
+      (ensures Finite? (kind x) \/ x == F.infinity \/ x == F.sub F.zero F.infinity)
+
+val fmax_special_values (x y : t)
+  : Lemma (ensures
+      (not (NaN? (kind x)) /\ NaN? (kind y) ==> F.fmax x y == x) /\
+      (NaN? (kind x) /\ not (NaN? (kind y)) ==> F.fmax x y == y) /\
+      (NaN? (kind x) /\ NaN? (kind y) ==> NaN? (kind (F.fmax x y))))
+
+(* Exact comparison laws inherited from the trusted native binary32 interface. *)
+val lt_ordered (x y : t)
+  : Lemma
+      (requires lt x y)
+      (ensures ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+
+val lt_transitive (x y z : t)
+  : Lemma
+      (requires lt x y /\ lt y z)
+      (ensures lt x z)
+
+(* Forward the documented CUDA expf laws from Kuiper.Float32.Base. *)
+val exp_special_values (x : t)
+  : Lemma (ensures
+      ((x == F.sub F.zero F.infinity ==> fexp x == F.zero) /\
+       (x == F.infinity ==> fexp x == F.infinity) /\
+       (NaN? (kind x) ==> NaN? (kind (fexp x)))))
+
+inline_for_extraction noextract
+val fexpm1 : t -> t
+
+inline_for_extraction noextract
+val flog1p : t -> t
+
+val expm1_approx
+  (x : t)
+  (r : real)
+  : Lemma
+      (requires v_approximates x r)
+      (ensures v_approximates (fexpm1 x) (exp r -. 1.0R))
+
+val log1p_approx
+  (x : t)
+  (r : real { r >. 0.0R -. 1.0R })
+  : Lemma
+      (requires v_approximates x r)
+      (ensures v_approximates (flog1p x) (log (1.0R +. r)))
+
+(* New trusted approximation contracts for ordinary powf/sinf/cosf, not
+   FastMath intrinsics. These ghost lemmas specify neither IEEE bits,
+   exceptional-value behavior, nor numerical error bounds. *)
+val pow_approx
+  (x y : t)
+  (xr : Pow.rpos)
+  (yr : real)
+  : Lemma
+      (requires v_approximates x xr /\ v_approximates y yr)
+      (ensures v_approximates (pow x y) (Pow.pow xr yr))
+
+val sin_approx
+  (x : t)
+  (xr : real)
+  : Lemma
+      (requires v_approximates x xr)
+      (ensures v_approximates (sin x) (Trig.sin xr))
+
+val cos_approx
+  (x : t)
+  (xr : real)
+  : Lemma
+      (requires v_approximates x xr)
+      (ensures v_approximates (cos x) (Trig.cos xr))
+
+(* GPU-only operations with explicit rounding and flush-to-zero behavior.
+   As for the other floating operations, the trusted real approximation
+   contracts do not model rounding, FTZ, or numerical error bounds. *)
+noextract
+fn add_rn_ftz (x y : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr yr : real).
+      v_approximates x xr /\ v_approximates y yr ==>
+      v_approximates result (xr +. yr))
+
+(* Additional trusted PTX 9.0 fma.rn.ftz.f32 special-value clauses.
+   A positive subnormal multiplier is NOT sufficient: FTZ turns it into zero.
+   https://docs.nvidia.com/cuda/archive/13.0.0/parallel-thread-execution/index.html#floating-point-instructions-fma *)
+noextract
+fn fma_rn_ftz (x y z : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    (forall (xr yr zr : real).
+      v_approximates x xr /\ v_approximates y yr /\ v_approximates z zr ==>
+      v_approximates result (xr *. yr +. zr)) /\
+    (x == F.sub F.zero F.infinity /\ positive_normal y /\
+      (Finite? (kind z) \/ z == F.sub F.zero F.infinity) ==>
+      result == F.sub F.zero F.infinity) /\
+    (x == F.sub F.zero F.infinity /\ positive_normal y /\ z == F.infinity ==>
+      NaN? (kind result)) /\
+    (NaN? (kind x) \/ NaN? (kind y) \/ NaN? (kind z) ==> NaN? (kind result)))
+
+(* Trusted mul.rn.ftz.f32 classification. Shrinking a finite operand by a
+   positive factor <= 1 cannot overflow; flushing subnormals preserves finiteness.
+   https://docs.nvidia.com/cuda/archive/13.0.0/parallel-thread-execution/index.html#floating-point-instructions-mul *)
+noextract
+fn mul_rn_ftz (x y : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    (forall (xr yr : real).
+      v_approximates x xr /\ v_approximates y yr ==>
+      v_approximates result (xr *. yr)) /\
+    (Finite? (kind x) /\ positive_normal y /\ F.lte y F.one ==>
+      Finite? (kind result)) /\
+    (x == F.infinity /\ positive_normal y ==> result == F.infinity) /\
+    (x == F.sub F.zero F.infinity /\ positive_normal y ==>
+      result == F.sub F.zero F.infinity) /\
+    (NaN? (kind x) \/ NaN? (kind y) ==> NaN? (kind result)))
+
+(* Trusted PTX 9.0 ex2.approx.ftz.f32 special values; no NaN-payload claim.
+   https://docs.nvidia.com/cuda/archive/13.0.0/parallel-thread-execution/index.html#floating-point-instructions-ex2 *)
+noextract
+fn exp2_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    (forall (xr : real).
+      v_approximates x xr ==>
+      v_approximates result (Pow.exp2 xr)) /\
+    (x == F.sub F.zero F.infinity ==> result == F.zero) /\
+    (x == F.infinity ==> result == F.infinity) /\
+    (is_zero x ==> result == F.one) /\
+    (NaN? (kind x) ==> NaN? (kind result)))
+
+noextract
+fn rcp_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : real{xr =!= 0.0R}).
+      v_approximates x xr ==>
+      v_approximates result (1.0R /. xr))
+
+noextract
+fn rsqrt_approx_ftz (x : t)
+  preserves gpu
+  returns result : t
+  ensures pure (
+    forall (xr : Sqrt.rpos).
+      v_approximates x xr ==>
+      v_approximates result (1.0R /. Sqrt.sqrt xr))
+
+val lem_sizeof () : Lemma (Sized.size #t == 4sz)

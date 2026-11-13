@@ -1,0 +1,185 @@
+{
+  "started_utc": "2026-11-13T08:31:44.292924+00:00",
+  "torch_version": "2.14.0+cu130",
+  "torch_cuda_version": "13.0",
+  "gpu": "NVIDIA H100 PCIe",
+  "compute_capability": [
+    9,
+    0
+  ],
+  "scope": "synthetic reduced-CUDA smoke tests; not proof extraction or original/reduced equivalence",
+  "compile_flags": [
+    "-O2",
+    "--expt-relaxed-constexpr"
+  ],
+  "cases": [
+    {
+      "id": "flashmoe-argmax-base",
+      "kernel_sha256": "118a0072ad270e19afa9227183fdccf17e4d975e991eb621ce9f729c96b20820",
+      "compile_seconds": 45.116180588986026,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "flashmoe-argmax-optimized",
+      "kernel_sha256": "ac0d9ea293ecbe4eec7e92679db20661935cc9b4d97a14c6214aace62217371e",
+      "compile_seconds": 46.304954402992735,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "flashmoe-normalization_capacity-base",
+      "kernel_sha256": "8428ea147f29b6991bb83110af3bb97bf33f4c05c3724ecd3757cba8c7c4e8a4",
+      "compile_seconds": 44.97393245602143,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "flashmoe-normalization_capacity-optimized",
+      "kernel_sha256": "a09cce4cf6dd38105584a2871443cf3682e154c5a41d6a9da72670696a0f2f61",
+      "compile_seconds": 44.060385241988115,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "flashmoe-projection_softmax-base",
+      "kernel_sha256": "907562d8e3e642fd96b41ad673eed9c27d8521fd9d9c3a02f6d8b0fa5158c88e",
+      "compile_seconds": 43.88270884897793,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "flashmoe-projection_softmax-optimized",
+      "kernel_sha256": "57722e8a6ade9e899e29431275a2276b7f410b2c0bc838b59db356c1a73786b5",
+      "compile_seconds": 45.06441664299928,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "luce-argmax-base",
+      "kernel_sha256": "e62ccbfc627f078fa4f89e25cc6d788d1c70c38daae895f130d60602f8d0dd44",
+      "compile_seconds": 43.29409192400635,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "luce-argmax-optimized",
+      "kernel_sha256": "d9bba0cf6c3f0d185e1c91f9691849c29f033419f4de1c4aba195b85862545e6",
+      "compile_seconds": 45.67288044397719,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "luce-embedding-base",
+      "kernel_sha256": "0f66cc3b2efc1e8823ee9399c1cad10cab1fd762406f84fbc48acc8a376fbb73",
+      "compile_seconds": 43.678996635979274,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "luce-embedding-optimized",
+      "kernel_sha256": "b075f4d5172d6f5f4f6b36d67f1f58171cd2182a335e889a9e13e267cac8922b",
+      "compile_seconds": 44.17127123099635,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "luce-final_norm_projection-base",
+      "kernel_sha256": "fbd0f639f3cff4c9b3bcd4cc94b85b79f3f2314137296f2050107aadf3b9a721",
+      "compile_seconds": 43.9994351619971,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "luce-final_norm_projection-optimized",
+      "kernel_sha256": "5a37c5f43e4b1032f979d04f5a74453927c5c42a025d7daf0999113a552b70ff",
+      "compile_seconds": 43.03845164598897,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "luce-full_attention_decoder-base",
+      "kernel_sha256": "ce021099d49cd91d197d2c5540f731117f032bb5f6c0a579c3acd9b05bac7c03",
+      "compile_seconds": 44.734371711994754,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "luce-full_attention_decoder-optimized",
+      "kernel_sha256": "c4c2e6a3cda6172e2c7d8b516964949659150f1bcdd56c9e825b4a2d31211742",
+      "compile_seconds": 44.722000551002566,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "luce-recurrent_decoder-base",
+      "kernel_sha256": "bbbf622bba6cee40d753ccb7f0fada07ac7829850775edd6f86d329865eed8ba",
+      "compile_seconds": 43.03413453500252,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "luce-recurrent_decoder-optimized",
+      "kernel_sha256": "47cdf3ea63c8e6538a2c92ff9229b09bd38ce45798a18ef43e8e4c7fcdbaa5e8",
+      "compile_seconds": 45.27684500699979,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "mirage-argmax-base",
+      "kernel_sha256": "97e38f5bdc3d51f9563d11a83e9bd0f0583d9ad50ead97e147b92ee6303fe6dc",
+      "compile_seconds": 41.6464941840095,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "mirage-argmax-optimized",
+      "kernel_sha256": "73559e64ea5e56ffd36f1316eb1f6cc0aa4f613be52d6dab630bed0b05c7c3c0",
+      "compile_seconds": 41.89882440600195,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "mirage-decoder-base",
+      "kernel_sha256": "6ea37aa67ea0acef7419b9997e291bb1b3aee6a479da7f8cac5a2965fd400a5a",
+      "compile_seconds": 42.618927550007356,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "mirage-decoder-optimized",
+      "kernel_sha256": "01457418d638c1375aaed4d34265ceca42c6b5078c9847ea9b22770adbdc4712",
+      "compile_seconds": 42.22177555601229,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "mirage-embedding_position-base",
+      "kernel_sha256": "22d35174ec38ba0d2e6223f3ec8f9386f20060eabb9bb2a52cd2f16cc85e1a52",
+      "compile_seconds": 41.64612330100499,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "mirage-embedding_position-optimized",
+      "kernel_sha256": "79544796c34b8d49cd2fdf604aedbf37ba062699e9accaed899e116e72f2f6fb",
+      "compile_seconds": 41.37243020199821,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "mirage-final_norm_projection-base",
+      "kernel_sha256": "2cdfc6f093275c9451ff06a813057cf6739afc9f546117ec1e896c320064813a",
+      "compile_seconds": 41.989502134005306,
+      "observations": [],
+      "status": "compiled"
+    },
+    {
+      "id": "mirage-final_norm_projection-optimized",
+      "kernel_sha256": "1a90b9e0755a4f43cee9a809199d5c99102a0b080b35328bd3ac8aa3a24a4c42",
+      "compile_seconds": 41.5255352120148,
+      "observations": [],
+      "status": "compiled"
+    }
+  ]
+}

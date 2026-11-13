@@ -1,0 +1,21 @@
+{
+  "measurement_date_utc": "2026-11-13",
+  "cpu_model": "AMD EPYC 9554 64-Core Processor",
+  "logical_cpus": 128,
+  "memory_gib": 1511.2,
+  "os": "Ubuntu 24.04.4 LTS",
+  "kernel": "6.8.0-147-generic",
+  "architecture": "x86_64",
+  "libc": "glibc 2.39",
+  "python": "3.12.3",
+  "proof_workers": 8,
+  "corrected_case_workers": 3,
+  "gpu": "NVIDIA H100 PCIe",
+  "compute_capability": "9.0",
+  "driver_version": "580.178.04",
+  "nvcc_version": "13.0.88",
+  "torch_version": "2.14.0+cu130",
+  "ninja_version": "1.13.2",
+  "native_build_workers": 2,
+  "host_is_shared": true
+}
