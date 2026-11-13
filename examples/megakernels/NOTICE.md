@@ -1,17 +1,18 @@
-# Attribution and public-release checklist
+# Attribution and release status
 
-**This is a local release candidate, not legal clearance to publish.** Keep it
-local until the applicable rightsholders/organization approve disclosure and
-the licenses for newly released material are confirmed.
+The release owner confirmed the required redistribution permissions, including
+LUCE, and organizational publication approval on **November 13, 2026**.
+This records that confirmation; it does not add a blanket license or reproduce
+the terms of separately obtained permissions.
 
 | Material | Source and status |
 | --- | --- |
 | Mirage upstream | `mirage-project/mirage`, pinned in `sources.json`; Apache-2.0 text retained in `licenses/Mirage-Apache-2.0.txt` |
-| LUCE upstream | **`PixelML/luce-megakernel`**, not `Luce-Org/lucebox`; at `bab084443f14e6ab3ba76f8e8e3f721ad2e56144`, the complete tree has no LICENSE, COPYING, or NOTICE file. Redistribution permission for derivative retained CUDA remains unresolved |
+| LUCE upstream | **`PixelML/luce-megakernel`**, not `Luce-Org/lucebox`; at `bab084443f14e6ab3ba76f8e8e3f721ad2e56144`, the complete tree has no LICENSE, COPYING, or NOTICE file. The release owner confirmed redistribution permission for the included derivative retained CUDA; this does not establish an upstream license |
 | FlashMoE upstream | `osayamenja/FlashMoE`, pinned in `sources.json`; BSD-3-Clause, copyright 2026 Osayamen Jonathan Aimuyo; original notice and conditions retained in `licenses/FlashMoE-BSD-3-Clause.txt` |
 | F*/Pulse support | Source snapshots and changes relative to the pinned compiler package; applicable Apache-2.0 texts retained |
 | Reference semantics | Qwen3 and Qwen3.5 Transformers model implementations, with model identities pinned in `sources.json`; Transformers and PyTorch license texts retained. No model weights, tokenizers, or input tensors are included |
-| Proofs and new replay code | Authored during the proof-artifact work. Confirm the organization's intended outbound license before public release; dependency notices do not automatically license this material |
+| Proofs and new replay code | Authored during the proof-artifact work and included in the confirmed publication approval. This notice assigns no additional outbound license; dependency notices do not automatically license this material |
 
 Existing notices inside source files are preserved. Dependency license texts
 are not a blanket grant for every file in this directory. A public repository
@@ -46,9 +47,8 @@ candidate binding remains unavailable**. The optional upstream checkout is
 only a source reference; it does not close that gap or authorize an
 original-megakernel equivalence claim.
 
-Before public release, obtain LUCE redistribution permission (or remove that
-material), confirm the outbound license and organizational approval for the
-new artifacts, and preserve the documented scientific/provenance limits.
+Publication approval does not remove applicable licensing conditions or the
+documented scientific/provenance limits.
 No RESOLVE/DTester implementation, private agent transcript, environment
 dictionary, historical executable/cache, captured tensor, or model weight is
 part of this package.

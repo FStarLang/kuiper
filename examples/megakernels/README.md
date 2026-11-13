@@ -5,10 +5,10 @@ program refinements, 24 family refinements, three shared-specification checks,
 and 12 family-tightness proofs**. No RESOLVE installation, agent, DTester,
 model weights, private checkout, or historical checked cache is required.
 
-**Local release candidate. Do not publish until the licensing and disclosure
-items in [NOTICE.md](NOTICE.md) are cleared.** In particular, the pinned LUCE
-repository has no license file. FlashMoE also has an explicitly unresolved
-original-candidate provenance gap.
+**Release candidate.** The release owner confirmed the required redistribution
+permissions and organizational publication approval on November 13, 2026.
+See [NOTICE.md](NOTICE.md) for attribution and licensing boundaries. FlashMoE
+still has an explicitly unresolved original-candidate provenance gap.
 
 ## Check the proofs
 

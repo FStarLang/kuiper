@@ -26,7 +26,7 @@
     "reference_code_note": "The external Transformers implementation is not pinned by the model revision. These paths identify upstream inspection entrypoints, not a reconstruction of the historical reference environment.",
     "scope": "Upstream source reference; accepted reduced optimized code additionally repairs unaligned vector loads.",
     "license": null,
-    "release_blocker": "No LICENSE, COPYING, or NOTICE file was found in the complete pinned tree. Obtain redistribution permission before public release."
+    "redistribution_note": "No LICENSE, COPYING, or NOTICE file was found in the complete pinned tree. The release owner confirmed redistribution permission for the included derivative retained CUDA and organizational publication approval on 2026-11-13. This does not establish an upstream license."
   },
   "flashmoe": {
     "repository": "https://github.com/osayamenja/FlashMoE",
