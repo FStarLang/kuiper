@@ -1190,7 +1190,7 @@ fn write
 {
   unfold varray_pts_to a v0;
   IArray.write a ci e;
-  Container.oplus_lemma (reveal v0) (ci_to_ai vw ci) e;
+  Container.oplus_lemma #_ #_ #_ #vw.ctn (reveal v0) (ci_to_ai vw ci) e;
   IArray.iarray_ext a
     _
     (vw.ctn.acc (vw.ctn.upd v0 (ci_to_ai vw ci) e));
