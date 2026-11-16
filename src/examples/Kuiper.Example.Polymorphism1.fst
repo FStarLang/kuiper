@@ -23,7 +23,7 @@ fn kswap
 inline_for_extraction noextract
 let kernel
   (#t : Type0)
-  (#v1 #v2 : _)
+  (#v1 #v2 : erased t)
   (r1 r2 : gpu_ref t)
   : kernel_desc
       (r1 |-> v1 ** r2 |-> v2)

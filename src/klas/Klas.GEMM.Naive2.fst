@@ -91,6 +91,8 @@ fn spec_2d
 
   spec et
     1sz m n k
+    #_ #_ #_
+    #(C.cl2_to_cl3 m k #(repA m k)) #(C.cl2_to_cl3 k n #(repB k n)) #(C.cl2_to_cl3 m n #(repC m n))
     (relay gA (C.l2_to_l3 m k #(repA m k)))
     (relay gB (C.l2_to_l3 k n #(repB k n)))
     (relay gC (C.l2_to_l3 m n #(repC m n)))

@@ -29,7 +29,7 @@ fn combine_store
   (row : szlt rows) (col : sz { ch /? col })
   (rC rProduct : chest2 real rows cols)
   (n : sz { ch /? n })
-  (out : larray tacc n) (#values : lseq tacc n)
+  (out : larray tacc n) (#values : erased (lseq tacc n))
   (nthr : szp)
   preserves gpu ** out |-> values
   requires thread_groups_approx ch gC row col rC n nthr
