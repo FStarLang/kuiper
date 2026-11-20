@@ -10,21 +10,6 @@ module RO = Kuiper.Float.Realops
 
 #set-options "--fuel 3 --ifuel 1 --z3rlimit 10"
 
-(* These two consequences are valid: canonical zero can only approximate 0. *)
-let zero_add (r s:real)
-  : Lemma
-      (requires A.v_approximates (F.zero #FP.t) r /\
-                A.v_approximates (F.zero #FP.t) s)
-      (ensures A.v_approximates (F.zero #FP.t) (r +. s))
-  = A.approx_functional (F.zero #FP.t) r 0.0R;
-    A.approx_functional (F.zero #FP.t) s 0.0R
-
-let zero_neg (r:real)
-  : Lemma
-      (requires A.v_approximates (F.zero #FP.t) r)
-      (ensures A.v_approximates (F.zero #FP.t) (0.0R -. r))
-  = A.approx_functional (F.zero #FP.t) r 0.0R
-
 (* The original recursive proof must fail at semantic equality, not a missing
    eq_approx name or a reference to another rejected lemma. *)
 [@@expect_failure [19]]
@@ -42,14 +27,6 @@ let rec infinity_down (p:real) (n:nat)
       assert (difference == (F.infinity #FP.t));
       assert (A.v_approximates difference
         ((p -. FStar.Real.of_int (n - 1)) -. 1.0R)))
-
-let infinity_cannot_shift (p:real) (n:pos)
-  : Lemma
-      (requires A.v_approximates (F.infinity #FP.t) p)
-      (ensures ~(A.v_approximates (F.infinity #FP.t)
-        (p -. FStar.Real.of_int n)))
-  = if A.v_approximates (F.infinity #FP.t) (p -. FStar.Real.of_int n) then
-      A.approx_functional (F.infinity #FP.t) p (p -. FStar.Real.of_int n)
 
 (* Zero is not ruled out as infinity's chosen ideal, but cannot be forced. *)
 [@@expect_failure [19]]
@@ -73,24 +50,9 @@ let zero_approximates_one ()
 inline_for_extraction noextract
 let constant_zero (_:FP.t) : FP.t = F.zero
 
-(* This concrete counterexample refutes zero_approximates_one,
-   one_approximates_zero, non_nan_approximates_zero, finite_fact_transfers_to_zero,
-   and both proposed finite-identity contracts, without assuming any of them. *)
-let constant_zero_is_not_identity ()
-  : Lemma
-      (~(A.v_approximates (constant_zero (F.one #FP.t)) 1.0R) /\
-       ~(A.v_approximates (F.one #FP.t) 0.0R) /\
-       not (F.eq (constant_zero (F.one #FP.t)) F.one))
-  =
-  if A.v_approximates (F.zero #FP.t) 1.0R then
-    A.approx_functional (F.zero #FP.t) 0.0R 1.0R;
-  if A.v_approximates (F.one #FP.t) 0.0R then
-    A.approx_functional (F.one #FP.t) 1.0R 0.0R;
-  F.eq_spec (F.zero #FP.t) F.one;
-  if F.bit_eq (F.zero #FP.t) F.one then begin
-    F.bit_eq_spec (F.zero #FP.t) F.one;
-    F.bits_spec (F.zero #FP.t) F.one
-  end
+[@@expect_failure [19]]
+let one_approximates_zero ()
+  : Lemma (A.v_approximates (F.one #FP.t) 0.0R) = ()
 
 [@@expect_failure [19]]
 let finite_fact_transfers_to_zero (x:FP.t) (r:real)

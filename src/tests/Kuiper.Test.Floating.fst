@@ -36,26 +36,34 @@ let bit_equality_preserves_classification #t {| floating t |} (x y:t)
           (ensures kind x == kind y /\ is_zero x == is_zero y)
   = bit_eq_spec x y; bits_spec x y
 
-let zero_does_not_approximate_one #t
-  {| floating t, real_like t, floating_real_like t |} ()
-  : Lemma (~(v_approximates (zero #t) 1.0R))
-  = if v_approximates (zero #t) 1.0R then
-      approx_functional (zero #t) 0.0R 1.0R
+[@@expect_failure [19]]
+let zero_approximates_one_f16 ()
+  : Lemma (v_approximates (zero #Kuiper.Float16.t) 1.0R) = ()
 
-let all_formats_have_distinct_zero_and_one_ideals () : Lemma (
-    ~(v_approximates (zero #Kuiper.Float16.t) 1.0R) /\
-    ~(v_approximates (zero #Kuiper.BFloat16.t) 1.0R) /\
-    ~(v_approximates (zero #Kuiper.Float32.t) 1.0R) /\
-    ~(v_approximates (zero #Kuiper.Float64.t) 1.0R))
-  = zero_does_not_approximate_one #Kuiper.Float16.t ();
-    zero_does_not_approximate_one #Kuiper.BFloat16.t ();
-    zero_does_not_approximate_one #Kuiper.Float32.t ();
-    zero_does_not_approximate_one #Kuiper.Float64.t ()
+[@@expect_failure [19]]
+let zero_approximates_one_bf16 ()
+  : Lemma (v_approximates (zero #Kuiper.BFloat16.t) 1.0R) = ()
+
+[@@expect_failure [19]]
+let zero_approximates_one_f32 ()
+  : Lemma (v_approximates (zero #Kuiper.Float32.t) 1.0R) = ()
+
+[@@expect_failure [19]]
+let zero_approximates_one_f64 ()
+  : Lemma (v_approximates (zero #Kuiper.Float64.t) 1.0R) = ()
+
+[@@expect_failure [19]]
+let approximation_need_not_be_functional
+  (x:Kuiper.Float32.t) (r s:Kuiper.Real.real)
+  : Lemma (requires v_approximates x r /\ v_approximates x s)
+          (ensures r == s)
+  = ()
 
 let exponential_zero_bits_keep_positive_ideal ()
   : Lemma (
-      let x = fexp (neg (infinity #Kuiper.Float32.t)) in
-      bit_eq x zero /\ ~(v_approximates x 0.0R))
+      let n = neg (infinity #Kuiper.Float32.t) in
+      let r = FStar.Math.Exp.exp (to_real n) in
+      bit_eq (fexp n) zero /\ v_approximates (fexp n) r /\ r >. 0.0R)
   =
   let n = neg (infinity #Kuiper.Float32.t) in
   let r = to_real n in
@@ -63,22 +71,16 @@ let exponential_zero_bits_keep_positive_ideal ()
   let _ = approx_fexp #Kuiper.Float32.t in
   approx_apply fexp Kuiper.Float.Realops.r_exp n r;
   exp_special_values n;
-  FStar.Math.Exp.exp_positive r;
-  if v_approximates (fexp n) 0.0R then
-    approx_functional (fexp n) (FStar.Math.Exp.exp r) 0.0R
+  FStar.Math.Exp.exp_positive r
 
 let infinite_subtraction_keeps_ideal ()
   : Lemma (
       let x = infinity #Kuiper.Float32.t in
       let result = Kuiper.Float32.FastMath.pure_sub_rn x one in
-      bit_eq result x /\ result =!= x)
+      bit_eq result x /\ v_approximates result (to_real x -. 1.0R))
   =
   let x = infinity #Kuiper.Float32.t in
-  let r = to_real x in
-  to_real_ok x;
-  let result = Kuiper.Float32.FastMath.pure_sub_rn x one in
-  if result == x then
-    approx_functional x r (r -. 1.0R)
+  to_real_ok x
 
 let zero_sub_classification #t {| floating t |} (x:t)
   : Lemma (kind (sub zero x) == kind x)

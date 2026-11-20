@@ -7,8 +7,9 @@ open Kuiper.Float.Realops
 open Kuiper.Scalars
 open Kuiper.Floating.Base
 
-(* Floating approximation uses a single ideal real value, not the exact real
-   interpretation of the rounded bits. Model a semantic float as (bits, ideal):
+(* Floating approximation admits an interpretation with a single ideal real
+   value, not the exact real interpretation of the rounded bits. In this model,
+   a semantic float is (bits, ideal):
    primitives compute their usual floating result in the first component and
    their real specification in the second. The ideal component is ghost state
    and is erased by extraction; this relation alone gives no error bound.
@@ -24,14 +25,10 @@ open Kuiper.Floating.Base
    must constrain bits unless both components agree; exact laws such as
    commutativity or multiplication by canonical one can still be sound.
 
-   to_real_ok supplies an ideal for every value; approx_functional below makes
-   that ideal unique. It must not force all values with equal bits to share it. *)
+   to_real_ok supplies a real approximation for every value. We deliberately
+   do not assume uniqueness: the contracts are compatible with this single-value
+   model without requiring it or excluding other approximation relations. *)
 class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
-  (* Each semantic value has one ideal real, independent of its rounded bits. *)
-  approx_functional : (x:a) -> (r:real) -> (s:real) ->
-    Lemma (requires v_approximates x r /\ v_approximates x s)
-          (ensures r == s);
-
   approx_of_int : squash ((of_int #a) %~ r_of_int);
   approx_fmax : squash ((fmax #a) %~ r_fmax);
   approx_neg : squash ((neg #a) %~ r_neg);
