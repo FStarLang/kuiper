@@ -7,13 +7,30 @@ open Kuiper.Float.Realops
 open Kuiper.Scalars
 open Kuiper.Floating.Base
 
-(* Extra rules for types supporting division and exponentiation. *)
+(* Floating approximation uses a single ideal real value, not the exact real
+   interpretation of the rounded bits. Model a semantic float as (bits, ideal):
+   primitives compute their usual floating result in the first component and
+   their real specification in the second. The ideal component is ghost state
+   and is erased by extraction; this relation alone gives no error bound.
+
+   Canonical zero and one have ideals 0 and 1. Other values with the same bits
+   can have different ideals, including values with zero, infinity or NaN bits.
+   Infinity's ideal is an ordinary, unspecified real, not an extended real.
+   For example, exp(-infinity) has zero bits but a strictly positive ideal.
+
+   Leibniz equality compares both components. IEEE equality and bit_eq observe
+   only the bits, so neither permits substitution or transfer of approximation.
+   In particular, there is deliberately no eq_approx rule. Special-value laws
+   must constrain bits unless both components agree; exact laws such as
+   commutativity or multiplication by canonical one can still be sound.
+
+   to_real_ok supplies an ideal for every value; approx_functional below makes
+   that ideal unique. It must not force all values with equal bits to share it. *)
 class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
-  (* Real approximation ignores the sign of zero. This is a property of
-     this relation, not permission to substitute IEEE-equal floats anywhere. *)
-  eq_approx : (x:a) -> (y:a) -> (r:real) ->
-    Lemma (requires eq x y /\ v_approximates y r)
-          (ensures v_approximates x r);
+  (* Each semantic value has one ideal real, independent of its rounded bits. *)
+  approx_functional : (x:a) -> (r:real) -> (s:real) ->
+    Lemma (requires v_approximates x r /\ v_approximates x s)
+          (ensures r == s);
 
   approx_of_int : squash ((of_int #a) %~ r_of_int);
   approx_fmax : squash ((fmax #a) %~ r_fmax);
@@ -25,17 +42,6 @@ class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
   approx_sqrt : squash ((sqrt #a) %~ r_sqrt);
   approx_rsqrt : squash ((rsqrt #a) %~ r_rsqrt);
 }
-
-let eq_approx_pat
-  (a:Type) {| scalar a, floating a, real_like a, rr : floating_real_like a |}
-  (x y:a) (r:real)
-  : Lemma (requires eq x y /\ v_approximates y r)
-          (ensures v_approximates x r)
-          [SMTPat (eq x y);
-           SMTPat (v_approximates y r);
-           SMTPat (v_approximates x r);
-           SMTPat (has_type rr (floating_real_like a))]
-  = eq_approx x y r
 
 (* Expose each function contract when its operation occurs in a proof. *)
 

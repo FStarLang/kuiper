@@ -98,14 +98,15 @@ val pure_sub_rn (x y : t) : GTot (result : t{
       v_approximates result (r_sub xr yr)) /\
     (match kind x, kind y with
      | NaN, _ | _, NaN -> NaN? (kind result)
-     | Infinite, Finite -> result == x
-     | Finite, Infinite -> result == F.neg y
+     | Infinite, Finite -> bit_eq result x
+     | Finite, Infinite -> bit_eq result (F.neg y)
      | Infinite, Infinite ->
-         (x == y ==> NaN? (kind result)) /\
-         (x =!= y ==> result == x)
+         (bit_eq x y ==> NaN? (kind result)) /\
+         (~(bit_eq x y) ==> bit_eq result x)
      | Finite, Finite ->
          (x == y ==> result == F.zero) /\
-         (is_zero x /\ is_zero y /\ x =!= y ==> result == x))})
+         (bit_eq x y ==> bit_eq result F.zero) /\
+         (is_zero x /\ is_zero y /\ ~(bit_eq x y) ==> bit_eq result x))})
 
 noextract
 fn sub_rn (x y : t)

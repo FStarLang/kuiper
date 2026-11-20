@@ -112,7 +112,7 @@ inline_for_extraction noextract
 fn k_loop_step
   (#et_ab #et_acc : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_acc |}
-  {| real_like et_ab, real_like et_acc |}
+  {| real_like et_ab, real_like et_acc, mma_approximation et_ab et_acc |}
   (#m #n #k : szp)
   (#lA : layout2 m k) {| T.ctlayout lA |}
   (gA : array2 et_ab lA)
@@ -312,7 +312,7 @@ inline_for_extraction noextract
 fn compute_acc
   (#et_ab #et_acc : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_acc |}
-  {| real_like et_ab, real_like et_acc |}
+  {| real_like et_ab, real_like et_acc, mma_approximation et_ab et_acc |}
   (#m #n #k : szp)
   (#lA : layout2 m k) {| T.ctlayout lA |}
   (gA : array2 et_ab lA)

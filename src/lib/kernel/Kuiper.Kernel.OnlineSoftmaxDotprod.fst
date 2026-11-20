@@ -430,24 +430,35 @@ let real_online_softmax_dotprod_lemma
     assert (online_softmax_dotprod_real ra rb == sm)
 #pop-options
 
-(* END Proofs *)
+let zero_init_dotprod_correct
+  (#n:pos) (m0:real) (ra rb:lseq real n)
+  : Lemma (
+      let (m, dn, dd) = reveal (seq_fold_left online_softmax_dotprod_real_iter
+        (hide (m0, 0.0R, 0.0R)) (dotprod_pair_seq ra rb)) in
+      dd >. 0.0R /\ dn /. dd == seq_dotprod' (softmax_real_seq ra) rb n)
+  =
+  fold_correct_dotprod m0 0.0R 0.0R (dotprod_pair_seq ra rb);
+  pairs_rsum_eq ra rb;
+  sum_non_zero (seq_map exp ra) 0.0R;
+  let (m, dn, dd) = reveal (seq_fold_left online_softmax_dotprod_real_iter
+    (hide (m0, 0.0R, 0.0R)) (dotprod_pair_seq ra rb)) in
+  exp_positive m;
+  assert (dd >. 0.0R);
+  seq_dotprod_softmax_factor ra rb n;
+  dotprod_cancel (seq_dotprod' (softmax_real_seq ra) rb n) dd dn (exp m)
 
-(* Prove the fold invariant is maintained from iteration [old_i] to [old_i + 1].
-   When [old_i = 0] the fold over the empty slice equals the initial accumulator.
-   When [old_i > 0] we extend the fold by one step via [lemma_seq_fold_left_slice]. *)
+(* Extend the fold from the actual initial ideal value, including iteration zero. *)
 let loop_inv_maintained
   (#n: pos) (ra rb: lseq real n)
+  (initial_max : real)
   (old_i : nat { old_i < n })
   (old_max old_sn old_sd : real)
   : Lemma
     (requires
-      (old_i > 0 ==>
-        (old_max, old_sn, old_sd) ==
-          reveal (seq_fold_left online_softmax_dotprod_real_iter
-                    (hide (ra @! 0, rb @! 0, 1.0R))
-                    (Seq.slice (dotprod_pair_seq ra rb) 1 old_i))) /\
-      (old_i = 0 ==>
-        old_sn == 0.0R /\ old_sd == 0.0R /\ old_max == ra @! 0))
+      (old_max, old_sn, old_sd) ==
+        reveal (seq_fold_left online_softmax_dotprod_real_iter
+                  (hide (initial_max, 0.0R, 0.0R))
+                  (Seq.slice (dotprod_pair_seq ra rb) 0 old_i)))
     (ensures (
       let gx = ra @! old_i in
       let gy = rb @! old_i in
@@ -456,15 +467,10 @@ let loop_inv_maintained
       let sd' = old_sd *. exp (old_max -. m') +. exp (gx -. m') in
       (m', sn', sd') ==
         reveal (seq_fold_left online_softmax_dotprod_real_iter
-                  (hide (ra @! 0, rb @! 0, 1.0R))
-                  (Seq.slice (dotprod_pair_seq ra rb) 1 (old_i + 1)))))
-  = exp_base ();
-    let pairs = dotprod_pair_seq ra rb in
-    let init = hide (ra @! 0, rb @! 0, 1.0R) in
-    if old_i = 0 then
-      assert (Seq.equal (Seq.slice pairs 1 1) Seq.empty)
-    else
-      lemma_seq_fold_left_slice init online_softmax_dotprod_real_iter pairs 1 old_i
+                  (hide (initial_max, 0.0R, 0.0R))
+                  (Seq.slice (dotprod_pair_seq ra rb) 0 (old_i + 1)))))
+  = lemma_seq_fold_left_slice (hide (initial_max, 0.0R, 0.0R))
+      online_softmax_dotprod_real_iter (dotprod_pair_seq ra rb) 0 old_i
 
 (* Bridge: chest1_dotprod is the seq dotprod transported through chest1_to_seq. *)
 let rec chest1_dotprod_seq (#et : Type0) {| scalar et |} (#n : nat)
@@ -502,6 +508,9 @@ fn softmax_dotprod
   let ras : erased (lseq real len) = hide (CH.chest1_to_seq ra);
   let rbs : erased (lseq real len) = hide (CH.chest1_to_seq rb);
   let pairs : erased (lseq (real & real) len) = dotprod_pair_seq ras rbs;
+  (* The infinity sentinel has its own ideal value, not the first input's. *)
+  to_real_ok (neg (infinity #et));
+  let initial_max : erased real = to_real (neg (infinity #et));
 
   let mut i : szle len = 0sz;
   let mut sum_n  : et = zero;
@@ -509,7 +518,7 @@ fn softmax_dotprod
   let mut max    : et = neg infinity;
   let mut gsum_n : erased real = 0.0R;
   let mut gsum_d : erased real = 0.0R;
-  let mut gmax   : erased real = ras @! 0;
+  let mut gmax   : erased real = initial_max;
   while (!i <^ len)
     invariant live i
     invariant
@@ -517,12 +526,11 @@ fn softmax_dotprod
       live sum_n ** live sum_d ** live gsum_n ** live gsum_d
     invariant pure (!sum_n %~ !gsum_n)
     invariant pure (!sum_d %~ !gsum_d)
-    invariant pure (!i > 0 ==> !max %~ !gmax)
-    invariant pure (!i > 0 ==>
+    invariant pure (!max %~ !gmax)
+    invariant pure (
       hide (reveal !gmax, reveal !gsum_n, reveal !gsum_d) ==
-        seq_fold_left online_softmax_dotprod_real_iter (hide (ras @! 0, rbs @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)))
-    invariant pure (!i == 0sz ==>
-      (!sum_n == zero /\ !sum_d == zero /\ !gsum_n == 0.0R /\ !gsum_d == 0.0R /\ !max == neg infinity /\ !gmax == ras @! 0))
+        seq_fold_left online_softmax_dotprod_real_iter
+          (hide (reveal initial_max, 0.0R, 0.0R)) (Seq.slice (reveal pairs) 0 (!i)))
     decreases (len - !i) {
 
     let vk = !i;
@@ -544,14 +552,10 @@ fn softmax_dotprod
 
     let y1 = fexp (!max `sub` max');
     let gy1 = exp (reveal !gmax -. reveal gmax');
-    assert pure (!gsum_n == 0.0R \/ y1 %~ gy1);
-    assert pure (!gsum_d == 0.0R \/ y1 %~ gy1);
+    assert pure (y1 %~ gy1);
 
-    (* Initially both sums approximate real zero. Any real witness for y1
-       then gives zero real products, without identifying signed zeros. *)
-    to_real_ok y1;
-    a_mul !sum_n y1 (reveal !gsum_n) (to_real y1);
-    a_mul !sum_d y1 (reveal !gsum_d) (to_real y1);
+    a_mul !sum_n y1 (reveal !gsum_n) gy1;
+    a_mul !sum_d y1 (reveal !gsum_d) gy1;
     assert pure ( (!sum_n `mul` y1)  %~  (reveal (!gsum_n) *. gy1) );
     assert pure ( (!sum_d `mul` y1)  %~  (reveal (!gsum_d) *. gy1) );
 
@@ -583,23 +587,24 @@ fn softmax_dotprod
     gsum_d := gsum_d';
     assert pure (!sum_d %~ !gsum_d);
 
-    loop_inv_maintained ras rbs (!i) (reveal old_max) (reveal old_sum_n) (reveal old_sum_d);
+    loop_inv_maintained ras rbs (reveal initial_max) (!i)
+      (reveal old_max) (reveal old_sum_n) (reveal old_sum_d);
 
-    (* Establish the fold at the mathematical successor before updating the
-       machine index. Its refinement also rules out the initial i = 0 case. *)
+    (* Establish the fold at the mathematical successor before updating the machine index. *)
     assert pure (hide (reveal gmax', reveal gsum_n', reveal gsum_d') ==
-      seq_fold_left online_softmax_dotprod_real_iter (hide (ras @! 0, rbs @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (SZ.v vk + 1)));
+      seq_fold_left online_softmax_dotprod_real_iter
+        (hide (reveal initial_max, 0.0R, 0.0R)) (Seq.slice (reveal pairs) 0 (SZ.v vk + 1)));
     let next_i : (v:sz{SZ.v v == SZ.v vk + 1}) = !i `SZ.add` 1sz;
     i := next_i;
 
     assert pure (hide (reveal gmax', reveal gsum_n', reveal gsum_d') ==
-      seq_fold_left online_softmax_dotprod_real_iter (hide (ras @! 0, rbs @! 0, 1.0R)) (Seq.slice (reveal pairs) 1 (!i)));
+      seq_fold_left online_softmax_dotprod_real_iter
+        (hide (reveal initial_max, 0.0R, 0.0R)) (Seq.slice (reveal pairs) 0 (!i)));
     ()
   };
 
+  zero_init_dotprod_correct (reveal initial_max) ras rbs;
   let res = !sum_n `div` !sum_d;
-  assert pure (res %~ online_softmax_dotprod_real ras rbs);
-  real_online_softmax_dotprod_lemma ras rbs;
   assert pure (res %~ seq_dotprod (softmax_real_seq ras) rbs);
   lem_softmax_real_to_seq ra;
   chest1_dotprod_seq (softmax_real ra) rb len;

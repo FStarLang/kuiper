@@ -30,6 +30,7 @@ val of_int_one : squash (of_int 1L == one)
 
 val kind : t -> fkind
 val is_zero : t -> GTot bool
+val bits : t -> GTot int
 
 val largest : t
 val infinity : t
@@ -42,8 +43,13 @@ val zero_is_zero : squash (is_zero zero)
 val one_is_nonzero : squash (~(is_zero one))
 
 val bit_eq_spec : (x:t) -> (y:t) ->
-    Lemma (bit_eq x y <==> x == y)
+    Lemma (bit_eq x y <==> bits x == bits y)
           [SMTPat (bit_eq x y)]
+
+val bits_spec : (x:t) -> (y:t) ->
+    Lemma (requires bits x == bits y)
+          (ensures kind x == kind y /\ is_zero x == is_zero y)
+          [SMTPat (bits x); SMTPat (bits y)]
 
 val is_zero_spec : (x:t) ->
     Lemma (requires is_zero x)
@@ -53,7 +59,7 @@ val is_zero_spec : (x:t) ->
 val eq_spec : (x : t) -> (y : t) ->
     Lemma (eq x y <==>
       (~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
-       (x == y \/ (is_zero x /\ is_zero y))))
+       (bit_eq x y \/ (is_zero x /\ is_zero y))))
           [SMTPat (eq x y)]
 
 val lte_is_lt_or_eq : (x : t) -> (y : t) ->
@@ -165,9 +171,9 @@ val fexp : t -> t
 (* Trusted CUDA exp special values, separate from real approximation. *)
 val exp_special_values (x : t)
   : Lemma (ensures
-      ((is_zero x ==> fexp x == one) /\
-       (x == neg infinity ==> fexp x == zero) /\
-       (x == infinity ==> fexp x == infinity) /\
+      ((is_zero x ==> bit_eq (fexp x) one) /\
+       (bit_eq x (neg infinity) ==> bit_eq (fexp x) zero) /\
+       (bit_eq x infinity ==> bit_eq (fexp x) infinity) /\
        (NaN? (kind x) ==> NaN? (kind (fexp x)))))
       [SMTPat (fexp x)]
 

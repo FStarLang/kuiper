@@ -7,9 +7,9 @@ include Kuiper.Floating.Base
 inline_for_extraction noextract
 let ieee_eq (#t:Type) {| floating t |} (x y:t) : bool = eq x y
 
-let ieee_eq_nonzero_is_exact (#t:Type) {| floating t |} (x y:t)
+let ieee_eq_nonzero_is_bit_eq (#t:Type) {| floating t |} (x y:t)
   : Lemma (requires ieee_eq x y /\ (~(is_zero x) \/ ~(is_zero y)))
-          (ensures x == y)
+          (ensures bit_eq x y)
   = eq_spec x y
 
 let bit_eq_refl (#t:Type) {| floating t |} (x:t)
@@ -18,7 +18,17 @@ let bit_eq_refl (#t:Type) {| floating t |} (x:t)
 
 let ieee_eq_refl (#t:Type) {| floating t |} (x:t)
   : Lemma (ieee_eq x x <==> ~(NaN? (kind x)))
-  = eq_spec x x
+  = bit_eq_refl x; eq_spec x x
+
+let infinity_signs_differ (#t:Type) {| floating t |} ()
+  : Lemma (~(bit_eq (neg (infinity #t)) infinity))
+  = if bit_eq (neg (infinity #t)) infinity then begin
+    bit_eq_refl (neg (infinity #t));
+    exp_special_values (neg (infinity #t));
+    bit_eq_spec (fexp (neg (infinity #t))) zero;
+    bit_eq_spec (fexp (neg (infinity #t))) infinity;
+    bits_spec (zero #t) infinity
+    end
 
 inline_for_extraction noextract
 let gt (#t:Type) {| floating t |} (x y : t) : bool =

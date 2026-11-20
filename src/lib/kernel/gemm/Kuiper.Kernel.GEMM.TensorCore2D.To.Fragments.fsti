@@ -45,7 +45,8 @@ ghost fn rewrite_fragarrayAcc
 inline_for_extraction noextract
 fn subproducts_tc_2d
   (#et_ab #et_acc : Type0)
-  {| scalar et_ab, scalar et_acc, real_like et_ab, real_like et_acc |}
+  {| scalar et_ab, scalar et_acc, real_like et_ab, real_like et_acc,
+     mma_approximation et_ab et_acc |}
   (bm bn bk
    tm tn tk
    wm wn : szp { constraints bm bn bk tm tn tk wm wn })
