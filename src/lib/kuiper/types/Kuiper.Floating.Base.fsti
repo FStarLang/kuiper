@@ -25,6 +25,7 @@ class floating (t : Type) = {
   (* Exact representation comparison, including NaN signs and payloads.
      The scalar superclass's eq remains IEEE numerical comparison. *)
   bit_eq : t -> t -> bool;
+  bits : t -> GTot int;
 
   of_int : Int64.t -> t;
 
@@ -58,15 +59,21 @@ class floating (t : Type) = {
      (round-to-nearest-even). They may not hold under CUDA's --use_fast_math
      or explicit rounding-mode intrinsics (__fadd_rd, __fmul_ru, etc.).
 
-     Propositional equality distinguishes every representation, including
-     signed zeros and NaN payloads. IEEE comparison identifies the two zero
-     signs and is false for NaNs, so it does not imply substitutable equality.
+     A value carries both its representation and an ideal real value.
+     Propositional equality compares both; bit_eq and IEEE comparison
+     observe only the representation, never the ideal value.
   *)
 
   #[easy_fill ()]
   bit_eq_spec : (x : t) -> (y : t) ->
-    Lemma (bit_eq x y <==> x == y)
+    Lemma (bit_eq x y <==> bits x == bits y)
           [SMTPat (bit_eq x y)];
+
+  #[easy_fill ()]
+  bits_spec : (x : t) -> (y : t) ->
+    Lemma (requires bits x == bits y)
+          (ensures kind x == kind y /\ is_zero x == is_zero y)
+          [SMTPat (bits x); SMTPat (bits y)];
 
   #[easy_fill ()]
   is_zero_spec : (x : t) ->
@@ -78,7 +85,7 @@ class floating (t : Type) = {
   eq_spec : (x : t) -> (y : t) ->
     Lemma (eq x y <==>
       (~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
-       (x == y \/ (is_zero x /\ is_zero y))))
+       (bit_eq x y \/ (is_zero x /\ is_zero y))))
           [SMTPat (eq x y)];
 
   (* x <= y <==> x < y or IEEE equality *)
@@ -220,9 +227,9 @@ class floating (t : Type) = {
   #[easy_fill ()]
   exp_special_values : (x : t) ->
     Lemma (ensures
-      ((is_zero x ==> fexp x == one) /\
-       (x == neg infinity ==> fexp x == zero) /\
-       (x == infinity ==> fexp x == infinity) /\
+      ((is_zero x ==> bit_eq (fexp x) one) /\
+       (bit_eq x (neg infinity) ==> bit_eq (fexp x) zero) /\
+       (bit_eq x infinity ==> bit_eq (fexp x) infinity) /\
        (NaN? (kind x) ==> NaN? (kind (fexp x)))));
 
   flog : t -> t;

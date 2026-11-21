@@ -9,9 +9,9 @@ module SZ = Kuiper.SizeT
 
 let ordinary_zero_exponentials #t {| floating t |} (x : t{is_zero x})
   : Lemma
-      (fexp (F.zero #t) == F.one /\
-       fexp (F.neg (F.zero #t)) == F.one /\
-       fexp x == F.one)
+      (bit_eq (fexp (F.zero #t)) F.one /\
+       bit_eq (fexp (F.neg (F.zero #t))) F.one /\
+       bit_eq (fexp x) F.one)
   = F.exp_special_values (F.zero #t);
     F.neg_is_zero (F.zero #t);
     F.exp_special_values (F.neg (F.zero #t));
@@ -19,8 +19,8 @@ let ordinary_zero_exponentials #t {| floating t |} (x : t{is_zero x})
 
 let ordinary_infinite_exponentials #t {| floating t |} ()
   : Lemma
-      (fexp (F.neg F.infinity) == (F.zero #t) /\
-       fexp (F.infinity #t) == F.infinity)
+      (bit_eq (fexp (F.neg F.infinity)) (F.zero #t) /\
+       bit_eq (fexp (F.infinity #t)) F.infinity)
   = F.exp_special_values (F.neg (F.infinity #t));
     F.exp_special_values (F.infinity #t)
 
@@ -31,21 +31,21 @@ let ordinary_nan_exponential #t {| floating t |} (x : t{NaN? (kind x)})
 let infinite_subtractions
   (x : f32{Infinite? (kind x)}) (y : f32{Finite? (kind y)})
   : Lemma
-      (Fast.pure_sub_rn x y == x /\
-       Fast.pure_sub_rn y x == F.neg x /\
+      (bit_eq (Fast.pure_sub_rn x y) x /\
+       bit_eq (Fast.pure_sub_rn y x) (F.neg x) /\
        NaN? (kind (Fast.pure_sub_rn x x)))
   = ()
 
 let opposite_infinities
   (x : f32{Infinite? (kind x)})
-  (y : f32{Infinite? (kind y) /\ x =!= y})
-  : Lemma (Fast.pure_sub_rn x y == x)
+  (y : f32{Infinite? (kind y) /\ ~(bit_eq x y)})
+  : Lemma (bit_eq (Fast.pure_sub_rn x y) x)
   = ()
 
 let zero_subtractions (x : f32{is_zero x}) (y : f32{is_zero y})
   : Lemma
       (Fast.pure_sub_rn x x == F.zero /\
-       (x =!= y ==> Fast.pure_sub_rn x y == x))
+       (~(bit_eq x y) ==> bit_eq (Fast.pure_sub_rn x y) x))
   = is_zero_spec x; is_zero_spec y
 
 inline_for_extraction noextract
@@ -85,12 +85,14 @@ fn padding_exp (maximum : f32)
   preserves gpu
   returns result : f32
   ensures pure (
-    (Finite? (kind maximum) \/ maximum == F.infinity ==>
-      result == F.zero /\ v_approximates result 0.0R) /\
-    (maximum == F.neg F.infinity \/ NaN? (kind maximum) ==>
+    (Finite? (kind maximum) \/ bit_eq maximum F.infinity ==>
+      bit_eq result F.zero) /\
+    (bit_eq maximum (F.neg F.infinity) \/ NaN? (kind maximum) ==>
       NaN? (kind result)))
 {
   ordinary_infinite_exponentials #f32 ();
+  infinity_signs_differ #f32 ();
+  F.neg_kind (F.infinity #f32);
   let shifted = Fast.sub_rn (F.neg F.infinity) maximum;
   F.exp_special_values shifted;
   fexp shifted
@@ -101,7 +103,7 @@ fn finite_padding (maximum : f32)
   preserves gpu
   requires pure (Finite? (kind maximum))
   returns result : f32
-  ensures pure (result == F.zero /\ v_approximates result 0.0R)
+  ensures pure (bit_eq result F.zero)
 {
   padding_exp maximum
 }
@@ -110,7 +112,7 @@ inline_for_extraction noextract
 fn positive_infinite_maximum ()
   preserves gpu
   returns result : f32
-  ensures pure (result == F.zero /\ v_approximates result 0.0R)
+  ensures pure (bit_eq result F.zero)
 {
   padding_exp F.infinity
 }

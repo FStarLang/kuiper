@@ -27,7 +27,8 @@ fn kf
   (#et_ab #et_cd #et_acc : Type0)
   {| scalar et_ab, has_vec_cpy et_ab,
      scalar et_cd, scalar et_acc |}
-  {| real_like et_ab, real_like et_cd, real_like et_acc |}
+  {| real_like et_ab, real_like et_cd, real_like et_acc,
+     mma_approximation et_ab et_acc |}
   (comb : et_cd -> et_acc -> et_cd)
   (comb_r : binop real { approx2 comb comb_r })
   (#m #n #k : szp)

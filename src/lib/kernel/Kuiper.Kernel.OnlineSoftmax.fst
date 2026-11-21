@@ -108,6 +108,13 @@ let pointwise_eq (xi m d summ : real)
     assert (exp m *. d == d *. exp m);
     ()
 
+let zero_init_normalizer (m0:real) (s:seq real{Seq.length s > 0})
+  : Lemma (
+      let (m, d) = reveal (seq_fold_left online_softmax_real_iter (hide (m0, 0.0R)) s) in
+      d >. 0.0R /\ d *. exp m == rsum (seq_map exp s))
+  = fold_correct m0 0.0R s;
+    sum_non_zero (seq_map exp s) 0.0R
+
 let online_softmax_is_softmax (s: Seq.seq real{Seq.length s > 0}) :
   Lemma (online_softmax_real s == softmax_real_seq s)
   = exp_base ();
@@ -191,24 +198,25 @@ fn kfonline_softmax
   exp_base ();
 
   let ras : erased (lseq real lenab) = hide (CH.chest1_to_seq ra);
+  (* The infinity sentinel has its own ideal value, not the first input's. *)
+  to_real_ok (neg (infinity #et));
+  let initial_max : erased real = to_real (neg (infinity #et));
 
   let mut i = 0sz;
   let mut sum: et = zero;
   let mut max: et = neg infinity;
   let mut gsum : erased real = 0.0R;
-  let mut gmax : erased real = ras @! 0;
+  let mut gmax : erased real = initial_max;
   while (!i <^ lenab)
     invariant live i **
       live max ** live gmax **
       live sum ** live gsum
     invariant pure (!sum %~ !gsum)
-    invariant pure (!i > 0 ==> !max %~ !gmax)
-    invariant pure (!i > 0 ==> !i <= Seq.length ras /\
+    invariant pure (!max %~ !gmax)
+    invariant pure (!i <= Seq.length ras /\
       hide (reveal !gmax, reveal !gsum) ==
         seq_fold_left online_softmax_real_iter
-        (hide (ras @! 0, 1.0R)) (Seq.slice (reveal ras) 1 (!i)))
-    invariant pure (!i == 0sz ==>
-      (!sum == zero /\ !gsum == 0.0R /\ !max == neg infinity /\ !gmax == ras @! 0))
+        (hide (reveal initial_max, 0.0R)) (Seq.slice (reveal ras) 0 (!i)))
     decreases (lenab - !i) {
 
     let vk = !i;
@@ -225,16 +233,13 @@ fn kfonline_softmax
 
     let y1 = fexp (!max `sub` max');
     let gy1 = exp (reveal !gmax -. reveal gmax');
-    assert pure (!gsum == 0.0R \/ y1 %~ gy1);
+    assert pure (y1 %~ gy1);
 
     let y2 = fexp (x `sub` max');
     let gy2 = exp (gx -. reveal gmax');
     assert pure (y2 %~ gy2);
 
-    (* Initially the sum approximates real zero. Any real witness for y1
-       then gives a zero real product, without identifying signed zeros. *)
-    to_real_ok y1;
-    a_mul !sum y1 (reveal !gsum) (to_real y1);
+    a_mul !sum y1 (reveal !gsum) gy1;
     assert pure ( (!sum `mul` y1)  %~  (reveal (!gsum) *. gy1) );
 
     let sum' = !sum `mul` y1 `add` y2;
@@ -249,33 +254,23 @@ fn kfonline_softmax
     gsum := gsum';
     assert pure (!sum %~ !gsum);
 
-    i := !i `SZ.add` 1sz;
-
     assert pure (reveal gmax' == rmax (reveal old_max) gx);
     assert pure (reveal gsum' == reveal old_sum *. (exp (reveal old_max -. reveal gmax'))  +.  exp (gx -. reveal gmax'));
-    if (!i = 1sz) {
-      assert pure (gx == (ras @! 0));
-      assert pure (!gmax == (ras @! 0));
-      assert pure (old_sum == 0.0R);
-      assert pure (!gsum == gy2);
-      assert pure (gy2 == exp 0.0R);
-      assert pure (gy2 == 1.0R);
-      assert pure (!gsum == 1.0R);
-      assert pure (seq_fold_left online_softmax_real_iter (hide (Seq.index ras 0, 1.0R)) (Seq.slice (reveal ras) 1 1)
-                   ==
-                   (hide (Seq.index ras 0, 1.0R)));
-      ();
-    } else {
-      assert pure (hide (reveal old_max, reveal old_sum) == seq_fold_left online_softmax_real_iter (hide (Seq.index ras 0, 1.0R)) (Seq.slice (reveal ras) 1 (!i - 1)));
-      assert pure (hide (reveal gmax', reveal gsum') == online_softmax_real_iter (hide (reveal old_max, reveal old_sum)) gx);
-      lemma_seq_fold_left_slice' (hide (ras @! 0, 1.0R)) online_softmax_real_iter (reveal ras) 1 (!i);
-      assert pure (hide (reveal gmax', reveal gsum') == seq_fold_left online_softmax_real_iter (hide (Seq.index ras 0, 1.0R)) (Seq.slice (reveal ras) 1 (!i)));
-    };
+    assert pure (hide (reveal gmax', reveal gsum') ==
+      online_softmax_real_iter (hide (reveal old_max, reveal old_sum)) gx);
+    lemma_seq_fold_left_slice' (hide (reveal initial_max, 0.0R))
+      online_softmax_real_iter (reveal ras) 0 vk;
+    i := !i `SZ.add` 1sz;
   };
+  assert pure (!i == lenab);
+  assert pure (Seq.slice (reveal ras) 0 (!i) == reveal ras);
+  assert pure (hide (reveal !gmax, reveal !gsum) ==
+    seq_fold_left online_softmax_real_iter (hide (reveal initial_max, 0.0R)) (reveal ras));
+  zero_init_normalizer (reveal initial_max) (reveal ras);
+  pointwise_eq (ras @! tid) (reveal !gmax) (reveal !gsum) (rsum (seq_map exp ras));
   let x = read a ((tid <: szlt lenab), ());
   let y = (fexp (x `sub` !max) `div` !sum);
-  assert pure (y %~ ((online_softmax_real (reveal ras)) @! tid));
-  online_softmax_is_softmax (reveal ras);
+  assert pure (y %~ ((softmax_real_seq (reveal ras)) @! tid));
   lem_softmax_real_to_seq ra;
   assert pure (y %~ acc1 (softmax_real ra) tid);
   write_cell b ((tid <: szlt lenab), ()) y;

@@ -817,10 +817,20 @@ let wgmma_mma_sync (_tys:list cty) (args:list expr) : ML expr =
 (* Floats                                                               *)
 (* -------------------------------------------------------------------- *)
 
-let f32_lit (s:string) : ML expr =
+let float_lit (width:fwidth) (s:string) : ML expr =
   match float_lit_of_string s with
-  | Some l -> mk (EConst (CFloat (l, Float32))) (TFloat Float32) E_Pure
+  | Some l -> mk (EConst (CFloat (l, width))) (TFloat width) E_Pure
   | None -> fail ("not a float literal: " ^ s)
+
+let f32_lit = float_lit Float32
+
+let native_of_literal (width:fwidth) (_tys:list cty) (args:list expr) : ML expr =
+  match args with
+  | [s] ->
+    (match (strip s).e with
+     | EConst (CString v) -> float_lit width v
+     | _ -> die "a string literal" s)
+  | _ -> fail "of_literal: expected 1 argument"
 
 let of_literal (conv:string) (t:cty) (_tys:list cty) (args:list expr) : ML expr =
   match args with
@@ -902,6 +912,22 @@ let fop (fw:fwidth) (o:op) (t:cty) (_tys:list cty) (args:list expr) : ML expr =
 let register_floats () : ML unit =
   let f32t = TFloat Float32 in
   let f64t = TFloat Float64 in
+  (* Semantic floats hide a raw-plus-ideal record. These rules erase the ideal
+     and keep the native scalar ABI instead of extracting that record. *)
+  List.iter (fun (prefix, width) ->
+    let t = TFloat width in
+    List.iter (fun (nm, op) -> prim (prefix ^ nm) 2 (fop width op t))
+      [("add", Add); ("sub", Sub); ("mul", Mult); ("div", Div)];
+    List.iter (fun (nm, op) -> prim (prefix ^ nm) 2 (fop width op tbool))
+      [("eq", Eq); ("lt", Lt); ("lte", Lte)];
+    cconst (prefix ^ "zero") (float_lit width "0.0");
+    cconst (prefix ^ "one") (float_lit width "1.0");
+    prim (prefix ^ "of_literal") 1 (native_of_literal width);
+    prim (prefix ^ "of_int") 1 (fun _ args ->
+      match args with
+      | [x] -> mk (ECast (x, t)) t E_Pure
+      | _ -> fail "of_int: expected 1 argument"))
+    [(f32, Float32); (f64, Float64)];
   prim (f16 ^ "neg") 1 (fop Float16 Neg half_t);
   prim (bf16 ^ "neg") 1 (fop BFloat16 Neg bf16_t);
   prim (f32 ^ "neg") 1 (fop Float32 Neg f32t);
@@ -953,6 +979,8 @@ let register_floats () : ML unit =
   cconst (f64 ^ "infinity") (cname "INFINITY" f64t);
 
   (* Bit equality compares representations, which no C operator does. *)
+  cfun (f32 ^ "bit_eq") 2 "kpr_f32_bit_eq" tbool;
+  cfun (f64 ^ "bit_eq") 2 "kpr_f64_bit_eq" tbool;
   cfun "FStar.Float32.bit_eq" 2 "kpr_f32_bit_eq" tbool;
   cfun "FStar.Float64.bit_eq" 2 "kpr_f64_bit_eq" tbool;
 
@@ -1027,6 +1055,8 @@ let _ =
   (* Types *)
   ty (f16 ^ "t") half_t;
   ty (bf16 ^ "t") bf16_t;
+  ty (f32 ^ "t") (TFloat Float32);
+  ty (f64 ^ "t") (TFloat Float64);
   ty "Kuiper.Kernel.Stream.stream_t" stream_t;
   ty "Kuiper.TensorCore.Base.fragment" auto_t;
   ty "Kuiper.TensorCore.WGMMA.fragment" auto_t;

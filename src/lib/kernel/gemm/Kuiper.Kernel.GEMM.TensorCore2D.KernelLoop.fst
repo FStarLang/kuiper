@@ -73,7 +73,7 @@ inline_for_extraction noextract
 fn run_loop
   (#et_ab #et_c : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, scalar et_c |}
-  {| real_like et_ab, real_like et_c |}
+  {| real_like et_ab, real_like et_c, mma_approximation et_ab et_c |}
   (#m #n #k : szp)
   (#lA : layout2 m k) {| T.ctlayout lA |}
   (gA : array2 et_ab lA)

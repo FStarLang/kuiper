@@ -18,11 +18,17 @@ instance val is_floating_real_like : floating_real_like t
 
 inline_for_extraction noextract
 val fexpm1 : t -> t
-assume Fexpm1Models : fexpm1 %~ r_expm1
+val fexpm1_models (x:t) (r:real)
+  : Lemma (requires v_approximates x r)
+          (ensures v_approximates (fexpm1 x) (r_expm1 r))
+          [SMTPat (fexpm1 x); SMTPat (v_approximates x r)]
 
 inline_for_extraction noextract
 val flog1p : t -> t
-assume Flog1pModels : flog1p %~ r_log1p
+val flog1p_models (x:t) (r:real{r >. 0.0R -. 1.0R})
+  : Lemma (requires v_approximates x r)
+          (ensures v_approximates (flog1p x) (r_log1p r))
+          [SMTPat (flog1p x); SMTPat (v_approximates x r)]
 
 (* Trusted real approximation contracts; no rounding or error bounds are modeled. *)
 val pow_approx

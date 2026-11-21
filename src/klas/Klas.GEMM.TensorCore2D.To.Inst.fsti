@@ -18,7 +18,7 @@ fn spec
   // specialize
   (et_ab et_acc et_cd : Type0)
   {| scalar et_ab, has_vec_cpy et_ab, real_like et_ab |}
-  {| scalar et_acc, real_like et_acc |}
+  {| scalar et_acc, real_like et_acc, mma_approximation et_ab et_acc |}
   {| scalar et_cd, has_vec_cpy et_cd, real_like et_cd |}
   {| float_cast et_cd et_acc, float_cast et_acc et_cd |}
   (bm bn bk : szp)

@@ -43,7 +43,8 @@ let arrayfragments_fade
 inline_for_extraction noextract
 fn fragarray_mma
   (#et_ab #et_acc : Type0)
-  {| scalar et_ab, scalar et_acc, real_like et_ab, real_like et_acc |}
+  {| scalar et_ab, scalar et_acc, real_like et_ab, real_like et_acc,
+     mma_approximation et_ab et_acc |}
   (tm tn tk wm wn : szp)
   (aFrags     : array (fragment et_ab FragA tm tn tk FragLRM))
   (bFrags     : array (fragment et_ab FragB tm tn tk FragLRM))

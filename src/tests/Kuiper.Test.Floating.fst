@@ -1,5 +1,6 @@
 module Kuiper.Test.Floating
 
+open Kuiper.Real
 open Kuiper.Floating
 open Kuiper.Approximates.Base
 
@@ -12,19 +13,74 @@ let nan_equalities #t {| floating t |} (x:t{is_nan x})
   : Lemma (~(ieee_eq x x) /\ bit_eq x x)
   = ieee_eq_refl x; bit_eq_refl x
 
-let exact_substitution #t {| floating t |} (f:t -> t) (x y:t)
+[@@expect_failure [19]]
+let bit_equality_does_not_allow_substitution #t {| floating t |} (f:t -> t) (x y:t)
   : Lemma (requires bit_eq x y) (ensures f x == f y)
   = bit_eq_spec x y
 
-let nonzero_substitution #t {| floating t |} (f:t -> t) (x y:t)
+[@@expect_failure [19]]
+let nonzero_equality_does_not_allow_substitution #t {| floating t |} (f:t -> t) (x y:t)
   : Lemma (requires ieee_eq x y /\ ~(is_zero x)) (ensures f x == f y)
-  = ieee_eq_nonzero_is_exact x y
+  = ieee_eq_nonzero_is_bit_eq x y
 
-let numerical_approximation #t {| floating t, real_like t, floating_real_like t |}
+[@@expect_failure [19]]
+let numerical_equality_does_not_transfer_approximation #t
+  {| floating t, real_like t, floating_real_like t |}
   (x y:t) (r:Kuiper.Real.real)
   : Lemma (requires ieee_eq x y /\ v_approximates y r)
           (ensures v_approximates x r)
-  = eq_approx x y r
+  = ()
+
+let bit_equality_preserves_classification #t {| floating t |} (x y:t)
+  : Lemma (requires bit_eq x y)
+          (ensures kind x == kind y /\ is_zero x == is_zero y)
+  = bit_eq_spec x y; bits_spec x y
+
+[@@expect_failure [19]]
+let zero_approximates_one_f16 ()
+  : Lemma (v_approximates (zero #Kuiper.Float16.t) 1.0R) = ()
+
+[@@expect_failure [19]]
+let zero_approximates_one_bf16 ()
+  : Lemma (v_approximates (zero #Kuiper.BFloat16.t) 1.0R) = ()
+
+[@@expect_failure [19]]
+let zero_approximates_one_f32 ()
+  : Lemma (v_approximates (zero #Kuiper.Float32.t) 1.0R) = ()
+
+[@@expect_failure [19]]
+let zero_approximates_one_f64 ()
+  : Lemma (v_approximates (zero #Kuiper.Float64.t) 1.0R) = ()
+
+[@@expect_failure [19]]
+let approximation_need_not_be_functional
+  (x:Kuiper.Float32.t) (r s:Kuiper.Real.real)
+  : Lemma (requires v_approximates x r /\ v_approximates x s)
+          (ensures r == s)
+  = ()
+
+let exponential_zero_bits_keep_positive_ideal ()
+  : Lemma (
+      let n = neg (infinity #Kuiper.Float32.t) in
+      let r = FStar.Math.Exp.exp (to_real n) in
+      bit_eq (fexp n) zero /\ v_approximates (fexp n) r /\ r >. 0.0R)
+  =
+  let n = neg (infinity #Kuiper.Float32.t) in
+  let r = to_real n in
+  to_real_ok n;
+  let _ = approx_fexp #Kuiper.Float32.t in
+  approx_apply fexp Kuiper.Float.Realops.r_exp n r;
+  exp_special_values n;
+  FStar.Math.Exp.exp_positive r
+
+let infinite_subtraction_keeps_ideal ()
+  : Lemma (
+      let x = infinity #Kuiper.Float32.t in
+      let result = Kuiper.Float32.FastMath.pure_sub_rn x one in
+      bit_eq result x /\ v_approximates result (to_real x -. 1.0R))
+  =
+  let x = infinity #Kuiper.Float32.t in
+  to_real_ok x
 
 let zero_sub_classification #t {| floating t |} (x:t)
   : Lemma (kind (sub zero x) == kind x)
@@ -93,8 +149,10 @@ let neg_neg_is_not_exact #t {| floating t |} (x:t{not_nan x})
   : Lemma (neg (neg x) == x)
   = neg_neg x
 
-// These aliases exercise native F* interoperability at the implementation boundary.
+// Native representations cannot be used as semantic values without an ideal.
+[@@expect_failure [189]]
 let native_f32 (x:FStar.Float32.t) : Kuiper.Float32.Base.t = x
+[@@expect_failure [189]]
 let native_f64 (x:FStar.Float64.t) : Kuiper.Float64.Base.t = x
 
 // No generic executable equality: callers must choose ieee_eq or bit_eq.

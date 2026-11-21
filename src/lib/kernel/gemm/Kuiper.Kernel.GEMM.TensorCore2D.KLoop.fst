@@ -270,7 +270,8 @@ ghost fn advance_kloop_invariant
 inline_for_extraction noextract
 fn ktile_advance
   (#et_ab #et_c : Type0)
-  {| scalar et_ab, scalar et_c, real_like et_ab, real_like et_c |}
+  {| scalar et_ab, scalar et_c, real_like et_ab, real_like et_c,
+     mma_approximation et_ab et_c |}
   // NOTE: m n k are [szp] (sizet), NOT [nat].  kf's dims are sizet; the
   // sz->nat coercion [sizet_to_nat] is GTot, so taking [nat] params here would
   // make kf's stateful call to this fn GHOST (Pulse "Application of a stateful

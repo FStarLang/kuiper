@@ -1,6 +1,6 @@
 module Kuiper.Float.Casts.Base
 
-(* These are all assumptions and are extracted primitively. *)
+(* Checked ideal-preserving casts, extracted to native representation conversions. *)
 
 #lang-pulse
 open Kuiper

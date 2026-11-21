@@ -107,31 +107,7 @@ fn fragment_pts_to_ref
     pure (valid_frag_et_dims et knd m n k) **
     pure (knd == FragAcc <==> fl == FragLAcc) // useful?
 
-(* A pure version of the mma operation *)
-val emma
-  (#et0 #et1 : Type)
-  (#rows #shared #columns : nat)
-  (mc : chest2 et1 rows columns)
-  (ma : chest2 et0 rows shared)
-  (mb : chest2 et0 shared columns)
-  : chest2 et1 rows columns
-
-val emma_approx_lemma
-  (#et0 : Type) {| scalar et0, real_like et0 |}
-  (#et1 : Type) {| scalar et1, real_like et1 |}
-  (#rows #shared #columns : nat)
-  (mc : chest2 et1 rows columns)
-  (ma : chest2 et0 rows shared)
-  (mb : chest2 et0 shared columns)
-  (rc : chest2 real rows columns)
-  (ra : chest2 real rows shared)
-  (rb : chest2 real shared columns)
-  : Lemma (requires
-            ma %~ ra /\
-            mb %~ rb /\
-            mc %~ rc)
-          (ensures
-            emma mc ma mb %~ matplus rc (matmul ra rb))
+include Kuiper.TensorCore.Model
 
 (* The actual multiplication operation *)
 fn mma_sync'

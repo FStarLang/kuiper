@@ -11,7 +11,7 @@ open Kuiper.Real
 open Kuiper.Float.Realops
 module F = Kuiper.Floating.Base
 
-(* New trusted approximation contracts, not derived generic-trig refinements.
+(* Checked ideal-value contracts for the native fast-math primitives.
    Extraction selects __sinf/__cosf; no IEEE bit or error-bound claim is made. *)
 noextract
 fn sin (x : t)
@@ -31,20 +31,6 @@ fn cos (x : t)
       v_approximates x xr ==>
       v_approximates result (r_cos xr))
 
-private let log_refinement (x : t)
-  : Lemma (
-      forall (xr : real{xr >. 0.0R}).
-        v_approximates x xr ==>
-        v_approximates (Kuiper.Floating.Base.flog x) (r_log xr))
-  = let related (xr : real{xr >. 0.0R /\ v_approximates x xr})
-      : Lemma (
-          v_approximates (Kuiper.Floating.Base.flog x) (r_log xr))
-      = let _ = approx_flog #t in ()
-    in FStar.Classical.forall_intro related
-
-(* The refinement follows the existing logarithm model. Native extraction to
-   __logf is a separate trusted lowering, not bitwise equality with flog.
-   The real relation does not specify exceptional values or error bounds. *)
 noextract
 fn log (x : t)
   preserves gpu
@@ -53,13 +39,8 @@ fn log (x : t)
     forall (xr : real{xr >. 0.0R}).
       v_approximates x xr ==>
       v_approximates result (r_log xr))
-{
-  log_refinement x;
-  Kuiper.Floating.Base.flog x
-}
-
-(* Trusted device intrinsics, extracted directly without host fallbacks or
-   algebraic substitutions. The real approximation clauses do not specify
+(* Device intrinsics, extracted directly without host fallbacks or algebraic
+   substitutions. The checked real approximation clauses do not specify
    IEEE bits, exceptional values, or numerical error bounds. *)
 noextract
 fn exp (x : t)
@@ -98,14 +79,15 @@ val pure_sub_rn (x y : t) : GTot (result : t{
       v_approximates result (r_sub xr yr)) /\
     (match kind x, kind y with
      | NaN, _ | _, NaN -> NaN? (kind result)
-     | Infinite, Finite -> result == x
-     | Finite, Infinite -> result == F.neg y
+     | Infinite, Finite -> bit_eq result x
+     | Finite, Infinite -> bit_eq result (F.neg y)
      | Infinite, Infinite ->
-         (x == y ==> NaN? (kind result)) /\
-         (x =!= y ==> result == x)
+         (bit_eq x y ==> NaN? (kind result)) /\
+         (~(bit_eq x y) ==> bit_eq result x)
      | Finite, Finite ->
          (x == y ==> result == F.zero) /\
-         (is_zero x /\ is_zero y /\ x =!= y ==> result == x))})
+         (bit_eq x y ==> bit_eq result F.zero) /\
+         (is_zero x /\ is_zero y /\ ~(bit_eq x y) ==> bit_eq result x))})
 
 noextract
 fn sub_rn (x y : t)
