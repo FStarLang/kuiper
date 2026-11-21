@@ -149,8 +149,10 @@ let neg_neg_is_not_exact #t {| floating t |} (x:t{not_nan x})
   : Lemma (neg (neg x) == x)
   = neg_neg x
 
-// These aliases exercise native F* interoperability at the implementation boundary.
+// Native representations cannot be used as semantic values without an ideal.
+[@@expect_failure [189]]
 let native_f32 (x:FStar.Float32.t) : Kuiper.Float32.Base.t = x
+[@@expect_failure [189]]
 let native_f64 (x:FStar.Float64.t) : Kuiper.Float64.Base.t = x
 
 // No generic executable equality: callers must choose ieee_eq or bit_eq.

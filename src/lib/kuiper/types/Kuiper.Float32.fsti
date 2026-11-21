@@ -34,14 +34,20 @@ val lt_transitive (x y z : t)
 
 inline_for_extraction noextract
 val fexpm1 : t -> t
-assume Fexpm1Models : fexpm1 %~ r_expm1
+val fexpm1_models (x:t) (r:real)
+  : Lemma (requires v_approximates x r)
+          (ensures v_approximates (fexpm1 x) (r_expm1 r))
+          [SMTPat (fexpm1 x); SMTPat (v_approximates x r)]
 
 inline_for_extraction noextract
 val flog1p : t -> t
-assume Flog1pModels : flog1p %~ r_log1p
+val flog1p_models (x:t) (r:real{r >. 0.0R -. 1.0R})
+  : Lemma (requires v_approximates x r)
+          (ensures v_approximates (flog1p x) (r_log1p r))
+          [SMTPat (flog1p x); SMTPat (v_approximates x r)]
 
 (* GPU-only operations with explicit rounding and flush-to-zero behavior.
-   As for the other floating operations, the trusted real approximation
+   As for the other floating operations, the checked real approximation
    contracts do not model rounding, FTZ, or numerical error bounds. *)
 noextract
 fn add_rn_ftz (x y : t)

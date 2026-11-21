@@ -1,10 +1,9 @@
 module Kuiper.Float16.Base
 
-(* All assumptions about Float16. *)
+(* Checked semantic operations over a runtime representation and an ideal real. *)
 
 open Kuiper.Floating.Base
 
-new
 val t : Type0
 
 val zero : t

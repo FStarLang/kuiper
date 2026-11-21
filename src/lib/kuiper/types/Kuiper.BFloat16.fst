@@ -1,5 +1,7 @@
 module Kuiper.BFloat16
 
+friend Kuiper.BFloat16.Base
+
 open FStar.Tactics.Typeclasses { solve }
 open Kuiper.Sized
 open Kuiper.Canonical
@@ -7,6 +9,7 @@ open Kuiper.Scalars.Base
 open Kuiper.Floating.Base
 open Kuiper.Approximates.Base
 open Kuiper.Real
+open Kuiper.Float.Model
 module Pow = FStar.Math.Pow
 module Trig = Kuiper.Real.Trigonometry
 
@@ -40,17 +43,36 @@ instance is_floating : floating t = {
   fma;
 }
 
-(* Approximation semantics is assumed. *)
-instance is_real_like          : real_like t = magic()
-instance is_floating_real_like : floating_real_like t = magic()
+instance is_real_like : real_like t = {
+  to_real = (fun x -> x.ideal);
+  v_approximates = (fun x r -> x.ideal == r);
+  to_real_ok = (fun x -> ());
+  a0 = ();
+  a1 = ();
+  a_add = (fun x y r s -> ());
+  a_mul = (fun x y r s -> ());
+}
+
+instance is_floating_real_like : floating_real_like t = {
+  approx_of_int = ();
+  approx_fmax = ();
+  approx_neg = ();
+  approx_sub = ();
+  approx_fexp = ();
+  approx_div = ();
+  approx_flog = ();
+  approx_sqrt = ();
+  approx_rsqrt = ();
+}
 
 inline_for_extraction noextract
 let fexpm1 = Kuiper.BFloat16.Base.fexpm1
+let fexpm1_models x r = ()
 
 inline_for_extraction noextract
 let flog1p = Kuiper.BFloat16.Base.flog1p
+let flog1p_models x r = ()
 
-(* The native math approximation contracts are trusted, like is_real_like. *)
 let pow_approx
   (x y : t)
   (xr : Pow.rpos)
@@ -58,7 +80,7 @@ let pow_approx
   : Lemma
       (requires v_approximates x xr /\ v_approximates y yr)
       (ensures v_approximates (pow x y) (Pow.pow xr yr))
-= admit()
+= ()
 
 let sin_approx
   (x : t)
@@ -66,7 +88,7 @@ let sin_approx
   : Lemma
       (requires v_approximates x xr)
       (ensures v_approximates (sin x) (Trig.sin xr))
-= admit()
+= ()
 
 let cos_approx
   (x : t)
@@ -74,6 +96,6 @@ let cos_approx
   : Lemma
       (requires v_approximates x xr)
       (ensures v_approximates (cos x) (Trig.cos xr))
-= admit()
+= ()
 
 let lem_sizeof () = ()

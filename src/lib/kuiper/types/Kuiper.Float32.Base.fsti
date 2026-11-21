@@ -1,31 +1,26 @@
 module Kuiper.Float32.Base
 
-(* All assumptions about Float32. *)
+(* Checked semantic operations over a runtime representation and an ideal real. *)
 
 open Kuiper.Floating.Base
 
-(* Reuse F* native types and primitives. The laws below specify the
-   CUDA interpretation of these otherwise abstract operations. *)
-module F = FStar.Float32
+(* The semantic representation is hidden; it is not the native F* float type. *)
+val t : Type0
 
-inline_for_extraction let t = F.t
-inline_for_extraction let zero = F.zero
-inline_for_extraction let one = F.one
-inline_for_extraction let add = F.add
-inline_for_extraction let mul = F.mul
-inline_for_extraction let lt = F.lt
-inline_for_extraction let lte = F.lte
-inline_for_extraction let sub = F.sub
-inline_for_extraction let div = F.div
-inline_for_extraction let of_int = F.of_int
-inline_for_extraction let of_literal = F.of_literal
-inline_for_extraction let bit_eq = F.bit_eq
-inline_for_extraction let ieee_eq = F.ieee_eq
-inline_for_extraction let eq = ieee_eq
-
-(* Native unary minus, not subtraction from positive zero. *)
+val zero : t
+val one : t
+val add : t -> t -> t
+val mul : t -> t -> t
+val lt : t -> t -> bool
+val lte : t -> t -> bool
+val eq : t -> t -> bool
+inline_for_extraction let ieee_eq = eq
+val bit_eq : t -> t -> bool
 val neg : t -> t
-
+val sub : t -> t -> t
+val div : t -> t -> t
+val of_int : Int64.t -> t
+val of_literal : string -> t
 val of_int_zero : squash (of_int 0L == zero)
 val of_int_one : squash (of_int 1L == one)
 

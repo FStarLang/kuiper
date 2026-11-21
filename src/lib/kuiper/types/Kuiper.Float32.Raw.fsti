@@ -1,0 +1,230 @@
+module Kuiper.Float32.Raw
+
+(* Trusted runtime representation and IEEE laws only; no real approximation. *)
+
+open Kuiper.Floating.Base
+
+(* Reuse F* native types and primitives. The laws below specify the
+   CUDA interpretation of these otherwise abstract operations. *)
+module F = FStar.Float32
+
+inline_for_extraction let t = F.t
+inline_for_extraction let zero = F.zero
+inline_for_extraction let one = F.one
+inline_for_extraction let add = F.add
+inline_for_extraction let mul = F.mul
+inline_for_extraction let lt = F.lt
+inline_for_extraction let lte = F.lte
+inline_for_extraction let sub = F.sub
+inline_for_extraction let div = F.div
+inline_for_extraction let of_int = F.of_int
+inline_for_extraction let of_literal = F.of_literal
+inline_for_extraction let bit_eq = F.bit_eq
+inline_for_extraction let ieee_eq = F.ieee_eq
+inline_for_extraction let eq = ieee_eq
+
+(* Native unary minus, not subtraction from positive zero. *)
+val neg : t -> t
+
+val of_int_zero : squash (of_int 0L == zero)
+val of_int_one : squash (of_int 1L == one)
+
+val kind : t -> fkind
+val is_zero : t -> GTot bool
+val bits : t -> GTot int
+
+val largest : t
+val infinity : t
+
+val kind_one      : squash (kind one == Finite)
+val kind_zero     : squash (kind zero == Finite)
+val kind_largest  : squash (kind largest  == Finite)
+val kind_infinity : squash (kind infinity == Infinite)
+val zero_is_zero : squash (is_zero zero)
+val one_is_nonzero : squash (~(is_zero one))
+
+val bit_eq_spec : (x:t) -> (y:t) ->
+    Lemma (bit_eq x y <==> bits x == bits y)
+          [SMTPat (bit_eq x y)]
+
+val bits_spec : (x:t) -> (y:t) ->
+    Lemma (requires bits x == bits y)
+          (ensures kind x == kind y /\ is_zero x == is_zero y)
+          [SMTPat (bits x); SMTPat (bits y)]
+
+val is_zero_spec : (x:t) ->
+    Lemma (requires is_zero x)
+          (ensures kind x == Finite)
+          [SMTPat (is_zero x)]
+
+val eq_spec : (x : t) -> (y : t) ->
+    Lemma (eq x y <==>
+      (~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+       (bit_eq x y \/ (is_zero x /\ is_zero y))))
+          [SMTPat (eq x y)]
+
+(* Trusted laws of native ordered binary32 comparison, not real approximation. *)
+val lt_ordered (x y : t)
+  : Lemma
+      (requires lt x y)
+      (ensures ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+
+val lt_transitive (x y z : t)
+  : Lemma
+      (requires lt x y /\ lt y z)
+      (ensures lt x z)
+
+val lte_is_lt_or_eq : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+          (ensures lte x y <==> lt x y \/ eq x y)
+          [SMTPat (lte x y)]
+
+val neg_kind : (x : t) ->
+    Lemma (ensures kind (neg x) == kind x)
+          [SMTPat (neg x)]
+
+val neg_is_zero : (x : t) ->
+    Lemma (ensures is_zero (neg x) == is_zero x)
+          [SMTPat (is_zero (neg x))]
+
+val zero_sub_kind : (x : t) ->
+    Lemma (ensures kind (zero `sub` x) == kind x)
+          [SMTPat (zero `sub` x)]
+
+val zero_sub_involutive : (x : t) ->
+    Lemma (requires ~(NaN? (kind x)))
+          (ensures eq (zero `sub` (zero `sub` x)) x)
+          [SMTPat (zero `sub` (zero `sub` x))]
+
+val lt_zero_sub_flip : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+          (ensures lt x y <==> lt (zero `sub` y) (zero `sub` x))
+          [SMTPat (lt (zero `sub` y) (zero `sub` x))]
+
+val zero_sub_is_neg : (x : t) ->
+    Lemma (requires ~(NaN? (kind x)))
+          (ensures eq (zero `sub` x) (neg x) /\
+                   (~(is_zero x) ==> zero `sub` x == neg x))
+          [SMTPat (zero `sub` x)]
+
+val neg_neg : (x : t) ->
+    Lemma (requires ~(NaN? (kind x)))
+          (ensures eq (neg (neg x)) x)
+          [SMTPat (neg (neg x))]
+
+val lt_neg_flip : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+          (ensures lt x y <==> lt (neg y) (neg x))
+          [SMTPat (lt x y)]
+
+val negate_lt_is_lte : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+          (ensures lt x y <==> not (lte y x))
+          [SMTPat (lt x y)]
+
+val add_comm : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+                    ~(NaN? (kind (add x y))))
+          (ensures add x y == add y x)
+          [SMTPat (add x y)]
+
+val mul_comm : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+                    ~(NaN? (kind (mul x y))))
+          (ensures mul x y == mul y x)
+          [SMTPat (mul x y)]
+
+val add_zero : (x : t) ->
+    Lemma (requires ~(NaN? (kind x)))
+          (ensures eq (add x zero) x)
+          [SMTPat (add x zero)]
+
+val  mul_zero : (x : t) ->
+    Lemma (requires Finite? (kind x))
+          (ensures eq (mul x zero) zero)
+          [SMTPat (mul x zero)]
+
+val  mul_one : (x : t) ->
+    Lemma (requires ~(NaN? (kind x)))
+          (ensures mul x one == x)
+          [SMTPat (mul x one)]
+
+val sub_is_add_neg : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+                    ~(NaN? (kind (sub x y))))
+          (ensures eq (sub x y) (add x (neg y)))
+          [SMTPat (sub x y)]
+
+val sub_is_add_zero_sub : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)) /\
+                    ~(NaN? (kind (sub x y))))
+          (ensures eq (sub x y) (add x (zero `sub` y)))
+          [SMTPat (sub x y)]
+
+val largest_val_spec : (x : t) ->
+    Lemma (requires Finite? (kind x))
+          (ensures lte x largest)
+          [SMTPat (lte x largest)]
+
+val infinity_val_spec : (x : t) ->
+    Lemma (requires ~(NaN? (kind x)))
+          (ensures lte x infinity)
+          [SMTPat (lte x infinity)]
+
+val fmax : t -> t -> t
+
+val fmax_spec : (x : t) -> (y : t) ->
+    Lemma (requires ~(NaN? (kind x)) /\ ~(NaN? (kind y)))
+          (ensures eq (fmax x y) (if lt x y then y else x))
+          [SMTPat (fmax x y)]
+
+val fexp : t -> t
+
+(* Trusted CUDA expf special values, separate from real approximation:
+   https://docs.nvidia.com/cuda/archive/13.0.0/cuda-math-api/cuda_math_api/group__CUDA__MATH__SINGLE.html#_CPPv44expff
+   Bit equality specifies positive zero; ideal values are not identified.
+   This is the ordinary expf binding, not the fast __expf intrinsic. *)
+val exp_special_values (x : t)
+  : Lemma (ensures
+      ((is_zero x ==> bit_eq (fexp x) one) /\
+       (bit_eq x (neg infinity) ==> bit_eq (fexp x) zero) /\
+       (bit_eq x infinity ==> bit_eq (fexp x) infinity) /\
+       (NaN? (kind x) ==> NaN? (kind (fexp x)))))
+      [SMTPat (fexp x)]
+
+val flog : t -> t
+val fexpm1 : t -> t
+val flog1p : t -> t
+val sqrt : t -> t
+val rsqrt : t -> t
+val sin : t -> t
+val cos : t -> t
+val tan : t -> t
+val asin : t -> t
+val acos : t -> t
+val atan : t -> t
+val sinh : t -> t
+val cosh : t -> t
+val tanh : t -> t
+val ceil : t -> t
+val floor : t -> t
+val round : t -> t
+val fabs : t -> t
+val erf : t -> t
+val log2 : t -> t
+val log10 : t -> t
+val exp2 : t -> t
+val pow : t -> t -> t
+val atan2 : t -> t -> t
+val fmin : t -> t -> t
+val fmod : t -> t -> t
+val copysign : t -> t -> t
+val fma : t -> t -> t -> t
+
+(* Raw GPU operations. Approximation is proved by the semantic wrappers. *)
+val add_rn_ftz : t -> t -> t
+val fma_rn_ftz : t -> t -> t -> t
+val mul_rn_ftz : t -> t -> t
+val exp2_approx_ftz : t -> t
+val rcp_approx_ftz : t -> t
+val rsqrt_approx_ftz : t -> t

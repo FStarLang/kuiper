@@ -27,7 +27,12 @@ open Kuiper.Floating.Base
 
    to_real_ok supplies a real approximation for every value. We deliberately
    do not assume uniqueness: the contracts are compatible with this single-value
-   model without requiring it or excluding other approximation relations. *)
+   model without requiring it or excluding other approximation relations.
+
+   The concrete floating instances implement this model using Float.Model and
+   prove their approximation contracts. The Raw interfaces specify trusted IEEE
+   representation behavior; CUDA extraction must still realize those operations.
+   The semantic record is hidden behind the public interfaces. *)
 class floating_real_like (a:Type) {| scalar a, floating a, real_like a |} = {
   approx_of_int : squash ((of_int #a) %~ r_of_int);
   approx_fmax : squash ((fmax #a) %~ r_fmax);
